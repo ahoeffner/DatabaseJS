@@ -15,5 +15,7 @@ public class DatabaseJS
   public static void main(String[] args) throws Exception
   {
     config = new Config(0);
+    config.log.logger.fine("fine");
+    config.log.logger.warning("warning");
   }
 }

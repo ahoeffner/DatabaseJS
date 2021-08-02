@@ -25,7 +25,7 @@ public class Logger
     
     String level = "warning";
     String logdir = path+"/logs";
-    String logfile = "server"+inst+".xml";
+    String logfile = "server.xml";
     
     int count = 2;
     boolean db = false, http = false;
@@ -63,6 +63,11 @@ public class Logger
 
     if (!ldir.isDirectory())
       throw new Exception(ldir+" is not a directory");
+    
+    logdir += File.separator+"inst"+inst;
+
+    ldir = new File(logdir);
+    if (!ldir.exists()) ldir.mkdir();
 
     this.db = db;
     this.http = http;
@@ -70,7 +75,7 @@ public class Logger
     logger.setUseParentHandlers(false);
     logger.setLevel(Level.parse(level.toUpperCase()));
 
-    FileHandler handler = new FileHandler(logdir+File.separator+logfile,size,count,true);
+    FileHandler handler = new FileHandler(logdir+File.separator+logfile,size,count,false);
     handler.setFormatter(new XMLFormatter());
 
     logger.addHandler(handler);

@@ -11,6 +11,7 @@ public class Config
 {
   private String apphome;
   public final HTTP http;
+  public final Logger log;
   
   private static final String confdir = "conf";
   private static final String confdef = "server.json";
@@ -29,7 +30,8 @@ public class Config
     this.apphome = this.findAppHome();
     Object[] sections = this.load(inst,this.apphome,name);
     
-    this.http = (HTTP) sections[0];
+    this.log =  (Logger)  sections[0];
+    this.http = (HTTP)    sections[1];
   }
   
   
@@ -50,7 +52,7 @@ public class Config
     JSONObject  httpconf = config.getJSONObject("http");
     HTTP http = new HTTP(inst,path,httpconf);
     
-    return(new Object[] {http});
+    return(new Object[] {log,http});
   }
   
   
