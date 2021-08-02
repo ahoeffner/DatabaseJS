@@ -14,6 +14,6 @@ public class DatabaseJS
   
   public static void main(String[] args) throws Exception
   {
-    config = new Config();
+    config = new Config(0);
   }
 }
