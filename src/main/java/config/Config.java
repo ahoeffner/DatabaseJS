@@ -37,22 +37,34 @@ public class Config
   
   private Object[] load(int instno, String path, String name) throws Exception
   {
-    if (name == null) name = confdef;
-    if (!name.endsWith(".json")) name += ".json";
-    
-    String inst = String.format("%1$3s",instno).replace(' ','0');
-    FileInputStream in = new FileInputStream(path+sep+confdir+sep+name);
-    
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-    
-    JSONObject  logconf = config.getJSONObject("log");
-    Logger log = new Logger(inst,path,logconf);
-    
-    JSONObject  httpconf = config.getJSONObject("http");
-    HTTP http = new HTTP(inst,path,httpconf);
-    
-    return(new Object[] {log,http});
+    FileInputStream in = null;
+
+    try
+    {
+      if (name == null) name = confdef;
+      if (!name.endsWith(".json")) name += ".json";
+      
+      String inst = String.format("%1$3s",instno).replace(' ','0');
+      in = new FileInputStream(path+sep+confdir+sep+name);
+      
+      JSONTokener tokener = new JSONTokener(in);
+      JSONObject  config  = new JSONObject(tokener);
+      
+      JSONObject  logconf = config.getJSONObject("log");
+      Logger log = new Logger(inst,path,logconf);
+      
+      JSONObject  httpconf = config.getJSONObject("http");
+      HTTP http = new HTTP(inst,path,httpconf);
+      
+      in.close();
+      return(new Object[] {log,http});
+    }
+    catch (Exception e)
+    {
+      try {in.close();}
+      catch(Exception ic) {;}
+      throw e;
+    }
   }
   
   
