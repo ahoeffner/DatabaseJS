@@ -14,16 +14,16 @@ public class InstanceData
   private byte[][] sections = null;
   private Hashtable<String,FileEntry> files = null;
   private Hashtable<Integer,Instance> instances = null;
-  
+
   private static final int HEADER     = 0;
   private static final int FILES      = 1;
   private static final int INSTANCES  = 2;
-  
-  
+
+
   public InstanceData(byte[] data) throws Exception
   {
     this.sections = new byte[3][];
-    
+
     if (data == null)
     {
       files = new Hashtable<String,FileEntry>();
@@ -32,11 +32,11 @@ public class InstanceData
     else
     {
       int[] offset = (int[]) this.deserialize(data);
-      
+
       sections[HEADER   ] = new byte[offset[FILES]-offset[HEADER]];
       sections[FILES    ] = new byte[offset[INSTANCES]-offset[FILES]];
       sections[INSTANCES] = new byte[data.length - offset[INSTANCES]];
-      
+
       System.arraycopy(data,offset[HEADER   ],sections[HEADER   ],0,sections[HEADER   ].length);
       System.arraycopy(data,offset[FILES    ],sections[FILES    ],0,sections[FILES    ].length);
       System.arraycopy(data,offset[INSTANCES],sections[INSTANCES],0,sections[INSTANCES].length);
@@ -61,33 +61,27 @@ public class InstanceData
     return(files);
   }
 
-  
+
   public void setInstance(int inst)
   {
-    if (this.instances == null)
-    {
-      try {this.getInstances(true);}
-      catch (Exception e) {;}
-    }
-    
+    try {this.getInstances(true);}
+    catch (Exception e) {;}
+
     Instance entry = new Instance(inst);
     this.instances.put(inst,entry);
   }
 
-  
+
   public void setFile(String file, long mod)
   {
-    if (this.files == null)
-    {
-      try {this.getFiles(true);}
-      catch (Exception e) {;}
-    }
-    
+    try {this.getFiles(true);}
+    catch (Exception e) {;}
+
     FileEntry entry = new FileEntry(mod);
     this.files.put(file,entry);
   }
-  
-  
+
+
   public byte[] serialize() throws Exception
   {
     int[] offset = new int[3];
@@ -95,55 +89,55 @@ public class InstanceData
     if (sections[HEADER] == null)     sections[HEADER]    = this.serialize(offset    );
     if (sections[FILES ] == null)     sections[FILES]     = this.serialize(files     );
     if (sections[INSTANCES] == null)  sections[INSTANCES] = this.serialize(instances );
-    
+
     offset[HEADER] = 0;
     offset[FILES] = offset[HEADER] + sections[HEADER].length;
     offset[INSTANCES] = offset[FILES] + sections[FILES].length;
-    
+
     sections[0] = this.serialize(offset);
-    
+
     int size = 0;
     for(byte[] section : sections) size += section.length;
-    
+
     byte[] data = new byte[size];
 
     System.arraycopy(sections[HEADER],0,data,offset[HEADER],sections[0].length);
     System.arraycopy(sections[FILES],0,data,offset[FILES],sections[FILES].length);
     System.arraycopy(sections[INSTANCES],0,data,offset[INSTANCES],sections[INSTANCES].length);
-    
+
     return(data);
   }
-  
-  
+
+
   @Override
   public String toString()
   {
     String str = "";
-    
+
     if (this.files == null)
     {
       try {this.getFiles(false);}
       catch (Exception e) {;}
     }
-    
+
     if (this.instances == null)
     {
       try {this.getInstances(false);}
       catch (Exception e) {;}
     }
-    
+
     System.out.println("inst size "+instances.size());
-    
+
     for(Map.Entry<Integer,Instance> entry : this.instances.entrySet())
       str += entry.getKey() + " : " + entry.getValue() + "\n";
-    
+
     for(Map.Entry<String,FileEntry> entry : this.files.entrySet())
       str += entry.getKey() + " : " + entry.getValue() + "\n";
-    
+
     return(str);
   }
-  
-  
+
+
   private byte[] serialize(Object obj) throws Exception
   {
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -151,8 +145,8 @@ public class InstanceData
     oout.writeObject(obj);
     return(bout.toByteArray());
   }
-  
-  
+
+
   private Object deserialize(byte[] data) throws Exception
   {
     ByteArrayInputStream bin = new ByteArrayInputStream(data);
@@ -166,16 +160,16 @@ public class InstanceData
   {
     @SuppressWarnings("compatibility:3930941963720525578")
     private static final long serialVersionUID = 5741949964475085825L;
-    
+
     private int inst = 0;
-    
-    
+
+
     public Instance(int inst)
     {
       this.inst = inst;
     }
-    
-    
+
+
     @Override
     public String toString()
     {
@@ -188,16 +182,16 @@ public class InstanceData
   {
     @SuppressWarnings("compatibility:-3023374735791094862")
     private static final long serialVersionUID = 5741949964475085825L;
-    
+
     private long mod = 0;
-    
-    
+
+
     public FileEntry(long mod)
     {
       this.mod = mod;
     }
-    
-    
+
+
     @Override
     public String toString()
     {
