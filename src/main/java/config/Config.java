@@ -9,9 +9,12 @@ import java.io.FileInputStream;
 
 public class Config
 {
-  private String apphome;
+  public final int inst;
   public final HTTP http;
   public final Logger log;
+  public final String tmpdir;
+  public final String apphome;
+  public final String lockfile;
   
   private static final String confdir = "conf";
   private static final String confdef = "server.json";
@@ -27,7 +30,12 @@ public class Config
   
   public Config(int inst, String name) throws Exception
   {
+    this.inst = inst;
+    
     this.apphome = this.findAppHome();
+    this.tmpdir = this.apphome + sep + "tmp";
+    this.lockfile = this.tmpdir + sep + "locks.tab";
+    
     Object[] sections = this.load(inst,this.apphome,name);
     
     this.log =  (Logger)  sections[0];
@@ -54,7 +62,7 @@ public class Config
       Logger log = new Logger(inst,path,logconf);
       
       JSONObject  httpconf = config.getJSONObject("http");
-      HTTP http = new HTTP(inst,path,httpconf);
+      HTTP http = new HTTP(path,httpconf);
       
       in.close();
       return(new Object[] {log,http});

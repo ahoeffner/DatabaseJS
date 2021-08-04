@@ -12,12 +12,12 @@ public class HTTP
   public final int plain;
   public final int admin;
   public final String path;
+  public final Handlers handlers;
   public final String corsheader;
   public final boolean requiressl;
-  public final Handlers handlers;
   
   
-  public HTTP(String inst, String path, JSONObject section) throws Exception
+  public HTTP(String path, JSONObject section) throws Exception
   {
     String apppath = null;
     apppath = section.getString("path");
@@ -28,7 +28,7 @@ public class HTTP
       File appf = new File(apppath);
       apppath = appf.getCanonicalPath();
     }
-    
+
     this.path = apppath;
     JSONObject ports = section.getJSONObject("ports");
 
