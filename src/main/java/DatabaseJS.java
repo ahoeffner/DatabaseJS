@@ -1,34 +1,41 @@
 import config.Config;
 
 import instances.InstanceData;
-import instances.ShareControl;
-
-import java.util.Date;
+import instances.SharedData;
 
 
 public class DatabaseJS
 {
   private static Config config = null;
+  private static SharedData shareddata = null;
+  
+  
+  public static void main(String[] args) throws Exception
+  {
+    config = new Config(0);
+    shareddata = new SharedData(config.lockfile);
+    
+    long time = System.nanoTime();
+    
+    InstanceData data = shareddata.read(true);
+    System.out.println(data);
+    data.setFile("test",124L);
+    data.setInstance(10);
+    shareddata.write(data);
+    
+    time = System.nanoTime() - time;
+    System.out.println("elapsed: "+1.0*time/1000000000);
+  }
 
 
   public static Config config()
   {
     return(config);
   }
-  
-  
-  public static void main(String[] args) throws Exception
+
+
+  public static SharedData shareddata()
   {
-    config = new Config(0);
-    config.log.logger.fine("fine");
-    config.log.logger.warning("warning");
-    
-    ShareControl ctrl = new ShareControl(config.lockfile);
-    InstanceData data = ctrl.read(true);
-    
-    System.out.println(data);
-    
-    data.add("test",new Date().getTime());
-    ctrl.write(data);
+    return(shareddata);
   }
 }
