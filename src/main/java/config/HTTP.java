@@ -2,6 +2,7 @@ package config;
 
 import java.io.File;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -13,11 +14,22 @@ public class HTTP
   public final String path;
   public final String corsheader;
   public final boolean requiressl;
-  public final RequestMap requestmap;
+  public final Handlers handlers;
   
   
   public HTTP(String inst, String path, JSONObject section) throws Exception
   {
+    String apppath = null;
+    apppath = section.getString("path");
+    
+    if (apppath.startsWith("."))
+    {
+      apppath = path + File.separator + apppath;
+      File appf = new File(apppath);
+      apppath = appf.getCanonicalPath();
+    }
+    
+    this.path = apppath;
     JSONObject ports = section.getJSONObject("ports");
 
     this.ssl = ports.getInt("ssl");
@@ -41,31 +53,15 @@ public class HTTP
       corsheader = null;
     
     this.corsheader = corsheader;
-    
+    this.handlers = new Handlers();
 
-    String apppath = null;
-    JSONObject app = section.getJSONObject("application");
-    apppath = app.getString("path");
+
+    JSONArray handlers = section.getJSONArray("handlers");
     
-    if (apppath.startsWith("."))
+    for (int i = 0; i < handlers.length(); i++)
     {
-      apppath = path + File.separator + apppath;
-      File appf = new File(apppath);
-      apppath = appf.getCanonicalPath();
+      JSONObject entry = handlers.getJSONObject(i);
+      this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
-    
-    this.path = apppath;
-    this.requestmap = new RequestMap();
-        
-    JSONObject entry = app.getJSONObject("html");
-    this.requestmap.add(entry.getString("url"),entry.getString("methods"));
-        
-    entry = app.getJSONObject("rest");
-    this.requestmap.add(entry.getString("url"),entry.getString("methods"));
-        
-    entry = app.getJSONObject("service");
-    this.requestmap.add(entry.getString("url"),entry.getString("methods"));
-    
-    this.requestmap.print();
   }
 }
