@@ -11,18 +11,20 @@ import java.io.ByteArrayOutputStream;
 
 public class InstanceData
 {
+  private int master = -1;
   private byte[][] sections = null;
   private Hashtable<String,FileEntry> files = null;
   private Hashtable<Integer,Instance> instances = null;
 
   private static final int HEADER     = 0;
-  private static final int FILES      = 1;
-  private static final int INSTANCES  = 2;
+  private static final int CLUSTER    = 1;
+  private static final int FILES      = 2;
+  private static final int INSTANCES  = 3;
 
 
   public InstanceData(byte[] data) throws Exception
   {
-    this.sections = new byte[3][];
+    this.sections = new byte[4][];
 
     if (data == null)
     {
@@ -33,13 +35,18 @@ public class InstanceData
     {
       int[] offset = (int[]) this.deserialize(data);
 
-      sections[HEADER   ] = new byte[offset[FILES]-offset[HEADER]];
-      sections[FILES    ] = new byte[offset[INSTANCES]-offset[FILES]];
-      sections[INSTANCES] = new byte[data.length - offset[INSTANCES]];
+      sections[ HEADER    ] = new byte[offset[ CLUSTER    ]-offset[ HEADER    ]];
+      sections[ CLUSTER   ] = new byte[offset[ FILES      ]-offset[ CLUSTER   ]];
+      sections[ FILES     ] = new byte[offset[ INSTANCES  ]-offset[ FILES     ]];
+      sections[ INSTANCES ] = new byte[    data.length     -offset[ INSTANCES ]];
 
-      System.arraycopy(data,offset[HEADER   ],sections[HEADER   ],0,sections[HEADER   ].length);
-      System.arraycopy(data,offset[FILES    ],sections[FILES    ],0,sections[FILES    ].length);
-      System.arraycopy(data,offset[INSTANCES],sections[INSTANCES],0,sections[INSTANCES].length);
+      System.arraycopy(data,offset[ HEADER    ],sections[ HEADER    ],0,sections[ HEADER    ].length);
+      System.arraycopy(data,offset[ CLUSTER   ],sections[ CLUSTER   ],0,sections[ CLUSTER   ].length);
+      System.arraycopy(data,offset[ FILES     ],sections[ FILES     ],0,sections[ FILES     ].length);
+      System.arraycopy(data,offset[ INSTANCES ],sections[ INSTANCES ],0,sections[ INSTANCES ].length);
+      
+      int[] master = (int[]) this.deserialize(sections[CLUSTER]);
+      this.master = master[0];
     }
   }
 
@@ -93,15 +100,20 @@ public class InstanceData
 
   public byte[] serialize() throws Exception
   {
-    int[] offset = new int[3];
+    int[] offset = new int[4];
+    int[] master = new int[1];
+    
+    master[0] = this.master;
 
-    if (sections[HEADER] == null)     sections[HEADER]    = this.serialize(offset    );
-    if (sections[FILES ] == null)     sections[FILES]     = this.serialize(files     );
-    if (sections[INSTANCES] == null)  sections[INSTANCES] = this.serialize(instances );
-
-    offset[HEADER] = 0;
-    offset[FILES] = offset[HEADER] + sections[HEADER].length;
-    offset[INSTANCES] = offset[FILES] + sections[FILES].length;
+    if (sections[ HEADER     ] == null) sections[ HEADER    ] = this.serialize(offset    );
+    if (sections[ CLUSTER    ] == null) sections[ CLUSTER   ] = this.serialize(master    );
+    if (sections[ FILES      ] == null) sections[ FILES     ] = this.serialize(files     );
+    if (sections[ INSTANCES  ] == null) sections[ INSTANCES ] = this.serialize(instances );
+    
+    offset[ HEADER    ] = 0;
+    offset[ CLUSTER   ] = offset[ HEADER   ] + sections[ HEADER   ].length;
+    offset[ FILES     ] = offset[ CLUSTER  ] + sections[ CLUSTER  ].length;
+    offset[ INSTANCES ] = offset[ FILES    ] + sections[ FILES    ].length;
 
     sections[0] = this.serialize(offset);
 
@@ -110,9 +122,10 @@ public class InstanceData
 
     byte[] data = new byte[size];
 
-    System.arraycopy(sections[HEADER],0,data,offset[HEADER],sections[0].length);
-    System.arraycopy(sections[FILES],0,data,offset[FILES],sections[FILES].length);
-    System.arraycopy(sections[INSTANCES],0,data,offset[INSTANCES],sections[INSTANCES].length);
+    System.arraycopy(sections[ HEADER    ],0,data,offset[ HEADER    ],sections[ HEADER    ].length);
+    System.arraycopy(sections[ CLUSTER   ],0,data,offset[ CLUSTER   ],sections[ CLUSTER   ].length);
+    System.arraycopy(sections[ FILES     ],0,data,offset[ FILES     ],sections[ FILES     ].length);
+    System.arraycopy(sections[ INSTANCES ],0,data,offset[ INSTANCES ],sections[ INSTANCES ].length);
 
     return(data);
   }
