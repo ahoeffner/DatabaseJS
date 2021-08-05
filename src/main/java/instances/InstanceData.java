@@ -72,6 +72,15 @@ public class InstanceData
   }
 
 
+  public void removeInstance(int inst)
+  {
+    try {this.getInstances(true);}
+    catch (Exception e) {;}
+
+    this.instances.remove(inst);
+  }
+
+
   public void setFile(String file, long mod)
   {
     try {this.getFiles(true);}
@@ -125,8 +134,6 @@ public class InstanceData
       try {this.getInstances(false);}
       catch (Exception e) {;}
     }
-
-    System.out.println("inst size "+instances.size());
 
     for(Map.Entry<Integer,Instance> entry : this.instances.entrySet())
       str += entry.getKey() + " : " + entry.getValue() + "\n";

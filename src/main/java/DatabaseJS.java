@@ -1,5 +1,6 @@
 import config.Config;
 import instances.SharedData;
+import instances.InstanceData;
 
 
 public class DatabaseJS
@@ -10,8 +11,18 @@ public class DatabaseJS
   
   public static void main(String[] args) throws Exception
   {
-    config = new Config(0);
-    shareddata = new SharedData(config.lockfile);
+    int inst = 0;
+    String apphome = Config.findAppHome();
+    
+    shareddata = new SharedData(Config.sharefile(apphome));
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook(inst,shareddata));
+    
+    InstanceData data = shareddata.read(true);
+    System.out.println(data);
+    data.setInstance(inst);
+    shareddata.write(data);
+    
+    config = new Config(apphome,0);
   }
 
 
@@ -24,5 +35,36 @@ public class DatabaseJS
   public static SharedData shareddata()
   {
     return(shareddata);
+  }
+  
+  
+  private static class ShutdownHook extends Thread
+  {
+    private final int inst;
+    private final SharedData shareddata;
+
+    
+    
+    ShutdownHook(int inst, SharedData shareddata)
+    {
+      this.inst = inst;
+      this.shareddata = shareddata;
+    }
+    
+    
+    public void run()
+    {
+      try
+      {
+        InstanceData data = shareddata.read(true);
+        System.out.println("remove "+inst);
+        data.removeInstance(inst);
+        shareddata.write(data);
+      }
+      catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+    }
   }
 }

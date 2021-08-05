@@ -14,29 +14,37 @@ public class Config
   public final Logger log;
   public final String tmpdir;
   public final String apphome;
-  public final String lockfile;
+  public final String sharefile;
+
+  public static final String SEP = File.separator;
   
-  private static final String confdir = "conf";
-  private static final String confdef = "server.json";
-  
-  public static final String sep = File.separator;
+  private static final String TMPDIR = "tmp";
+  private static final String CONFDIR = "conf";
+  private static final String CONFDEF = "server.json";
+  private static final String SHAREFILE = "shared.tab";
   
   
   public Config(int inst) throws Exception
   {
-    this(inst,null);
+    this(findAppHome(),inst,null);
   }
   
   
-  public Config(int inst, String name) throws Exception
+  public Config(String apphome, int inst) throws Exception
+  {
+    this(apphome,inst,null);
+  }
+  
+  
+  public Config(String apphome, int inst, String config) throws Exception
   {
     this.inst = inst;
     
-    this.apphome = this.findAppHome();
-    this.tmpdir = this.apphome + sep + "tmp";
-    this.lockfile = this.tmpdir + sep + "locks.tab";
+    this.apphome = apphome;
+    this.tmpdir = tmpdir(this.apphome);
+    this.sharefile = sharefile(this.apphome);
     
-    Object[] sections = this.load(inst,this.apphome,name);
+    Object[] sections = this.load(inst,this.apphome,config);
     
     this.log =  (Logger)  sections[0];
     this.http = (HTTP)    sections[1];
@@ -49,11 +57,11 @@ public class Config
 
     try
     {
-      if (name == null) name = confdef;
+      if (name == null) name = CONFDEF;
       if (!name.endsWith(".json")) name += ".json";
       
       String inst = String.format("%1$3s",instno).replace(' ','0');
-      in = new FileInputStream(path+sep+confdir+sep+name);
+      in = new FileInputStream(path+SEP+CONFDIR+SEP+name);
       
       JSONTokener tokener = new JSONTokener(in);
       JSONObject  config  = new JSONObject(tokener);
@@ -76,14 +84,38 @@ public class Config
   }
   
   
-  private String findAppHome()
+  public static String tmpdir()
+  {
+    return(tmpdir(findAppHome()));
+  }
+  
+  
+  public static String tmpdir(String apphome)
+  {
+    return(apphome + SEP + TMPDIR);
+  }
+  
+  
+  public static String sharefile()
+  {
+    return(sharefile(findAppHome()));
+  }
+  
+  
+  public static String sharefile(String apphome)
+  {
+    return(tmpdir(apphome) + SEP + SHAREFILE);    
+  }
+  
+  
+  public static String findAppHome()
   {
     Object obj = new Object() { };
 
     String cname = obj.getClass().getEnclosingClass().getName();
     cname = "/" + cname.replace('.','/') + ".class";
 
-    URL url = this.getClass().getResource(cname);
+    URL url = obj.getClass().getResource(cname);
     String path = url.getPath();
     
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
@@ -100,7 +132,7 @@ public class Config
     
     while(path.length() > 0)
     {
-      if (new File(path+File.separator+confdir).exists()) break;
+      if (new File(path+File.separator+CONFDIR).exists()) break;
       path = path.substring(0,path.lastIndexOf(File.separator));    
     }
     
