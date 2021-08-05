@@ -1,4 +1,6 @@
 import config.Config;
+
+import config.Paths;
 import instances.SharedData;
 import instances.InstanceData;
 
@@ -12,17 +14,18 @@ public class DatabaseJS
   public static void main(String[] args) throws Exception
   {
     int inst = 0;
-    String apphome = Config.findAppHome();
+    config = new Config(0,null);
+
+    // Start
+
+    //new Environment();
     
-    shareddata = new SharedData(Config.sharefile(apphome));
+    shareddata = new SharedData(Paths.sharefile);
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(inst,shareddata));
     
     InstanceData data = shareddata.read(true);
-    System.out.println(data);
     data.setInstance(inst);
-    shareddata.write(data);
-    
-    config = new Config(apphome,0);
+    shareddata.write(data);    
   }
 
 
@@ -57,7 +60,6 @@ public class DatabaseJS
       try
       {
         InstanceData data = shareddata.read(true);
-        System.out.println("remove "+inst);
         data.removeInstance(inst);
         shareddata.write(data);
       }
