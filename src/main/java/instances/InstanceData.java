@@ -69,7 +69,7 @@ public class InstanceData
   }
 
 
-  public void setInstance(int inst)
+  public void setInstance(int inst, int port)
   {
     try {this.getInstances(true);}
     catch (Exception e) {;}
@@ -178,22 +178,22 @@ public class InstanceData
 
   public static class Instance implements Serializable
   {
-    @SuppressWarnings("compatibility:3930941963720525578")
+    @SuppressWarnings("compatibility:5119859992143413187")
     private static final long serialVersionUID = 5741949964475085825L;
 
-    private int inst = 0;
+    public final int port;
 
 
-    public Instance(int inst)
+    public Instance(int port)
     {
-      this.inst = inst;
+      this.port = port;
     }
 
 
     @Override
     public String toString()
     {
-      return(""+inst);
+      return(""+port);
     }
   }
 

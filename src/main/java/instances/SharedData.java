@@ -15,10 +15,21 @@ public class SharedData
   }
 
 
-  @SuppressWarnings("unchecked")
   public InstanceData read(boolean modify) throws Exception
   {
-    this.lock();
+    return(read(modify,false));
+  }
+
+
+  @SuppressWarnings("unchecked")
+  public InstanceData read(boolean modify, boolean force) throws Exception
+  {
+    if (lock != null && !force)
+      throw new Exception("Shared data already locked");
+    
+    if (lock == null) 
+      this.lock();
+
     this.file.seek(0L);
 
     byte[] buf = null;
