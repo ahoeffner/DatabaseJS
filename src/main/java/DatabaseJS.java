@@ -1,10 +1,10 @@
 import config.Config;
 
 import config.Paths;
+import java.util.ArrayList;
 import instances.SharedData;
 import instances.InstanceData;
-
-import java.util.ArrayList;
+import instances.InstanceCtrl;
 
 
 public class DatabaseJS
@@ -15,11 +15,16 @@ public class DatabaseJS
 
   public static void main(String[] args) throws Exception
   {
-    config = new Config(0,null);
     Command cmd = options(args);
-    System.out.println(cmd);
+    config = new Config(cmd.inst,cmd.config);
+    
+    InstanceCtrl cl = new InstanceCtrl();
+    if (cmd.inst == 0) cl.start(cmd.inst+5,cmd.config);
+    
+    System.out.println("Starting inst "+cmd.inst);
+    config.log.logger.warning("starting "+cmd.inst);
 
-    start(cmd);
+    //start(cmd);
   }
 
 
@@ -79,7 +84,13 @@ public class DatabaseJS
 
   private static void usage()
   {
-    System.out.println("Usage");
+    System.out.println();
+    System.out.println();
+    System.out.println("Usage: database.js [options] [start | stop | status]");
+    System.out.println("options:");
+    System.out.println("\t-i | --instance <inst> (internal use)");
+    System.out.println("\t-c | --config <config> specifies configuration, default is server");
+    System.out.println();
     System.exit(0);
   }
 
@@ -102,7 +113,7 @@ public class DatabaseJS
     @Override
     public String toString()
     {
-      String str = "database.js --inst "+inst;
+      String str = "database.js --instance "+inst;
       if (config != null) str += " --config "+config;
       for(String arg : cmd) str += " "+arg;
       return(str);
