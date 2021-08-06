@@ -15,6 +15,7 @@ public class Cluster
   private boolean manager;
   private final Config config;
   public final SharedData shareddata;
+  private final static String nl = System.lineSeparator();
   
   
   public Cluster(Config config, int inst) throws Exception
@@ -41,10 +42,14 @@ public class Cluster
     InstanceData data = shareddata.read(false);
     Hashtable<Integer,Instance> instances = data.getInstances(false);
 
-    str += "Cluster Manager Instance : "+data.manager();
+    str += "Cluster Manager Instance : "+data.manager()+nl+nl;
+    str += "Id ";
 
     for(Map.Entry<Integer,Instance> entry : instances.entrySet())
-      str += "Instance" + entry.getKey() + " : " + entry.getValue() + "\n";
+    {
+      String inst = String.format("%-4s",entry.getKey());
+      str += nl + inst + " : " + entry.getValue() + "\n";      
+    }
 
     return(str);
   }

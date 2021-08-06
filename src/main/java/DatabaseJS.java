@@ -43,8 +43,12 @@ public class DatabaseJS
   {
     if (cmd.args.size() > 1) usage();
     cluster = new Cluster(config,cmd.inst);
+    
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst));    
+
+    cluster.register();
     config.log.logger.info("starting instance["+cmd.inst+"]");
+    Thread.sleep(60000);
   }
 
 

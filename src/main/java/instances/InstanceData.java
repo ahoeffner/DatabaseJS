@@ -111,7 +111,7 @@ public class InstanceData
     try {this.getInstances(true);}
     catch (Exception e) {;}
 
-    Instance entry = new Instance(inst);
+    Instance entry = new Instance(port);
     this.instances.put(inst,entry);
   }
 
