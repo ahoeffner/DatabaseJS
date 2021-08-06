@@ -29,7 +29,7 @@ public class Cluster
   public void register() throws Exception
   {
     InstanceData data = shareddata.read(true);
-    data.setInstance(inst,config.http.admin);
+    data.setInstance(inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
     this.manager = data.manageCluster(inst);
     shareddata.write(data);
   }
@@ -47,6 +47,8 @@ public class Cluster
 
     for(Map.Entry<Integer,Instance> entry : instances.entrySet())
     {
+      Instance instance = entry.getValue();
+      
       String inst = String.format("%-4s",entry.getKey());
       str += nl + inst + " : " + entry.getValue() + "\n";      
     }
