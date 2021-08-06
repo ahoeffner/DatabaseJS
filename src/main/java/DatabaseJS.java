@@ -1,53 +1,55 @@
 import config.Config;
 
-import config.Paths;
+import instances.Cluster;
 import java.util.ArrayList;
 import instances.SharedData;
 import instances.InstanceData;
-import instances.InstanceCtrl;
 
 
 public class DatabaseJS
 {
   private static Config config = null;
-  private static SharedData shareddata = null;
+  private static Cluster cluster = null;
 
 
   public static void main(String[] args) throws Exception
   {
+    Action action = null;
     Command cmd = options(args);
+    
+    try {action = Action.valueOf(cmd.args.get(0));}
+    catch (Exception e) {usage();}
+    
     config = new Config(cmd.inst,cmd.config);
-    
-    InstanceCtrl cl = new InstanceCtrl();
-    if (cmd.inst == 0) cl.start(cmd.inst+5,cmd.config);
-    
-    System.out.println("Starting inst "+cmd.inst);
-    config.log.logger.warning("starting "+cmd.inst);
-
-    //start(cmd);
+   
+    switch(action)
+    {
+      case start: start(cmd); break;
+      default: usage();
+    }
   }
 
 
   private static void start(Command cmd) throws Exception
   {
-    shareddata = new SharedData(Paths.sharefile);
-    Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst,shareddata));
+    if (cmd.args.size() > 1)
+      usage();
+    
+    cluster = new Cluster();
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst));
 
+    SharedData shareddata = cluster.shareddata;
     InstanceData data = shareddata.read(true);
     data.setInstance(cmd.inst,config.http.admin);
     shareddata.write(data);
+    
+    config.log.logger.info("starting "+cmd.inst);
   }
 
 
   public static Config config()
   {
     return(config);
-  }
-
-
-  public static SharedData shareddata()
-  {
-    return(shareddata);
   }
 
 
@@ -76,6 +78,9 @@ public class DatabaseJS
       }
       else cargs.add(args[i]);
     }
+    
+    if (cargs.size() == 0)
+      usage();
 
     Command cmd = new Command(inst,config,cargs);
     return(cmd);
@@ -86,10 +91,20 @@ public class DatabaseJS
   {
     System.out.println();
     System.out.println();
-    System.out.println("Usage: database.js [options] [start | stop | status]");
+    System.out.println("Usage: database.js [options] [cmd] [args]");
+    System.out.println();
     System.out.println("options:");
-    System.out.println("\t-i | --instance <inst> (internal use)");
+    System.out.println("\t-f | --force");
+    System.out.println("\t-m | --message");
+    System.out.println("\t-i | --instance <inst> (internal use only)");
     System.out.println("\t-c | --config <config> specifies configuration, default is server");
+    System.out.println();
+    System.out.println("cmd:");
+    System.out.println("\tstart       : starts all servers in cluster.");
+    System.out.println("\tstop        : stops all servers in cluster.");
+    System.out.println("\tstatus      : prints cluster status.");
+    System.out.println("\tadd [n]     : adds <n> servers to the cluster.");
+    System.out.println("\tremove [n]  : removes <n> servers from the cluster.");
     System.out.println();
     System.exit(0);
   }
@@ -99,12 +114,12 @@ public class DatabaseJS
   {
     public final int inst;
     public final String config;
-    public final ArrayList<String> cmd;
+    public final ArrayList<String> args;
 
 
-    Command(int inst, String config, ArrayList<String> cmd)
+    Command(int inst, String config, ArrayList<String> args)
     {
-      this.cmd = cmd;
+      this.args = args;
       this.inst = inst;
       this.config = config;
     }
@@ -115,7 +130,7 @@ public class DatabaseJS
     {
       String str = "database.js --instance "+inst;
       if (config != null) str += " --config "+config;
-      for(String arg : cmd) str += " "+arg;
+      for(String arg : args) str += " "+arg;
       return(str);
     }
   }
@@ -124,14 +139,12 @@ public class DatabaseJS
   private static class ShutdownHook extends Thread
   {
     private final int inst;
-    private final SharedData shareddata;
 
 
 
-    ShutdownHook(int inst, SharedData shareddata)
+    ShutdownHook(int inst)
     {
       this.inst = inst;
-      this.shareddata = shareddata;
     }
 
 
@@ -139,6 +152,7 @@ public class DatabaseJS
     {
       try
       {
+        SharedData shareddata = cluster.shareddata;
         InstanceData data = shareddata.read(true,true);
         data.removeInstance(inst);
         shareddata.write(data);
@@ -148,5 +162,15 @@ public class DatabaseJS
         e.printStackTrace();
       }
     }
+  }
+  
+  
+  private static enum Action
+  {
+    add,
+    stop,
+    start,
+    status,
+    remove
   }
 }

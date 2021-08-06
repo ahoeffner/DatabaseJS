@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 
 public class InstanceData
 {
-  private int master = -1;
+  private int manager = -1;
   private byte[][] sections = null;
   private Hashtable<String,FileEntry> files = null;
   private Hashtable<Integer,Instance> instances = null;
@@ -46,7 +46,7 @@ public class InstanceData
       System.arraycopy(data,offset[ INSTANCES ],sections[ INSTANCES ],0,sections[ INSTANCES ].length);
       
       int[] master = (int[]) this.deserialize(sections[CLUSTER]);
-      this.master = master[0];
+      this.manager = master[0];
     }
   }
 
@@ -67,6 +67,32 @@ public class InstanceData
     if (mod) sections[FILES] = null;
     return(files);
   }
+  
+  
+  public boolean manageCluster(int inst) throws Exception
+  {
+    if (inst == this.manager) return(true);
+    
+    boolean change = true;
+    Hashtable<Integer,Instance> instances = this.getInstances(false);
+    
+    for(int running : instances.keySet())
+    {
+      if (running == this.manager)
+      {
+        change = false;
+        break;
+      }
+    }
+    
+    if (change)
+    {
+      this.manager = inst;
+      this.sections[CLUSTER] = null;
+    }
+    
+    return(change);
+  }
 
 
   public void setInstance(int inst, int port)
@@ -83,6 +109,12 @@ public class InstanceData
   {
     try {this.getInstances(true);}
     catch (Exception e) {;}
+    
+    if (inst == this.manager)
+    {
+      this.manager = -1;
+      this.sections[CLUSTER] = null;      
+    }
 
     this.instances.remove(inst);
   }
@@ -103,7 +135,7 @@ public class InstanceData
     int[] offset = new int[4];
     int[] master = new int[1];
     
-    master[0] = this.master;
+    master[0] = this.manager;
 
     if (sections[ HEADER     ] == null) sections[ HEADER    ] = this.serialize(offset    );
     if (sections[ CLUSTER    ] == null) sections[ CLUSTER   ] = this.serialize(master    );
