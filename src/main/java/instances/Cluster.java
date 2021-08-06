@@ -3,6 +3,11 @@ package instances;
 import config.Config;
 import config.Paths;
 
+import instances.InstanceData.Instance;
+
+import java.util.Hashtable;
+import java.util.Map;
+
 
 public class Cluster
 {
@@ -24,18 +29,23 @@ public class Cluster
   {
     InstanceData data = shareddata.read(true);
     data.setInstance(inst,config.http.admin);
+    this.manager = data.manageCluster(inst);
     shareddata.write(data);
   }
-
-
-  public synchronized void manager(boolean manager)
+  
+  
+  public String status() throws Exception
   {
-    this.manager = manager;
-  }
+    String str = "";
+    
+    InstanceData data = shareddata.read(false);
+    Hashtable<Integer,Instance> instances = data.getInstances(false);
 
+    str += "Cluster Manager Instance : "+data.manager();
 
-  public synchronized boolean manager()
-  {
-    return(manager);
+    for(Map.Entry<Integer,Instance> entry : instances.entrySet())
+      str += "Instance" + entry.getKey() + " : " + entry.getValue() + "\n";
+
+    return(str);
   }
 }

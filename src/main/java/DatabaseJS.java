@@ -24,9 +24,18 @@ public class DatabaseJS
    
     switch(action)
     {
-      case start: start(cmd); break;
+      case start:   start(cmd)  ; break;
+      case status:  status()    ; break;
+      
       default: usage();
     }
+  }
+
+
+  private static void status() throws Exception
+  {
+    cluster = new Cluster(config,0);
+    System.out.println(cluster.status());
   }
 
 

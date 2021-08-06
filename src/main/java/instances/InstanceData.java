@@ -49,6 +49,12 @@ public class InstanceData
       this.manager = master[0];
     }
   }
+  
+  
+  public int manager()
+  {
+    return(manager);
+  }
 
 
   @SuppressWarnings("unchecked")
@@ -71,7 +77,12 @@ public class InstanceData
   
   public boolean manageCluster(int inst) throws Exception
   {
-    if (inst == this.manager) return(true);
+    if (inst == this.manager) 
+    {
+      this.manager = inst;
+      this.sections[CLUSTER] = null;
+      return(true);
+    }
     
     boolean change = true;
     Hashtable<Integer,Instance> instances = this.getInstances(false);
