@@ -32,18 +32,10 @@ public class DatabaseJS
 
   private static void start(Command cmd) throws Exception
   {
-    if (cmd.args.size() > 1)
-      usage();
-    
-    cluster = new Cluster();
-    Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst));
-
-    SharedData shareddata = cluster.shareddata;
-    InstanceData data = shareddata.read(true);
-    data.setInstance(cmd.inst,config.http.admin);
-    shareddata.write(data);
-    
-    config.log.logger.info("starting "+cmd.inst);
+    if (cmd.args.size() > 1) usage();
+    cluster = new Cluster(config,cmd.inst);
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst));    
+    config.log.logger.info("starting instance["+cmd.inst+"]");
   }
 
 

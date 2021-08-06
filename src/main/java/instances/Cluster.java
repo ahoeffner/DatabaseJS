@@ -1,17 +1,30 @@
 package instances;
 
+import config.Config;
 import config.Paths;
 
 
 public class Cluster
 {
-  private boolean manager = false;
+  private final int inst;
+  private boolean manager;
+  private final Config config;
   public final SharedData shareddata;
   
   
-  public Cluster() throws Exception
+  public Cluster(Config config, int inst) throws Exception
   {
+    this.inst = inst;
+    this.config = config;
     this.shareddata = new SharedData(Paths.sharefile);
+  }
+  
+  
+  public void register() throws Exception
+  {
+    InstanceData data = shareddata.read(true);
+    data.setInstance(inst,config.http.admin);
+    shareddata.write(data);
   }
 
 

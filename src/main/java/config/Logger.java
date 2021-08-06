@@ -1,12 +1,10 @@
 package config;
 
 import java.io.File;
-
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.XMLFormatter;
-
+import logger.Formatter;
 import org.json.JSONObject;
+import java.util.logging.Level;
+import java.util.logging.FileHandler;
 
 
 public class Logger
@@ -16,6 +14,12 @@ public class Logger
   public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("global");
 
   private final static int LOGSIZE = 10 * 1024 * 1024;
+  
+  
+  public void exception(Throwable exception)
+  {
+    logger.log(Level.SEVERE,null,exception);
+  }
 
 
   public Logger(String inst, String path, JSONObject section) throws Exception
@@ -25,7 +29,7 @@ public class Logger
     
     String level = "warning";
     String logdir = path+"/logs";
-    String logfile = "server.xml";
+    String logfile = "server.log";
     
     int count = 2;
     boolean db = false, http = false;
@@ -74,9 +78,11 @@ public class Logger
     
     logger.setUseParentHandlers(false);
     logger.setLevel(Level.parse(level.toUpperCase()));
+    
+    Formatter formatter = new Formatter();
 
-    FileHandler handler = new FileHandler(logdir+File.separator+logfile,size,count,false);
-    handler.setFormatter(new XMLFormatter());
+    FileHandler handler = new FileHandler(logdir+File.separator+logfile,size,count,true);
+    handler.setFormatter(formatter);
 
     logger.addHandler(handler);
   }
