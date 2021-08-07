@@ -117,14 +117,13 @@ public class Cluster extends Thread
     {
       Instance inst = instances.get(data.manager());
 
-      config.log.logger.info("Manager "+data.manager()+" age "+(inst == null ? -1 : (time - inst.time)));
       if (inst == null || (time - inst.time) > 2 * check)
-         if (changeManager()) maintain();
+         if (rewire()) maintain();
     }
   }
   
   
-  private boolean changeManager() throws Exception
+  private boolean rewire() throws Exception
   {
     boolean changed = false;
     long time = new Date().getTime();
@@ -134,8 +133,6 @@ public class Cluster extends Thread
     Hashtable<Integer,Instance> instances = data.getInstances(true);
 
     Instance inst = instances.get(data.manager());    
-
-    config.log.logger.info("Check master["+data.manager()+"] = "+inst);
 
     if (inst == null || (time - inst.time) > 2 * check)
     {
