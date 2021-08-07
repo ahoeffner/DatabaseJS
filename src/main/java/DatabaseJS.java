@@ -56,7 +56,7 @@ public class DatabaseJS
       config.log.cluster.info("starting instance["+cmd.inst+"]");
         
     if (cluster.manager()) Thread.sleep(60000);
-    else Thread.sleep(20000);
+    else Thread.sleep(30000);
   }
 
 

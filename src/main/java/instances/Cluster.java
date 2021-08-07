@@ -117,6 +117,7 @@ public class Cluster extends Thread
     {
       Instance inst = instances.get(data.manager());
 
+      config.log.logger.info("Manager "+data.manager()+" age "+(inst == null ? -1 : (time - inst.time)));
       if (inst == null || (time - inst.time) > 2 * check)
          if (changeManager()) maintain();
     }
@@ -127,18 +128,21 @@ public class Cluster extends Thread
   {
     long time = new Date().getTime();
     int check = config.cluster.check;
-
-    InstanceData data = shareddata.read(false);
+    
+    InstanceData data = shareddata.read(true);
     Hashtable<Integer,Instance> instances = data.getInstances(true);
 
     Instance inst = instances.get(data.manager());    
 
+    config.log.logger.info("Check master["+data.manager()+"] = "+inst);
+
     if (inst == null || (time - inst.time) > 2 * check)
     {
-      System.out.println("change manager "+this.inst);
+      config.clslog();
       this.manager = true;
       data.setManager(this.inst);
       shareddata.write(data);
+      config.log.cluster.info("Manager changed to "+this.inst);
       return(true);
     }
     
