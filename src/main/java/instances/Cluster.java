@@ -41,7 +41,7 @@ public class Cluster extends Thread
     InstanceData data = shareddata.read(true);
     long pid = ProcessHandle.current().pid();
     data.setInstance(pid,time,inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
-    this.manager = data.manageCluster(inst, config.cluster.instances);
+    this.manager = data.manageCluster(inst,config.cluster.instances);
     shareddata.write(data);
     
     if (manager) config.clslog();
@@ -56,6 +56,7 @@ public class Cluster extends Thread
     {
       try
       {
+        update();
         maintain();
         sleep(config.cluster.check);
       }
@@ -75,7 +76,17 @@ public class Cluster extends Thread
   }
   
   
-  public void maintain() throws Exception
+  private void update() throws Exception
+  {
+    long time = new Date().getTime();
+    InstanceData data = shareddata.read(true);
+    Instance inst = data.getInstances(true).get(this.inst);
+    data.setInstance(inst.pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
+    shareddata.write(data);
+  }
+  
+  
+  private void maintain() throws Exception
   {
     long time = new Date().getTime();
     int check = config.cluster.check;
@@ -96,16 +107,42 @@ public class Cluster extends Thread
         
         Instance inst = instances.get(i);
         
-        if (inst != null)
-        {
-          int age = (int) (time - inst.time);
-          if (age > 2 * check) System.out.println(i+" dead ?");
-          if (age <= check) start = false;
-        }
+        if (inst != null && (time - inst.time) <= check)
+          start = false;
         
         if (start) ctrl.start(i,config);
       }
     }
+    else
+    {
+      Instance inst = instances.get(data.manager());
+
+      if (inst == null || (time - inst.time) > 2 * check)
+         if (changeManager()) maintain();
+    }
+  }
+  
+  
+  private boolean changeManager() throws Exception
+  {
+    long time = new Date().getTime();
+    int check = config.cluster.check;
+
+    InstanceData data = shareddata.read(false);
+    Hashtable<Integer,Instance> instances = data.getInstances(true);
+
+    Instance inst = instances.get(data.manager());    
+
+    if (inst == null || (time - inst.time) > 2 * check)
+    {
+      System.out.println("change manager "+this.inst);
+      this.manager = true;
+      data.setManager(this.inst);
+      shareddata.write(data);
+      return(true);
+    }
+    
+    return(false);
   }
 
 
