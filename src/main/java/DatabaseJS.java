@@ -113,11 +113,12 @@ public class DatabaseJS
     System.out.println("\t-c | --config <config> specifies configuration, default is server");
     System.out.println();
     System.out.println("cmd:");
-    System.out.println("\tstart       : starts all servers in cluster.");
-    System.out.println("\tstop        : stops all servers in cluster.");
-    System.out.println("\tstatus      : prints cluster status.");
-    System.out.println("\tadd [n]     : adds <n> servers to the cluster.");
-    System.out.println("\tremove [n]  : removes <n> servers from the cluster.");
+    System.out.println("\tstart           : starts all servers in cluster.");
+    System.out.println("\tstop            : stops all servers in cluster.");
+    System.out.println("\tstatus          : prints cluster status.");
+    System.out.println("\tadd [n]         : adds <n> servers to the cluster.");
+    System.out.println("\tremove [n]      : removes <n> servers from the cluster.");
+    System.out.println("\tversion <vers>  : change app version.");
     System.out.println();
     System.exit(0);
   }

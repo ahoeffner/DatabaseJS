@@ -83,9 +83,11 @@ public class Cluster extends Thread
     long time = new Date().getTime();
     long pid = ProcessHandle.current().pid();
     InstanceData data = shareddata.read(true);
+    
     Instance inst = data.getInstances(true).get(this.inst);
     if (inst != null) data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
     else data.setInstance(pid,time,this.inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
+    
     shareddata.write(data);
   }
   

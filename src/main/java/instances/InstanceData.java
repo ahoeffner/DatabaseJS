@@ -52,6 +52,12 @@ public class InstanceData
   }
 
 
+  public long config()
+  {
+    return(cluster.config());
+  }
+
+
   public int servers()
   {
     return(cluster.servers());
@@ -61,6 +67,15 @@ public class InstanceData
   public int manager()
   {
     return(cluster.manager());
+  }
+
+
+  public void setConfig(long config, int servers, String version)
+  {
+    cluster.config(config);
+    cluster.servers(servers);
+    cluster.version(version);
+    this.sections[CLUSTER] = null;
   }
 
 
@@ -149,6 +164,13 @@ public class InstanceData
     }
 
     this.instances.remove(inst);
+    
+    if (this.instances.size() == 0)
+    {
+      cluster.servers(-1);
+      cluster.version(null);
+      this.sections[CLUSTER] = null;
+    }
   }
 
 
@@ -239,12 +261,19 @@ public class InstanceData
 
   private static class Cluster implements Serializable
   {
-    @SuppressWarnings("compatibility:-1834868406567923546")
+    @SuppressWarnings("compatibility:4267101862623616318")
     private static final long serialVersionUID = 1L;
 
+    private long config = 0;
     private int servers = -1;
     private int manager = -1;
     private String version = null;
+
+
+    public long config()
+    {
+      return(config);
+    }
 
 
     public int manager()
@@ -265,15 +294,21 @@ public class InstanceData
     }
 
 
+    public void config(long config)
+    {
+      this.config = config;
+    }
+
+
     public void manager(int manager)
     {
       this.manager = manager;
     }
 
 
-    public void servers(int server)
+    public void servers(int servers)
     {
-      this.servers = server;
+      this.servers = servers;
     }
 
 

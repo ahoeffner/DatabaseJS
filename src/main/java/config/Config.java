@@ -43,7 +43,7 @@ public class Config
     {
       if (name == null) name = CONFDEF;
       if (!name.endsWith(".json")) name += ".json";
-
+            
       in = new FileInputStream(Paths.confdir + File.separator + name);
 
       JSONTokener tokener = new JSONTokener(in);
