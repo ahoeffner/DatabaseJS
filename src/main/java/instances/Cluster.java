@@ -126,6 +126,7 @@ public class Cluster extends Thread
   
   private boolean changeManager() throws Exception
   {
+    boolean changed = false;
     long time = new Date().getTime();
     int check = config.cluster.check;
     
@@ -139,14 +140,15 @@ public class Cluster extends Thread
     if (inst == null || (time - inst.time) > 2 * check)
     {
       config.clslog();
+      changed = true;
       this.manager = true;
       data.setManager(this.inst);
-      shareddata.write(data);
       config.log.cluster.info("Manager changed to "+this.inst);
-      return(true);
     }
+
+    shareddata.write(data);
     
-    return(false);
+    return(changed);
   }
 
 
