@@ -108,7 +108,7 @@ public class DatabaseJS
     System.out.println();
     System.out.println("options:");
     System.out.println("\t-f | --force");
-    System.out.println("\t-m | --message");
+    System.out.println("\t-m | --message <msg>");
     System.out.println("\t-i | --instance <inst> (internal use only)");
     System.out.println("\t-c | --config <config> specifies configuration, default is server");
     System.out.println();

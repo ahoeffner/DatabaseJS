@@ -52,9 +52,9 @@ public class InstanceData
   }
 
 
-  public long config()
+  public String version()
   {
-    return(cluster.config());
+    return(cluster.version());
   }
 
 
@@ -67,15 +67,6 @@ public class InstanceData
   public int manager()
   {
     return(cluster.manager());
-  }
-
-
-  public void setConfig(long config, int servers, String version)
-  {
-    cluster.config(config);
-    cluster.servers(servers);
-    cluster.version(version);
-    this.sections[CLUSTER] = null;
   }
 
 
@@ -261,19 +252,12 @@ public class InstanceData
 
   private static class Cluster implements Serializable
   {
-    @SuppressWarnings("compatibility:4267101862623616318")
-    private static final long serialVersionUID = 1L;
+    @SuppressWarnings("compatibility:-1834868406567923546")
+    private static final long serialVersionUID = 5741949964475085825L;
 
-    private long config = 0;
     private int servers = -1;
     private int manager = -1;
     private String version = null;
-
-
-    public long config()
-    {
-      return(config);
-    }
 
 
     public int manager()
@@ -291,12 +275,6 @@ public class InstanceData
     public String version()
     {
       return(version);
-    }
-
-
-    public void config(long config)
-    {
-      this.config = config;
     }
 
 

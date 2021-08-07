@@ -163,7 +163,7 @@ public class Cluster extends Thread
     InstanceData data = shareddata.read(false);
     Hashtable<Integer,Instance> instances = data.getInstances(false);
 
-    str += nl+nl+"\tCluster manager : "+data.manager()+ ", servers : " + data.servers() +nl;
+    str += nl+nl+"Cluster manager : "+data.manager()+ ", servers : " + data.servers() + "version : " + data.version() +nl;
     str += "----------------------------------------------------------"+nl;
     str += "|    Pid   |  Id | port |  ssl |  adm |  ses |  max | age |"+nl;
     str += "----------------------------------------------------------"+nl;
