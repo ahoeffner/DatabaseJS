@@ -106,12 +106,12 @@ public class InstanceData
   }
 
 
-  public void setInstance(int inst, int port, int ssl, int admin, int ses, int max)
+  public void setInstance(long pid, int inst, int port, int ssl, int admin, int ses, int max)
   {
     try {this.getInstances(true);}
     catch (Exception e) {;}
 
-    Instance entry = new Instance(port,ssl,admin,ses,max);
+    Instance entry = new Instance(pid,port,ssl,admin,ses,max);
     this.instances.put(inst,entry);
   }
 
@@ -221,8 +221,10 @@ public class InstanceData
 
   public static class Instance implements Serializable
   {
-    @SuppressWarnings("compatibility:-2066209836901284895")
+    @SuppressWarnings("compatibility:-2496886638132324557")
     private static final long serialVersionUID = 5741949964475085825L;
+
+    public final long pid;
 
     public final int ssl;
     public final int port;
@@ -232,8 +234,9 @@ public class InstanceData
     public final int max;
     
 
-    public Instance(int port, int ssl, int admin, int ses, int max)
+    public Instance(long pid, int port, int ssl, int admin, int ses, int max)
     {
+      this.pid = pid;
       this.ssl = ssl;
       this.ses = ses;
       this.max = max;
