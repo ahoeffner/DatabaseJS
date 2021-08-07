@@ -20,7 +20,8 @@ public class DatabaseJS
     try {action = Action.valueOf(cmd.args.get(0));}
     catch (Exception e) {usage();}
     
-    config = new Config(cmd.inst,cmd.config);
+    boolean logging = (action != Action.status);
+    config = new Config(cmd.inst,cmd.config,logging);
    
     switch(action)
     {
@@ -42,13 +43,20 @@ public class DatabaseJS
   private static void start(Command cmd) throws Exception
   {
     if (cmd.args.size() > 1) usage();
-    cluster = new Cluster(config,cmd.inst);
     
-    Runtime.getRuntime().addShutdownHook(new ShutdownHook(cmd.inst));    
+    // Start listeners
+    
+    cluster = new Cluster(config,cmd.inst);
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook());    
 
     cluster.register();
-    config.log.logger.info("starting instance["+cmd.inst+"]");
-    Thread.sleep(60000);
+    config.log.logger.info("instance["+cmd.inst+"] starting");
+    
+    if (cluster.manager()) 
+      config.log.cluster.info("starting instance["+cmd.inst+"]");
+        
+    if (cluster.manager()) Thread.sleep(60000);
+    else Thread.sleep(20000);
   }
 
 
@@ -139,35 +147,6 @@ public class DatabaseJS
       return(str);
     }
   }
-
-
-  private static class ShutdownHook extends Thread
-  {
-    private final int inst;
-
-
-
-    ShutdownHook(int inst)
-    {
-      this.inst = inst;
-    }
-
-
-    public void run()
-    {
-      try
-      {
-        SharedData shareddata = cluster.shareddata;
-        InstanceData data = shareddata.read(true,true);
-        data.removeInstance(inst);
-        shareddata.write(data);
-      }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-    }
-  }
   
   
   private static enum Action
@@ -177,5 +156,21 @@ public class DatabaseJS
     start,
     status,
     remove
+  }
+
+
+  private static class ShutdownHook extends Thread
+  {
+    public void run()
+    {
+      try
+      {
+        cluster.deregister();
+      }
+      catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+    }
   }
 }

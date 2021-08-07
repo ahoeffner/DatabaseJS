@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 
 public class InstanceData
 {
+  private int servers = -1;
   private int manager = -1;
   private byte[][] sections = null;
   private Hashtable<String,FileEntry> files = null;
@@ -47,10 +48,17 @@ public class InstanceData
       
       int[] master = (int[]) this.deserialize(sections[CLUSTER]);
       this.manager = master[0];
+      this.servers = master[1];
     }
   }
   
   
+  public int servers()
+  {
+    return(servers);
+  }
+
+    
   public int manager()
   {
     return(manager);
@@ -75,7 +83,7 @@ public class InstanceData
   }
   
   
-  public boolean manageCluster(int inst) throws Exception
+  public boolean manageCluster(int inst, int servers) throws Exception
   {
     if (inst == this.manager) 
     {
@@ -100,6 +108,7 @@ public class InstanceData
     {
       this.manager = inst;
       this.sections[CLUSTER] = null;
+      if (this.servers < 0) this.servers = servers;
     }
     
     return(change);
@@ -144,12 +153,13 @@ public class InstanceData
   public byte[] serialize() throws Exception
   {
     int[] offset = new int[4];
-    int[] master = new int[1];
+    int[] cluster = new int[2];
     
-    master[0] = this.manager;
+    cluster[0] = this.manager;
+    cluster[1] = this.servers;
 
     if (sections[ HEADER     ] == null) sections[ HEADER    ] = this.serialize(offset    );
-    if (sections[ CLUSTER    ] == null) sections[ CLUSTER   ] = this.serialize(master    );
+    if (sections[ CLUSTER    ] == null) sections[ CLUSTER   ] = this.serialize(cluster    );
     if (sections[ FILES      ] == null) sections[ FILES     ] = this.serialize(files     );
     if (sections[ INSTANCES  ] == null) sections[ INSTANCES ] = this.serialize(instances );
     

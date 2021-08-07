@@ -13,7 +13,7 @@ public class Paths
   
   private static final String TMPDIR = "tmp";
   private static final String CONFDIR = "conf";
-  private static final String SHAREFILE = "shared.tab";
+  private static final String SHAREFILE = "cluster.dat";
 
   
   

@@ -11,8 +11,17 @@ public class Logger
 {
   public final boolean db;
   public final boolean http;
-  public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("global");
+  public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("default");
+  public final java.util.logging.Logger cluster = java.util.logging.Logger.getLogger("cluster");
 
+  
+  private int count = 2;
+  private int size = LOGSIZE;
+  private String level = "WARNING";
+  private String logdir = "." + File.separator + "logs";
+  
+  private static final String logfile = "server.log";
+  private static final String clsfile = "cluster.log";
   private final static int LOGSIZE = 10 * 1024 * 1024;
   
   
@@ -22,16 +31,10 @@ public class Logger
   }
 
 
-  public Logger(String inst, String path, JSONObject section) throws Exception
+  public Logger(String path, JSONObject section) throws Exception
   {
-    int size = LOGSIZE;
     String lfsize = null;
     
-    String level = "warning";
-    String logdir = path+"/logs";
-    String logfile = "server.log";
-    
-    int count = 2;
     boolean db = false, http = false;
         
     if (section.has("db"))      db = section.getBoolean("db");
@@ -55,7 +58,7 @@ public class Logger
 
     if (logdir.startsWith("."))
     {
-      logdir = path + "/" + logdir;
+      logdir = path + File.separator + logdir;
       File logf = new File(logdir);
       logdir = logf.getCanonicalPath();
     }
@@ -67,23 +70,43 @@ public class Logger
 
     if (!ldir.isDirectory())
       throw new Exception(ldir+" is not a directory");
-    
-    logdir += File.separator+"inst"+inst;
-
-    ldir = new File(logdir);
-    if (!ldir.exists()) ldir.mkdir();
 
     this.db = db;
     this.http = http;
-    
+  }
+  
+  
+  public void open(int inst) throws Exception
+  {
+    String instdir = logdir + File.separator+"inst"+String.format("%1$3s",inst).replace(' ','0');
+
+    File ldir = new File(instdir);
+    if (!ldir.exists()) ldir.mkdir();
+
     logger.setUseParentHandlers(false);
     logger.setLevel(Level.parse(level.toUpperCase()));
     
     Formatter formatter = new Formatter();
 
-    FileHandler handler = new FileHandler(logdir+File.separator+logfile,size,count,true);
+    FileHandler handler = new FileHandler(instdir+File.separator+logfile,size,count,true);
     handler.setFormatter(formatter);
 
     logger.addHandler(handler);
+  }
+  
+  
+  public void opencls() throws Exception
+  {
+    String clsdir = logdir;  
+
+    cluster.setLevel(Level.ALL);
+    cluster.setUseParentHandlers(false);
+    
+    Formatter formatter = new Formatter();
+
+    FileHandler chandler = new FileHandler(clsdir+File.separator+clsfile,1024*1024,2,true);
+    chandler.setFormatter(formatter);
+
+    cluster.addHandler(chandler);
   }
 }

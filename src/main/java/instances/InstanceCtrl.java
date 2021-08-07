@@ -1,7 +1,9 @@
 package instances;
 
 import java.io.File;
+import config.Config;
 import java.util.List;
+import java.util.logging.Level;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ManagementFactory;
 
@@ -31,24 +33,20 @@ public class InstanceCtrl
   }
   
   
-  public void start(int inst, String config)
+  public void start(int inst, Config config)
   {
     String cmd = this.cmd + " --instance "+inst;
-    if (config != null) cmd += " --config "+config;
+    if (config.name != null) cmd += " --config "+config.name;
     cmd += " start";
     
     try
     {
-      System.out.println("Starting new inst");
-      Process p = Runtime.getRuntime().exec(cmd);
-      
-      byte[] buf = new byte[30];
-      int read = p.getInputStream().read(buf);
-      System.out.println("Read "+new String(buf,0,read));
+      Runtime.getRuntime().exec(cmd);
+      config.log.cluster.info("Starting instance["+inst+"]");
     }
     catch (Exception e)
     {
-      e.printStackTrace();
+      config.log.cluster.log(Level.SEVERE,null,e);
     }    
   }
 }
