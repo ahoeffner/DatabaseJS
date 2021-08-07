@@ -64,6 +64,13 @@ public class InstanceData
     return(manager);
   }
 
+    
+  public void setManager(int inst)
+  {
+    manager = inst;
+    this.sections[CLUSTER] = null;
+  }
+
 
   @SuppressWarnings("unchecked")
   public Hashtable<Integer,Instance> getInstances(boolean mod) throws Exception
