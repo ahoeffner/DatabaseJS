@@ -11,9 +11,9 @@ import java.io.ByteArrayOutputStream;
 
 public class InstanceData
 {
-  private int servers = -1;
-  private int manager = -1;
   private byte[][] sections = null;
+
+  private Cluster cluster = null;
   private Hashtable<String,FileEntry> files = null;
   private Hashtable<Integer,Instance> instances = null;
 
@@ -29,6 +29,7 @@ public class InstanceData
 
     if (data == null)
     {
+      cluster = new Cluster();
       files = new Hashtable<String,FileEntry>();
       instances = new Hashtable<Integer,Instance>();
     }
@@ -45,29 +46,27 @@ public class InstanceData
       System.arraycopy(data,offset[ CLUSTER   ],sections[ CLUSTER   ],0,sections[ CLUSTER   ].length);
       System.arraycopy(data,offset[ FILES     ],sections[ FILES     ],0,sections[ FILES     ].length);
       System.arraycopy(data,offset[ INSTANCES ],sections[ INSTANCES ],0,sections[ INSTANCES ].length);
-      
-      int[] master = (int[]) this.deserialize(sections[CLUSTER]);
-      this.manager = master[0];
-      this.servers = master[1];
+
+      cluster = (Cluster) this.deserialize(sections[CLUSTER]);
     }
   }
-  
-  
+
+
   public int servers()
   {
-    return(servers);
+    return(cluster.servers());
   }
 
-    
+
   public int manager()
   {
-    return(manager);
+    return(cluster.manager());
   }
 
-    
+
   public void setManager(int inst)
   {
-    manager = inst;
+    cluster.manager(inst);
     this.sections[CLUSTER] = null;
   }
 
@@ -88,37 +87,43 @@ public class InstanceData
     if (mod) sections[FILES] = null;
     return(files);
   }
-  
-  
-  public boolean manageCluster(int inst, int servers) throws Exception
+
+
+  public boolean cluster(int inst, int servers, String version) throws Exception
   {
-    if (inst == this.manager) 
-    {
-      this.manager = inst;
-      this.sections[CLUSTER] = null;
-      return(true);
-    }
-    
-    boolean change = true;
     Hashtable<Integer,Instance> instances = this.getInstances(false);
-    
+
+    boolean chmgr = true;
     for(int running : instances.keySet())
     {
-      if (running == this.manager)
+      if (running == cluster.manager())
       {
-        change = false;
+        chmgr = false;
         break;
       }
     }
-    
-    if (change)
+
+    if (chmgr)
+      cluster.manager(inst);
+
+    boolean chsrvs = false;
+    if (cluster.servers() < 0)
     {
-      this.manager = inst;
-      this.sections[CLUSTER] = null;
-      if (this.servers < 0) this.servers = servers;
+      chsrvs = true;
+      cluster.servers(servers);
     }
-    
-    return(change);
+
+    boolean chvers = false;
+    if (cluster.version() == null)
+    {
+      chvers = true;
+      cluster.version(version);
+    }
+
+    if (chmgr || chsrvs || chvers)
+      this.sections[CLUSTER] = null;
+
+    return(chmgr);
   }
 
 
@@ -136,11 +141,11 @@ public class InstanceData
   {
     try {this.getInstances(true);}
     catch (Exception e) {;}
-    
-    if (inst == this.manager)
+
+    if (inst == cluster.manager())
     {
-      this.manager = -1;
-      this.sections[CLUSTER] = null;      
+      cluster.manager(-1);
+      this.sections[CLUSTER] = null;
     }
 
     this.instances.remove(inst);
@@ -160,22 +165,18 @@ public class InstanceData
   public byte[] serialize() throws Exception
   {
     int[] offset = new int[4];
-    int[] cluster = new int[2];
-    
-    cluster[0] = this.manager;
-    cluster[1] = this.servers;
 
     if (sections[ HEADER     ] == null) sections[ HEADER    ] = this.serialize(offset    );
     if (sections[ CLUSTER    ] == null) sections[ CLUSTER   ] = this.serialize(cluster    );
     if (sections[ FILES      ] == null) sections[ FILES     ] = this.serialize(files     );
     if (sections[ INSTANCES  ] == null) sections[ INSTANCES ] = this.serialize(instances );
-    
+
     offset[ HEADER    ] = 0;
     offset[ CLUSTER   ] = offset[ HEADER   ] + sections[ HEADER   ].length;
     offset[ FILES     ] = offset[ CLUSTER  ] + sections[ CLUSTER  ].length;
     offset[ INSTANCES ] = offset[ FILES    ] + sections[ FILES    ].length;
 
-    sections[0] = this.serialize(offset);
+    sections[HEADER] = this.serialize(offset);
 
     int size = 0;
     for(byte[] section : sections) size += section.length;
@@ -236,6 +237,53 @@ public class InstanceData
   }
 
 
+  private static class Cluster implements Serializable
+  {
+    @SuppressWarnings("compatibility:-1834868406567923546")
+    private static final long serialVersionUID = 1L;
+
+    private int servers = -1;
+    private int manager = -1;
+    private String version = null;
+
+
+    public int manager()
+    {
+      return(manager);
+    }
+
+
+    public int servers()
+    {
+      return(servers);
+    }
+
+
+    public String version()
+    {
+      return(version);
+    }
+
+
+    public void manager(int manager)
+    {
+      this.manager = manager;
+    }
+
+
+    public void servers(int server)
+    {
+      this.servers = server;
+    }
+
+
+    public void version(String version)
+    {
+      this.version = version;
+    }
+  }
+
+
   public static class Instance implements Serializable
   {
     @SuppressWarnings("compatibility:6683760213753521899")
@@ -250,7 +298,7 @@ public class InstanceData
 
     public final int ses;
     public final int max;
-    
+
 
     public Instance(long pid, long time, int port, int ssl, int admin, int ses, int max)
     {

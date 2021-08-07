@@ -41,7 +41,7 @@ public class Cluster extends Thread
     InstanceData data = shareddata.read(true);
     long pid = ProcessHandle.current().pid();
     data.setInstance(pid,time,inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
-    this.manager = data.manageCluster(inst,config.cluster.instances);
+    this.manager = data.cluster(inst,config.cluster.instances,config.http.version);
     shareddata.write(data);
     
     if (manager) config.clslog();
@@ -52,13 +52,15 @@ public class Cluster extends Thread
   @Override
   public void run()
   {
+    int wt = config.cluster.check;
+    
     while(true)
     {
       try
       {
-        update();
         maintain();
-        sleep(config.cluster.check);
+        sleep(wt);
+        update();
       }
       catch (Exception e)
       {
@@ -79,9 +81,11 @@ public class Cluster extends Thread
   private void update() throws Exception
   {
     long time = new Date().getTime();
+    long pid = ProcessHandle.current().pid();
     InstanceData data = shareddata.read(true);
     Instance inst = data.getInstances(true).get(this.inst);
-    data.setInstance(inst.pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
+    if (inst != null) data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
+    else data.setInstance(pid,time,this.inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
     shareddata.write(data);
   }
   

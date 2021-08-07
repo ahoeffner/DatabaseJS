@@ -12,6 +12,7 @@ public class HTTP
   public final int plain;
   public final int admin;
   public final String path;
+  public final String version;
   public final Handlers handlers;
   public final String corsheader;
   public final boolean requiressl;
@@ -30,6 +31,8 @@ public class HTTP
     }
 
     this.path = apppath;
+    version = section.getString("version");
+
     JSONObject ports = section.getJSONObject("ports");
 
     this.ssl = ports.getInt("ssl");
