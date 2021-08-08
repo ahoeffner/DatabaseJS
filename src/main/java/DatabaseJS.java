@@ -75,19 +75,20 @@ public class DatabaseJS
   {
     System.out.println();
     System.out.println();
-    System.out.println("Usage: database.js [options] [cmd] [args]");
+    System.out.println("Usage: database.js [options] <cmd> [args]");
     System.out.println();
     System.out.println("options:");
-    System.out.println("\t-m | --message <msg>");
+    System.out.println("\t-m | --message <msg> (use with stop/remove)");
     System.out.println("\t-i | --instance <inst> (internal use only)");
-    System.out.println("\t-c | --config <config> specifies configuration, default is server");
+    System.out.println("\t-c | --config <config> specifies configuration");
     System.out.println();
     System.out.println("cmd:");
     System.out.println("\tstart           : starts all servers in cluster.");
-    System.out.println("\tstop <secs>     : stops all servers in cluster.");
-    System.out.println("\tstatus          : prints cluster status.");
-    System.out.println("\tservers <n>     : change number of servers.");
+    System.out.println("\tstop    [secs]  : stops all servers in cluster.");
+    System.out.println("\tadd     [n]     : add <n> servers.");
+    System.out.println("\tremove  [n]     : remove <n> servers.");
     System.out.println("\tversion <vers>  : change app version.");
+    System.out.println("\tstatus          : prints cluster status.");
     System.out.println();
     System.exit(0);
   }

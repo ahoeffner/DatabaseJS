@@ -62,6 +62,7 @@ public class Listener extends Thread
   @Override
   public void run()
   {
+    String cors = config.http.corsheader;
     Thread.currentThread().setName("listener port "+port);
     
     while(true)
@@ -70,8 +71,8 @@ public class Listener extends Thread
       {
         Socket socket = this.socket.accept();
         config.log.logger.finest("Accept new session on port "+port);
-        //Session session = new Session(host,port,socket);
-        //session.serve(this.reqssl);
+        Session session = new Session(config,socket,host,port,cors);
+        session.start();
       }
       catch(Exception e)
       {
