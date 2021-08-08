@@ -37,10 +37,14 @@ public class Cluster extends Thread
 
   public void register() throws Exception
   {
+    int pssl = config.http.ssl + this.inst;
+    int pplain = config.http.plain + this.inst;
+    int padmin = config.http.admin + this.inst;
+
     long time = new Date().getTime();
     InstanceData data = shareddata.read(true);
     long pid = ProcessHandle.current().pid();
-    data.setInstance(pid,time,inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
+    data.setInstance(pid,time,inst,pplain,pssl,padmin,0,0);
     this.manager = data.cluster(inst,config.cluster.instances,config.http.version);
     shareddata.write(data);
     
@@ -80,13 +84,17 @@ public class Cluster extends Thread
   
   private void update() throws Exception
   {
+    int pssl = config.http.ssl + this.inst;
+    int pplain = config.http.plain + this.inst;
+    int padmin = config.http.admin + this.inst;
+
     long time = new Date().getTime();
     long pid = ProcessHandle.current().pid();
     InstanceData data = shareddata.read(true);
     
     Instance inst = data.getInstances(true).get(this.inst);
-    if (inst != null) data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
-    else data.setInstance(pid,time,this.inst,config.http.plain,config.http.ssl,config.http.admin,0,0);
+    if (inst == null) data.setInstance(pid,time,this.inst,pplain,pssl,padmin,0,0);
+    else              data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
     
     shareddata.write(data);
   }
