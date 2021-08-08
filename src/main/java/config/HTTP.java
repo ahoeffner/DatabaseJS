@@ -31,7 +31,13 @@ public class HTTP
     }
 
     this.path = apppath;
-    version = section.getString("version");
+    
+    String version = "";
+    
+    if (!section.isNull("version"))
+      version = section.getString("version");
+    
+    this.version = version;
 
     JSONObject ports = section.getJSONObject("ports");
 

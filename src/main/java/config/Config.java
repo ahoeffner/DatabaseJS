@@ -12,6 +12,7 @@ public class Config
   public final Logger log;
   public final String name;
   public final Cluster cluster;
+  public final Security security;
 
   private static final String CONFDEF = "server.json";
 
@@ -21,9 +22,10 @@ public class Config
     this.name = config;
     Object[] sections = this.load(Paths.apphome,config);
 
-    this.log      = (Logger)  sections[0];
-    this.http     = (HTTP)    sections[1];
-    this.cluster  = (Cluster) sections[2];
+    this.log        = (Logger)  sections[0];
+    this.http       = (HTTP)    sections[1];
+    this.cluster    = (Cluster) sections[2];
+    this.security   = (Security) sections[3];
 
     if (log) this.log.open(inst);
   }
@@ -58,8 +60,11 @@ public class Config
       JSONObject  clsconf = config.getJSONObject("cluster");
       Cluster cluster = new Cluster(clsconf);
 
+      JSONObject  secconf = config.getJSONObject("security");
+      Security security = new Security(secconf);
+
       in.close();
-      return(new Object[] {log,http,cluster});
+      return(new Object[] {log,http,cluster,security});
     }
     catch (Exception e)
     {

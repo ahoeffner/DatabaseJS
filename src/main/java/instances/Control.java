@@ -8,12 +8,12 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.management.ManagementFactory;
 
 
-public class InstanceCtrl
+public class Control
 {
   public final String cmd;
   
   
-  public InstanceCtrl()
+  public Control()
   {
     String jvm = null;
     

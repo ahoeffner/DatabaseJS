@@ -94,9 +94,9 @@ public class Cluster extends Thread
   
   private void maintain() throws Exception
   {
+    Control ctrl = new Control();
     long time = new Date().getTime();
     int check = config.cluster.check;
-    InstanceCtrl ctrl = new InstanceCtrl();
     
     InstanceData data = shareddata.read(false);
     Hashtable<Integer,Instance> instances = data.getInstances(false);
