@@ -1,13 +1,12 @@
 package instances;
 
-import config.Config;
 import config.Paths;
-
-import instances.InstanceData.Instance;
-
+import config.Config;
+import server.Server;
+import java.util.Map;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Map;
+import instances.InstanceData.Instance;
 
 
 public class Cluster extends Thread
@@ -15,14 +14,16 @@ public class Cluster extends Thread
   private final int inst;
   private boolean manager;
   private final Config config;
+  private final Server server;
   private final SharedData shareddata;
   private final static String nl = System.lineSeparator();
 
 
-  public Cluster(Config config, int inst) throws Exception
+  public Cluster(Config config, Server server, int inst) throws Exception
   {
     this.inst = inst;
     this.config = config;
+    this.server = server;
     this.shareddata = new SharedData(Paths.sharefile);
     
     this.setDaemon(true);

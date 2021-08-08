@@ -20,7 +20,7 @@ public class Server extends Thread
   {
     this.inst = inst;
     this.config = config;
-    this.cluster = new Cluster(config,inst);
+    this.cluster = new Cluster(config,this,inst);
   }
 
 
@@ -72,7 +72,7 @@ public class Server extends Thread
 
       config.log.logger.info("listening on port "+padmin+", elapsed: "+elapsed(time));
 
-      Runtime.getRuntime().addShutdownHook(new ShutdownHook(config,cluster));
+      Runtime.getRuntime().addShutdownHook(new ShutdownHook(cluster));
       cluster.register();
 
       this.start();
@@ -132,12 +132,10 @@ public class Server extends Thread
 
   private static class ShutdownHook extends Thread
   {
-    private final Config config;
     private final Cluster cluster;
 
-    public ShutdownHook(Config config, Cluster cluster)
+    public ShutdownHook(Cluster cluster)
     {
-      this.config = config;
       this.cluster = cluster;
     }
 
@@ -146,7 +144,6 @@ public class Server extends Thread
       try
       {
         cluster.deregister();
-        config.log.logger.info("instance shutdown");
       }
       catch (Exception e)
       {

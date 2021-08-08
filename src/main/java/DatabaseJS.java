@@ -32,7 +32,7 @@ public class DatabaseJS
 
   private static void status(Config config) throws Exception
   {
-    Cluster cluster = new Cluster(config,0);
+    Cluster cluster = new Cluster(config,null,0);
     System.out.println(cluster.status());
   }
 
