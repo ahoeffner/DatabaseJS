@@ -1,6 +1,7 @@
 package instances;
 
 import java.util.Map;
+import instances.Stats;
 import java.util.Hashtable;
 import java.io.Serializable;
 import java.io.ObjectInputStream;
@@ -133,12 +134,12 @@ public class InstanceData
   }
 
 
-  public void setInstance(long pid, long time, int inst, int port, int ssl, int admin, int ses, int max)
+  public void setInstance(long pid, long time, int inst, int port, int ssl, int admin, Stats stats)
   {
     try {this.getInstances(true);}
     catch (Exception e) {;}
 
-    Instance entry = new Instance(pid,time,port,ssl,admin,ses,max);
+    Instance entry = new Instance(pid,time,port,ssl,admin,stats);
     this.instances.put(inst,entry);
   }
 
@@ -299,7 +300,7 @@ public class InstanceData
 
   public static class Instance implements Serializable
   {
-    @SuppressWarnings("compatibility:6683760213753521899")
+    @SuppressWarnings("compatibility:5955619226857843807")
     private static final long serialVersionUID = 5741949964475085825L;
 
     public final long pid;
@@ -309,19 +310,17 @@ public class InstanceData
     public final int port;
     public final int admin;
 
-    public final int ses;
-    public final int max;
+    public final Stats stats;
 
 
-    public Instance(long pid, long time, int port, int ssl, int admin, int ses, int max)
+    public Instance(long pid, long time, int port, int ssl, int admin, Stats stats)
     {
       this.pid = pid;
       this.ssl = ssl;
-      this.ses = ses;
-      this.max = max;
       this.port = port;
       this.time = time;
       this.admin = admin;
+      this.stats = stats;
     }
 
 

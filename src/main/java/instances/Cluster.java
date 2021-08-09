@@ -41,11 +41,13 @@ public class Cluster extends Thread
     int pssl = config.http.ssl + this.inst;
     int pplain = config.http.plain + this.inst;
     int padmin = config.http.admin + this.inst;
+    
+    Stats stats = new Stats(0,0);
 
     long time = new Date().getTime();
     InstanceData data = shareddata.read(true);
     long pid = ProcessHandle.current().pid();
-    data.setInstance(pid,time,inst,pplain,pssl,padmin,0,0);
+    data.setInstance(pid,time,inst,pplain,pssl,padmin,stats);
     this.manager = data.cluster(inst,config.cluster.instances,config.http.version);
     shareddata.write(data);
     
@@ -88,14 +90,15 @@ public class Cluster extends Thread
     int pssl = config.http.ssl + this.inst;
     int pplain = config.http.plain + this.inst;
     int padmin = config.http.admin + this.inst;
-
+    
+    Stats stats = new Stats(0,0);
     long time = new Date().getTime();
     long pid = ProcessHandle.current().pid();
     InstanceData data = shareddata.read(true);
     
     Instance inst = data.getInstances(true).get(this.inst);
-    if (inst == null) data.setInstance(pid,time,this.inst,pplain,pssl,padmin,0,0);
-    else              data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,0,0);
+    if (inst == null) data.setInstance(pid,time,this.inst,pplain,pssl,padmin,stats);
+    else              data.setInstance(pid,time,this.inst,inst.port,inst.ssl,inst.admin,stats);
     
     shareddata.write(data);
   }
@@ -132,7 +135,7 @@ public class Cluster extends Thread
     {
       Instance inst = instances.get(data.manager());
 
-      if (inst == null || (time - inst.time) > 2 * check)
+      if (inst == null || (time - inst.time) > 1.5 * check)
          if (rewire()) maintain();
     }
   }
@@ -167,34 +170,40 @@ public class Cluster extends Thread
   public String status() throws Exception
   {
     String str = "";
+    int mb = 1024 * 1024;
     long time = new Date().getTime();
 
     InstanceData data = shareddata.read(false);
     Hashtable<Integer,Instance> instances = data.getInstances(false);
 
     str += nl+nl+"Cluster manager : "+data.manager()+ ", servers : " + data.servers() + ", version : " + data.version() +nl;
-    str += "----------------------------------------------------------"+nl;
-    str += "|    Pid   |  Id | port |  ssl |  adm |  ses |  max | age |"+nl;
-    str += "----------------------------------------------------------"+nl;
+    str += "-------------------------------------------------------------------------"+nl;
+    str += "|    Pid   |  Id | port |  ssl |  adm |sessions c/m | memory t/u  | age |"+nl;
+    str += "-------------------------------------------------------------------------"+nl;
 
     for(Map.Entry<Integer,Instance> entry : instances.entrySet())
     {
       Instance instance = entry.getValue();
+      
+      Stats stats = instance.stats;
 
       String pid = String.format("%8s",instance.pid);
       String ssl = String.format("%4s",instance.ssl);
-      String ses = String.format("%4s",instance.ses);
-      String max = String.format("%4s",instance.max);
+      String ses = String.format("%4s",instance.stats.ses);
+      String max = String.format("%-4s",instance.stats.max);
+      String mem = String.format("%4s",instance.stats.mem/mb);
+      String used = String.format("%-4s",instance.stats.used/mb);
+
       String port = String.format("%4s",instance.port);
       String admin = String.format("%4s",instance.admin);
 
       String age = String.format("%3s",(time-instance.time)/1000);
       String inst = String.format("%3s",entry.getKey());
 
-      str += "| " + pid + " | " + inst + " | " + port + " | " + ssl + " | " + admin + " | " + ses + " | " + max + " | " + age + " | "+nl;
+      str += "| " + pid + " | " + inst + " | " + port + " | " + ssl + " | " + admin + " | " + ses + " - " + max + " | " + mem + " - " + used + " | " + age + " | "+nl;
     }
 
-    str += "----------------------------------------------------------"+nl;
+    str += "-------------------------------------------------------------------------"+nl;
     return(str);
   }
 }
