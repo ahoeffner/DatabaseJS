@@ -67,6 +67,7 @@ public class FileHandler implements Handler
 
       response.setBody(body.getBytes());
       response.setCode("404 Page Not Found");
+      response.setHeader("Content-Type","text/html");
       return;
     }
 
