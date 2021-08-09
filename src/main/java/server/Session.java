@@ -67,15 +67,12 @@ public class Session extends Thread
         HTTPRequest request = new HTTPRequest(port,headers);
         
         String path = request.getPath();
-        String host = request.getHeader("Host");
-        
-        int pos = host.lastIndexOf(':');
-        if (pos > 0) host = host.substring(0,pos);
-        host += ":"+rssl;
+        String host = this.host + ":" + rssl;
         
         HTTPResponse response = new HTTPResponse(this.host+":"+port,cors);
+        
         response.setCode("302 Moved Permanently");
-        response.setHeader("location","https://"+host.trim()+path);
+        response.setHeader("location","https://"+host+path);
 
         out.write(response.getPage());
         return;
@@ -94,14 +91,12 @@ public class Session extends Thread
 
         response.setCookie("database.js",uuid);
         String cl = request.getHeader("Content-Length");
-
+        
         if (cl != null)
         {
           byte[] body = reader.getContent(Integer.parseInt(cl));
           request.setBody(body);
         }
-
-        Handler handler = null; //Server.getHandler(request);
 
         if (httplog)
         {
@@ -109,7 +104,9 @@ public class Session extends Thread
           if (full) config.log.logger.finest("ID:"+thread+id+"\n"+request.toString());
         }
 
+        Handler handler = getHandler(request);        
         handler.handle(config,request,response);
+        
         out.write(response.getPage());
 
         if (httplog)
@@ -136,5 +133,14 @@ public class Session extends Thread
 
       if (!skip) config.log.exception(e);
     }    
+  }
+  
+  
+  private Handler getHandler(HTTPRequest request)
+  {
+    String path = request.getPath();
+    String method = request.getMethod();
+    if (!path.endsWith("/")) path += "/";
+    return(config.http.handlers.getHandler(path,method));
   }
 }

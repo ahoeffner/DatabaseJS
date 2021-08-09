@@ -10,6 +10,6 @@ public class FileHandler implements Handler
   @Override
   public void handle(Config config, HTTPRequest request, HTTPResponse response)
   {
-    // TODO Implement this method
+    response.setBody("Hello World".getBytes());
   }
 }

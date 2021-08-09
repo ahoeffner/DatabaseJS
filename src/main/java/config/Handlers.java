@@ -13,8 +13,24 @@ public class Handlers
   
   public void add(String prefix, String methods, String clazz) throws Exception
   {
+    if (!prefix.endsWith("/")) prefix += "/";
     this.entries.add(new Entry(prefix,methods,clazz));
     Collections.sort(this.entries);
+  }
+  
+  
+  public handlers.Handler getHandler(String path, String method)
+  {
+    for(Entry entry : entries)
+    {
+      if (path.startsWith(entry.prefix))
+      {
+        if (entry.methods.contains(method))
+          return(entry.handler);
+      }
+    }
+    
+    return(null);
   }
   
   
