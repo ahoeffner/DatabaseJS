@@ -7,5 +7,5 @@ import server.HTTPResponse;
 
 public interface Handler
 {
-  void handle(Config config, HTTPRequest request, HTTPResponse response);
+  void handle(Config config, HTTPRequest request, HTTPResponse response) throws Exception;
 }

@@ -18,10 +18,12 @@ public class Session extends Thread
   private final String cors;
   private final Config config;
   private final Socket socket;
-  
+
   private final boolean fine;
   private final boolean full;
-  private final boolean httplog; 
+  private final boolean httplog;
+  
+  private final static String nl = System.lineSeparator();
 
 
   public Session(Config config, Socket socket, String host, int port, String cors)
@@ -38,14 +40,14 @@ public class Session extends Thread
     this.cors = cors;
     this.config = config;
     this.socket = socket;
-    
+
     this.httplog = config.log.http;
-    
+
     this.fine = config.log.logger.getLevel() == Level.FINE;
     this.full = config.log.logger.getLevel() == Level.FINEST;
   }
-  
-  
+
+
   @Override
   public void run()
   {
@@ -60,24 +62,24 @@ public class Session extends Thread
 
       SocketReader reader = new SocketReader(in);
       String remote = socket.getInetAddress().getCanonicalHostName();
-      
+
       if (this.rssl > 0)
       {
         ArrayList<String> headers = reader.getHeader();
         HTTPRequest request = new HTTPRequest(port,headers);
-        
+
         String path = request.getPath();
         String host = this.host + ":" + rssl;
-        
+
         HTTPResponse response = new HTTPResponse(this.host+":"+port,cors);
-        
+
         response.setCode("302 Moved Permanently");
         response.setHeader("location","https://"+host+path);
 
         out.write(response.getPage());
         return;
       }
-      
+
       String uuid = ""+UUID.randomUUID();
 
       config.log.logger.info("Client "+remote+" connected");
@@ -89,9 +91,18 @@ public class Session extends Thread
         HTTPRequest request = new HTTPRequest(port,headers);
         HTTPResponse response = new HTTPResponse(this.host+":"+port,cors);
 
-        response.setCookie("database.js",uuid);
-        String cl = request.getHeader("Content-Length");
+        response.setCookie("database.js.session",uuid);
+
+        String caching = request.getHeader("Cache-Control");
+        String version = request.getCookie("database.js.version");
         
+        if (version == null || caching == null || caching.contains("max-age=0") || caching.contains("no-cache"))
+          version = config.http.version;
+        
+        request.setVersion(version);
+
+        String cl = request.getHeader("Content-Length");
+
         if (cl != null)
         {
           byte[] body = reader.getContent(Integer.parseInt(cl));
@@ -100,19 +111,19 @@ public class Session extends Thread
 
         if (httplog)
         {
-          if (fine) config.log.logger.fine("ID:"+thread+id+"\n"+request.getHeaders());
-          if (full) config.log.logger.finest("ID:"+thread+id+"\n"+request.toString());
+          if (fine) config.log.logger.fine("cid:"+thread+id+nl+request.getHeaders());
+          if (full) config.log.logger.finest("cid:"+thread+id+nl+request.toString());
         }
 
-        Handler handler = getHandler(request);        
+        Handler handler = getHandler(request);
         handler.handle(config,request,response);
-        
+
         out.write(response.getPage());
 
         if (httplog)
         {
-          if (fine) config.log.logger.fine("ID:"+thread+id+"\n"+response.getHeaders());
-          if (full) config.log.logger.finest("ID:"+thread+id+"\n"+response.toString());
+          if (fine) config.log.logger.fine("cid:"+thread+id+nl+response.getHeaders());
+          if (full) config.log.logger.finest("cid:"+thread+id+nl+response.toString());
         }
 
         id++;
@@ -132,10 +143,10 @@ public class Session extends Thread
       if (msg.contains("Remote host terminated")) skip = true;
 
       if (!skip) config.log.exception(e);
-    }    
+    }
   }
-  
-  
+
+
   private Handler getHandler(HTTPRequest request)
   {
     String path = request.getPath();

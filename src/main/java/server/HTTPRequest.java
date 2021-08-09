@@ -10,7 +10,9 @@ public class HTTPRequest
   private String path;
   private byte[] body;
   private String method;
+  private String version;
   private ArrayList<String> headers;
+  private HashMap<String,String> cookies;
   private HashMap<String,String> headermap;
   private ArrayList<Pair<String,String>> query;
 
@@ -87,6 +89,16 @@ public class HTTPRequest
     return(method);
   }
 
+  public void setVersion(String version)
+  {
+    this.version = version;
+  }
+
+  public String getVersion()
+  {
+    return(version);
+  }
+
   public String getHeader(String header)
   {
     return(headermap.get(header));
@@ -100,8 +112,28 @@ public class HTTPRequest
     String[] cookies = cookie.split(";");
     for (int i = 0; i < cookies.length; i++) 
       cookies[i] = cookies[i].trim();
-
+    
+    if (this.cookies == null)
+    {
+      this.cookies = new HashMap<String,String>();
+      
+      for(String ck : cookies)
+      {
+        String value = "";
+        String[] parts = ck.split("=");        
+        if (parts.length > 1) value = parts[1];
+        this.cookies.put(parts[0],value);
+      }
+    }    
+    
     return(cookies);
+  }
+  
+  
+  public String getCookie(String name)
+  {
+    if (cookies == null) getCookies();
+    return(cookies.get(name));
   }
 
   public ArrayList<Pair<String,String>> getQuery()
