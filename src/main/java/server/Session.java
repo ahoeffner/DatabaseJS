@@ -62,7 +62,7 @@ public class Session extends Thread
 
       SocketReader reader = new SocketReader(in);
       String remote = socket.getInetAddress().getCanonicalHostName();
-
+      
       if (this.rssl > 0)
       {
         ArrayList<String> headers = reader.getHeader();
@@ -71,7 +71,7 @@ public class Session extends Thread
         String path = request.getPath();
         String host = this.host + ":" + rssl;
 
-        HTTPResponse response = new HTTPResponse(this.host+":"+port,cors);
+        HTTPResponse response = new HTTPResponse(this.host+":"+port);
 
         response.setCode("302 Moved Permanently");
         response.setHeader("location","https://"+host+path);
@@ -89,7 +89,7 @@ public class Session extends Thread
         ArrayList<String> headers = reader.getHeader();
 
         HTTPRequest request = new HTTPRequest(port,headers);
-        HTTPResponse response = new HTTPResponse(this.host+":"+port,cors);
+        HTTPResponse response = new HTTPResponse(this.host+":"+port);
 
         response.setCookie("database.js.session",uuid);
 
@@ -117,8 +117,17 @@ public class Session extends Thread
 
         Handler handler = getHandler(request);
         handler.handle(config,request,response);
-
-        out.write(response.getPage());
+        
+        int off = 0;
+        int maxsz = 8192;
+        byte[] page = response.getPage();
+        
+        while(off < page.length)
+        {
+          int chk = page.length - off;
+          if (chk > maxsz) chk = maxsz;
+          out.write(page,off,chk); off += chk;
+        }
 
         if (httplog)
         {

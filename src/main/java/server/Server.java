@@ -37,7 +37,7 @@ public class Server extends Thread
       int pssl = config.http.ssl + inst;
       int pplain = config.http.plain + inst;
       int padmin = config.http.admin + inst;
-
+      
       if (config.http.requiressl)
       {
         pki = new PKIContext(config.security.identity,config.security.trust);
@@ -47,7 +47,7 @@ public class Server extends Thread
 
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
 
-        plain = new Listener(config,null,host,pplain);
+        plain = new Listener(config,null,host,pplain,pssl);
         plain.start();
 
         config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));

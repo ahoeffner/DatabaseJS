@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 public class HTTPResponse
 {
   private byte[] body;
+  private String ctype = null;
   private String code = "200 OK";
   private ArrayList<String> headers;
   private static final String newl = "\r\n";
@@ -20,7 +21,7 @@ public class HTTPResponse
   }
 
 
-  public HTTPResponse(String host, String cors)
+  public HTTPResponse(String host)
   {
     headers = new ArrayList<String>();
 
@@ -33,7 +34,7 @@ public class HTTPResponse
 
   public void addCorsHeaders(String cors)
   {
-    setHeader("Content-Type","text/plain");
+    setContentType("text/plain");
     setHeader("Access-Control-Allow-Origin",cors);
     setHeader("Access-Control-Allow-Headers","*");
     setHeader("Access-Control-Request-Headers","*");
@@ -44,6 +45,12 @@ public class HTTPResponse
   public void setCode(String code)
   {
     this.code = code;
+  }
+  
+  
+  public void setContentType(String type)
+  {
+    this.ctype = type;
   }
 
 
@@ -105,6 +112,7 @@ public class HTTPResponse
     if (body != null) length = body.length;
 
     String header = "HTTP/1.1 " + code + newl +
+                    "Content-Type: "+ctype + newl +
                     "Content-Length: "+length  + newl;
 
     for (String hdr : headers) header += hdr + newl;
@@ -117,13 +125,7 @@ public class HTTPResponse
     int length = 0;
     if (body != null) length = body.length;
 
-
-    String header = "HTTP/1.1 " + code + newl +
-                    "Content-Length: "+length  + newl;
-
-
-    for (String hdr : headers) header += hdr + newl;
-    header += newl;
+    String header = getHeaders() + newl;
 
     byte[] head = header.getBytes();
     if (body == null) return(head);

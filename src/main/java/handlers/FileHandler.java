@@ -68,8 +68,8 @@ public class FileHandler implements Handler
       "</body></html>\n";
 
       response.setBody(body.getBytes());
+      response.setContentType("text/html");
       response.setCode("404 Page Not Found");
-      response.setHeader("Content-Type","text/html");
       return;
     }
 
@@ -83,7 +83,7 @@ public class FileHandler implements Handler
     }
 
     response.setHeader("Last-Modified",info.moddate);
-    response.setHeader("Content-Type",MimeTypes.getContentType(type));
+    response.setContentType(MimeTypes.getContentType(type));
 
     int len = (int) file.length();
     byte[] body = new byte[len];

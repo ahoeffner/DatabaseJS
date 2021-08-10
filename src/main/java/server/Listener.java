@@ -71,7 +71,7 @@ public class Listener extends Thread
       {
         Socket socket = this.socket.accept();
         config.log.logger.finest("Accept new session on port "+port);
-        Session session = new Session(config,socket,host,port,cors);
+        Session session = new Session(config,socket,host,port,cors,rssl);
         session.start();
       }
       catch(Exception e)
