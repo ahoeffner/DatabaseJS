@@ -4,6 +4,7 @@ import java.io.File;
 import config.Config;
 import java.util.Date;
 import server.MimeTypes;
+import java.util.TimeZone;
 import server.HTTPRequest;
 import server.HTTPResponse;
 import java.io.FileInputStream;
@@ -12,7 +13,8 @@ import java.text.SimpleDateFormat;
 
 public class FileHandler implements Handler
 {
-  private static final SimpleDateFormat format = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
+  private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+  static {format.setTimeZone(TimeZone.getTimeZone("GMT"));}
 
 
   @Override
@@ -71,16 +73,17 @@ public class FileHandler implements Handler
       return;
     }
 
-    response.setHeader("Content-Type", MimeTypes.getContentType(type));
-
     FileInfo info = new FileInfo(file);
     String last = request.getHeader("If-Modified-Since");
-
+    
     if (last != null && last.equals(info.moddate))
     {
       response.setCode("304 Not Modified");
       return;
     }
+
+    response.setHeader("Last-Modified",info.moddate);
+    response.setHeader("Content-Type",MimeTypes.getContentType(type));
 
     int len = (int) file.length();
     byte[] body = new byte[len];
@@ -102,7 +105,7 @@ public class FileHandler implements Handler
     FileInfo(File file)
     {
       mod = file.lastModified();
-      moddate = format.format(new Date(mod));
+      moddate = format.format(new Date(mod))+" GMT";
     }
   }
 }

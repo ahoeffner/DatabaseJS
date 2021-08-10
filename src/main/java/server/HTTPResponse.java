@@ -28,7 +28,6 @@ public class HTTPResponse
     setHeader("Server","database.js");
     setHeader("Cache-Control","no-cache");
     setHeader("Connection","keep-alive");
-    addCorsHeaders(cors);
   }
 
 

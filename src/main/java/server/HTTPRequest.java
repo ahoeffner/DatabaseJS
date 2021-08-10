@@ -107,7 +107,9 @@ public class HTTPRequest
   public String[] getCookies()
   {
     String cookie = headermap.get("Cookie");
-    if (cookie == null) return(new String[0]);
+    
+    if (cookie == null) 
+      cookie = "";
 
     String[] cookies = cookie.split(";");
     for (int i = 0; i < cookies.length; i++) 
