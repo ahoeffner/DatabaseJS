@@ -15,9 +15,9 @@ public class Session extends Thread
   private final int port;
   private final int rssl;
   private final String host;
-  private final String cors;
   private final Config config;
   private final Socket socket;
+  private final String corsdomains;
 
   private final boolean fine;
   private final boolean full;
@@ -32,14 +32,14 @@ public class Session extends Thread
   }
 
 
-  public Session(Config config, Socket socket, String host, int port, String cors, int rssl)
+  public Session(Config config, Socket socket, String host, int port, String corsdomains, int rssl)
   {
     this.host = host;
     this.port = port;
     this.rssl = rssl;
-    this.cors = cors;
     this.config = config;
     this.socket = socket;
+    this.corsdomains = corsdomains;
 
     this.httplog = config.log.http;
 
@@ -80,8 +80,6 @@ public class Session extends Thread
         return;
       }
 
-      String uuid = ""+UUID.randomUUID();
-
       config.log.logger.info("Client "+remote+" connected");
 
       while(true)
@@ -90,13 +88,37 @@ public class Session extends Thread
 
         HTTPRequest request = new HTTPRequest(port,headers);
         HTTPResponse response = new HTTPResponse(this.host+":"+port);
-
-        response.setCookie("database.js.session",uuid);
-
+        
+        String origin = request.getHeader("Origin");
+        String corsreq = request.getHeader("Sec-Fetch-Mode");
+        
         String caching = request.getHeader("Cache-Control");
         String version = request.getCookie("database.js.version");
+        String session = request.getCookie("database.js.session");
+
+        if (corsdomains != null && corsreq != null && origin != null && corsreq.equals("cors"))
+        {
+          String site = origin.split(":")[1].substring(2);
+
+          if (corsdomains.equals("*") || this.corsdomains.contains(site))
+            response.addCorsHeaders(origin);
+        }
         
-        if (version == null || caching == null || caching.contains("max-age=0") || caching.contains("no-cache"))
+        boolean reload = false;
+        
+        if (caching != null && (caching.contains("max-age=0") || caching.contains("no-cache")))
+          reload = true;
+        
+        if (session == null || reload)
+        {
+          String uuid = ""+UUID.randomUUID();
+          
+          Sessions.logout(session);
+          Sessions.register(remote,uuid);
+          response.setCookie("database.js.session",uuid);  
+        }
+        
+        if (version == null || reload)
           version = config.http.version;
         
         request.setVersion(version);

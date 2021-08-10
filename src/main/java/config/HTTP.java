@@ -14,7 +14,7 @@ public class HTTP
   public final String path;
   public final String version;
   public final Handlers handlers;
-  public final String corsheader;
+  public final String corsdomains;
   public final boolean requiressl;
   
   
@@ -46,22 +46,22 @@ public class HTTP
     this.admin = ports.getInt("admin");
     
     
-    String corsheader = null;
+    String corsdomains = null;
     boolean requiressl = false;
     JSONObject security = section.getJSONObject("security");
     
     if (security.has("require.ssl")) requiressl = security.getBoolean("require.ssl");
     this.requiressl = requiressl;
 
-    String elem = "Access-Control-Allow-Origin";
+    String elem = "Cors-Allow-Sites";
     
     if (security.has(elem) && !security.isNull(elem)) 
-      corsheader = security.getString("Access-Control-Allow-Origin");
+      corsdomains = security.getString(elem);
 
-    if (corsheader != null && corsheader.trim().length() == 0)
-      corsheader = null;
+    if (corsdomains != null && corsdomains.trim().length() == 0)
+      corsdomains = null;
     
-    this.corsheader = corsheader;
+    this.corsdomains = corsdomains;
     this.handlers = new Handlers();
 
 

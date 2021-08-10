@@ -1,6 +1,7 @@
 package handlers;
 
 import java.io.File;
+import config.Paths;
 import config.Config;
 import java.util.Date;
 import server.MimeTypes;
@@ -83,8 +84,22 @@ public class FileHandler implements Handler
     }
 
     response.setHeader("Last-Modified",info.moddate);
-    response.setContentType(MimeTypes.getContentType(type));
+    response.setContentType(MimeTypes.getContentType(type));    
 
+    boolean gzip = false;
+    String aec = request.getHeader("Accept-Encoding");
+    if (aec != null && type != null && aec.contains("gzip") && (type.equals("html") || type.equals("js"))) gzip = true;
+    
+    if (gzip)
+    {
+      String cpath = Paths.tmpdir;
+      
+      if (vers.length() > 0)  
+        cpath += "/" + vers;
+
+      cpath += request.getPath();
+    }
+    
     int len = (int) file.length();
     byte[] body = new byte[len];
 
