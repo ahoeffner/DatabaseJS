@@ -42,32 +42,32 @@ public class Server extends Thread
       {
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(config,pki,host,pssl);
+        ssl = new Listener(config,pki,inst,host,pssl);
         ssl.start();
 
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
 
-        plain = new Listener(config,null,host,pplain,pssl);
+        plain = new Listener(config,null,inst,host,pplain,pssl);
         plain.start();
 
         config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
       }
       else
       {
-        plain = new Listener(config,null,host,pplain);
+        plain = new Listener(config,null,inst,host,pplain);
         plain.start();
 
         config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
 
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(config,pki,host,pssl);
+        ssl = new Listener(config,pki,inst,host,pssl);
         ssl.start();
 
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
       }
 
-      admin = new Listener(config,pki,host,padmin,true);
+      admin = new Listener(config,pki,inst,host,padmin,true);
       admin.start();
 
       config.log.logger.info("listening on port "+padmin+", elapsed: "+elapsed(time));

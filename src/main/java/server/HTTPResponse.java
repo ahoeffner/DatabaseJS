@@ -1,9 +1,10 @@
 package server;
 
-import java.util.Date;
 import java.util.TimeZone;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+
+import java.util.Date;
 
 
 public class HTTPResponse
@@ -46,8 +47,8 @@ public class HTTPResponse
   {
     this.code = code;
   }
-  
-  
+
+
   public void setContentType(String type)
   {
     this.ctype = type;
@@ -68,26 +69,30 @@ public class HTTPResponse
 
   public void setCookie(String cookie, String value)
   {
-    setCookie(cookie,value,null,"/");
+    Integer expires = null;
+    setCookie(cookie,value,expires,"/");
   }
 
 
   public void setCookie(String cookie, String value, int seconds)
   {
-    long expires = new Date().getTime() + seconds*1000;
-    setCookie(cookie,value,new Date(expires),"/");
+    setCookie(cookie,value,seconds,"/");
   }
 
 
-  public void setCookie(String cookie, String value, Date expires)
+  public void setCookie(String cookie, String value, Integer expires, String path)
   {
-    setCookie(cookie,value,expires,"/");
+    String expire = "";
+    if (value == null) value = "";
+    if (expires != null) expire = "; max-age="+expires;
+    headers.add("Set-Cookie: "+cookie+"="+value+expire+"; path="+path);
   }
 
 
   public void setCookie(String cookie, String value, Date expires, String path)
   {
     String expire = "";
+    if (value == null) value = "";
     if (expires != null) expire = "; expires="+format.format(expires);
     headers.add("Set-Cookie: "+cookie+"="+value+expire+"; path="+path);
   }
@@ -95,7 +100,13 @@ public class HTTPResponse
 
   public void removeCookie(String cookie)
   {
-    headers.add("Set-Cookie: "+cookie+"=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+    removeCookie(cookie,"/");
+  }
+
+
+  public void removeCookie(String cookie, String path)
+  {
+    setCookie(cookie,null,-1,path);
   }
 
 

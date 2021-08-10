@@ -9,6 +9,7 @@ import javax.net.ssl.SSLServerSocket;
 
 public class Listener extends Thread
 {
+  private final int inst;
   private final int rssl;
   private final int port;
   private final String host;
@@ -18,26 +19,27 @@ public class Listener extends Thread
   private ServerSocket socket = null;
 
 
-  public Listener(Config config, PKIContext pki, String host, int port) throws Exception
+  public Listener(Config config, PKIContext pki, int inst, String host, int port) throws Exception
   {
-    this(config,pki,host,port,false,0);
+    this(config,pki,inst,host,port,false,0);
   }
 
 
-  public Listener(Config config, PKIContext pki, String host, int port, int rssl) throws Exception
+  public Listener(Config config, PKIContext pki, int inst, String host, int port, int rssl) throws Exception
   {
-    this(config,pki,host,port,false,rssl);
+    this(config,pki,inst,host,port,false,rssl);
   }
 
 
-  public Listener(Config config, PKIContext pki, String host, int port, boolean auth) throws Exception
+  public Listener(Config config, PKIContext pki, int inst, String host, int port, boolean auth) throws Exception
   {
-    this(config,pki,host,port,auth,0);
+    this(config,pki,inst,host,port,auth,0);
   }
   
 
-  public Listener(Config config, PKIContext pki, String host, int port, boolean auth, int rssl) throws Exception
+  public Listener(Config config, PKIContext pki, int inst, String host, int port, boolean auth, int rssl) throws Exception
   {
+    this.inst = inst;
     this.rssl = rssl;    
     this.config = config;
     
@@ -71,7 +73,7 @@ public class Listener extends Thread
       {
         Socket socket = this.socket.accept();
         config.log.logger.finest("Accept new session on port "+port);
-        Session session = new Session(config,socket,host,port,corsdomains,rssl);
+        Session session = new Session(config,socket,inst,host,port,corsdomains,rssl);
         session.start();
       }
       catch(Exception e)

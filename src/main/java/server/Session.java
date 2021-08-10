@@ -12,6 +12,7 @@ import java.util.logging.Level;
 
 public class Session extends Thread
 {
+  private final int inst;
   private final int port;
   private final int rssl;
   private final String host;
@@ -22,18 +23,19 @@ public class Session extends Thread
   private final boolean fine;
   private final boolean full;
   private final boolean httplog;
-  
+
   private final static String nl = System.lineSeparator();
 
 
-  public Session(Config config, Socket socket, String host, int port, String cors)
+  public Session(Config config, Socket socket, int inst, String host, int port, String cors)
   {
-    this(config,socket,host,port,cors,0);
+    this(config,socket,inst,host,port,cors,0);
   }
 
 
-  public Session(Config config, Socket socket, String host, int port, String corsdomains, int rssl)
+  public Session(Config config, Socket socket, int inst, String host, int port, String corsdomains, int rssl)
   {
+    this.inst = inst;
     this.host = host;
     this.port = port;
     this.rssl = rssl;
@@ -62,7 +64,7 @@ public class Session extends Thread
 
       SocketReader reader = new SocketReader(in);
       String remote = socket.getInetAddress().getCanonicalHostName();
-      
+
       if (this.rssl > 0)
       {
         ArrayList<String> headers = reader.getHeader();
@@ -88,13 +90,14 @@ public class Session extends Thread
 
         HTTPRequest request = new HTTPRequest(port,headers);
         HTTPResponse response = new HTTPResponse(this.host+":"+port);
-        
+
+
+        //************************************************************
+        // Send appropiate CORS headers
+        //************************************************************
+
         String origin = request.getHeader("Origin");
         String corsreq = request.getHeader("Sec-Fetch-Mode");
-        
-        String caching = request.getHeader("Cache-Control");
-        String version = request.getCookie("database.js.version");
-        String session = request.getCookie("database.js.session");
 
         if (corsdomains != null && corsreq != null && origin != null && corsreq.equals("cors"))
         {
@@ -103,25 +106,42 @@ public class Session extends Thread
           if (corsdomains.equals("*") || this.corsdomains.contains(site))
             response.addCorsHeaders(origin);
         }
-        
+
+
+        //************************************************************
+        // Detect reload and get/set cookies
+        //************************************************************
+
         boolean reload = false;
-        
+
+        String caching = request.getHeader("Cache-Control");
+        String version = request.getCookie("database.js.version");
+        String session = request.getCookie("database.js.session");
+        String trxinst = request.getCookie("database.js.trxinst");
+
         if (caching != null && (caching.contains("max-age=0") || caching.contains("no-cache")))
           reload = true;
-        
+
         if (session == null || reload)
         {
           String uuid = ""+UUID.randomUUID();
-          
+
           Sessions.logout(session);
           Sessions.register(remote,uuid);
-          response.setCookie("database.js.session",uuid);  
+          response.setCookie("database.js.session",uuid);
         }
-        
+
         if (version == null || reload)
           version = config.http.version;
-        
+
         request.setVersion(version);
+
+        if (reload) trxinst = null;
+
+
+        //************************************************************
+        // Handle request
+        //************************************************************
 
         String cl = request.getHeader("Content-Length");
 
@@ -139,11 +159,11 @@ public class Session extends Thread
 
         Handler handler = getHandler(request);
         handler.handle(config,request,response);
-        
+
         int off = 0;
         int maxsz = 8192;
         byte[] page = response.getPage();
-        
+
         while(off < page.length)
         {
           int chk = page.length - off;
@@ -158,7 +178,7 @@ public class Session extends Thread
         }
 
         id++;
-    }
+      }
     }
     catch (Exception e)
     {

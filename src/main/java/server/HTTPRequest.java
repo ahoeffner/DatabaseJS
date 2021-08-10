@@ -83,26 +83,31 @@ public class HTTPRequest
   {
     return(path);
   }
+  
 
   public String getMethod()
   {
     return(method);
   }
+  
 
   public void setVersion(String version)
   {
     this.version = version;
   }
 
+
   public String getVersion()
   {
     return(version);
   }
 
+
   public String getHeader(String header)
   {
     return(headermap.get(header));
   }
+  
   
   public String[] getCookies()
   {
@@ -131,16 +136,29 @@ public class HTTPRequest
     return(cookies);
   }
   
-  
+
   public String getCookie(String name)
   {
     if (cookies == null) getCookies();
     return(cookies.get(name));
   }
 
+
   public ArrayList<Pair<String,String>> getQuery()
   {
     return(query);
+  }
+
+
+  public String getQuery(String param)
+  {
+    for(Pair<String,String> p : query)
+    {
+      if (p.key.equals(param))
+        return(p.value);
+    }
+    
+    return(null);
   }
   
   
