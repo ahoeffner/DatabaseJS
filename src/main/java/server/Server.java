@@ -7,9 +7,9 @@ import java.net.InetAddress;
 
 public class Server extends Thread
 {
-  private final int inst;
-  private final Config config;
-  private final Cluster cluster;
+  public final int inst;
+  public final Config config;
+  public final Cluster cluster;
 
   private Listener ssl = null;
   private Listener plain = null;
@@ -42,32 +42,32 @@ public class Server extends Thread
       {
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(config,pki,inst,host,pssl);
+        ssl = new Listener(this,pki,host,pssl);
         ssl.start();
 
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
 
-        plain = new Listener(config,null,inst,host,pplain,pssl);
+        plain = new Listener(this,null,host,pplain,pssl);
         plain.start();
 
         config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
       }
       else
       {
-        plain = new Listener(config,null,inst,host,pplain);
+        plain = new Listener(this,null,host,pplain);
         plain.start();
 
         config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
 
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(config,pki,inst,host,pssl);
+        ssl = new Listener(this,pki,host,pssl);
         ssl.start();
 
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
       }
 
-      admin = new Listener(config,pki,inst,host,padmin,true);
+      admin = new Listener(this,pki,host,padmin,true);
       admin.start();
 
       config.log.logger.info("listening on port "+padmin+", elapsed: "+elapsed(time));

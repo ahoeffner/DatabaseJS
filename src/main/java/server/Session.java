@@ -27,20 +27,20 @@ public class Session extends Thread
   private final static String nl = System.lineSeparator();
 
 
-  public Session(Config config, Socket socket, int inst, String host, int port, String cors)
+  public Session(Server server, Socket socket, String host, int port, String cors)
   {
-    this(config,socket,inst,host,port,cors,0);
+    this(server,socket,host,port,cors,0);
   }
 
 
-  public Session(Config config, Socket socket, int inst, String host, int port, String corsdomains, int rssl)
+  public Session(Server server, Socket socket, String host, int port, String corsdomains, int rssl)
   {
-    this.inst = inst;
     this.host = host;
     this.port = port;
     this.rssl = rssl;
-    this.config = config;
     this.socket = socket;
+    this.inst = server.inst;
+    this.config = server.config;
     this.corsdomains = corsdomains;
 
     this.httplog = config.log.http;
@@ -93,22 +93,6 @@ public class Session extends Thread
 
 
         //************************************************************
-        // Send appropiate CORS headers
-        //************************************************************
-
-        String origin = request.getHeader("Origin");
-        String corsreq = request.getHeader("Sec-Fetch-Mode");
-
-        if (corsdomains != null && corsreq != null && origin != null && corsreq.equals("cors"))
-        {
-          String site = origin.split(":")[1].substring(2);
-
-          if (corsdomains.equals("*") || this.corsdomains.contains(site))
-            response.addCorsHeaders(origin);
-        }
-
-
-        //************************************************************
         // Detect reload and get/set cookies
         //************************************************************
 
@@ -134,9 +118,24 @@ public class Session extends Thread
         if (version == null || reload)
           version = config.http.version;
 
+        if (reload) trxinst = null;
         request.setVersion(version);
 
-        if (reload) trxinst = null;
+
+        //************************************************************
+        // Send appropiate CORS headers
+        //************************************************************
+
+        String origin = request.getHeader("Origin");
+        String corsreq = request.getHeader("Sec-Fetch-Mode");
+
+        if (corsdomains != null && corsreq != null && origin != null && corsreq.equals("cors"))
+        {
+          String site = origin.split(":")[1].substring(2);
+
+          if (corsdomains.equals("*") || this.corsdomains.contains(site))
+            response.addCorsHeaders(origin);
+        }
 
 
         //************************************************************

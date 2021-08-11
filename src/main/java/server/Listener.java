@@ -14,34 +14,36 @@ public class Listener extends Thread
   private final int port;
   private final String host;
 
+  private Server server = null;  
   private Config config = null;  
   private SSLContext ctx = null;
   private ServerSocket socket = null;
 
 
-  public Listener(Config config, PKIContext pki, int inst, String host, int port) throws Exception
+  public Listener(Server server, PKIContext pki, String host, int port) throws Exception
   {
-    this(config,pki,inst,host,port,false,0);
+    this(server,pki,host,port,false,0);
   }
 
 
-  public Listener(Config config, PKIContext pki, int inst, String host, int port, int rssl) throws Exception
+  public Listener(Server server, PKIContext pki, String host, int port, int rssl) throws Exception
   {
-    this(config,pki,inst,host,port,false,rssl);
+    this(server,pki,host,port,false,rssl);
   }
 
 
-  public Listener(Config config, PKIContext pki, int inst, String host, int port, boolean auth) throws Exception
+  public Listener(Server server, PKIContext pki, String host, int port, boolean auth) throws Exception
   {
-    this(config,pki,inst,host,port,auth,0);
+    this(server,pki,host,port,auth,0);
   }
   
 
-  public Listener(Config config, PKIContext pki, int inst, String host, int port, boolean auth, int rssl) throws Exception
+  public Listener(Server server, PKIContext pki, String host, int port, boolean auth, int rssl) throws Exception
   {
-    this.inst = inst;
     this.rssl = rssl;    
-    this.config = config;
+    this.server = server;
+    this.inst = server.inst;
+    this.config = server.config;
     
     this.setDaemon(true);
 
@@ -73,7 +75,7 @@ public class Listener extends Thread
       {
         Socket socket = this.socket.accept();
         config.log.logger.finest("Accept new session on port "+port);
-        Session session = new Session(config,socket,inst,host,port,corsdomains,rssl);
+        Session session = new Session(server,socket,host,port,corsdomains,rssl);
         session.start();
       }
       catch(Exception e)
