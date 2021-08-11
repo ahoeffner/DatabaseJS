@@ -37,33 +37,31 @@ public class Server extends Thread
       int pssl = config.http.ssl + inst;
       int pplain = config.http.plain + inst;
       int padmin = config.http.admin + inst;
-      
+
       if (config.http.requiressl)
       {
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(this,pki,host,pssl);
-        ssl.start();
-
+        ssl = new Listener(this,pki,host,pssl); ssl.start();
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
 
-        plain = new Listener(this,null,host,pplain,pssl);
-        plain.start();
-
-        config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
+        if (pplain > 0)
+        {
+          plain = new Listener(this,null,host,pplain,pssl); plain.start();
+          config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
+        }
       }
       else
       {
-        plain = new Listener(this,null,host,pplain);
-        plain.start();
-
-        config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
+        if (pplain > 0)
+        {
+          plain = new Listener(this,null,host,pplain); plain.start();
+          config.log.logger.info("listening on port "+pplain+", elapsed: "+elapsed(time));
+        }
 
         pki = new PKIContext(config.security.identity,config.security.trust);
 
-        ssl = new Listener(this,pki,host,pssl);
-        ssl.start();
-
+        ssl = new Listener(this,pki,host,pssl); ssl.start();
         config.log.logger.info("listening on port "+pssl+", elapsed: "+elapsed(time));
       }
 

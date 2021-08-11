@@ -44,7 +44,6 @@ public class Session extends Thread
     this.corsdomains = corsdomains;
 
     this.httplog = config.log.http;
-
     this.fine = config.log.logger.getLevel() == Level.FINE;
     this.full = config.log.logger.getLevel() == Level.FINEST;
   }

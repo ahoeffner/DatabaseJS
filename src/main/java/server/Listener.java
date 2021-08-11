@@ -13,9 +13,10 @@ public class Listener extends Thread
   private final int rssl;
   private final int port;
   private final String host;
+  private final boolean admin;
 
-  private Server server = null;  
-  private Config config = null;  
+  private Server server = null;
+  private Config config = null;
   private SSLContext ctx = null;
   private ServerSocket socket = null;
 
@@ -36,15 +37,16 @@ public class Listener extends Thread
   {
     this(server,pki,host,port,auth,0);
   }
-  
 
-  public Listener(Server server, PKIContext pki, String host, int port, boolean auth, int rssl) throws Exception
+
+  public Listener(Server server, PKIContext pki, String host, int port, boolean admin, int rssl) throws Exception
   {
-    this.rssl = rssl;    
+    this.rssl = rssl;
+    this.admin = admin;
     this.server = server;
     this.inst = server.inst;
     this.config = server.config;
-    
+
     this.setDaemon(true);
 
     if (pki == null)
@@ -55,32 +57,41 @@ public class Listener extends Thread
     {
       this.ctx = pki.getSSLContext();
       this.socket = this.ctx.getServerSocketFactory().createServerSocket(port);
-      if (auth) ((SSLServerSocket) socket).setNeedClientAuth(true);
+      if (admin) ((SSLServerSocket) socket).setNeedClientAuth(true);
     }
 
     this.host = host;
     this.port = port;
   }
-  
-  
+
+
   @Override
   public void run()
   {
     String corsdomains = config.http.corsdomains;
     Thread.currentThread().setName("listener port "+port);
-    
+
     while(true)
     {
       try
       {
         Socket socket = this.socket.accept();
         config.log.logger.finest("Accept new session on port "+port);
-        Session session = new Session(server,socket,host,port,corsdomains,rssl);
-        session.start();
+
+        if (this.admin)
+        {
+          AdminSession session = new AdminSession(server,socket,host,port);
+          session.start();
+        }
+        else
+        {
+          Session session = new Session(server,socket,host,port,corsdomains,rssl);
+          session.start();
+        }
       }
       catch(Exception e)
       {
-        config.log.exception(e);    
+        config.log.exception(e);
       }
     }
   }
