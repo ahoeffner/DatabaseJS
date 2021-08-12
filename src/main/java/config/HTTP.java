@@ -14,8 +14,8 @@ public class HTTP
   public final String path;
   public final String version;
   public final Handlers handlers;
-  public final String corsdomains;
   public final boolean requiressl;
+  public final String[] corsdomains;
   
   
   public HTTP(String path, JSONObject section) throws Exception
@@ -61,7 +61,19 @@ public class HTTP
     if (corsdomains != null && corsdomains.trim().length() == 0)
       corsdomains = null;
     
-    this.corsdomains = corsdomains;
+    String[] domains = null;
+    
+    if (corsdomains != null) 
+    {
+      domains = corsdomains.split("[ ,]+");
+      for (int i = 0; i < domains.length; i++)
+      {
+        domains[i] = domains[i].trim();
+        if (!domains[i].equals("*")) domains[i] = "."+domains[i]+".";
+      }
+    }
+    
+    this.corsdomains = domains;
     this.handlers = new Handlers();
 
 

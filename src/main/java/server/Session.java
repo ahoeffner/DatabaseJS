@@ -27,13 +27,13 @@ public class Session extends Thread
   private final static String nl = System.lineSeparator();
 
 
-  public Session(Server server, Socket socket, String host, int port, String cors)
+  public Session(Server server, Socket socket, String host, int port, String[] cors)
   {
     this(server,socket,host,port,cors,0);
   }
 
 
-  public Session(Server server, Socket socket, String host, int port, String corsdomains, int rssl)
+  public Session(Server server, Socket socket, String host, int port, String[] corsdomains, int rssl)
   {
     this.host = host;
     this.port = port;
@@ -41,7 +41,7 @@ public class Session extends Thread
     this.socket = socket;
     this.inst = server.inst;
     this.config = server.config;
-    this.corsdomains = corsdomains.split("[ ,]+");
+    this.corsdomains = corsdomains;
 
     this.httplog = config.log.http;
     this.fine = config.log.logger.getLevel() == Level.FINE;
@@ -134,7 +134,7 @@ public class Session extends Thread
           
           for(String domain : corsdomains)
           {
-            if (domain.equals("*") || site.contains("."+domain+"."))
+            if (domain.equals("*") || site.contains(domain))
             {
               response.addCorsHeaders(origin);
               break;              

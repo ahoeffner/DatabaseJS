@@ -68,7 +68,7 @@ public class Listener extends Thread
   @Override
   public void run()
   {
-    String corsdomains = config.http.corsdomains;
+    String[] corsdomains = config.http.corsdomains;
     Thread.currentThread().setName("listener port "+port);
 
     while(true)
