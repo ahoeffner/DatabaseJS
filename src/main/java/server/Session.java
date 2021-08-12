@@ -18,7 +18,7 @@ public class Session extends Thread
   private final String host;
   private final Config config;
   private final Socket socket;
-  private final String corsdomains;
+  private final String corsdomains[];
 
   private final boolean fine;
   private final boolean full;
@@ -41,7 +41,7 @@ public class Session extends Thread
     this.socket = socket;
     this.inst = server.inst;
     this.config = server.config;
-    this.corsdomains = corsdomains;
+    this.corsdomains = corsdomains.split("[ ,]+");
 
     this.httplog = config.log.http;
     this.fine = config.log.logger.getLevel() == Level.FINE;
@@ -130,10 +130,16 @@ public class Session extends Thread
 
         if (corsdomains != null && corsreq != null && origin != null && corsreq.equals("cors"))
         {
-          String site = origin.split(":")[1].substring(2);
-
-          if (corsdomains.equals("*") || this.corsdomains.contains(site))
-            response.addCorsHeaders(origin);
+          String site = "."+origin.split(":")[1].substring(2)+".";
+          
+          for(String domain : corsdomains)
+          {
+            if (domain.equals("*") || site.contains("."+domain+"."))
+            {
+              response.addCorsHeaders(origin);
+              break;              
+            }
+          }
         }
 
 
