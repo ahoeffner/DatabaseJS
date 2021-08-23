@@ -1,12 +1,10 @@
 package logger;
 
-import java.io.ByteArrayOutputStream;
-
-import java.io.PrintStream;
-
 import java.util.Date;
-import java.util.logging.LogRecord;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.logging.LogRecord;
+import java.io.ByteArrayOutputStream;
 
 
 public class Formatter extends java.util.logging.Formatter

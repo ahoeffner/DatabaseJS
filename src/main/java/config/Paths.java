@@ -7,11 +7,13 @@ import java.io.File;
 public class Paths
 {
   public static final String tmpdir;
+  public static final String ipcdir;
   public static final String confdir;
   public static final String apphome;
   public static final String sharefile;
   
   private static final String TMPDIR = "tmp";
+  private static final String IPCDIR = "ipc";
   private static final String CONFDIR = "conf";
   private static final String SHAREFILE = "cluster.dat";
 
@@ -21,8 +23,9 @@ public class Paths
   {
     apphome = findAppHome();
     tmpdir = apphome + File.separator + TMPDIR;
+    ipcdir = apphome + File.separator + IPCDIR;
     confdir = apphome + File.separator + CONFDIR;
-    sharefile = tmpdir + File.separator + SHAREFILE;
+    sharefile = ipcdir + File.separator + SHAREFILE;
   }
   
   

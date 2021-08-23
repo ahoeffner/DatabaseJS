@@ -1,12 +1,14 @@
 package client;
 
 import config.Config;
-import config.Keystore;
 import java.net.Socket;
+import server.PKIContext;
+import java.util.ArrayList;
+import server.SocketReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import server.PKIContext;
 
 
 public class Client
@@ -25,6 +27,9 @@ public class Client
     
     Client client = new Client(null,pki,"localhost",9001);
     client.connect();
+    
+    String response = client.send("test",null);
+    System.out.println(response);
   }
 
 
@@ -34,6 +39,32 @@ public class Client
     this.host = host;
     this.port = port;
     this.logger = logger;
+  }
+  
+  
+  public String send(String cmd, String message) throws Exception
+  {
+    HTTPRequest request = new HTTPRequest(host,"/"+cmd);
+    request.setBody(message);
+    
+    InputStream in = socket.getInputStream();
+    OutputStream out = socket.getOutputStream();
+    SocketReader reader = new SocketReader(in);
+
+    out.write(request.getPage());
+    ArrayList<String> headers = reader.getHeader();
+
+    int cl = 0;
+    for(String header : headers)
+    {
+      if (header.startsWith("Content-Length"))
+        cl = Integer.parseInt(header.split(":")[1].trim());
+    }
+    
+    String response = null;
+    if (cl > 0) response = new String(reader.getContent(cl));
+    
+    return(response);
   }
   
   

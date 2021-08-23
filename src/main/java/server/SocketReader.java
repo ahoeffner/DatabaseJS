@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 
-class SocketReader
+public class SocketReader
 {
   private int pos = 0;
   private int size = 0;
@@ -13,7 +13,7 @@ class SocketReader
   private final byte[] buffer = new byte[MAX];
 
 
-  SocketReader(InputStream in)
+  public SocketReader(InputStream in)
   {
     this.in = in;
   }
