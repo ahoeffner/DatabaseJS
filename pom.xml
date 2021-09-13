@@ -52,7 +52,7 @@
           </includes>
           <archive>
             <manifest>
-              <mainClass>DatabaseJS</mainClass>
+              <mainClass>Launcher</mainClass>
             </manifest>
             <addMavenDescriptor>false</addMavenDescriptor>
           </archive>

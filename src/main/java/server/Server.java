@@ -1,7 +1,6 @@
 package server;
 
 import config.Config;
-import instances.Cluster;
 import java.net.InetAddress;
 
 
@@ -9,7 +8,6 @@ public class Server extends Thread
 {
   public final int inst;
   public final Config config;
-  public final Cluster cluster;
 
   private Listener ssl = null;
   private Listener plain = null;
@@ -20,7 +18,6 @@ public class Server extends Thread
   {
     this.inst = inst;
     this.config = config;
-    this.cluster = new Cluster(config,this,inst);
   }
 
 
@@ -70,15 +67,9 @@ public class Server extends Thread
 
       config.log.logger.info("listening on port "+padmin+", elapsed: "+elapsed(time));
 
-      Runtime.getRuntime().addShutdownHook(new ShutdownHook(cluster));
-      cluster.register();
-
       this.start();
 
       config.log.logger.info("instance started, elapsed: "+elapsed(time));
-
-      if (cluster.manager())
-        config.log.cluster.info("cluster started, elapsed: "+elapsed(time));
     }
     catch (Exception e)
     {
@@ -126,29 +117,6 @@ public class Server extends Thread
     catch (Exception e)
     {
       config.log.exception(e);
-    }
-  }
-
-
-  private static class ShutdownHook extends Thread
-  {
-    private final Cluster cluster;
-
-    public ShutdownHook(Cluster cluster)
-    {
-      this.cluster = cluster;
-    }
-
-    public void run()
-    {
-      try
-      {
-        cluster.deregister();
-      }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
     }
   }
 }

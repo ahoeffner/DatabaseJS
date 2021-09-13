@@ -6,31 +6,28 @@ import java.io.File;
 
 public class Paths
 {
+  public static final String libdir;
   public static final String tmpdir;
-  public static final String ipcdir;
-  public static final String confdir;
   public static final String apphome;
-  public static final String sharefile;
-  
-  private static final String TMPDIR = "tmp";
-  private static final String IPCDIR = "ipc";
-  private static final String CONFDIR = "conf";
-  private static final String SHAREFILE = "cluster.dat";
+  public static final String confdir;
 
-  
-  
+  private static final String LIBDIR = "lib";
+  private static final String TMPDIR = "tmp";
+  private static final String CONFDIR = "conf";
+
+
   static
   {
     apphome = findAppHome();
+    libdir = apphome + File.separator + LIBDIR;
     tmpdir = apphome + File.separator + TMPDIR;
-    ipcdir = apphome + File.separator + IPCDIR;
     confdir = apphome + File.separator + CONFDIR;
-    sharefile = ipcdir + File.separator + SHAREFILE;
   }
   
   
   private static String findAppHome()
   {
+    String sep = File.separator;
     Object obj = new Object() { };
 
     String cname = obj.getClass().getEnclosingClass().getName();
@@ -38,12 +35,12 @@ public class Paths
 
     URL url = obj.getClass().getResource(cname);
     String path = url.getPath();
-    
+
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
     {
-      path = path.substring(5); // get rid of file:
-      path = path.substring(0,path.indexOf("!")); // get rid of !class
-      path = path.substring(0,path.lastIndexOf(File.separator)); // get rid jarname
+      path = path.substring(5); // get rid of "file:"
+      path = path.substring(0,path.indexOf("!")); // get rid of "!class"
+      path = path.substring(0,path.lastIndexOf("/")); // get rid jarname
     }
     else
     {
@@ -51,12 +48,21 @@ public class Paths
       if (path.endsWith("/classes")) path = path.substring(0,path.length()-8);
     }
     
-    while(path.length() > 0)
-    {
-      if (new File(path+File.separator+CONFDIR).exists()) break;
-      path = path.substring(0,path.lastIndexOf(File.separator));    
-    }
+    String escape = "\\";
+    if (sep.equals("\\")) escape = "\\"; 
+    path = path.replaceAll("/",escape+sep);
     
+    // Back until conf folder
+    
+    while(true)
+    {
+      String conf = path+sep+"conf";
+      
+      File test = new File(conf);
+      if (test.exists()) break;
+      path = path.substring(0,path.lastIndexOf(File.separator));
+    }
+
     return(path);
   }
 }

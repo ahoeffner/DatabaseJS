@@ -1,7 +1,5 @@
 import config.Config;
-
 import server.Server;
-import instances.Cluster;
 import java.util.ArrayList;
 
 public class DatabaseJS
@@ -23,17 +21,8 @@ public class DatabaseJS
                     server.startup();
                     break;
 
-      case status:  status(config); break;
-
       default: usage();
     }
-  }
-
-
-  private static void status(Config config) throws Exception
-  {
-    Cluster cluster = new Cluster(config,null,0);
-    System.out.println(cluster.status());
   }
 
 
@@ -78,15 +67,12 @@ public class DatabaseJS
     System.out.println("Usage: database.js [options] <cmd> [args]");
     System.out.println();
     System.out.println("options:");
-    System.out.println("\t-m | --message <msg> (use with stop/remove)");
     System.out.println("\t-i | --instance <inst> (internal use only)");
     System.out.println("\t-c | --config <config> specifies configuration");
     System.out.println();
     System.out.println("cmd:");
     System.out.println("\tstart           : starts all servers in cluster.");
     System.out.println("\tstop    [secs]  : stops all servers in cluster.");
-    System.out.println("\tadd     [n]     : add <n> servers.");
-    System.out.println("\tremove  [n]     : remove <n> servers.");
     System.out.println("\tversion <vers>  : change app version.");
     System.out.println("\tstatus          : prints cluster status.");
     System.out.println();
