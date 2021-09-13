@@ -1,3 +1,5 @@
+package control;
+
 import config.Config;
 
 import java.io.File;
@@ -16,9 +18,9 @@ public class Launcher
   {
     String config = "default";
 
-    Loader loader = new Loader(Launcher.class);
+    control.Loader loader = new control.Loader(control.Launcher.class);
     
-    loader.add(Test.class);
+    loader.add(control.Test.class);
     loader.load(Paths.libdir+File.separator+"json");
     
     Class Launcher = loader.entrypoint();
@@ -30,6 +32,6 @@ public class Launcher
   {
     JSONTokener tokener = new JSONTokener("{}");
     System.out.println(config+" tokener = "+tokener);
-    Test test = new Test();
+    control.Test test = new control.Test();
   }
 }

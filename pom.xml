@@ -52,7 +52,7 @@
           </includes>
           <archive>
             <manifest>
-              <mainClass>Launcher</mainClass>
+              <mainClass>control.Launcher</mainClass>
             </manifest>
             <addMavenDescriptor>false</addMavenDescriptor>
           </archive>

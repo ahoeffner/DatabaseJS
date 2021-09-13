@@ -1,3 +1,5 @@
+package control;
+
 import java.io.File;
 import java.util.HashMap;
 import java.io.InputStream;
@@ -29,7 +31,7 @@ public class Loader extends ClassLoader
   
   public Loader(Class entrypoint) throws Exception
   {
-    this.entrypoint = entrypoint.getName();
+    this.entrypoint = entrypoint.getName().replace('.','/');
     load(entrypoint);
   }
 

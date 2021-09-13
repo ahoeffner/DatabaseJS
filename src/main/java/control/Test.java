@@ -1,3 +1,5 @@
+package control;
+
 import org.json.JSONTokener;
 
 public class Test
@@ -5,6 +7,6 @@ public class Test
   public Test()
   {
     JSONTokener tokener = new JSONTokener("{}");
-    System.out.println("Test is working");
+    System.out.println("Test II is working");
   }
 }
