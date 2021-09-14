@@ -11,6 +11,7 @@ public class Logger
 {
   public final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
   public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("others");
+  public final java.util.logging.Logger control = java.util.logging.Logger.getLogger("control");
   public final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
 
   private final String level;
@@ -24,7 +25,7 @@ public class Logger
   private String logdir = "." + File.separator + "logs";
       
   private static final String logfile = "server.log";
-  private static final String clsfile = "cluster.log";
+  private static final String ctrfile = "control.log";
   private final static int LOGSIZE = 10 * 1024 * 1024;
 
 
@@ -33,7 +34,6 @@ public class Logger
     String lfsize = null;
     String path = Paths.apphome;
     
-        
     level = config.getString("others");
     htlevel = config.getString("http");
     dblevel = config.getString("database");
@@ -67,6 +67,21 @@ public class Logger
 
     if (!ldir.isDirectory())
       throw new Exception(ldir+" is not a directory");
+  }
+  
+  
+  public synchronized void open() throws Exception
+  {
+    File ldir = new File(logdir);
+    if (!ldir.exists()) ldir.mkdir();
+
+    FileHandler handler = new FileHandler(logdir+File.separator+ctrfile,size,count,true);
+    handler.setFormatter(formatter);
+
+    control.setUseParentHandlers(false);
+    control.setLevel(Level.parse(level.toUpperCase()));
+
+    control.addHandler(handler);
   }
   
   

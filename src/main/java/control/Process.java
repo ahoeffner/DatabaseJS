@@ -1,9 +1,8 @@
 package control;
 
 import config.Config;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.lang.management.RuntimeMXBean;
-import java.lang.management.ManagementFactory;
 
 
 public class Process
@@ -16,17 +15,13 @@ public class Process
   
   public Process(Config config) throws Exception
   {
-    logger = config.getLogger().logger;
+    logger = config.getLogger().control;
     String java = config.getJava().exe();
     
     this.htopt = config.getJava().getHttpOptions();
     this.srvopt = config.getJava().getServerOptions();
-
     String classpath = (String) System.getProperties().get("java.class.path");
 
-    RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-    
-    
     String cmd = java+" -cp "+classpath;
     this.cmd = cmd;
   }
@@ -39,23 +34,18 @@ public class Process
     if (type == Type.http) options = htopt;
     else                   options = srvopt;
 
-    String cmd = this.cmd + " " + options + " Server " + inst;
+    String cmd = this.cmd + " " + options + " control.Server " + inst;
     System.out.println(cmd);
-    /*
-    String cmd = this.cmd + " --instance "+inst;
-    if (config.name != null) cmd += " --config "+config.name;
-    cmd += " start";
-    
+
     try
     {
       Runtime.getRuntime().exec(cmd);
-      config.log.cluster.info("Starting instance["+inst+"]");
+      logger.info("Starting instance["+inst+"]");
     }
     catch (Exception e)
     {
-      config.log.cluster.log(Level.SEVERE,null,e);
+      logger.log(Level.SEVERE,null,e);
     } 
-    */
   }
   
   

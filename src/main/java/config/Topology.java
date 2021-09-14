@@ -21,7 +21,6 @@ public class Topology
     else  servers = config.getInt("servers");
     
     this.hot = config.getBoolean("hot-standby");
-    System.out.println("hot = "+hot);
   }
 
 

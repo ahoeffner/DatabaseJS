@@ -1,6 +1,6 @@
 package control;
 
-import java.io.File;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -10,29 +10,26 @@ import java.util.jar.JarFile;
 import java.io.ByteArrayOutputStream;
 
 /**
- * 
+ *
  * Dynamic ClassLoader that can used directly from within standard code.
- * 
- * Use the entrypoint() to get an instance of the entrypoint with the new
- * ClassLoader, and thereby the extra libraries.
- * 
- * Any class that uses the dynamically loaded libraries must be added to
- * the loader.
- * 
+ * The entrypoints (getClass(cname)) must implement an interface that is 
+ * skipped from the loader. Otherwise a cast will fail since the interface
+ * from loader has a different signature than the code itself.
+ *
  */
 public class Loader extends ClassLoader
 {
-  private final String entrypoint;
-  private final String sep = File.separator;  
+  private final HashSet<String> skip =
+    new HashSet<String>();
   
   private final HashMap<String,Class<?>> classes =
     new HashMap<String,Class<?>>();
   
   
-  public Loader(Class entrypoint) throws Exception
+  public Loader(Class... skip)
   {
-    this.entrypoint = entrypoint.getName().replace('.','/');
-    load(entrypoint);
+    for(Class skc : skip)
+      this.skip.add(skc.getName());
   }
 
 
@@ -40,84 +37,77 @@ public class Loader extends ClassLoader
   protected Class<?> findClass(String name) throws ClassNotFoundException
   {
     Class<?> clazz = classes.get(name);
-    if (clazz != null) return(clazz);    
-    return(super.findClass(name));
+    if (clazz != null) return(clazz); 
+    return(this.getParent().loadClass(name));
   }
   
   
-  public Class<?> entrypoint() throws Exception
+  public Class<?> getClass(Class clazz) throws Exception
   {
-    return(findClass(entrypoint));
+    return(findClass(clazz.getName().replace('.','/')));
   }
   
   
-  public void add(Class clazz) throws Exception
+  public void addClass(Class clazz) throws Exception
   {
     load(clazz);
   }
   
   
-  public void load(String dir) throws Exception
+  public void load(String jar) throws Exception
   {
-    File jsonlibs = new File(dir);
-    
     ArrayList<Definition> failed = 
       new ArrayList<Definition>();
-    
-    for(String file : jsonlibs.list())
-    {
-      File test = new File(dir+sep+file);
-      
-      if (test.isDirectory()) 
-        continue;
-      
-      JarFile jarfile = new JarFile(dir+sep+file);
-      Enumeration<JarEntry> flist = jarfile.entries();
-      
-      while (flist.hasMoreElements())
-      {
-        JarEntry entry = flist.nextElement();
         
-        if (entry.getName().endsWith(".class"))
-        {
-          String name = entry.getName();
-          name = name.substring(0,name.length()-6);
-          
-          String qname = name.replace('/','.');
-          
-          InputStream in = jarfile.getInputStream(entry);
-          byte[] bcode = new byte[(int) entry.getSize()];
-          
-          in.read(bcode);
-          in.close();
-
-          Definition cdef = new Definition(name,qname,bcode);
-
-          Class<?> clazz = trydefine(cdef);
-          
-          if (clazz == null) failed.add(cdef);
-          else               classes.put(name,clazz);            
-        }
-      }
+    JarFile jarfile = new JarFile(jar);
+    Enumeration<JarEntry> flist = jarfile.entries();
+    
+    while (flist.hasMoreElements())
+    {
+      JarEntry entry = flist.nextElement();
       
-      for (int i = 0; i < 16 && failed.size() > 0; i++)
+      if (entry.getName().endsWith(".class"))
       {
-        for (int j = 0; j < failed.size(); j++)
+        String name = entry.getName();
+        name = name.substring(0,name.length()-6);
+        
+        String qname = name.replace('/','.');
+        
+        if (skip.contains(qname))
+          continue;
+        
+        InputStream in = jarfile.getInputStream(entry);
+        byte[] bcode = new byte[(int) entry.getSize()];
+        
+        in.read(bcode);
+        in.close();
+
+        Definition cdef = new Definition(name,qname,bcode);
+
+        Class<?> clazz = trydefine(cdef);
+        
+        if (clazz == null) failed.add(cdef);
+        else               classes.put(name,clazz);            
+      }
+    }
+    
+    for (int i = 0; i < 16 && failed.size() > 0; i++)
+    {
+      for (int j = 0; j < failed.size(); j++)
+      {
+        Definition cdef = failed.get(j);
+        Class<?> clazz = trydefine(cdef);
+        
+        if (clazz != null)
         {
-          Definition cdef = failed.get(j);
-          Class<?> clazz = trydefine(cdef);
-          
-          if (clazz != null)
-          {
-            failed.remove(j--);
-            classes.put(cdef.name,clazz);
-          }
+          failed.remove(j--);
+          classes.put(cdef.name,clazz);
         }
       }
     }
     
     if (failed.size() > 0)
-      throw new Exception("Unable to load jars from "+dir);
+      throw new Exception("Unable to load jars from "+jar);
   }
   
   
@@ -146,7 +136,7 @@ public class Loader extends ClassLoader
     
     if (clazz == null)
       throw new Exception("Unable to add "+local.getName()+" definition to Loader");
-      
+    
     classes.put(name,clazz);            
   }
   

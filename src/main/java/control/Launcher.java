@@ -1,10 +1,8 @@
 package control;
 
-import config.Java;
 import java.io.File;
 import config.Paths;
 import config.Config;
-import config.Logger;
 import config.Topology;
 import org.json.JSONTokener;
 
@@ -17,30 +15,37 @@ import org.json.JSONTokener;
  */
 public class Launcher implements ILauncher
 {
-  @SuppressWarnings("unused") 
+  @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
-  {    
+  {
     ILauncher launcher = create();
     launcher.startProcesses();
   }
-  
-  
+
+
   public void startProcesses() throws Exception
   {
-    Config config = new Config();
-    Java java = config.getJava();
+    Config config = new Config();    
+    Process process = new Process(config);
     Topology topology = config.getTopology();
     
-    Process process = new Process(config);
-    process.start(Process.Type.http,0);
+    config.getLogger().open();
+
+    if (topology.type() == Topology.Type.Micro)
+    {
+      process.start(Process.Type.http,0);
+
+      if (topology.hotstandby())
+        process.start(Process.Type.http,1);
+    }
   }
-  
-  
+
+
   @SuppressWarnings("unchecked")
   private static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
-    
+
     try
     {
       // Test json-lib
@@ -51,17 +56,24 @@ public class Launcher implements ILauncher
     {
       try
       {
-        control.Loader loader = new control.Loader(Launcher.class);
-        
-        loader.add(Java.class);
-        loader.add(Config.class);
-        loader.add(Process.class);
-        loader.add(Logger.class);
-        loader.add(Topology.class);
-        
-        loader.load(Paths.libdir+File.separator+"json");
-        
-        Class Launcher = loader.entrypoint();
+        Loader loader = new Loader(ILauncher.class);
+
+        String path = Paths.libdir+File.separator+"json";
+        String psep = System.getProperty("path.separator");
+        String classpath = (String) System.getProperties().get("java.class.path");
+
+        File dir = new File(path);
+        String[] jars = dir.list();
+
+        for(String jar : jars)
+          loader.load(path + File.separator + jar);
+
+        jars = classpath.split(psep);
+
+        for(String jar : jars)
+          loader.load(jar);
+
+        Class Launcher = loader.getClass(Launcher.class);
         launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
       }
       catch (Exception le)
@@ -69,7 +81,7 @@ public class Launcher implements ILauncher
         throw le;
       }
     }
-    
+
     return(launcher);
   }
 }
