@@ -1,6 +1,7 @@
 package config;
 
 import java.io.File;
+import security.PKIContext;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.io.FileInputStream;
@@ -17,6 +18,7 @@ public class Config
   private Java java = null;
   private HTTP http = null;
   private Logger logger = null;
+  private PKIContext pkictx = null;
   private Security security = null;
   private Topology topology = null;
   private Database database = null;
@@ -58,7 +60,16 @@ public class Config
     else       securitye = config.getString("security");
   }
   
+    
+  public synchronized PKIContext getPKIContext() throws Exception
+  {
+    if (pkictx != null) return(pkictx);
+    Security security = this.getSecurity();    
+    pkictx = new PKIContext(security.getIdentity(),security.getTrusted());
+    return(pkictx);
+  }
   
+    
   public synchronized Java getJava() throws Exception
   {
     if (java != null) return(java);
@@ -75,7 +86,7 @@ public class Config
   public synchronized HTTP getHTTP() throws Exception
   {
     if (http != null) return(http);
-    FileInputStream in = new FileInputStream(javapath());
+    FileInputStream in = new FileInputStream(httppath());
     
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);
@@ -88,7 +99,7 @@ public class Config
   public synchronized Logger getLogger() throws Exception
   {
     if (logger != null) return(logger);
-    FileInputStream in = new FileInputStream(javapath());
+    FileInputStream in = new FileInputStream(loggerpath());
     
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);

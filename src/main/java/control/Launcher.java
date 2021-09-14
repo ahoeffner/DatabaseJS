@@ -31,8 +31,8 @@ public class Launcher implements ILauncher
     Java java = config.getJava();
     Topology topology = config.getTopology();
     
-    System.out.println("java: "+java.exe());
-    System.out.println("type: "+topology.type());
+    Process process = new Process(config);
+    process.start(Process.Type.http,0);
   }
   
   

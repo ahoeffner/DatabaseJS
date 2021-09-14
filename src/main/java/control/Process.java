@@ -1,40 +1,47 @@
 package control;
 
-import java.io.File;
 import config.Config;
-import java.util.List;
-import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ManagementFactory;
 
 
 public class Process
 {
-  public final String cmd;
+  private final String cmd;
+  private final String htopt;
+  private final String srvopt;
+  private final Logger logger;
   
   
-  public Process()
+  public Process(Config config) throws Exception
   {
-    String jvm = null;
+    logger = config.getLogger().logger;
+    String java = config.getJava().exe();
     
-    if (System.getProperty("os.name").startsWith("Win")) jvm = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "java.exe";
-    else                                                 jvm = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+    this.htopt = config.getJava().getHttpOptions();
+    this.srvopt = config.getJava().getServerOptions();
 
     String classpath = (String) System.getProperties().get("java.class.path");
 
     RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-    List<String> options = bean.getInputArguments();
     
-    String cmd = jvm+" -cp "+classpath;
-    for(String option : options) cmd += " "+option;
-    cmd += " DatabaseJS";
     
+    String cmd = java+" -cp "+classpath;
     this.cmd = cmd;
   }
   
-/*  
-  public void start(int inst, Config config)
+
+  public void start(Type type, int inst)
   {
+    String options = null;
+    
+    if (type == Type.http) options = htopt;
+    else                   options = srvopt;
+
+    String cmd = this.cmd + " " + options + " Server " + " " + inst;
+    System.out.println(cmd);
+    /*
     String cmd = this.cmd + " --instance "+inst;
     if (config.name != null) cmd += " --config "+config.name;
     cmd += " start";
@@ -47,7 +54,15 @@ public class Process
     catch (Exception e)
     {
       config.log.cluster.log(Level.SEVERE,null,e);
-    }    
+    } 
+    */
   }
-*/
+  
+  
+  public static enum Type
+  {
+    http,
+    rest,
+    micro
+  }
 }
