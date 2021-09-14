@@ -70,7 +70,7 @@ public class Logger
   }
   
   
-  public synchronized void open() throws Exception
+  public synchronized void openControlLog() throws Exception
   {
     File ldir = new File(logdir);
     if (!ldir.exists()) ldir.mkdir();

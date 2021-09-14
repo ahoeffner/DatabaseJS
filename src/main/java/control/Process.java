@@ -1,6 +1,9 @@
 package control;
 
 import config.Config;
+
+import java.io.InputStream;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,12 +38,17 @@ public class Process
     else                   options = srvopt;
 
     String cmd = this.cmd + " " + options + " control.Server " + inst;
-    System.out.println(cmd);
 
     try
     {
-      Runtime.getRuntime().exec(cmd);
+      byte[] status = new byte[4094];
       logger.info("Starting instance["+inst+"]");
+      
+      InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();
+      int read = in.read(status);
+      
+      logger.info("Instance["+inst+"]: "+new String(status,0,read)); 
+      in.close();
     }
     catch (Exception e)
     {

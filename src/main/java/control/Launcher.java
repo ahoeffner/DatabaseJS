@@ -26,11 +26,10 @@ public class Launcher implements ILauncher
   public void startProcesses() throws Exception
   {
     Config config = new Config();    
+    config.getLogger().openControlLog();
     Process process = new Process(config);
     Topology topology = config.getTopology();
     
-    config.getLogger().open();
-
     if (topology.type() == Topology.Type.Micro)
     {
       process.start(Process.Type.http,0);
