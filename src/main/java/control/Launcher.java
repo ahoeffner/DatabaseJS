@@ -1,11 +1,11 @@
 package control;
 
+import config.Java;
 import java.io.File;
 import config.Paths;
 import config.Config;
-import config.Java;
+import config.Logger;
 import config.Topology;
-
 import org.json.JSONTokener;
 
 
@@ -55,6 +55,8 @@ public class Launcher implements ILauncher
         
         loader.add(Java.class);
         loader.add(Config.class);
+        loader.add(Process.class);
+        loader.add(Logger.class);
         loader.add(Topology.class);
         
         loader.load(Paths.libdir+File.separator+"json");

@@ -39,7 +39,7 @@ public class Process
     if (type == Type.http) options = htopt;
     else                   options = srvopt;
 
-    String cmd = this.cmd + " " + options + " Server " + " " + inst;
+    String cmd = this.cmd + " " + options + " Server " + inst;
     System.out.println(cmd);
     /*
     String cmd = this.cmd + " --instance "+inst;
