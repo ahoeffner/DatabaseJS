@@ -11,13 +11,13 @@ public class Security
   private final Keystore identity;
   
   
-  Security(JSONObject section) throws Exception
+  Security(JSONObject config) throws Exception
   {
     String type = null;
     String file = null;
     String passwd = null;
     
-    JSONObject identsec = section.getJSONObject("identity");
+    JSONObject identsec = config.getJSONObject("identity");
 
     type = identsec.getString("type");
     file = identsec.getString("keystore");
@@ -29,7 +29,7 @@ public class Security
     
     identity = new Keystore(file,type,alias,passwd);
     
-    JSONObject trustsec = section.getJSONObject("identity");
+    JSONObject trustsec = config.getJSONObject("identity");
 
     type = trustsec.getString("type");
     file = trustsec.getString("keystore");

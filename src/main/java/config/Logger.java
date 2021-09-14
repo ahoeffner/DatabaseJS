@@ -9,41 +9,38 @@ import java.util.logging.FileHandler;
 
 public class Logger
 {
-  public final boolean db;
-  public final boolean http;
-  public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("default");
-  public final java.util.logging.Logger cluster = java.util.logging.Logger.getLogger("cluster");
+  public final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
+  public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("others");
+  public final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
 
+  private final String level;
+  private final String dblevel;
+  private final String htlevel;
+  private final Formatter formatter = new Formatter();
   
   private int count = 2;
   private int size = LOGSIZE;
-  private String level = "WARNING";
+  private boolean open = false;
   private String logdir = "." + File.separator + "logs";
-  
+      
   private static final String logfile = "server.log";
   private static final String clsfile = "cluster.log";
   private final static int LOGSIZE = 10 * 1024 * 1024;
-  
-  
-  public void exception(Throwable exception)
-  {
-    logger.log(Level.SEVERE,null,exception);
-  }
 
 
-  public Logger(String path, JSONObject section) throws Exception
+  Logger(JSONObject config) throws Exception
   {
     String lfsize = null;
+    String path = Paths.apphome;
     
-    boolean db = false, http = false;
         
-    if (section.has("db"))      db = section.getBoolean("db");
-    if (section.has("http"))    http = section.getBoolean("http");
-    if (section.has("level"))   level = section.getString("level");
+    level = config.getString("others");
+    htlevel = config.getString("http");
+    dblevel = config.getString("database");
     
-    if (section.has("files"))   count = section.getInt("files");
-    if (section.has("size"))    lfsize = section.getString("size");
-    if (section.has("path"))    logdir = section.getString("path");
+    if (config.has("files"))   count = config.getInt("files");
+    if (config.has("size"))    lfsize = config.getString("size");
+    if (config.has("path"))    logdir = config.getString("path");
     
     if (lfsize != null)
     {
@@ -70,43 +67,34 @@ public class Logger
 
     if (!ldir.isDirectory())
       throw new Exception(ldir+" is not a directory");
-
-    this.db = db;
-    this.http = http;
   }
   
   
-  public void open(int inst) throws Exception
+  public synchronized void open(int inst) throws Exception
   {
-    String instdir = logdir + File.separator+"inst"+String.format("%1$3s",inst).replace(' ','0');
+    if (open) return;
+    String instdir = logdir + File.separator+"inst"+String.format("%1$2s",inst).replace(' ','0');
 
     File ldir = new File(instdir);
     if (!ldir.exists()) ldir.mkdir();
 
-    logger.setUseParentHandlers(false);
-    logger.setLevel(Level.parse(level.toUpperCase()));
-    
-    Formatter formatter = new Formatter();
-
     FileHandler handler = new FileHandler(instdir+File.separator+logfile,size,count,true);
     handler.setFormatter(formatter);
 
+    http.setUseParentHandlers(false);
+    http.setLevel(Level.parse(htlevel.toUpperCase()));
+
+    http.addHandler(handler);
+
+    logger.setUseParentHandlers(false);
+    logger.setLevel(Level.parse(level.toUpperCase()));
+
     logger.addHandler(handler);
-  }
-  
-  
-  public void opencls() throws Exception
-  {
-    String clsdir = logdir;  
 
-    cluster.setLevel(Level.ALL);
-    cluster.setUseParentHandlers(false);
-    
-    Formatter formatter = new Formatter();
+    database.setUseParentHandlers(false);
+    database.setLevel(Level.parse(dblevel.toUpperCase()));
 
-    FileHandler chandler = new FileHandler(clsdir+File.separator+clsfile,1024*1024,2,true);
-    chandler.setFormatter(formatter);
-
-    cluster.addHandler(chandler);
+    database.addHandler(handler);
+    open = true;
   }
 }

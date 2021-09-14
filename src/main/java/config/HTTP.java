@@ -79,7 +79,7 @@ public class HTTP
     for (int i = 0; i < handlers.length(); i++)
     {
       JSONObject entry = handlers.getJSONObject(i);
-      //this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
+      this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
   }
 

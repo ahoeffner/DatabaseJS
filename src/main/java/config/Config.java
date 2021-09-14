@@ -16,9 +16,10 @@ public class Config
   
   private Java java = null;
   private HTTP http = null;
+  private Logger logger = null;
   private Security security = null;
   private Topology topology = null;
-  //private Database database = null;
+  private Database database = null;
   
   private static final String CONFDEF = "conf.json";
   private static final String JAVADEF = "java.json";
@@ -81,6 +82,32 @@ public class Config
     
     http = new HTTP(config);
     return(http);
+  }
+  
+  
+  public synchronized Logger getLogger() throws Exception
+  {
+    if (logger != null) return(logger);
+    FileInputStream in = new FileInputStream(javapath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    logger = new Logger(config);
+    return(logger);
+  }
+  
+  
+  public synchronized Database getDatabase() throws Exception
+  {
+    if (database != null) return(database);
+    FileInputStream in = new FileInputStream(javapath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    database = new Database(config);
+    return(database);
   }
   
   

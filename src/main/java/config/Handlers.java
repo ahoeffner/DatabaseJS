@@ -3,22 +3,22 @@ package config;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Handler;
 
 
 public class Handlers
 {  
-  /*
   private ArrayList<Entry> entries = new ArrayList<Entry>();
     
   
-  public void add(String prefix, String methods, String clazz) throws Exception
+  void add(String prefix, String methods, String clazz) throws Exception
   {
     if (!prefix.endsWith("/")) prefix += "/";
     this.entries.add(new Entry(prefix,methods,clazz));
     Collections.sort(this.entries);
   }
-  public Handler getHandler(String path, String method)
+  
+  
+  public handlers.Handler getHandler(String path, String method)
   {
     for(Entry entry : entries)
     {
@@ -61,5 +61,4 @@ public class Handlers
       return(this.prefix.length() - another.prefix.length());
     }
   }
-  */
 }
