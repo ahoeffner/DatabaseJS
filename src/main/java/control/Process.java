@@ -32,7 +32,7 @@ public class Process
     this.cmd = cmd;
   }
   
-  
+/*  
   public void start(int inst, Config config)
   {
     String cmd = this.cmd + " --instance "+inst;
@@ -49,4 +49,5 @@ public class Process
       config.log.cluster.log(Level.SEVERE,null,e);
     }    
   }
+*/
 }

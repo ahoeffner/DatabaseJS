@@ -7,11 +7,11 @@ import org.json.JSONObject;
 
 public class Security
 {
-  public final Keystore trust;
-  public final Keystore identity;
+  private final Keystore trust;
+  private final Keystore identity;
   
   
-  public Security(JSONObject section) throws Exception
+  Security(JSONObject section) throws Exception
   {
     String type = null;
     String file = null;
@@ -39,5 +39,16 @@ public class Security
       file = Paths.apphome + File.separator + file;
     
     trust = new Keystore(file,type,null,passwd);
+  }
+
+
+  public Keystore getTrusted()
+  {
+    return(trust);
+  }
+
+  public Keystore getIdentity()
+  {
+    return(identity);
   }
 }

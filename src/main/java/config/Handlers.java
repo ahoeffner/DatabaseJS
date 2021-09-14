@@ -7,7 +7,8 @@ import java.util.logging.Handler;
 
 
 public class Handlers
-{
+{  
+  /*
   private ArrayList<Entry> entries = new ArrayList<Entry>();
     
   
@@ -17,9 +18,7 @@ public class Handlers
     this.entries.add(new Entry(prefix,methods,clazz));
     Collections.sort(this.entries);
   }
-  
-  
-  public handlers.Handler getHandler(String path, String method)
+  public Handler getHandler(String path, String method)
   {
     for(Entry entry : entries)
     {
@@ -62,4 +61,5 @@ public class Handlers
       return(this.prefix.length() - another.prefix.length());
     }
   }
+  */
 }

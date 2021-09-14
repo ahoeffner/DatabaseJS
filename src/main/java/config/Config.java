@@ -8,69 +8,152 @@ import java.io.FileInputStream;
 
 public class Config
 {
-  public final HTTP http;
-  public final Logger log;
-  public final String name;
-  public final Cluster cluster;
-  public final Security security;
+  private final String loge; 
+  private final String httpe; 
+  private final String securitye; 
+  private final String topologye; 
+  private final String databasee;
+  
+  private Java java = null;
+  private HTTP http = null;
+  private Security security = null;
+  private Topology topology = null;
+  //private Database database = null;
+  
+  private static final String CONFDEF = "conf.json";
+  private static final String JAVADEF = "java.json";
+  private static final String HTTPDEF = "http.json";
+  private static final String LOGGERDEF = "logger.json";
+  private static final String SECURITYDEF = "security.json";
 
-  private static final String CONFDEF = "server.json";
-
-
-  public Config(int inst, String config, boolean log) throws Exception
+  private static final String TOPOLOGY = "topology";
+  private static final String DATABASE = "database";
+  
+  
+  public static boolean windows()
   {
-    this.name = config;
-    Object[] sections = this.load(Paths.apphome,config);
+    String os = System.getProperty("os.name");
+    return(os.toLowerCase().startsWith("win"));    
+  }
 
-    this.log        = (Logger)  sections[0];
-    this.http       = (HTTP)    sections[1];
-    this.cluster    = (Cluster) sections[2];
-    this.security   = (Security) sections[3];
 
-    if (log) this.log.open(inst);
+  public Config() throws Exception
+  {
+    FileInputStream in = new FileInputStream(confpath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    this.topologye = config.getString("topology");
+    this.databasee = config.getString("database");
+
+    if (!config.has("log")) loge = "logger"; 
+    else  loge = config.getString("logger");
+    
+    if (!config.has("http")) httpe = "http"; 
+    else   httpe = config.getString("http");
+    
+    if (!config.has("security")) securitye = "security"; 
+    else       securitye = config.getString("security");
   }
   
   
-  public void clslog() throws Exception
+  public synchronized Java getJava() throws Exception
   {
-    this.log.opencls();
+    if (java != null) return(java);
+    FileInputStream in = new FileInputStream(javapath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    java = new Java(config);
+    return(java);
   }
-
-
-  private Object[] load(String path, String name) throws Exception
+  
+  
+  public synchronized HTTP getHTTP() throws Exception
   {
-    FileInputStream in = null;
-
-    try
-    {
-      if (name == null) name = CONFDEF;
-      if (!name.endsWith(".json")) name += ".json";
-            
-      in = new FileInputStream(Paths.confdir + File.separator + name);
-
-      JSONTokener tokener = new JSONTokener(in);
-      JSONObject  config  = new JSONObject(tokener);
-
-      JSONObject  logconf = config.getJSONObject("log");
-      Logger log = new Logger(path,logconf);
-
-      JSONObject  httpconf = config.getJSONObject("http");
-      HTTP http = new HTTP(path,httpconf);
-
-      JSONObject  clsconf = config.getJSONObject("cluster");
-      Cluster cluster = new Cluster(clsconf);
-
-      JSONObject  secconf = config.getJSONObject("security");
-      Security security = new Security(secconf);
-
-      in.close();
-      return(new Object[] {log,http,cluster,security});
-    }
-    catch (Exception e)
-    {
-      try {in.close();}
-      catch(Exception ic) {;}
-      throw e;
-    }
+    if (http != null) return(http);
+    FileInputStream in = new FileInputStream(javapath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    http = new HTTP(config);
+    return(http);
+  }
+  
+  
+  public synchronized Security getSecurity() throws Exception
+  {
+    if (security != null) return(security);
+    FileInputStream in = new FileInputStream(javapath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    security = new Security(config);
+    return(security);
+  }
+  
+  
+  public synchronized Topology getTopology() throws Exception
+  {
+    if (topology != null) return(topology);
+    FileInputStream in = new FileInputStream(toppath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    topology = new Topology(config);
+    return(topology);
+  }
+  
+  
+  private String path()
+  {
+    return(Paths.confdir + File.separator);
+  }
+  
+  
+  private String javapath()
+  {
+    return(path() + JAVADEF);
+  }
+  
+  
+  private String httppath()
+  {
+    return(path() + HTTPDEF);
+  }
+  
+  
+  private String loggerpath()
+  {
+    return(path() + LOGGERDEF);
+  }
+  
+  
+  private String securitypath()
+  {
+    return(path() + SECURITYDEF);
+  }
+  
+  
+  private String confpath()
+  {
+    return(path() + CONFDEF);
+  }
+  
+  
+  private String dbpath()
+  {
+    return(path() + DATABASE + File.separator + databasee + ".json");
+  }
+  
+  
+  private String toppath()
+  {
+    return(path() + TOPOLOGY + File.separator + topologye + ".json");
   }
 }
