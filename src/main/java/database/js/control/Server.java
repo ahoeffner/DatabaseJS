@@ -12,10 +12,48 @@
 
 package database.js.control;
 
-public class Server
+
+import ipc.Broker;
+import ipc.Message;
+import ipc.Listener;
+import java.util.ArrayList;
+import database.js.config.Config;
+
+
+public class Server implements Listener
 {
-  public static void main(String[] args)
+  public static void main(String[] args) throws Exception
   {
+    short id = 0;
     System.out.println("server started");
+    Server server = new Server(id);
+  }
+  
+  
+  Server(short id) throws Exception
+  {    
+    Config config = new Config();
+    Broker broker = new Broker(config.getIPConfig(),this,id);
+  }
+
+
+  @Override
+  public void onServerUp(short s)
+  {
+  }
+
+  @Override
+  public void onServerDown(short s)
+  {
+  }
+
+  @Override
+  public void onNewManager(short s)
+  {
+  }
+
+  @Override
+  public void onMessage(ArrayList<Message> arrayList)
+  {
   }
 }

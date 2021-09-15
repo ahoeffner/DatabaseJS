@@ -21,6 +21,9 @@ public class Topology
   private final int servers;
   private final boolean hot;
   
+  private final int extnds;
+  private final String extsize;
+  
   
   Topology(JSONObject config) throws Exception
   {
@@ -33,6 +36,11 @@ public class Topology
     else  servers = config.getInt("servers");
     
     this.hot = config.getBoolean("hot-standby");
+    
+    JSONObject ipc = config.getJSONObject("ipc");
+    
+    this.extnds = ipc.getInt("extends");
+    this.extsize = ipc.get("extsize").toString();
   }
 
 
@@ -49,6 +57,16 @@ public class Topology
   public boolean hotstandby()
   {
     return(hot);
+  }
+
+  public int extnds()
+  {
+    return(extnds);
+  }
+
+  public String extsize()
+  {
+    return(extsize);
   }
 
 

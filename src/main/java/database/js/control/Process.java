@@ -26,14 +26,13 @@ public class Process
   private final Logger logger;
   
   
-  public Process(Config config) throws Exception
+  public Process(Config config, String classpath) throws Exception
   {
     logger = config.getLogger().control;
     String java = config.getJava().exe();
     
     this.htopt = config.getJava().getHttpOptions();
     this.srvopt = config.getJava().getServerOptions();
-    String classpath = (String) System.getProperties().get("java.class.path");
 
     String cmd = java+" -cp "+classpath;
     this.cmd = cmd;
@@ -47,7 +46,7 @@ public class Process
     if (type == Type.http) options = htopt;
     else                   options = srvopt;
 
-    String cmd = this.cmd + " " + options + " control.Server " + inst;
+    String cmd = this.cmd + " " + options + " database.js.control.Server " + inst;
 
     try
     {
@@ -57,7 +56,7 @@ public class Process
       InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();
       int read = in.read(status);
       
-      logger.info("Instance["+inst+"]: "+new String(status,0,read)); 
+      if (read > 0) logger.info("Instance["+inst+"]: "+new String(status,0,read)); 
       in.close();
     }
     catch (Exception e)

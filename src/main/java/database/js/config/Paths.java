@@ -18,12 +18,14 @@ import java.io.File;
 
 public class Paths
 {
+  public static final String ipcdir;
   public static final String libdir;
   public static final String tmpdir;
   public static final String apphome;
   public static final String confdir;
 
   private static final String LIBDIR = "lib";
+  private static final String IPCDIR = "ipc";
   private static final String TMPDIR = "tmp";
   private static final String CONFDIR = "conf";
 
@@ -32,6 +34,7 @@ public class Paths
   {
     apphome = findAppHome();
     libdir = apphome + File.separator + LIBDIR;
+    ipcdir = apphome + File.separator + IPCDIR;
     tmpdir = apphome + File.separator + TMPDIR;
     confdir = apphome + File.separator + CONFDIR;
   }

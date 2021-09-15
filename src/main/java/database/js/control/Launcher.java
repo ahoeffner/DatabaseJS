@@ -27,6 +27,9 @@ import database.js.config.Topology;
  */
 public class Launcher implements ILauncher
 {
+  private final static String psep = System.getProperty("path.separator");
+  
+
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
@@ -37,9 +40,10 @@ public class Launcher implements ILauncher
 
   public void startProcesses() throws Exception
   {
+    String cp = classpath();
     Config config = new Config();    
     config.getLogger().openControlLog();
-    Process process = new Process(config);
+    Process process = new Process(config,cp);
     Topology topology = config.getTopology();
     
     if (topology.type() == Topology.Type.Micro)
@@ -70,11 +74,17 @@ public class Launcher implements ILauncher
         Loader loader = new Loader(ILauncher.class);
 
         String path = Paths.libdir+File.separator+"json";
-        String psep = System.getProperty("path.separator");
         String classpath = (String) System.getProperties().get("java.class.path");
 
         File dir = new File(path);
         String[] jars = dir.list();
+
+        for(String jar : jars)
+          loader.load(path + File.separator + jar);
+
+
+        path = Paths.libdir+File.separator+"ipc";
+        dir = new File(path); jars = dir.list();
 
         for(String jar : jars)
           loader.load(path + File.separator + jar);
@@ -94,5 +104,31 @@ public class Launcher implements ILauncher
     }
 
     return(launcher);
+  }
+  
+  
+  public static String classpath() throws Exception
+  {
+    return(classpath(Paths.libdir).substring(1));
+  }
+  
+  
+  private static String classpath(String libdir) throws Exception
+  {
+    String cpath = "";
+    File dir = new File(libdir);
+    String[] content = dir.list();
+    
+    for(String c : content)
+    {
+      String fp = libdir+File.separator+c;
+
+      File f = new File(fp);
+      
+      if (f.isFile()) cpath += psep + fp;
+      else            cpath += classpath(fp);
+    }
+    
+    return(cpath);
   }
 }

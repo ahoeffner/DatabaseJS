@@ -12,6 +12,7 @@
 
 package database.js.config;
 
+import ipc.Broker;
 import java.io.File;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -34,6 +35,7 @@ public class Config
   private Security security = null;
   private Topology topology = null;
   private Database database = null;
+  private ipc.config.Config config = null;
   
   private static final String CONFDEF = "conf.json";
   private static final String JAVADEF = "java.json";
@@ -70,6 +72,25 @@ public class Config
     
     if (!config.has("security")) securitye = "security"; 
     else       securitye = config.getString("security");
+  }
+  
+    
+  public synchronized ipc.config.Config getIPConfig() throws Exception
+  {
+    if (config != null) return(config);
+    
+    Topology topology = this.getTopology();
+
+    int extnds = topology.extnds();
+    String extsize = topology.extsize();
+    
+    short processes = 4;
+    short statesize = 16;
+    
+    Broker.logger(this.getLogger().logger);
+    this.config = IPC.getConfig(Paths.ipcdir,processes,extnds,extsize,statesize);
+    
+    return(config);
   }
   
     
