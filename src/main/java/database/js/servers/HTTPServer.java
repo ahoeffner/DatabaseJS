@@ -17,14 +17,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import java.net.InetSocketAddress;
-
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
-
 import java.nio.channels.SocketChannel;
-
 import java.util.Iterator;
 import java.util.Set;
 
@@ -97,27 +94,37 @@ public class HTTPServer extends Thread
           
           else if (key.isReadable())
           {
-            ByteBuffer buf = ByteBuffer.allocate(1024);
-            SocketChannel sc = (SocketChannel) key.channel();
-            
-            sc.read(buf);
-            //System.out.println("<"+new String(buf.array()).trim()+">");
-            
-            String newl = "\r\n";
-            String response = "HTTP/1.1 200 OK"+newl+
-                              "Connection: Keep-Alive"+newl+
-                              "Content-Length: 5"+newl+
-                              "Content-Type: text/plain"+newl+newl+
-                              "Hello";
+            try
+            {
+              ByteBuffer buf = ByteBuffer.allocate(2048);
+              SocketChannel sc = (SocketChannel) key.channel();
+              
+              int read = sc.read(buf);
+              
+              if (read <= 0)
+              {
+                sc.register(selector,0);
+                continue;
+              }
+              
+              System.out.println("<"+new String(buf.array()).trim()+">");
+              
+              String newl = "\r\n";
+              String response = "HTTP/1.1 200 OK"+newl+
+                                "Content-Length: 8"+newl+
+                                "Content-Type: text/plain"+newl+newl+
+                                "Hello II";
 
-            buf = ByteBuffer.allocate(1024);
-            buf.put(response.getBytes());
-            buf.position(0);
-            sc.write(buf);
-            sc.register(selector,SelectionKey.OP_WRITE);
+              buf = ByteBuffer.allocate(1024);
+              buf.put(response.getBytes());
+              buf.position(0);
+              sc.write(buf);
+            }
+            catch (Exception e)
+            {
+              ;
+            }
           }
-          
-          System.out.println("*******************'");
         }
       }
     }
