@@ -24,6 +24,7 @@ public class Handlers
   
   void add(String prefix, String methods, String clazz) throws Exception
   {
+    if (1 == 1) return;
     if (!prefix.endsWith("/")) prefix += "/";
     this.entries.add(new Entry(prefix,methods,clazz));
     Collections.sort(this.entries);
