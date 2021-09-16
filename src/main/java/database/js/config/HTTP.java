@@ -69,7 +69,7 @@ public class HTTP
     if (security.has("require.ssl")) requiressl = security.getBoolean("require.ssl");
     this.requiressl = requiressl;
 
-    String elem = "Cors-Allow-Sites";
+    String elem = "Cors-Allow-Domains";
     this.corsdomains = new ArrayList<String>();
     
     String corsdomains = null;
