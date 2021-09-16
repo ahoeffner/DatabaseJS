@@ -26,6 +26,7 @@ public class Server implements Listener
 {
   private final Broker broker;
   private final Logger logger;
+  private final Config config;
   private final Config.Type type;
   
   
@@ -39,7 +40,7 @@ public class Server implements Listener
   
   Server(short id) throws Exception
   {    
-    Config config = new Config();
+    this.config = new Config();
 
     int http = 1;
     if (config.getTopology().hotstandby()) http++;
@@ -50,6 +51,14 @@ public class Server implements Listener
     boolean master = type == Type.http;
     this.logger = config.getLogger().logger;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
+  }
+  
+  
+  private void start(short id) throws Exception
+  {
+    int ssl = config.getHTTP().ssl(); 
+    int post = config.getHTTP().plain(); 
+    int admin = config.getHTTP().admin(); 
   }
 
 

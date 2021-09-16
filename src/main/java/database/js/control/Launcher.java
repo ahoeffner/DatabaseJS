@@ -30,11 +30,28 @@ public class Launcher implements ILauncher
   private final static String psep = System.getProperty("path.separator");
   
 
-  @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
+    if (args.length != 1)
+      usage();
+    
     ILauncher launcher = create();
-    launcher.startProcesses();
+    String cmd = args[0].toLowerCase();
+    
+    switch(cmd)
+    {
+      case "start": launcher.startProcesses();  break;
+      
+      default: usage();
+    }
+    
+  }
+  
+  
+  private static void usage()
+  {
+    System.out.println("usage database.js start|stop|status");
+    System.exit(-1);
   }
 
 
