@@ -17,23 +17,39 @@ import ipc.Broker;
 import ipc.Message;
 import ipc.Listener;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import database.js.config.Config;
+import static database.js.config.Config.*;
 
 
 public class Server implements Listener
 {
+  private final Broker broker;
+  private final Logger logger;
+  private final Config.Type type;
+  
+  
   public static void main(String[] args) throws Exception
   {
-    short id = 0;
-    System.out.println("server started");
+    short id = Short.parseShort(args[0]);
     Server server = new Server(id);
+    System.out.println("server started");
   }
   
   
   Server(short id) throws Exception
   {    
     Config config = new Config();
-    Broker broker = new Broker(config.getIPConfig(),this,id);
+
+    int http = 1;
+    if (config.getTopology().hotstandby()) http++;
+    
+    if (id < http) type = Type.http;
+    else           type = Type.rest;
+    
+    boolean master = type == Type.http;
+    this.logger = config.getLogger().logger;
+    this.broker = new Broker(config.getIPConfig(),this,id,master);
   }
 
 

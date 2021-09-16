@@ -25,6 +25,8 @@ public class HTTP
   private final int admin;
   private final String path;
   private final String version;
+  private final String virtstr;
+  private final String virtendp;
   private final Handlers handlers;
   private final boolean requiressl;
   private final ArrayList<String> corsdomains;
@@ -32,8 +34,10 @@ public class HTTP
   
   HTTP(JSONObject config) throws Exception
   {
+    JSONObject app = config.getJSONObject("application");
+    
     String apppath = null;
-    apppath = config.getString("path");
+    apppath = app.getString("path");
     
     if (apppath.startsWith("."))
     {
@@ -47,17 +51,18 @@ public class HTTP
     String version = "";
     
     if (!config.isNull("version"))
-      version = config.getString("version");
+      version = app.getString("version");
     
     this.version = version;
+
 
     JSONObject ports = config.getJSONObject("ports");
 
     this.ssl = ports.getInt("ssl");
     this.plain = ports.getInt("plain");
     this.admin = ports.getInt("admin");
-    
-    
+
+        
     boolean requiressl = false;
     JSONObject security = config.getJSONObject("security");
     
@@ -84,6 +89,13 @@ public class HTTP
       }
     }
     
+
+    JSONObject virtp = config.getJSONObject("virtual-path");
+    
+    this.virtstr = virtp.getString("strategi");
+    this.virtendp = virtp.getString("endpoint");
+
+
     this.handlers = new Handlers();
 
     JSONArray handlers = config.getJSONArray("handlers");

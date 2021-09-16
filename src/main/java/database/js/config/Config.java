@@ -227,4 +227,11 @@ public class Config
   {
     return(path() + TOPOLOGY + File.separator + topologye + ".json");
   }
+  
+  
+  public static enum Type
+  {
+    http,
+    rest
+  }
 }
