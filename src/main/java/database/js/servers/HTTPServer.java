@@ -12,18 +12,52 @@
 
 package database.js.servers;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import database.js.config.Config;
-
 
 
 public class HTTPServer extends Thread
 {
+  private final int port;
+  private final Type type;
+  private final Logger logger;
   private final boolean embedded;
+  private final boolean redirect;
   
   
-  public HTTPServer(Config config, Type type, boolean embedded)
+  public HTTPServer(Config config, Type type, boolean embedded) throws Exception
   {
+    this.type = type;
+    this.redirect = false;
     this.embedded = embedded;
+    this.logger = config.getLogger().logger;
+    
+    switch(type)
+    {
+      case SSL    : port = config.getHTTP().ssl();    break;
+      case Plain  : port = config.getHTTP().plain();  break;
+      case Admin  : port = config.getHTTP().admin();  break;      
+      default     : port = -1;
+    }
+  }
+  
+  
+  public void run()
+  {
+    if (port <= 0) 
+      return;
+
+    try
+    {
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      e.printStackTrace();
+    }
+
+    logger.info(type+" Server stopped");
   }
   
   

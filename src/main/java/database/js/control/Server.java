@@ -19,6 +19,8 @@ import ipc.Listener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.config.Topology;
+import database.js.servers.HTTPServer;
 import static database.js.config.Config.*;
 
 
@@ -28,13 +30,22 @@ public class Server implements Listener
   private final Logger logger;
   private final Config config;
   private final Config.Type type;
+  private final boolean embedded;
   
   
-  public static void main(String[] args) throws Exception
+  public static void main(String[] args)
   {
-    short id = Short.parseShort(args[0]);
-    Server server = new Server(id);
-    System.out.println("server started");
+    try
+    {
+      short id = Short.parseShort(args[0]);
+      Server server = new Server(id); server.start(id);
+      
+      System.out.println("server started");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace(System.out);
+    }
   }
   
   
@@ -51,14 +62,15 @@ public class Server implements Listener
     boolean master = type == Type.http;
     this.logger = config.getLogger().logger;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
+    this.embedded = config.getTopology().type() == Topology.Type.Micro;
   }
   
   
   private void start(short id) throws Exception
   {
-    int ssl = config.getHTTP().ssl(); 
-    int post = config.getHTTP().plain(); 
-    int admin = config.getHTTP().admin(); 
+    HTTPServer ssl = new HTTPServer(config,HTTPServer.Type.SSL,embedded); ssl.start();
+    HTTPServer plain = new HTTPServer(config,HTTPServer.Type.Plain,embedded); plain.start();
+    HTTPServer admin = new HTTPServer(config,HTTPServer.Type.Admin,embedded); admin.start();
   }
 
 
