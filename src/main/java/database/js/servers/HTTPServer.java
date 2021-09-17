@@ -12,18 +12,19 @@
 
 package database.js.servers;
 
+import java.util.Set;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Set;
+import java.nio.channels.ServerSocketChannel;
 
 
 public class HTTPServer extends Thread
@@ -56,6 +57,11 @@ public class HTTPServer extends Thread
   {
     if (port <= 0) 
       return;
+    
+    HashMap<SelectionKey,Request> incomplete =
+      new HashMap<SelectionKey,Request>();
+
+    ByteBuffer buf = ByteBuffer.allocate(2048);
 
     try
     {
@@ -82,38 +88,32 @@ public class HTTPServer extends Thread
           SelectionKey key = iterator.next();
           iterator.remove();
           
-          //System.out.println(key+" acc "+key.isAcceptable()+" conn "+key.isConnectable()+" valid "+key.isValid()+" read "+key.isReadable()+" write "+key.isWritable());
-          
           if (key.isAcceptable())
           {
             SocketChannel sac = server.accept();
             sac.configureBlocking(false);
             sac.register(selector,SelectionKey.OP_READ);
-            System.out.println("Connection Accepted: "+sac.getLocalAddress());
+            logger.fine("Connection Accepted: "+sac.getLocalAddress());
           }
           
           else if (key.isReadable())
           {
             try
             {
-              ByteBuffer buf = ByteBuffer.allocate(2048);
               SocketChannel req = (SocketChannel) key.channel();
-              req.register(selector,0);
               
+              buf.rewind();
               int read = req.read(buf);
+              
+              Request request = incomplete.remove(key);
+              if (request == null) request = new Request();
+              
+              if (request.add(buf.array(),read)) req.register(selector,0);
+              else                               incomplete.put(key,request);
+              
+              if (!request.done()) continue;
 
-              buf.position(0);
-              byte[] out = new byte[40];
-              if (read > 40) read = 40;
-              buf.get(out);
-              
-              System.out.println("<"+new String(out,0,read)+">");
-              
-              String img1 = "<img src='/gif1'>";
-              String img2 = "<img src='/gif2'>";
-              String img3 = "<img src='/gif3'>";
-              
-              int len = 8 + 3*img1.length();
+              int len = 8;
               
               String newl = "\r\n";
               String response = "HTTP/1.1 200 OK"+newl+
@@ -121,16 +121,16 @@ public class HTTPServer extends Thread
                                 "Keep-Alive: timeout=5, max=1000"+newl+
                                 "Content-Length: "+len+newl+
                                 "Content-Type: text/html"+newl+newl+
-                                "Hello II"+img1+img2+img3;
-
-              buf = ByteBuffer.allocate(1024);
+                                "Hello II";
+              
+              buf.rewind();
               buf.put(response.getBytes());
               buf.position(0);
               req.write(buf);
             }
             catch (Exception e)
             {
-              ;
+              logger.log(Level.SEVERE,e.getMessage(),e);
             }
           }
         }
@@ -139,10 +139,9 @@ public class HTTPServer extends Thread
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
-      e.printStackTrace();
     }
 
-    logger.info(type+" Server stopped");
+    logger.info(type+" HTTPServer stopped");
   }
   
   
@@ -151,5 +150,84 @@ public class HTTPServer extends Thread
     SSL,
     Plain,
     Admin
+  }
+  
+  
+  private static class Request
+  {
+    int length = -1;
+    int header = -1;
+    byte[] request = new byte[0];
+    long started = System.currentTimeMillis();
+    
+    
+    boolean done()
+    {
+      return(length >= 0);
+    }
+    
+    
+    boolean cancelled()
+    {
+      return(System.currentTimeMillis() - started > 30000);
+    }
+    
+    
+    boolean add(byte[] data, int len) throws Exception
+    {
+      int last = request.length;
+      
+      byte[] request = new byte[this.request.length+len];
+      
+      System.arraycopy(data,0,request,last,len);
+      System.arraycopy(this.request,0,request,0,this.request.length);
+      
+      this.request = request;
+      
+      if (header < 0)
+      {
+        int start = 0;
+        if (last > 0) start = last -1;
+        
+        for (int h = start; h < request.length-3; h++)
+        {
+          if (request[h] == '\r' && request[h+1] == '\n' && request[h+2] == '\r' && request[h+3] == '\n')
+            header = h-1;
+        }
+      }
+      
+      if (header >= 0 && length < 0)
+      {
+        String headers = new String(request,0,header);
+        int clpos = headers.indexOf("Content-Length");
+        
+        if (clpos < 0) 
+        {
+          length = 0;
+        }
+        else
+        {
+          int b = clpos;
+          int e = clpos;
+          
+          for (int c = clpos; c < header; c++)
+          {
+            if (request[c] == ':')
+              b = c + 1;
+              
+            if (request[c] == '\r' && request[c+1] == '\n')
+            {
+              e = c;
+              break;
+            }
+          }
+          
+          String cl = new String(request,b,e-b);
+          length = Integer.parseInt(cl.trim());
+        }
+      }
+      
+      return(length >= 0);
+    }
   }
 }
