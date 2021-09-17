@@ -82,14 +82,14 @@ public class HTTPServer extends Thread
           SelectionKey key = iterator.next();
           iterator.remove();
           
-          System.out.println(key+" acc "+key.isAcceptable()+" conn "+key.isConnectable()+" valid "+key.isValid()+" read "+key.isReadable()+" write "+key.isWritable());
+          //System.out.println(key+" acc "+key.isAcceptable()+" conn "+key.isConnectable()+" valid "+key.isValid()+" read "+key.isReadable()+" write "+key.isWritable());
           
           if (key.isAcceptable())
           {
-            SocketChannel sc = server.accept();
-            sc.configureBlocking(false);
-            sc.register(selector,SelectionKey.OP_READ);
-            System.out.println("Connection Accepted: "+sc.getLocalAddress());
+            SocketChannel sac = server.accept();
+            sac.configureBlocking(false);
+            sac.register(selector,SelectionKey.OP_READ);
+            System.out.println("Connection Accepted: "+sac.getLocalAddress());
           }
           
           else if (key.isReadable())
@@ -97,28 +97,36 @@ public class HTTPServer extends Thread
             try
             {
               ByteBuffer buf = ByteBuffer.allocate(2048);
-              SocketChannel sc = (SocketChannel) key.channel();
+              SocketChannel req = (SocketChannel) key.channel();
+              req.register(selector,0);
               
-              int read = sc.read(buf);
+              int read = req.read(buf);
+
+              buf.position(0);
+              byte[] out = new byte[40];
+              if (read > 40) read = 40;
+              buf.get(out);
               
-              if (read <= 0)
-              {
-                sc.register(selector,0);
-                continue;
-              }
+              System.out.println("<"+new String(out,0,read)+">");
               
-              System.out.println("<"+new String(buf.array()).trim()+">");
+              String img1 = "<img src='/gif1'>";
+              String img2 = "<img src='/gif2'>";
+              String img3 = "<img src='/gif3'>";
+              
+              int len = 8 + 3*img1.length();
               
               String newl = "\r\n";
               String response = "HTTP/1.1 200 OK"+newl+
-                                "Content-Length: 8"+newl+
-                                "Content-Type: text/plain"+newl+newl+
-                                "Hello II";
+                                "Connection: Keep-Alive"+newl+
+                                "Keep-Alive: timeout=5, max=1000"+newl+
+                                "Content-Length: "+len+newl+
+                                "Content-Type: text/html"+newl+newl+
+                                "Hello II"+img1+img2+img3;
 
               buf = ByteBuffer.allocate(1024);
               buf.put(response.getBytes());
               buf.position(0);
-              sc.write(buf);
+              req.write(buf);
             }
             catch (Exception e)
             {
