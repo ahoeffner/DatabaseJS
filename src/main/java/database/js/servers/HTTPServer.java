@@ -13,8 +13,10 @@
 package database.js.servers;
 
 import java.util.Set;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.util.logging.Level;
@@ -25,9 +27,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
-
-import java.util.ArrayList;
-import java.util.Map;
 
 
 public class HTTPServer extends Thread
@@ -61,8 +60,8 @@ public class HTTPServer extends Thread
     if (port <= 0) 
       return;
     
-    HashMap<SelectionKey,Request> incomplete =
-      new HashMap<SelectionKey,Request>();
+    HashMap<SelectionKey,HTTPRequest> incomplete =
+      new HashMap<SelectionKey,HTTPRequest>();
 
     ByteBuffer buf = ByteBuffer.allocate(2048);
 
@@ -122,14 +121,16 @@ public class HTTPServer extends Thread
               if (read == 0)
                 continue;                                
               
-              Request request = incomplete.remove(key);
-              if (request == null) request = new Request();
+              HTTPRequest request = incomplete.remove(key);
+              if (request == null) request = new HTTPRequest();
               
               if (!request.add(buf.array(),read)) 
               {
                 incomplete.put(key,request);
                 continue;
               }
+              
+              request.parse();
               
               int len = 8;
               
@@ -163,11 +164,11 @@ public class HTTPServer extends Thread
   }
   
   
-  private void cleanout(HashMap<SelectionKey,Request> incomplete)
+  private void cleanout(HashMap<SelectionKey,HTTPRequest> incomplete)
   {
     ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
     
-    for(Map.Entry<SelectionKey,Request> entry : incomplete.entrySet())
+    for(Map.Entry<SelectionKey,HTTPRequest> entry : incomplete.entrySet())
       if (entry.getValue().cancelled()) cancelled.add(entry.getKey());
     
     for(SelectionKey key : cancelled) incomplete.remove(key);
@@ -179,117 +180,5 @@ public class HTTPServer extends Thread
     SSL,
     Plain,
     Admin
-  }
-  
-  
-  private static class Request
-  {
-    int length = -1;
-    int header = -1;
-    String method = null;
-    byte[] request = new byte[0];
-    long started = System.currentTimeMillis();
-    
-    
-    boolean done()
-    {
-      return(length >= 0);
-    }
-    
-    
-    boolean cancelled()
-    {
-      return(System.currentTimeMillis() - started > 30000);
-    }
-    
-    
-    boolean add(byte[] data, int len) throws Exception
-    {
-      int last = request.length;
-      byte[] request = new byte[this.request.length+len];
-      
-      System.arraycopy(data,0,request,last,len);
-      System.arraycopy(this.request,0,request,0,this.request.length);
-      
-      this.request = request;
-      
-      if (method == null && request.length > 2)
-        method = new String(request,0,3);
-      
-      if (header < 0)
-      {
-        if (method == null || method.equals("GET")) this.bckward(last);          
-        else                                        this.forward(last);
-      }
-      
-      if (header >= 0 && length < 0)
-      {
-        String headers = new String(request,0,header);
-        int clpos = headers.indexOf("Content-Length");
-        
-        if (clpos < 0) 
-        {
-          length = 0;
-        }
-        else
-        {
-          int b = clpos;
-          int e = clpos;
-          
-          for (int c = clpos; c < header; c++)
-          {
-            if (request[c] == ':')
-              b = c + 1;
-              
-            if (request[c] == '\r' && request[c+1] == '\n')
-            {
-              e = c;
-              break;
-            }
-          }
-          
-          String cl = new String(request,b,e-b);
-          length = Integer.parseInt(cl.trim());
-        }
-      }
-      
-      return(length >= 0);
-    }
-    
-    
-    void forward(int last)
-    {
-      int start = 0;
-      if (last > 3) start = last - 3;
-      
-      for (int h = start; h < request.length-3; h++)
-      {
-        if (request[h] == '\r' && request[h+1] == '\n' && request[h+2] == '\r' && request[h+3] == '\n')
-        {
-          header = h - 1;
-          return;
-        }
-      }
-    }
-    
-    
-    void bckward(int last)
-    {
-      for (int h = request.length-1; h >= 3 && h >= last-3; h--)
-      {
-        if (request[h-3] == '\r' && request[h-2] == '\n' && request[h-1] == '\r' && request[h] == '\n')
-        {
-          header = h - 4;
-          return;
-        }
-      }
-    }
-    
-    
-    @Override
-    public String toString()
-    {
-      return(new String(request));
-    }
   }
 }
