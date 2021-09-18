@@ -84,7 +84,8 @@ public class HTTPServer extends Thread
         Iterator<SelectionKey> iterator = selected.iterator();
         
         while(iterator.hasNext())
-        {          
+        {
+          System.out.println("Key accepted");
           SelectionKey key = iterator.next();
           iterator.remove();
           
@@ -100,27 +101,44 @@ public class HTTPServer extends Thread
           {
             try
             {
+              System.out.println("Readable key");
               SocketChannel req = (SocketChannel) key.channel();
               
               buf.rewind();
               int read = req.read(buf);
               
+              if (read < 0)
+              {
+                req.close();
+                System.out.println("Close channel");
+                continue;                
+              }
+              
+              if (read == 0)
+              {
+                System.out.println("Nothing to read");
+                continue;                                
+              }
+              
               Request request = incomplete.remove(key);
               if (request == null) request = new Request();
               
-              if (request.add(buf.array(),read)) req.register(selector,0);
-              else                               incomplete.put(key,request);
+              if (!request.add(buf.array(),read)) 
+              {
+                incomplete.put(key,request);
+                continue;
+              }
               
-              if (!request.done()) continue;
-
+              System.out.println(request);
+              
               int len = 8;
               
-              String newl = "\r\n";
-              String response = "HTTP/1.1 200 OK"+newl+
-                                "Connection: Keep-Alive"+newl+
-                                "Keep-Alive: timeout=5, max=1000"+newl+
-                                "Content-Length: "+len+newl+
-                                "Content-Type: text/html"+newl+newl+
+              String EOL = "\r\n";
+              String response = "HTTP/1.1 200 OK"+EOL+
+                                "Connection: Keep-Alive"+EOL+
+                                "Keep-Alive: timeout=5, max=1000"+EOL+
+                                "Content-Length: "+len+EOL+
+                                "Content-Type: text/html"+EOL+EOL+
                                 "Hello II";
               
               buf.rewind();
@@ -228,6 +246,13 @@ public class HTTPServer extends Thread
       }
       
       return(length >= 0);
+    }
+    
+    
+    @Override
+    public String toString()
+    {
+      return(new String(request));
     }
   }
 }
