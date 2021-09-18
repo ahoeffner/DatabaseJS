@@ -91,7 +91,6 @@ public class HTTPServer extends Thread
         
         while(iterator.hasNext())
         {
-          System.out.println("Key accepted");
           SelectionKey key = iterator.next();
           iterator.remove();
           

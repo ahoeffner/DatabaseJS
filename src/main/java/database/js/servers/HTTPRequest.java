@@ -89,7 +89,10 @@ public class HTTPRequest
       else                      this.forward(last);
     }
     
-    if (header >= 0 && clength < 0)
+    if (header < 0)
+      return(false);
+    
+    if (clength < 0)
     {
       path = getPath();
       version = getVersion();
@@ -108,7 +111,7 @@ public class HTTPRequest
       }
     }
     
-    return(clength >= 0);
+    return(request.length == header + clength + 4);
   }
   
   
