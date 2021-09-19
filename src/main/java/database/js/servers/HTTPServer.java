@@ -26,6 +26,8 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.nio.channels.ServerSocketChannel;
 
 
@@ -33,9 +35,12 @@ public class HTTPServer extends Thread
 {
   private final int port;
   private final Type type;
+  private final int threads;
   private final Logger logger;
   private final boolean embedded;
   private final boolean redirect;
+  
+  private static ExecutorService workers = null;
   
   
   public HTTPServer(Config config, Type type, boolean embedded) throws Exception
@@ -44,6 +49,10 @@ public class HTTPServer extends Thread
     this.redirect = false;
     this.embedded = embedded;
     this.logger = config.getLogger().logger;
+    this.threads = config.getTopology().threads();
+    
+    if (workers == null)
+      workers = Executors.newFixedThreadPool(threads);
     
     switch(type)
     {
@@ -59,6 +68,8 @@ public class HTTPServer extends Thread
   {
     if (port <= 0) 
       return;
+    
+    boolean admin = this.type == Type.Admin;
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
@@ -128,23 +139,8 @@ public class HTTPServer extends Thread
                 incomplete.put(key,request);
                 continue;
               }
-              
-              request.parse();
-              
-              int len = 8;
-              
-              String EOL = "\r\n";
-              String response = "HTTP/1.1 200 OK"+EOL+
-                                "Connection: Keep-Alive"+EOL+
-                                "Keep-Alive: timeout=5, max=1000"+EOL+
-                                "Content-Length: "+len+EOL+
-                                "Content-Type: text/html"+EOL+EOL+
-                                "Hello II";
-              
-              buf.rewind();
-              buf.put(response.getBytes());
-              buf.position(0);
-              req.write(buf);
+
+              workers.submit(new HTTPWorker(req,request,embedded,admin));
             }
             catch (Exception e)
             {
@@ -170,7 +166,35 @@ public class HTTPServer extends Thread
     for(Map.Entry<SelectionKey,HTTPRequest> entry : incomplete.entrySet())
       if (entry.getValue().cancelled()) cancelled.add(entry.getKey());
     
-    for(SelectionKey key : cancelled) incomplete.remove(key);
+    for(SelectionKey key : cancelled) 
+    {
+      incomplete.remove(key);
+      
+      try
+      {
+        ByteBuffer buf = ByteBuffer.allocate(1024);
+        SocketChannel rsp = (SocketChannel) key.channel();
+        buf.put(err400());
+        buf.position(0);
+        rsp.write(buf);
+        rsp.close();
+      }
+      catch (Exception e) {;}
+    }
+  }
+  
+  
+  private String EOL = "\r\n";
+  
+  private byte[] err400()
+  {
+    String msg = "<b>Bad Request</b>";
+    
+    String page = "HTTP/1.1 200 Bad Request" + EOL +
+                  "Content-Type: text/html" + EOL +
+                  "Content-Length: "+msg.length() + EOL + EOL + msg;
+    
+    return(page.getBytes());
   }
   
   

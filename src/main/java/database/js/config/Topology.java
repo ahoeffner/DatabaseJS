@@ -18,11 +18,14 @@ import org.json.JSONObject;
 public class Topology
 {
   private final Type type;
+  private final int threads;
   private final int servers;
   private final boolean hot;
   
   private final int extnds;
   private final String extsize;
+
+  private static final int cores = Runtime.getRuntime().availableProcessors();
   
   
   Topology(JSONObject config) throws Exception
@@ -34,6 +37,15 @@ public class Topology
     
     if (this.type == Type.Micro) servers = 1;
     else  servers = config.getInt("servers");
+    
+    int threads = 0;
+    int multi = this.type == Type.Cluster ? servers : 1;
+    
+    if (!config.isNull("threads"))
+      threads = config.getInt("threads");
+    
+    if (threads > 0) this.threads = threads;
+    else             this.threads = multi * 8 * cores;
     
     this.hot = config.getBoolean("hot-standby");
     
@@ -47,6 +59,11 @@ public class Topology
   public Type type()
   {
     return(type);
+  }
+
+  public int threads()
+  {
+    return(threads);
   }
 
   public int servers()
