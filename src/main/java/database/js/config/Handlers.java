@@ -15,23 +15,28 @@ package database.js.config;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
+import database.js.handlers.Handler;
 
 
 public class Handlers
 {  
-  private ArrayList<Entry> entries = new ArrayList<Entry>();
+  private final ArrayList<Entry> entries = new ArrayList<Entry>();
+  
+  
+  void sort()
+  {
+    Collections.sort(this.entries);
+  }
     
   
   void add(String prefix, String methods, String clazz) throws Exception
   {
-    if (1 == 1) return;
     if (!prefix.endsWith("/")) prefix += "/";
     this.entries.add(new Entry(prefix,methods,clazz));
-    Collections.sort(this.entries);
   }
   
   
-  public database.js.handlers.Handler getHandler(String path, String method)
+  public Handler getHandler(String path, String method)
   {
     for(Entry entry : entries)
     {
@@ -49,7 +54,7 @@ public class Handlers
   private static class Entry implements Comparable<Entry>
   {
     public final String prefix;
-    public final database.js.handlers.Handler handler;
+    public final Handler handler;
     public final HashSet<String> methods = new HashSet<String>();
     
     Entry(String prefix, String methods, String clazz) throws Exception
@@ -57,7 +62,7 @@ public class Handlers
       this.prefix = prefix;
       String meth[] = methods.split(",");
       for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
-      this.handler = (database.js.handlers.Handler) Class.forName(clazz).getDeclaredConstructor().newInstance();
+      this.handler = (Handler) Class.forName(clazz).getDeclaredConstructor().newInstance();
     }
     
     

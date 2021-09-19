@@ -10,13 +10,11 @@
  * accompanied this code).
  */
 
-package database.js.handlers;
+package database.js.servers;
 
-import database.js.servers.HTTPRequest;
-import database.js.servers.HTTPResponse;
-
-
-public interface Handler
+public class HTTPResponse
 {
-  public HTTPResponse handle(HTTPRequest request) throws Exception;
+  public HTTPResponse(HTTPRequest request)
+  {
+  }
 }

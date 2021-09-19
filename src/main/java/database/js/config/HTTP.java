@@ -105,6 +105,8 @@ public class HTTP
       JSONObject entry = handlers.getJSONObject(i);
       this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
+    
+    this.handlers.sort();
   }
 
 

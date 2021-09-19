@@ -16,7 +16,15 @@ import database.js.servers.HTTPRequest;
 import database.js.servers.HTTPResponse;
 
 
-public interface Handler
+public class RestHandler implements Handler
 {
-  public HTTPResponse handle(HTTPRequest request) throws Exception;
+  public RestHandler()
+  {
+  }
+
+  @Override
+  public HTTPResponse handle(HTTPRequest request) throws Exception
+  {
+    return null;
+  }
 }
