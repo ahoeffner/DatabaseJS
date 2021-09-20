@@ -29,16 +29,34 @@ public class HTTPResponse
   
   private final static String EOL = "\r\n";
   private final static String server = "database.js";
-  private static final SimpleDateFormat format = new SimpleDateFormat();
+  private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
   
   
-  public HTTPResponse(HTTPRequest request)
+  public HTTPResponse()
   {
     add("server",server);
+    add("Date",new Date());
     add("Connection","Keep-Alive");
     add("Keep-Alive","timeout=5, max=100");
-    System.out.println(new Date());
   }
+  
+  /*
+
+  HTTP/1.1 200 OK
+  Date: Mon, 20 Sep 2021 12:11:30 GMT
+  Server: Apache/2.4.38 (Raspbian)
+  Last-Modified: Mon, 25 Jan 2021 23:29:29 GMT
+  ETag: "65-5b9c1e8ce9deb-gzip"
+  Accept-Ranges: bytes
+  Vary: Accept-Encoding
+  Content-Encoding: gzip
+  Content-Length: 105
+  Keep-Alive: timeout=5, max=100
+  Connection: Keep-Alive
+  Content-Type: text/html
+
+
+   */
   
   
   void finish()
@@ -73,6 +91,12 @@ public class HTTPResponse
     Date date = new Date();
     date.setTime(time);
     setLastModified(date);    
+  }
+  
+  
+  public void add(String header, Date value)
+  {
+    headers.add(header+": "+format.format(value));
   }
   
   
@@ -117,8 +141,10 @@ public class HTTPResponse
   {
     if (!finished) finish();
     
-    byte[] head = header.getBytes();
+    byte[] head = header().getBytes();
     byte[] body = new byte[header.length()+this.body.length];
+    
+    System.out.println(header);
 
     System.arraycopy(head,0,body,0,head.length);    
     System.arraycopy(this.body,0,body,head.length,this.body.length);

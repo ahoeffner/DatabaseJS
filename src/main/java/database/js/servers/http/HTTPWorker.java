@@ -43,7 +43,7 @@ public class HTTPWorker implements Runnable
     
     try
     {
-      HTTPResponse response = handler.handle(request);
+      HTTPResponse response = handler.handle(server,request);
       
       SocketChannel channel = request.channel();
       channel.write(ByteBuffer.wrap(response.body()));

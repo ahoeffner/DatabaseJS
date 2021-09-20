@@ -26,6 +26,10 @@ public class FileHandler implements Handler
   @Override
   public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception
   {
-    return null;
+    HTTPResponse response = new HTTPResponse();
+    
+    response.setLastModified();
+    response.setBody("Hello there");
+    return(response);
   }
 }
