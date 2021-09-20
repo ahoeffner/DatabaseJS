@@ -68,9 +68,21 @@ public class Server implements Listener
   
   private void start(short id) throws Exception
   {
-    HTTPServer ssl = new HTTPServer(config,HTTPServer.Type.SSL,embedded); ssl.start();
-    HTTPServer plain = new HTTPServer(config,HTTPServer.Type.Plain,embedded); plain.start();
-    HTTPServer admin = new HTTPServer(config,HTTPServer.Type.Admin,embedded); admin.start();
+    HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.SSL,embedded); ssl.start();
+    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.Plain,embedded); plain.start();
+    HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
+  }
+  
+  
+  public Config config()
+  {
+    return(config);
+  }
+  
+  
+  public Broker broker()
+  {
+    return(broker);
   }
 
 

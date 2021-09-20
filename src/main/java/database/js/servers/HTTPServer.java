@@ -12,6 +12,7 @@
 
 package database.js.servers;
 
+import ipc.Broker;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.control.Server;
 import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
@@ -36,6 +38,8 @@ public class HTTPServer extends Thread
   private final int port;
   private final Type type;
   private final int threads;
+  private final Config config;
+  private final Broker broker;
   private final Logger logger;
   private final boolean embedded;
   private final boolean redirect;
@@ -43,11 +47,13 @@ public class HTTPServer extends Thread
   private static ExecutorService workers = null;
   
   
-  public HTTPServer(Config config, Type type, boolean embedded) throws Exception
+  public HTTPServer(Server server, Type type, boolean embedded) throws Exception
   {
     this.type = type;
     this.redirect = false;
     this.embedded = embedded;
+    this.broker = server.broker();
+    this.config = server.config();
     this.logger = config.getLogger().logger;
     this.threads = config.getTopology().threads();
     
@@ -61,6 +67,30 @@ public class HTTPServer extends Thread
       case Admin  : port = config.getHTTP().admin();  break;      
       default     : port = -1;
     }
+  }
+  
+  
+  public Type type()
+  {
+    return(type);
+  }
+  
+  
+  public Config config()
+  {
+    return(config);
+  }
+  
+  
+  public Broker broker()
+  {
+    return(broker);
+  }
+  
+  
+  public boolean embedded()
+  {
+    return(embedded);
   }
   
   
@@ -132,7 +162,7 @@ public class HTTPServer extends Thread
                 continue;                                
               
               HTTPRequest request = incomplete.remove(key);
-              if (request == null) request = new HTTPRequest();
+              if (request == null) request = new HTTPRequest(req);
               
               if (!request.add(buf.array(),read)) 
               {
@@ -140,7 +170,7 @@ public class HTTPServer extends Thread
                 continue;
               }
 
-              workers.submit(new HTTPWorker(req,request,embedded,admin));
+              workers.submit(new HTTPWorker(this,request));
             }
             catch (Exception e)
             {
