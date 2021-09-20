@@ -1,4 +1,4 @@
-package database.js.servers.http;
+package database.js.servers;
 
 import java.nio.channels.SocketChannel;
 

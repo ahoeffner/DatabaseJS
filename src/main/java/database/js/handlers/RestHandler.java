@@ -12,9 +12,9 @@
 
 package database.js.handlers;
 
-import database.js.servers.http.HTTPServer;
-import database.js.servers.http.HTTPRequest;
-import database.js.servers.http.HTTPResponse;
+import database.js.servers.HTTPServer;
+import database.js.servers.HTTPRequest;
+import database.js.servers.HTTPResponse;
 
 
 public class RestHandler implements Handler

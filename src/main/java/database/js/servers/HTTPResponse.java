@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers.http;
+package database.js.servers;
 
 import java.util.Date;
 import java.util.ArrayList;
@@ -39,24 +39,6 @@ public class HTTPResponse
     add("Connection","Keep-Alive");
     add("Keep-Alive","timeout=5, max=100");
   }
-  
-  /*
-
-  HTTP/1.1 200 OK
-  Date: Mon, 20 Sep 2021 12:11:30 GMT
-  Server: Apache/2.4.38 (Raspbian)
-  Last-Modified: Mon, 25 Jan 2021 23:29:29 GMT
-  ETag: "65-5b9c1e8ce9deb-gzip"
-  Accept-Ranges: bytes
-  Vary: Accept-Encoding
-  Content-Encoding: gzip
-  Content-Length: 105
-  Keep-Alive: timeout=5, max=100
-  Connection: Keep-Alive
-  Content-Type: text/html
-
-
-   */
   
   
   void finish()
@@ -110,6 +92,50 @@ public class HTTPResponse
   {
     headers.add(header+": "+value);
   }
+
+
+  public void setCookie(String cookie, String value)
+  {
+    Integer expires = null;
+    setCookie(cookie,value,expires,"/");
+  }
+
+
+  public void setCookie(String cookie, String value, int seconds)
+  {
+    setCookie(cookie,value,seconds,"/");
+  }
+
+
+  public void setCookie(String cookie, String value, Integer expires, String path)
+  {
+    String expire = "";
+    if (value == null) value = "";
+    if (expires != null) expire = "; max-age="+expires;
+    add("Set-Cookie",cookie+"="+value+expire+"; path="+path);
+  }
+
+
+  public void setCookie(String cookie, String value, Date expires, String path)
+  {
+    String expire = "";
+    if (value == null) value = "";
+    if (expires != null) expire = "; expires="+format.format(expires);
+    add("Set-Cookie",cookie+"="+value+expire+"; path="+path);
+  }
+
+
+  public void removeCookie(String cookie)
+  {
+    removeCookie(cookie,"/");
+  }
+
+
+  public void removeCookie(String cookie, String path)
+  {
+    setCookie(cookie,null,-1,path);
+  }
+
   
   
   public void setBody(String body)

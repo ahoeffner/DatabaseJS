@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers.http;
+package database.js.servers;
 
 import ipc.Broker;
 import java.util.Set;
