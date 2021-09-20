@@ -2,6 +2,7 @@ package database.js.servers;
 
 import java.nio.channels.SocketChannel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -20,6 +21,12 @@ public class HTTPRequest
   
   private HashMap<String,String> headers =
     new HashMap<String,String>();
+  
+  private HashMap<String,String> cookies =
+    new HashMap<String,String>();
+  
+  private final ArrayList<Pair<String,String>> query =
+    new ArrayList<Pair<String,String>>();
 
   private final static String EOL = "\r\n";
   private long started = System.currentTimeMillis();
@@ -44,6 +51,16 @@ public class HTTPRequest
   public String version()
   {
     return(version);
+  }
+  
+  public String getHeader(String header)
+  {
+    return(headers.get(header));
+  }
+  
+  public String getCookie(String cookie)
+  {
+    return(cookies.get(cookie));
   }
   
   
@@ -79,6 +96,37 @@ public class HTTPRequest
       String key = lines[i].substring(0,pos).trim();
       String val = lines[i].substring(pos+1).trim();
       this.headers.put(key,val);
+    }
+    
+    int pos = this.path.indexOf('?');
+
+    if (pos >= 0)
+    {
+      String query = this.path.substring(pos+1);
+      this.path = this.path.substring(0,pos);
+      String[] parts = query.split("&");
+
+      for(String part : parts)
+      {
+        pos = part.indexOf('=');
+        if (pos < 0) this.query.add(new Pair<String,String>(part,null));
+        else this.query.add(new Pair<String,String>(part.substring(0,pos),part.substring(pos+1)));
+      }
+    }
+    
+    String hcookie = headers.get("Cookie");
+  
+    if (hcookie != null)
+    {
+      String[] cookies = hcookie.split(";");
+      for (int i = 0; i < cookies.length; i++) 
+      {
+        String[] nvp = cookies[i].split("=");
+        
+        String name = nvp[0].trim();
+        String value = nvp.length > 1 ? nvp[1].trim() : "";
+        this.cookies.put(name,value);
+      }
     }
   }
   
@@ -141,7 +189,14 @@ public class HTTPRequest
     for (int i = b; i < request.length; i++)
     {
       if (request[i] == ' ')
-        return(new String(request,b,i-b));
+      {
+        String path = new String(request,b,i-b);
+        
+        if (path.length() > 1 && path.endsWith("/")) 
+          path = path.substring(0,path.length()-1);
+        
+        return(path);
+      }
     }
     
     return(null);

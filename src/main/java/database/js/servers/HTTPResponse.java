@@ -96,31 +96,21 @@ public class HTTPResponse
 
   public void setCookie(String cookie, String value)
   {
-    Integer expires = null;
+    Date expires = null;
     setCookie(cookie,value,expires,"/");
-  }
-
-
-  public void setCookie(String cookie, String value, int seconds)
-  {
-    setCookie(cookie,value,seconds,"/");
-  }
-
-
-  public void setCookie(String cookie, String value, Integer expires, String path)
-  {
-    String expire = "";
-    if (value == null) value = "";
-    if (expires != null) expire = "; max-age="+expires;
-    add("Set-Cookie",cookie+"="+value+expire+"; path="+path);
   }
 
 
   public void setCookie(String cookie, String value, Date expires, String path)
   {
     String expire = "";
-    if (value == null) value = "";
-    if (expires != null) expire = "; expires="+format.format(expires);
+    
+    if (value == null) 
+      value = "";
+    
+    if (expires != null) 
+      expire = "; expires="+format.format(expires);
+    
     add("Set-Cookie",cookie+"="+value+expire+"; path="+path);
   }
 
@@ -133,7 +123,9 @@ public class HTTPResponse
 
   public void removeCookie(String cookie, String path)
   {
-    setCookie(cookie,null,-1,path);
+    Date date = new Date();
+    date.setTime(0);
+    setCookie(cookie,null,date,path);
   }
 
   
@@ -169,8 +161,6 @@ public class HTTPResponse
     
     byte[] head = header().getBytes();
     byte[] body = new byte[header.length()+this.body.length];
-    
-    System.out.println(header);
 
     System.arraycopy(head,0,body,0,head.length);    
     System.arraycopy(this.body,0,body,head.length,this.body.length);

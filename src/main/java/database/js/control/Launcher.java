@@ -17,6 +17,7 @@ import org.json.JSONTokener;
 import database.js.config.Paths;
 import database.js.config.Config;
 import database.js.config.Topology;
+import database.js.handlers.Handler;
 
 
 /**
@@ -88,7 +89,7 @@ public class Launcher implements ILauncher
     {
       try
       {
-        Loader loader = new Loader(ILauncher.class);
+        Loader loader = new Loader(ILauncher.class, Handler.class);
 
         String path = Paths.libdir+File.separator+"json";
         String classpath = (String) System.getProperties().get("java.class.path");

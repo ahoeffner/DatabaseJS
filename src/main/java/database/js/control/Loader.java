@@ -119,7 +119,10 @@ public class Loader extends ClassLoader
     }
     
     if (failed.size() > 0)
+    {
+      for(Definition cdef : failed) System.out.println(cdef.name);      
       throw new Exception("Unable to load jars from "+jar);
+    }
   }
   
   

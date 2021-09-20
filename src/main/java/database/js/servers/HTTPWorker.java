@@ -37,6 +37,7 @@ public class HTTPWorker implements Runnable
   @Override
   public void run()
   {
+    request.parse();    
     String path = request.path();
     String method = request.method();
     Handler handler = handlers.getHandler(path, method);

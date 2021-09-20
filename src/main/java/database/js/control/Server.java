@@ -52,15 +52,16 @@ public class Server implements Listener
   Server(short id) throws Exception
   {    
     this.config = new Config();
+    this.logger = config.getLogger().logger;
 
     int http = 1;
     if (config.getTopology().hotstandby()) http++;
     
     if (id < http) type = Type.http;
     else           type = Type.rest;
-    
+
+    Broker.logger(logger);    
     boolean master = type == Type.http;
-    this.logger = config.getLogger().logger;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
   }
@@ -68,21 +69,9 @@ public class Server implements Listener
   
   private void start(short id) throws Exception
   {
-    HTTPServer ssl = new HTTPServer(this, database.js
-                                                  .servers
-                                                  .HTTPServer
-                                                  .Type
-                                                  .SSL,embedded); ssl.start();
-    HTTPServer plain = new HTTPServer(this, database.js
-                                                    .servers
-                                                    .HTTPServer
-                                                    .Type
-                                                    .Plain,embedded); plain.start();
-    HTTPServer admin = new HTTPServer(this, database.js
-                                                    .servers
-                                                    .HTTPServer
-                                                    .Type
-                                                    .Admin,embedded); admin.start();
+    HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.SSL,embedded); ssl.start();
+    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.Plain,embedded); plain.start();
+    HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
   }
   
   

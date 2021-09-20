@@ -27,7 +27,6 @@ public class FileHandler implements Handler
   public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception
   {
     HTTPResponse response = new HTTPResponse();
-    
     response.setLastModified();
     response.setBody("Hello there");
     return(response);
