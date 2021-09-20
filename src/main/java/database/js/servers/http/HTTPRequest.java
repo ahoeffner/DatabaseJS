@@ -1,4 +1,4 @@
-package database.js.servers;
+package database.js.servers.http;
 
 import java.nio.channels.SocketChannel;
 
@@ -21,6 +21,7 @@ public class HTTPRequest
   private HashMap<String,String> headers =
     new HashMap<String,String>();
 
+  private final static String EOL = "\r\n";
   private long started = System.currentTimeMillis();
   
   
@@ -71,7 +72,7 @@ public class HTTPRequest
     parsed = true;
     String header = new String(request,0,this.header);
     
-    String[] lines = header.split("\r\n");
+    String[] lines = header.split(EOL);
     for (int i = 1; i < lines.length; i++)
     {
       int pos = lines[i].indexOf(':');

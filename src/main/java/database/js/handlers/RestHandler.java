@@ -12,8 +12,9 @@
 
 package database.js.handlers;
 
-import database.js.servers.HTTPRequest;
-import database.js.servers.HTTPResponse;
+import database.js.servers.http.HTTPServer;
+import database.js.servers.http.HTTPRequest;
+import database.js.servers.http.HTTPResponse;
 
 
 public class RestHandler implements Handler
@@ -23,7 +24,7 @@ public class RestHandler implements Handler
   }
 
   @Override
-  public HTTPResponse handle(HTTPRequest request) throws Exception
+  public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception
   {
     return null;
   }

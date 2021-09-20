@@ -10,10 +10,13 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 
 public class HTTPWorker implements Runnable
@@ -39,8 +42,11 @@ public class HTTPWorker implements Runnable
     Handler handler = handlers.getHandler(path, method);
     
     try
-    {	
-      handler.handle(request);
+    {
+      HTTPResponse response = handler.handle(request);
+      
+      SocketChannel channel = request.channel();
+      channel.write(ByteBuffer.wrap(response.body()));
     }
     catch(Exception e)
     {

@@ -10,11 +10,11 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.rest;
 
-public class HTTPResponse
+public class RESTServer extends Thread
 {
-  public HTTPResponse(HTTPRequest request)
+  public RESTServer()
   {
   }
 }
