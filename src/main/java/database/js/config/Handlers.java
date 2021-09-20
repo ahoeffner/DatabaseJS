@@ -20,7 +20,14 @@ import database.js.handlers.Handler;
 
 public class Handlers
 {  
+  private final Config config;
   private final ArrayList<Entry> entries = new ArrayList<Entry>();
+  
+  
+  Handlers(Config config)
+  {
+    this.config = config;
+  }
   
   
   void sort()
@@ -32,7 +39,7 @@ public class Handlers
   void add(String prefix, String methods, String clazz) throws Exception
   {
     if (!prefix.endsWith("/")) prefix += "/";
-    this.entries.add(new Entry(prefix,methods,clazz));
+    this.entries.add(new Entry(config,prefix,methods,clazz));
   }
   
   
@@ -57,12 +64,12 @@ public class Handlers
     public final Handler handler;
     public final HashSet<String> methods = new HashSet<String>();
     
-    Entry(String prefix, String methods, String clazz) throws Exception
+    Entry(Config config, String prefix, String methods, String clazz) throws Exception
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
       for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
-      this.handler = (Handler) Class.forName(clazz).getDeclaredConstructor().newInstance();
+      this.handler = (Handler) Class.forName(clazz).getDeclaredConstructor(Config.class).newInstance(config);
     }
     
     

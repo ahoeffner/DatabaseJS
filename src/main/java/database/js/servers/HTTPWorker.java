@@ -13,6 +13,7 @@
 package database.js.servers;
 
 import database.js.config.Handlers;
+import database.js.handlers.AdminHandler;
 import database.js.handlers.Handler;
 
 import java.nio.ByteBuffer;
@@ -22,11 +23,11 @@ import java.nio.channels.SocketChannel;
 public class HTTPWorker implements Runnable
 {
   private final Handlers handlers;
-  private final HTTPServer server;
+  private final BasicServer server;
   private final HTTPRequest request;
   
   
-  public HTTPWorker(HTTPServer server, HTTPRequest request) throws Exception
+  public HTTPWorker(BasicServer server, HTTPRequest request) throws Exception
   {
     this.server = server;
     this.request = request;
@@ -40,11 +41,17 @@ public class HTTPWorker implements Runnable
     request.parse();    
     String path = request.path();
     String method = request.method();
-    Handler handler = handlers.getHandler(path, method);
+    
+    Handler handler = null;
+    boolean admin = false;
     
     try
     {
-      HTTPResponse response = handler.handle(server,request);
+      
+      if (!admin) handler = handlers.getHandler(path,method);
+      else        handler = new AdminHandler(server.config());
+
+      HTTPResponse response = handler.handle(request);
       
       SocketChannel channel = request.channel();
       channel.write(ByteBuffer.wrap(response.body()));

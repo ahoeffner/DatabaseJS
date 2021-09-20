@@ -12,12 +12,22 @@
 
 package database.js.handlers;
 
-import database.js.servers.HTTPServer;
+import java.util.logging.Logger;
+import database.js.config.Config;
 import database.js.servers.HTTPRequest;
 import database.js.servers.HTTPResponse;
 
 
-public interface Handler
+public abstract class Handler
 {
-  public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception;
+  public final Logger logger;
+  
+  
+  public Handler(Config config) throws Exception
+  {
+    this.logger = config.getLogger().logger;  
+  }
+  
+  
+  public abstract HTTPResponse handle(HTTPRequest request) throws Exception;
 }

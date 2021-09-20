@@ -32,7 +32,7 @@ public class HTTP
   private final ArrayList<String> corsdomains;
   
   
-  HTTP(JSONObject config) throws Exception
+  HTTP(Handlers handlers, JSONObject config) throws Exception
   {
     JSONObject app = config.getJSONObject("application");
     
@@ -89,20 +89,19 @@ public class HTTP
       }
     }
     
-
     JSONObject virtp = config.getJSONObject("virtual-path");
     
     this.virtstr = virtp.getString("strategi");
     this.virtendp = virtp.getString("endpoint");
 
 
-    this.handlers = new Handlers();
+    this.handlers = handlers;
 
-    JSONArray handlers = config.getJSONArray("handlers");
+    JSONArray hconfig = config.getJSONArray("handlers");
     
-    for (int i = 0; i < handlers.length(); i++)
+    for (int i = 0; i < hconfig.length(); i++)
     {
-      JSONObject entry = handlers.getJSONObject(i);
+      JSONObject entry = hconfig.getJSONObject(i);
       this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
     

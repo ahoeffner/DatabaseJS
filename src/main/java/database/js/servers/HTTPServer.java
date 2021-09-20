@@ -28,51 +28,34 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
 import java.nio.channels.ServerSocketChannel;
 
 
-public class HTTPServer extends Thread
+public class HTTPServer extends Thread implements BasicServer
 {
   private final int port;
-  private final Type type;
   private final int threads;
   private final Config config;
   private final Broker broker;
   private final Logger logger;
   private final boolean embedded;
   private final boolean redirect;
+  private final ThreadPool workers;
   
-  private static ExecutorService workers = null;
   
-  
-  public HTTPServer(Server server, Type type, boolean embedded) throws Exception
+  public HTTPServer(Server server, boolean embedded) throws Exception
   {
-    this.type = type;
     this.redirect = false;
     this.embedded = embedded;
     this.broker = server.broker();
     this.config = server.config();
+    this.port = config.getHTTP().plain();
     this.logger = config.getLogger().logger;
-    this.threads = config.getTopology().threads();
+    this.threads = config.getTopology().threads();    
     
-    if (workers == null)
-      workers = Executors.newFixedThreadPool(threads);
-    
-    switch(type)
-    {
-      case SSL    : port = config.getHTTP().ssl();    break;
-      case Plain  : port = config.getHTTP().plain();  break;
-      case Admin  : port = config.getHTTP().admin();  break;      
-      default     : port = -1;
-    }
-  }
-  
-  
-  public Type type()
-  {
-    return(type);
+    this.setDaemon(true);
+    this.setName("HTTPServer");
+    this.workers = new ThreadPool(threads);
   }
   
   
@@ -98,8 +81,6 @@ public class HTTPServer extends Thread
   {
     if (port <= 0) 
       return;
-    
-    boolean admin = this.type == Type.Admin;
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
@@ -185,7 +166,7 @@ public class HTTPServer extends Thread
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    logger.info(type+" HTTPServer stopped");
+    logger.info("HTTPServer stopped");
   }
   
   
@@ -225,13 +206,5 @@ public class HTTPServer extends Thread
                   "Content-Length: "+msg.length() + EOL + EOL + msg;
     
     return(page.getBytes());
-  }
-  
-  
-  public static enum Type
-  {
-    SSL,
-    Plain,
-    Admin
   }
 }

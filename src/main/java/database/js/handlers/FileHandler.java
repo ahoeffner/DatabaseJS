@@ -12,19 +12,21 @@
 
 package database.js.handlers;
 
-import database.js.servers.HTTPServer;
+import database.js.config.Config;
 import database.js.servers.HTTPRequest;
 import database.js.servers.HTTPResponse;
 
 
-public class FileHandler implements Handler
+public class FileHandler extends Handler
 {
-  public FileHandler()
+  public FileHandler(Config config) throws Exception
   {
+    super(config);
   }
-
+  
+  
   @Override
-  public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception
+  public HTTPResponse handle(HTTPRequest request) throws Exception
   {
     HTTPResponse response = new HTTPResponse();
     response.setLastModified();

@@ -121,10 +121,11 @@ public class Config
     if (http != null) return(http);
     FileInputStream in = new FileInputStream(httppath());
     
+    Handlers handlers   = new Handlers(this);
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);
     
-    http = new HTTP(config);
+    http = new HTTP(handlers,config);
     return(http);
   }
   
@@ -158,7 +159,7 @@ public class Config
   public synchronized Security getSecurity() throws Exception
   {
     if (security != null) return(security);
-    FileInputStream in = new FileInputStream(javapath());
+    FileInputStream in = new FileInputStream(securitypath());
     
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);

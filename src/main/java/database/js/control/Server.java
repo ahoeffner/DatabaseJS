@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
 import database.js.servers.HTTPServer;
+import database.js.servers.HTTPSServer;
 import static database.js.config.Config.*;
 
 
@@ -69,9 +70,9 @@ public class Server implements Listener
   
   private void start(short id) throws Exception
   {
-    HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.SSL,embedded); ssl.start();
-    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.Plain,embedded); plain.start();
-    HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
+    HTTPSServer ssl = new HTTPSServer(this,embedded); ssl.start();
+    //HTTPServer plain = new HTTPServer(this,embedded); plain.start();
+    //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
   }
   
   

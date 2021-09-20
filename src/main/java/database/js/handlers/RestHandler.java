@@ -12,19 +12,21 @@
 
 package database.js.handlers;
 
-import database.js.servers.HTTPServer;
+import database.js.config.Config;
 import database.js.servers.HTTPRequest;
 import database.js.servers.HTTPResponse;
 
 
-public class RestHandler implements Handler
+public class RestHandler extends Handler
 {
-  public RestHandler()
+  public RestHandler(Config config) throws Exception
   {
+    super(config);
   }
-
+  
+  
   @Override
-  public HTTPResponse handle(HTTPServer server, HTTPRequest request) throws Exception
+  public HTTPResponse handle(HTTPRequest request) throws Exception
   {
     return null;
   }
