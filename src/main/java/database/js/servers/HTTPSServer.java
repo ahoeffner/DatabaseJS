@@ -106,6 +106,11 @@ public class HTTPSServer extends Thread
               SSLUtils ssl = (SSLUtils) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
+              buf = ByteBuffer.wrap("Hello".getBytes());
+              ssl.write(buf);
+              
+              /*
+              
               buf.rewind();
               int read = ssl.read(buf);
                             
@@ -117,6 +122,7 @@ public class HTTPSServer extends Thread
               
               byte[] test = buf.array();
               System.out.println("read "+read+" "+new String(test,0,32));
+              */
             }
             catch (Exception e)
             {

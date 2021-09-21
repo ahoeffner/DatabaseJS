@@ -48,6 +48,18 @@ public class SSLUtils
   }
   
   
+  public void write(ByteBuffer buf) throws Exception
+  {
+    this.buf.rewind();
+    SSLEngineResult result = engine.wrap(buf,this.buf);
+
+    this.buf.flip();
+    channel.write(this.buf);
+    
+    System.out.println("Write "+result.getStatus());
+  }
+  
+  
   public boolean accept()
   {
     int read;
