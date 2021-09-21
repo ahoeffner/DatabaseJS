@@ -33,7 +33,6 @@ public class HTTPSServer extends Thread
   private final boolean embedded;
   private final boolean redirect;
   private final ThreadPool workers;
-  private final SSLEngine sslengine;
 
 
   public HTTPSServer(Server server, boolean embedded) throws Exception
@@ -49,9 +48,6 @@ public class HTTPSServer extends Thread
     //this.setDaemon(true);
     this.setName("HTTP(S)Server");
     this.workers = new ThreadPool(threads);
-
-    PKIContext pki = config.getPKIContext();
-    this.sslengine = pki.getSSLContext().createSSLEngine();
   }
   
   
@@ -69,8 +65,6 @@ public class HTTPSServer extends Thread
     
     try
     {
-      sslengine.setUseClientMode(false);
-      sslengine.setWantClientAuth(false);
       Selector selector = Selector.open();
       
       InetAddress ip = InetAddress.getByName("localhost");
@@ -98,42 +92,28 @@ public class HTTPSServer extends Thread
           {
             SocketChannel sac = server.accept();
             sac.configureBlocking(false);
-            sslengine.beginHandshake();
             
-            for (int i = 0; i < 10; i++)
-            {
-              byte[] test;
-              Thread.sleep(0);
-
-              HandshakeStatus status = sslengine.getHandshakeStatus();
-              System.out.println(status);
-
-              int read = sac.read(buf);
-              buf.flip();
-              
-              sslengine.unwrap(buf,decrypt);
-            }
-
+            SSLUtils ssl = new SSLUtils(config,sac,false);
+            ssl.accept();
             
-            sac.register(selector,SelectionKey.OP_READ);
+            sac.register(selector,SelectionKey.OP_READ,ssl);
             logger.fine("Connection Accepted: "+sac.getLocalAddress());
           }          
           else if (key.isReadable())
           {
             try
             {
+              SSLUtils ssl = (SSLUtils) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
               buf.rewind();
-              int read = req.read(buf);
+              int read = ssl.read(buf);
                             
               if (read < 0)
               {
                 req.close();
                 continue;                
               }
-              
-              //sslengine.unwrap(buf,decrypt);
               
               byte[] test = buf.array();
               System.out.println("read "+read+" "+new String(test,0,32));
