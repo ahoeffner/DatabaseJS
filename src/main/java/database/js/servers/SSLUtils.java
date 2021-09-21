@@ -50,11 +50,15 @@ public class SSLUtils
   
   public void write(ByteBuffer buf) throws Exception
   {
-    this.buf.rewind();
+    buf.flip();
+    this.buf = ByteBuffer.allocate(32*1024);
     SSLEngineResult result = engine.wrap(buf,this.buf);
 
     this.buf.flip();
     channel.write(this.buf);
+    
+    if (result.getStatus() == SSLEngineResult.Status.CLOSED)
+      channel.close();
     
     System.out.println("Write "+result.getStatus());
   }

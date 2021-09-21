@@ -106,7 +106,7 @@ public class HTTPSServer extends Thread
               SSLUtils ssl = (SSLUtils) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
-              buf = ByteBuffer.wrap("Hello".getBytes());
+              buf = ByteBuffer.wrap("200 OK HTTP/1.0\r\n\r\n".getBytes());
               ssl.write(buf);
               
               /*
