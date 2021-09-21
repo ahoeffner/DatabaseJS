@@ -95,23 +95,19 @@ public class HTTPSServer extends Thread
             
             SSLUtils ssl = new SSLUtils(config,sac,false);
             ssl.accept();
-            
+
             sac.register(selector,SelectionKey.OP_READ,ssl);
-            logger.fine("Connection Accepted: "+sac.getLocalAddress());
+            logger.fine("Connection Accepted: "+sac.getLocalAddress());              
           }          
           else if (key.isReadable())
           {
             try
             {
+              System.out.println("************************");
+
               SSLUtils ssl = (SSLUtils) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
-              buf = ByteBuffer.wrap("200 OK HTTP/1.0\r\n\r\n".getBytes());
-              ssl.write(buf);
-              
-              /*
-              
-              buf.rewind();
               int read = ssl.read(buf);
                             
               if (read < 0)
@@ -121,8 +117,10 @@ public class HTTPSServer extends Thread
               }
               
               byte[] test = buf.array();
-              System.out.println("read "+read+" "+new String(test,0,32));
-              */
+              System.out.println("read "+read+" ** "+new String(test,0,32));
+              
+              buf = ByteBuffer.wrap("200 OK HTTP/1.0\r\n\r\n".getBytes());
+              ssl.write(buf);
             }
             catch (Exception e)
             {

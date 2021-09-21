@@ -40,10 +40,38 @@ public class SSLUtils
   
   public int read(ByteBuffer buf) throws Exception
   {
-    this.buf.rewind();
+    buf.flip();
+    this.buf.clear();
+    
     int read = channel.read(this.buf);
-    SSLEngineResult result = engine.unwrap(this.buf,buf);
-    System.out.println("Read "+result.getStatus());
+    
+    if (read > 0)
+    {
+      this.buf.flip();
+      
+      while(this.buf.hasRemaining())
+      {
+        SSLEngineResult result = engine.unwrap(this.buf,buf);
+        
+        switch(result.getStatus())
+        {
+          case OK: 
+            buf.flip(); 
+            break; 
+          
+          case BUFFER_OVERFLOW:
+            buf = enlarge(buf);
+            break;
+          
+          case BUFFER_UNDERFLOW:
+            this.buf = enlarge(this.buf);
+            break;
+        }
+      }
+    }
+    
+    
+    System.out.println("Read "+read);
     return(read);
   }
   
@@ -51,15 +79,32 @@ public class SSLUtils
   public void write(ByteBuffer buf) throws Exception
   {
     buf.flip();
-    this.buf = ByteBuffer.allocate(32*1024);
+    this.buf.clear();
+    
     SSLEngineResult result = engine.wrap(buf,this.buf);
-
-    this.buf.flip();
-    channel.write(this.buf);
     
-    if (result.getStatus() == SSLEngineResult.Status.CLOSED)
-      channel.close();
-    
+    while(buf.hasRemaining())
+    {
+      switch(result.getStatus())
+      {
+        case OK:
+          this.buf.flip();
+          
+          while(this.buf.hasRemaining())
+            channel.write(this.buf);
+          
+          break;
+        
+        case BUFFER_OVERFLOW:
+          this.buf = enlarge(this.buf);
+          break;
+        
+        case BUFFER_UNDERFLOW:
+          buf = enlarge(buf);
+          break;
+      }
+    }
+        
     System.out.println("Write "+result.getStatus());
   }
   
@@ -86,27 +131,28 @@ public class SSLUtils
             read = channel.read(ssl);
             if (read < 0) return(close());
 
-            ssl.flip();
-            
+            ssl.flip();            
             result = engine.unwrap(ssl,buf);
+            
+            if (result.getStatus() == SSLEngineResult.Status.OK)
+              ssl.compact();
+            
             if (!handle(result)) return(close());
-            
-            ssl.compact();
-            
             break;
           
           case NEED_WRAP:
-            ssl.clear();
-            buf.clear();
-            
-            result = engine.wrap(buf,ssl);
-            if (!handle(result)) return(close());
-            
-            ssl.flip();
-            
-            while(ssl.hasRemaining())
-              channel.write(ssl);
-            
+            buf.clear();            
+            result = engine.wrap(ssl,buf);
+
+            if (result.getStatus() == SSLEngineResult.Status.OK)
+            {
+              buf.flip();
+              
+              while(buf.hasRemaining())
+                channel.write(buf);
+            }
+
+            if (!handle(result)) return(close());            
             break;
           
           case NEED_TASK:
@@ -132,8 +178,10 @@ public class SSLUtils
       String errm = e.getMessage();
       if (errm == null) errm = "An unknown error has occured";
       
-      if (errm.startsWith("Illegal server handshake")) skip = true;
+      //if (errm.startsWith("Illegal server handshake")) skip = true;
       if (!skip) e.printStackTrace();
+      
+      //return(close());
     }
     
     this.ssl = null;    
@@ -156,19 +204,22 @@ public class SSLUtils
   
   private void enlarge()
   {
-    int size = 2 * ssl.capacity();
-    
-    ByteBuffer sslc = ssl;
+    this.buf = enlarge(buf);
+    this.ssl = enlarge(ssl);
+  }
+  
+  
+  private ByteBuffer enlarge(ByteBuffer buf)
+  {
     ByteBuffer bufc = buf;
-    
-    ssl = ByteBuffer.allocate(size);
+    int size = 2 * buf.capacity();
+
     buf = ByteBuffer.allocate(size);
     
-    sslc.flip();
     bufc.flip();
-    
-    ssl.put(sslc);
     buf.put(bufc);
+    
+    return(buf);
   }
   
   
