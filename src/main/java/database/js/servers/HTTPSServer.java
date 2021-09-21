@@ -10,9 +10,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import database.js.security.PKIContext;
-import javax.net.ssl.SSLEngineResult.HandshakeStatus;
-
 import java.net.InetAddress;
 
 import java.nio.ByteBuffer;
@@ -59,9 +56,6 @@ public class HTTPSServer extends Thread
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
-
-    ByteBuffer buf = ByteBuffer.allocate(2048);
-    ByteBuffer decrypt = ByteBuffer.allocate(2048);
     
     try
     {
@@ -103,24 +97,25 @@ public class HTTPSServer extends Thread
           {
             try
             {
-              System.out.println("************************");
-
               SSLUtils ssl = (SSLUtils) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
-              int read = ssl.read(buf);
+              ByteBuffer buf = ssl.read();
                             
-              if (read < 0)
+              if (buf == null)
               {
                 req.close();
                 continue;                
               }
               
               byte[] test = buf.array();
-              System.out.println("read "+read+" ** "+new String(test,0,32));
+              System.out.println("read "+buf.remaining()+" "+new String(test,0,32));
               
-              buf = ByteBuffer.wrap("200 OK HTTP/1.0\r\n\r\n".getBytes());
-              ssl.write(buf);
+              HTTPResponse response = new HTTPResponse();
+              response.setBody("Hello");
+              byte[] page = response.page();
+              
+              ssl.write(page);
             }
             catch (Exception e)
             {

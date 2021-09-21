@@ -54,7 +54,7 @@ public class HTTPWorker implements Runnable
       HTTPResponse response = handler.handle(request);
       
       SocketChannel channel = request.channel();
-      channel.write(ByteBuffer.wrap(response.body()));
+      channel.write(ByteBuffer.wrap(response.page()));
     }
     catch(Exception e)
     {

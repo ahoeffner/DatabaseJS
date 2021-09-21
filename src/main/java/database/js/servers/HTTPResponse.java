@@ -155,7 +155,7 @@ public class HTTPResponse
   }
   
   
-  byte[] body()
+  byte[] page()
   {
     if (!finished) finish();
     
