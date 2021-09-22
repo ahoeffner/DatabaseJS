@@ -117,19 +117,25 @@ public class HTTPChannel
   {
     int wrote = 0;
     int size = data.length;
+    int bsize = buffers.plain.capacity();
     
     while(wrote < size)
     {
+      int chunk = bsize;
+      buffers.plain.clear();
       
+      if (chunk > size - wrote)
+        chunk = size - wrote;
+      
+      buffers.plain.put(data,wrote,chunk);
+      
+      buffers.plain.flip();
+
+      if (ssl) writessl();
+      else     writeplain();
+
+      wrote += chunk;
     }
-
-    buffers.plain.clear();
-    buffers.plain.put(data);
-    
-    buffers.plain.flip();
-
-    if (ssl) writessl();
-    else     writeplain();
   }
   
   
@@ -172,6 +178,19 @@ public class HTTPChannel
   
   public boolean accept()
   {
+    if (ssl) return(sslaccept());
+    else     return(plainaccept());
+  }
+  
+  
+  private boolean plainaccept()
+  {
+    return(true);
+  }
+  
+  
+  private boolean sslaccept()
+  {
     int read;
     boolean cont = true;
     
@@ -202,7 +221,7 @@ public class HTTPChannel
             break;
           
           case NEED_WRAP:
-            buffers.plain.clear();            
+            buffers.plain.clear();       
             result = engine.wrap(buffers.encpt,buffers.plain);
 
             if (result.getStatus() == SSLEngineResult.Status.OK)

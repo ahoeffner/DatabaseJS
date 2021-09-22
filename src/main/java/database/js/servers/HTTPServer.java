@@ -34,14 +34,15 @@ import java.nio.channels.ServerSocketChannel;
 public class HTTPServer extends Thread implements BasicServer
 {
   private final int port;
+  private final boolean ssl;
   private final int threads;
   private final Config config;
   private final Broker broker;
   private final Logger logger;
+  private final boolean admin;
   private final boolean embedded;
   private final boolean redirect;
   private final ThreadPool workers;
-  private final ByteBuffer buf;
   
   
   public HTTPServer(Server server, Type type, boolean embedded) throws Exception
@@ -50,15 +51,21 @@ public class HTTPServer extends Thread implements BasicServer
     this.embedded = embedded;
     this.broker = server.broker();
     this.config = server.config();
-    this.port = config.getHTTP().plain();
     this.logger = config.getLogger().logger;
-    this.threads = config.getTopology().threads();  
+    this.threads = config.getTopology().threads(); 
+
+    switch(type)
+    {
+      case ssl    : this.port = config.getHTTP().ssl();   ssl = true;  admin = false; break;
+      case plain  : this.port = config.getHTTP().plain(); ssl = false; admin = false; break;
+      case admin  : this.port = config.getHTTP().admin(); ssl = true;  admin = true;  break;
+      default: port = -1; ssl = false; admin = false;
+    }
     
-    this.buf = ByteBuffer.allocate(2048);
-    System.out.println("Plain Port "+port);
+    System.out.println(type+" "+port);
     
     this.setDaemon(true);
-    this.setName("HTTPServer");
+    this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
   }
   
@@ -85,6 +92,8 @@ public class HTTPServer extends Thread implements BasicServer
   {
     if (port <= 0) 
       return;
+    
+    HTTPBuffers buffers = new HTTPBuffers();
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
@@ -122,27 +131,33 @@ public class HTTPServer extends Thread implements BasicServer
           {
             SocketChannel sac = server.accept();
             sac.configureBlocking(false);
-            sac.register(selector,SelectionKey.OP_READ);
-            logger.fine("Connection Accepted: "+sac.getLocalAddress());
+            
+            HTTPChannel hcl = new HTTPChannel(config,buffers,sac,ssl,admin);
+            boolean accept = hcl.accept();
+
+            if (accept)
+            {
+              sac.register(selector,SelectionKey.OP_READ,hcl);
+              logger.fine("Connection Accepted: "+sac.getLocalAddress());
+            }
           }
           
           else if (key.isReadable())
           {
             try
             {
+              HTTPChannel hcl = (HTTPChannel) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
               
-              buf.rewind();
-              int read = req.read(buf);
-              
-              if (read < 0)
+              ByteBuffer buf = hcl.read();
+                            
+              if (buf == null)
               {
                 req.close();
-                continue;                
+                continue;
               }
               
-              if (read == 0)
-                continue;                                
+              int read = buf.capacity() - buf.remaining();
               
               HTTPRequest request = incomplete.remove(key);
               if (request == null) request = new HTTPRequest(req);

@@ -12,20 +12,19 @@
 
 package database.js.control;
 
-
 import ipc.Broker;
 import ipc.Message;
 import ipc.Listener;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
 import database.js.servers.HTTPServer;
-import database.js.servers.HTTPSServer;
 import static database.js.config.Config.*;
 
 
-public class Server implements Listener
+public class Server extends Thread implements Listener
 {
   private final Broker broker;
   private final Logger logger;
@@ -51,8 +50,9 @@ public class Server implements Listener
   
   
   Server(short id) throws Exception
-  {    
+  {
     this.config = new Config();
+    this.setName("Server Main");
     this.logger = config.getLogger().logger;
 
     int http = 1;
@@ -61,18 +61,27 @@ public class Server implements Listener
     if (id < http) type = Type.http;
     else           type = Type.rest;
 
-    Broker.logger(logger);    
+    Broker.logger(logger);
     boolean master = type == Type.http;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
+
+    this.start();
   }
   
   
   private void start(short id) throws Exception
   {
-    HTTPSServer ssl = new HTTPSServer(this,embedded); ssl.start();
+    HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded); ssl.start();
     HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
     //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
+  }
+  
+  
+  public void shutdown()
+  {
+    synchronized(this)
+     {this.notify();}
   }
   
   
@@ -106,5 +115,14 @@ public class Server implements Listener
   @Override
   public void onMessage(ArrayList<Message> arrayList)
   {
+  }
+  
+  
+  @Override
+  public void run()
+  {
+    try {synchronized(this) {this.wait();}}
+    catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
+    logger.info("Server stopped");
   }
 }
