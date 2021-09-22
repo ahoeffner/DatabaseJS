@@ -199,6 +199,9 @@ public class HTTPChannel
     SSLEngineResult result = null;
     HandshakeStatus status = null;
     
+    buffers.plain.clear();
+    buffers.encpt.clear();
+    
     try
     {
       engine.beginHandshake();
@@ -224,6 +227,8 @@ public class HTTPChannel
           
           case NEED_WRAP:
             buffers.plain.flip();
+            buffers.encpt.clear();
+            
             result = engine.wrap(buffers.plain,buffers.encpt);
 
             if (result.getStatus() == SSLEngineResult.Status.OK)
