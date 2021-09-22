@@ -65,6 +65,7 @@ public class HTTPChannel
   
   public ByteBuffer read() throws Exception
   {
+    buffers.plain.clear();
     if (ssl) return(readssl());
     else     return(readplain());
   }
@@ -72,8 +73,8 @@ public class HTTPChannel
   
   private ByteBuffer readplain() throws Exception
   {
-    buffers.plain.clear();    
-    channel.read(buffers.plain);    
+    int read = channel.read(buffers.plain);    
+    if (read <= 0) return(null);
     buffers.plain.flip();
     return(buffers.plain);
   }
@@ -82,12 +83,11 @@ public class HTTPChannel
   private ByteBuffer readssl() throws Exception
   {
     buffers.encpt.clear();
-    buffers.plain.clear();
     
     int read = channel.read(buffers.encpt);
     
     buffers.encpt.flip();
-    if (read < 0) return(null);
+    if (read <= 0) return(null);
     
     while(buffers.encpt.hasRemaining())
     {
@@ -115,29 +115,38 @@ public class HTTPChannel
   
   public void write(byte[] data) throws Exception
   {
+    int wrote = 0;
+    int size = data.length;
+    
+    while(wrote < size)
+    {
+      
+    }
+
     buffers.plain.clear();
     buffers.plain.put(data);
     
     buffers.plain.flip();
 
-    if (ssl) writessl(data);
-    else     writeplain(data);
+    if (ssl) writessl();
+    else     writeplain();
   }
   
   
-  private void writeplain(byte[] data) throws Exception
+  private void writeplain() throws Exception
   {
     while(buffers.plain.hasRemaining())
       channel.write(buffers.plain);
   }
   
   
-  private void writessl(byte[] data) throws Exception
+  private void writessl() throws Exception
   {
     while(buffers.plain.hasRemaining())
     {
       buffers.encpt.clear();
       SSLEngineResult result = engine.wrap(buffers.plain,buffers.encpt);
+      System.out.println("result "+result.getStatus());
       
       switch(result.getStatus())
       {
@@ -233,6 +242,7 @@ public class HTTPChannel
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
+    if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }
   

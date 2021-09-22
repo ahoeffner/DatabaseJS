@@ -108,15 +108,16 @@ public class HTTPSServer extends Thread
               System.out.println("Read");
               ByteBuffer buf = ssl.read();
                             
-              System.out.println("buf "+buf);
               if (buf == null)
               {
                 req.close();
-                continue;                
+                continue;
               }
               
+              int size = buf.capacity() - buf.remaining();
+                            
               byte[] test = buf.array();
-              System.out.println("read "+buf.remaining()+" "+new String(test,0,32));
+              System.out.println("read "+size+" "+new String(test,0,32));
               
               HTTPResponse response = new HTTPResponse();
               response.setBody("Hello");
