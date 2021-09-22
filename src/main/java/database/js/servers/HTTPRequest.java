@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.servers;
 
 import java.nio.channels.SocketChannel;
@@ -280,5 +292,29 @@ public class HTTPRequest
   public String toString()
   {
     return(new String(request));
+  }
+  
+  
+  public static class Pair<K,V>
+  {
+    private final K key;
+    private final V value;
+
+
+    public Pair(K key, V value)
+    {
+      this.key = key;
+      this.value = value;
+    }
+
+    public K getKey()
+    {
+      return(key);
+    }
+
+    public V getValue()
+    {
+      return(value);
+    }
   }
 }
