@@ -157,7 +157,11 @@ public class HTTPServer extends Thread
                 continue;
               }
               
+              if (buf.remaining() == 0) 
+                continue;
+              
               int read = buf.remaining();
+              
               System.out.println("Read "+read);
               
               HTTPRequest request = incomplete.remove(key);

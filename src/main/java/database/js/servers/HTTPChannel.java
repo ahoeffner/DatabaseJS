@@ -86,14 +86,12 @@ public class HTTPChannel
     buffers.encpt.clear();
     
     int read = channel.read(buffers.encpt);
-    if (read <= 0) return(null);
+    if (read < 0) return(null);
     
     buffers.encpt.flip();
     while(buffers.encpt.hasRemaining())
     {
-      System.out.println(buffers.encpt);
       SSLEngineResult result = engine.unwrap(buffers.encpt,buffers.plain);
-      System.out.println(buffers.plain);
       
       switch(result.getStatus())
       {
@@ -108,6 +106,9 @@ public class HTTPChannel
         case BUFFER_UNDERFLOW:
           buffers.plain = enlarge(buffers.plain);
           break;
+        
+        case CLOSED:
+          return(null);
       }
     }
     
@@ -212,9 +213,9 @@ public class HTTPChannel
             read = channel.read(buffers.encpt);
             if (read < 0) return(close());
 
-            buffers.encpt.flip();            
+            buffers.encpt.flip();
             result = engine.unwrap(buffers.encpt,buffers.plain);
-            
+                        
             if (result.getStatus() == SSLEngineResult.Status.OK)
               buffers.encpt.compact();
             
@@ -222,15 +223,15 @@ public class HTTPChannel
             break;
           
           case NEED_WRAP:
-            buffers.plain.clear();       
-            result = engine.wrap(buffers.encpt,buffers.plain);
+            buffers.plain.flip();
+            result = engine.wrap(buffers.plain,buffers.encpt);
 
             if (result.getStatus() == SSLEngineResult.Status.OK)
             {
-              buffers.plain.flip();
+              buffers.encpt.flip();
               
-              while(buffers.plain.hasRemaining())
-                channel.write(buffers.plain);
+              while(buffers.encpt.hasRemaining())
+                channel.write(buffers.encpt);
             }
 
             if (!handle(result)) return(close());            
@@ -260,6 +261,7 @@ public class HTTPChannel
       if (errm == null) errm = "An unknown error has occured";      
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
+      System.out.println(errm);
     }
     
     if (result == null) return(true);
