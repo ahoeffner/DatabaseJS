@@ -71,7 +71,7 @@ public class Server implements Listener
   private void start(short id) throws Exception
   {
     HTTPSServer ssl = new HTTPSServer(this,embedded); ssl.start();
-    //HTTPServer plain = new HTTPServer(this,embedded); plain.start();
+    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
     //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.Admin,embedded); admin.start();
   }
   

@@ -25,13 +25,13 @@ public class HTTPBuffers
 
   public HTTPBuffers()
   {
-    this.encpt = ByteBuffer.allocate(size);
+    this.plain = ByteBuffer.allocate(size);
   }
   
   
   public void usessl()
   {
     if (encpt == null)
-      this.plain = ByteBuffer.allocate(size);
+      this.encpt = ByteBuffer.allocate(size);
   }
 }

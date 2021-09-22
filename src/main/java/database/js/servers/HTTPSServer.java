@@ -1,7 +1,6 @@
 package database.js.servers;
 
 import ipc.Broker;
-import javax.net.ssl.SSLEngine;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -42,6 +41,8 @@ public class HTTPSServer extends Thread
     this.logger = config.getLogger().logger;
     this.threads = config.getTopology().threads();  
     
+    System.out.println("SSLPort "+port);
+    
     //this.setDaemon(true);
     this.setName("HTTP(S)Server");
     this.workers = new ThreadPool(threads);
@@ -53,6 +54,8 @@ public class HTTPSServer extends Thread
   {
     if (port <= 0) 
       return;
+    
+    HTTPBuffers buffers = new HTTPBuffers();
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
@@ -87,7 +90,7 @@ public class HTTPSServer extends Thread
             SocketChannel sac = server.accept();
             sac.configureBlocking(false);
             
-            HTTPChannel ssl = new HTTPChannel(config,sac,false);
+            HTTPChannel ssl = new HTTPChannel(config,buffers,sac,true,false);
             boolean accept = ssl.accept();
 
             System.out.println("Accepted "+accept);

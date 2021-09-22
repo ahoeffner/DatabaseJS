@@ -41,9 +41,10 @@ public class HTTPServer extends Thread implements BasicServer
   private final boolean embedded;
   private final boolean redirect;
   private final ThreadPool workers;
+  private final ByteBuffer buf;
   
   
-  public HTTPServer(Server server, boolean embedded) throws Exception
+  public HTTPServer(Server server, Type type, boolean embedded) throws Exception
   {
     this.redirect = false;
     this.embedded = embedded;
@@ -51,7 +52,10 @@ public class HTTPServer extends Thread implements BasicServer
     this.config = server.config();
     this.port = config.getHTTP().plain();
     this.logger = config.getLogger().logger;
-    this.threads = config.getTopology().threads();    
+    this.threads = config.getTopology().threads();  
+    
+    this.buf = ByteBuffer.allocate(2048);
+    System.out.println("Plain Port "+port);
     
     this.setDaemon(true);
     this.setName("HTTPServer");
@@ -84,8 +88,6 @@ public class HTTPServer extends Thread implements BasicServer
     
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
-
-    ByteBuffer buf = ByteBuffer.allocate(2048);
 
     try
     {
@@ -206,5 +208,13 @@ public class HTTPServer extends Thread implements BasicServer
                   "Content-Length: "+msg.length() + EOL + EOL + msg;
     
     return(page.getBytes());
+  }
+  
+  
+  public static enum Type
+  {
+    ssl,
+    plain,
+    admin
   }
 }

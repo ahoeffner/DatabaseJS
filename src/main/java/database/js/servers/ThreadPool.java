@@ -17,7 +17,7 @@ public class ThreadPool
   
   private synchronized void init(int threads)
   {
-    if (workers != null)
+    if (workers == null)
       workers = Executors.newFixedThreadPool(threads);
   }
   
