@@ -82,22 +82,24 @@ public class HTTPChannel
   
   private ByteBuffer readssl() throws Exception
   {
+    buffers.plain.clear();
     buffers.encpt.clear();
     
     int read = channel.read(buffers.encpt);
-    
-    buffers.encpt.flip();
     if (read <= 0) return(null);
     
+    buffers.encpt.flip();
     while(buffers.encpt.hasRemaining())
     {
+      System.out.println(buffers.encpt);
       SSLEngineResult result = engine.unwrap(buffers.encpt,buffers.plain);
+      System.out.println(buffers.plain);
       
       switch(result.getStatus())
       {
         case OK:
-          buffers.plain.flip(); 
-          break; 
+          buffers.plain.flip();
+          break;
         
         case BUFFER_OVERFLOW:
           buffers.plain = enlarge(buffers.plain);
@@ -152,7 +154,6 @@ public class HTTPChannel
     {
       buffers.encpt.clear();
       SSLEngineResult result = engine.wrap(buffers.plain,buffers.encpt);
-      System.out.println("result "+result.getStatus());
       
       switch(result.getStatus())
       {
@@ -260,7 +261,7 @@ public class HTTPChannel
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
     }
-
+    
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }

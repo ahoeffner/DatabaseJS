@@ -31,7 +31,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
 
 
-public class HTTPServer extends Thread implements BasicServer
+public class HTTPServer extends Thread
 {
   private final int port;
   private final boolean ssl;
@@ -157,10 +157,11 @@ public class HTTPServer extends Thread implements BasicServer
                 continue;
               }
               
-              int read = buf.capacity() - buf.remaining();
+              int read = buf.remaining();
+              System.out.println("Read "+read);
               
               HTTPRequest request = incomplete.remove(key);
-              if (request == null) request = new HTTPRequest(req);
+              if (request == null) request = new HTTPRequest(hcl);
               
               if (!request.add(buf.array(),read)) 
               {

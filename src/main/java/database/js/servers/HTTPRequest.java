@@ -12,10 +12,8 @@
 
 package database.js.servers;
 
-import java.nio.channels.SocketChannel;
-
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 
 public class HTTPRequest
@@ -28,7 +26,7 @@ public class HTTPRequest
   private String version = null;
   private boolean parsed = false;
 
-  private SocketChannel channel;
+  private HTTPChannel channel;
   private byte[] request = new byte[0];
   
   private HashMap<String,String> headers =
@@ -44,7 +42,7 @@ public class HTTPRequest
   private long started = System.currentTimeMillis();
   
   
-  HTTPRequest(SocketChannel channel)
+  HTTPRequest(HTTPChannel channel)
   {
     this.channel = channel;
   }
@@ -88,7 +86,7 @@ public class HTTPRequest
   }
   
   
-  SocketChannel channel()
+  HTTPChannel channel()
   {
     return(channel);
   }
