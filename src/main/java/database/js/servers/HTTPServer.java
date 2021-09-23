@@ -50,7 +50,7 @@ public class HTTPServer extends Thread
     this.embedded = embedded;
     this.broker = server.broker();
     this.config = server.config();
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().http;
     this.threads = config.getTopology().threads(); 
 
     switch(type)
