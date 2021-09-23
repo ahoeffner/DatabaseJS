@@ -274,7 +274,6 @@ public class HTTPChannel
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
       
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
-      System.out.println(errm);
     }
 
     buffers.reset();

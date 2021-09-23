@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
-import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -160,9 +159,7 @@ public class HTTPServer extends Thread
                 continue;
               
               int read = buf.remaining();
-              
-              System.out.println("Read "+read);
-              
+                            
               HTTPRequest request = incomplete.remove(key);
               if (request == null) request = new HTTPRequest(hcl);
               
