@@ -44,6 +44,7 @@ public class Paths
   
   private static String findAppHome()
   {
+    boolean packed = false;
     String sep = File.separator;
     Object obj = new Object() { };
 
@@ -55,6 +56,7 @@ public class Paths
     
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
     {
+      packed = true;
       path = path.substring(5); // get rid of "file:"
       path = path.substring(0,path.indexOf("!")); // get rid of "!class"
       path = path.substring(0,path.lastIndexOf("/")); // get rid jarname
@@ -83,7 +85,9 @@ public class Paths
     File cw = new File(".");
     java.nio.file.Path abs = java.nio.file.Paths.get(path);
     java.nio.file.Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
-    path = base.relativize(abs).getParent().toString();
+    
+    if (packed) path = base.relativize(abs).toString();
+    else path = base.relativize(abs).getParent().toString();
     
     return(path);
   }

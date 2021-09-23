@@ -119,6 +119,8 @@ public class HTTPChannel
   public void write(byte[] data) throws Exception
   {
     int wrote = 0;
+    int max = HTTPBuffers.chunk;
+    
     int size = data.length;
     int bsize = buffers.plain.capacity();
     
@@ -129,6 +131,9 @@ public class HTTPChannel
       
       if (chunk > size - wrote)
         chunk = size - wrote;
+      
+      if (chunk > max)
+        chunk = max;
       
       buffers.plain.put(data,wrote,chunk);
       
@@ -263,12 +268,16 @@ public class HTTPChannel
     {
       boolean skip = false;
       String errm = e.getMessage();
-      if (errm == null) errm = "An unknown error has occured";      
+      if (errm == null) errm = "An unknown error has occured";
+      
+      if (errm.startsWith("Tag mismatch!")) skip = true;
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
+      
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
       System.out.println(errm);
     }
-    
+
+    buffers.reset();
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }
@@ -297,7 +306,6 @@ public class HTTPChannel
   private ByteBuffer enlarge(ByteBuffer buf)
   {
     ByteBuffer bufc = buf;
-    System.out.println("before "+buf.capacity());
     int size = 2 * buf.capacity();
 
     buf = ByteBuffer.allocate(size);

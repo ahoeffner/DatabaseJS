@@ -20,7 +20,8 @@ public class HTTPBuffers
   ByteBuffer encpt;
   ByteBuffer plain;
   
-  private final static int size = 1024*1024;
+  public final static int chunk = 4*1024;
+  private final static int size = 16*1024;
 
 
   public HTTPBuffers()
@@ -33,5 +34,12 @@ public class HTTPBuffers
   {
     if (encpt == null)
       this.encpt = ByteBuffer.allocate(size);
+  }
+  
+  
+  public void reset()
+  {
+    this.plain = ByteBuffer.allocate(size);
+    if (this.encpt != null) this.encpt = ByteBuffer.allocate(size);
   }
 }
