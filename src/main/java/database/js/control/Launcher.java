@@ -12,17 +12,12 @@
 
 package database.js.control;
 
-import java.net.URL;
 import java.io.File;
-import java.util.ArrayList;
-import org.json.CookieList;
-import java.net.URLClassLoader;
+import org.json.JSONTokener;
 import database.js.config.Paths;
 import database.js.config.Config;
 import database.js.config.Topology;
 import database.js.handlers.Handler;
-
-import org.json.JSONTokener;
 
 
 /**
@@ -38,19 +33,31 @@ public class Launcher implements ILauncher
 
   public static void main(String[] args) throws Exception
   {
+    ILauncher launcher;
+    
     if (args.length != 1)
       usage();
     
-    ILauncher launcher = createII();
+    /*
+    // Doesn't work with java 1.8 
+    if (testcp()) launcher = new Launcher(); 
+    else          launcher = create();
+    */
+    
+    if (!testcp())
+    {
+      Process.start(args);
+      return;
+    }
+    
+    launcher = new Launcher();
     String cmd = args[0].toLowerCase();
     
     switch(cmd)
     {
       case "start": launcher.startProcesses();  break;
-      
       default: usage();
     }
-    
   }
   
   
@@ -58,6 +65,22 @@ public class Launcher implements ILauncher
   {
     System.out.println("usage database.js start|stop|status");
     System.exit(-1);
+  }
+  
+
+  // Test json in classpath  
+  private static boolean testcp()
+  {
+    try
+    {
+      new JSONTokener("{}");
+    }
+    catch (Throwable e)
+    {
+      return(false);
+    }
+    
+    return(true);
   }
 
 
@@ -83,100 +106,30 @@ public class Launcher implements ILauncher
   private static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
+    Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
 
-    try
-    {
-      // Test json-lib
-      new CookieList();
-      launcher = new Launcher();
-    }
-    catch (Throwable e)
-    {
-      try
-      {
-        Loader loader = new Loader(ILauncher.class, Handler.class);
+    String path = Paths.libdir+File.separator+"json";
+    String classpath = (String) System.getProperties().get("java.class.path");
 
-        String path = Paths.libdir+File.separator+"json";
-        String classpath = (String) System.getProperties().get("java.class.path");
+    File dir = new File(path);
+    String[] jars = dir.list();
 
-        File dir = new File(path);
-        String[] jars = dir.list();
+    for(String jar : jars)
+      loader.load(path + File.separator + jar);
 
-        for(String jar : jars)
-          loader.load(path + File.separator + jar);
+    path = Paths.libdir+File.separator+"ipc";
+    dir = new File(path); jars = dir.list();
 
-        path = Paths.libdir+File.separator+"ipc";
-        dir = new File(path); jars = dir.list();
+    for(String jar : jars)
+      loader.load(path + File.separator + jar);
 
-        for(String jar : jars)
-          loader.load(path + File.separator + jar);
+    jars = classpath.split(psep);
 
-        jars = classpath.split(psep);
+    for(String jar : jars)
+      loader.load(jar);
 
-        for(String jar : jars)
-          loader.load(jar);
-
-        Class Launcher = loader.getClass(Launcher.class);
-        launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
-      }
-      catch (Exception le)
-      {
-        throw le;
-      }
-    }
-
-    return(launcher);
-  }
-
-
-  @SuppressWarnings("unchecked")
-  private static ILauncher createII() throws Exception
-  {
-    ILauncher launcher = null;
-
-    try
-    {
-      // Test json-lib
-      new CookieList();
-      launcher = new Launcher();
-    }
-    catch (Throwable e)
-    {
-      ArrayList<String> cp = new ArrayList<String>();
-      
-      String path = Paths.libdir+File.separator+"json";
-      String classpath = (String) System.getProperties().get("java.class.path");
-
-      File dir = new File(path);
-      String[] jars = dir.list();
-
-      for(String jar : jars)
-        cp.add(path + File.separator + jar);
-
-      path = Paths.libdir+File.separator+"ipc";
-      dir = new File(path); jars = dir.list();
-
-      for(String jar : jars)
-        cp.add(path + File.separator + jar);
-
-      jars = classpath.split(psep);
-
-      for(String jar : jars)
-        cp.add(jar);
-      
-      URL[] urls = new URL[cp.size()];
-      
-      for (int i = 0; i < cp.size(); i++)
-        urls[i] = new URL("file://"+cp.get(i));
-      
-      URLClassLoader loader = new URLClassLoader(urls);
-
-      Class Test = loader.loadClass("database.js.config.Config");
-      System.out.println("test "+Test);
-
-      Class Launcher = loader.loadClass(Launcher.class.getName());
-      launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
-    }
+    Class Launcher = loader.getClass(Launcher.class);
+    launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
 
     return(launcher);
   }

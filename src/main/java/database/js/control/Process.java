@@ -17,6 +17,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 
+import database.js.config.Paths;
+
+import java.io.File;
+
 
 public class Process
 {
@@ -24,6 +28,7 @@ public class Process
   private final String htopt;
   private final String srvopt;
   private final Logger logger;
+  private final static String psep = System.getProperty("path.separator");
   
   
   public Process(Config config, String classpath) throws Exception
@@ -36,6 +41,39 @@ public class Process
 
     String cmd = java+" -cp "+classpath;
     this.cmd = cmd;
+  }
+  
+  
+  public static void start(String[] args) throws Exception
+  {
+    String classpath = Process.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+    
+    String home = System.getProperties().getProperty("java.home");
+    String bindir = home + File.separator + "bin" + File.separator;
+
+    String exe = bindir + "java";
+    if (Config.windows()) exe += ".exe";
+    
+    String path = Paths.libdir+File.separator+"json";
+        
+    File dir = new File(path); 
+    String[] jars = dir.list();
+
+    for(String jar : jars)
+      classpath += psep + path + File.separator + jar;
+    
+    String argv = "";
+    for(String arg : args) argv += " "+arg;
+    
+    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv;
+
+    InputStream in = Runtime.getRuntime().exec(cmd).getErrorStream();
+
+    byte[] status = new byte[4094];
+    int read = in.read(status);
+    
+    if (read > 0)
+      System.out.println(new String(status,0,read));
   }
   
 

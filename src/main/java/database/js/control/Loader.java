@@ -51,7 +51,7 @@ public class Loader extends ClassLoader
   {
     Class<?> clazz = classes.get(name);
     if (clazz != null) return(clazz); 
-    return(this.getParent().loadClass(name));
+    return(getSystemClassLoader().loadClass(name));
   }
   
   
@@ -167,7 +167,7 @@ public class Loader extends ClassLoader
       return(clazz);
     }
     catch (Throwable e) 
-    {e.printStackTrace(); return(null);}
+    {return(null);}
   }
   
   
