@@ -297,6 +297,7 @@ public class HTTPChannel
   private ByteBuffer enlarge(ByteBuffer buf)
   {
     ByteBuffer bufc = buf;
+    System.out.println("before "+buf.capacity());
     int size = 2 * buf.capacity();
 
     buf = ByteBuffer.allocate(size);

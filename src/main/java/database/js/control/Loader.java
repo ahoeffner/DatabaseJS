@@ -24,7 +24,7 @@ import java.io.ByteArrayOutputStream;
 /**
  *
  * Dynamic ClassLoader that can used directly from within standard code.
- * The entrypoints (getClass(cname)) must implement an interface that is 
+ * The entrypoints (getClass(cname)) must implement an interface that is
  * skipped from the loader. Otherwise a cast will fail since the interface
  * from loader has a different signature than the code itself.
  *
@@ -40,6 +40,7 @@ public class Loader extends ClassLoader
   
   public Loader(Class... skip)
   {
+    super(null);
     for(Class skc : skip)
       this.skip.add(skc.getName());
   }
@@ -166,7 +167,7 @@ public class Loader extends ClassLoader
       return(clazz);
     }
     catch (Throwable e) 
-    {return(null);}
+    {e.printStackTrace(); return(null);}
   }
   
   
