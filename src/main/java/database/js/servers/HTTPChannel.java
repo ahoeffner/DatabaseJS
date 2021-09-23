@@ -268,11 +268,8 @@ public class HTTPChannel
     {
       boolean skip = false;
       String errm = e.getMessage();
-      if (errm == null) errm = "An unknown error has occured";
-      
-      if (errm.startsWith("Tag mismatch!")) skip = true;
+      if (errm == null) errm = "An unknown error has occured";      
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
-      
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
     }
 

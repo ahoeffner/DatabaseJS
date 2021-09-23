@@ -44,7 +44,6 @@ public class Paths
   
   private static String findAppHome()
   {
-    boolean packed = false;
     String sep = File.separator;
     Object obj = new Object() { };
 
@@ -56,7 +55,6 @@ public class Paths
     
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
     {
-      packed = true;
       path = path.substring(5); // get rid of "file:"
       path = path.substring(0,path.indexOf("!")); // get rid of "!class"
       path = path.substring(0,path.lastIndexOf("/")); // get rid jarname
@@ -71,6 +69,12 @@ public class Paths
     if (sep.equals("\\")) escape = "\\"; 
     path = path.replaceAll("/",escape+sep);
     
+    
+    File cw = new File(".");
+    java.nio.file.Path abs = java.nio.file.Paths.get(path);
+    java.nio.file.Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
+    path = base.relativize(abs).toString();    
+
     // Back until conf folder
     
     while(true)
@@ -81,13 +85,6 @@ public class Paths
       if (test.exists()) break;
       path = path.substring(0,path.lastIndexOf(File.separator));
     }
-    
-    File cw = new File(".");
-    java.nio.file.Path abs = java.nio.file.Paths.get(path);
-    java.nio.file.Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
-    
-    if (packed) path = base.relativize(abs).toString();
-    else path = base.relativize(abs).getParent().toString();
     
     return(path);
   }
