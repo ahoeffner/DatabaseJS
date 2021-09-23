@@ -272,7 +272,7 @@ public class HTTPChannel
       if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
       if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
     }
-
+    
     buffers.reset();
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
