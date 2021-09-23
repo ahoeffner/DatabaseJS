@@ -46,7 +46,7 @@ public class Process
   
   public static void start(String[] args) throws Exception
   {
-    String classpath = Process.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+    String classpath = (String) System.getProperties().get("java.class.path");
     
     String home = System.getProperties().getProperty("java.home");
     String bindir = home + File.separator + "bin" + File.separator;
@@ -66,14 +66,7 @@ public class Process
     for(String arg : args) argv += " "+arg;
     
     String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv;
-
-    InputStream in = Runtime.getRuntime().exec(cmd).getErrorStream();
-
-    byte[] status = new byte[4094];
-    int read = in.read(status);
-    
-    if (read > 0)
-      System.out.println(new String(status,0,read));
+    Runtime.getRuntime().exec(cmd);
   }
   
 

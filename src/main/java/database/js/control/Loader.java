@@ -69,6 +69,7 @@ public class Loader extends ClassLoader
   
   public void load(String jar) throws Exception
   {
+    System.out.println("load "+jar);
     ArrayList<Definition> failed = 
       new ArrayList<Definition>();
         

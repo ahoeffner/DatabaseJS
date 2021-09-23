@@ -37,7 +37,7 @@ public class Launcher implements ILauncher
     
     if (args.length != 1)
       usage();
-    
+        
     /*
     // Doesn't work with java 1.8 
     if (testcp()) launcher = new Launcher(); 
@@ -111,6 +111,7 @@ public class Launcher implements ILauncher
     String path = Paths.libdir+File.separator+"json";
     String classpath = (String) System.getProperties().get("java.class.path");
 
+    System.out.println("list "+path);
     File dir = new File(path);
     String[] jars = dir.list();
 

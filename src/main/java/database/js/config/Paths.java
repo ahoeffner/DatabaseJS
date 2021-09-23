@@ -15,6 +15,8 @@ package database.js.config;
 import java.net.URL;
 import java.io.File;
 
+import java.net.URI;
+
 
 public class Paths
 {
@@ -50,7 +52,7 @@ public class Paths
 
     URL url = obj.getClass().getResource(cname);
     String path = url.getPath();
-
+    
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
     {
       path = path.substring(5); // get rid of "file:"
@@ -77,7 +79,12 @@ public class Paths
       if (test.exists()) break;
       path = path.substring(0,path.lastIndexOf(File.separator));
     }
-
+    
+    File cw = new File(".");
+    java.nio.file.Path abs = java.nio.file.Paths.get(path);
+    java.nio.file.Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
+    path = base.relativize(abs).getParent().toString();
+    
     return(path);
   }
 }
