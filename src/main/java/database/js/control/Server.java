@@ -73,7 +73,7 @@ public class Server extends Thread implements Listener
   private void start(short id) throws Exception
   {
     HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded); ssl.start();
-    //HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
+    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
     //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.admin,embedded); admin.start();
   }
   
