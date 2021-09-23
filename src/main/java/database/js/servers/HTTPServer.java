@@ -103,11 +103,10 @@ public class HTTPServer extends Thread
       int requests = 0;
       Selector selector = Selector.open();
       
-      InetAddress ip = InetAddress.getByName("localhost");
       ServerSocketChannel server = ServerSocketChannel.open();
-      
+            
       server.configureBlocking(false);
-      server.bind(new InetSocketAddress(ip,port));
+      server.bind(new InetSocketAddress(port));
       
       server.register(selector,SelectionKey.OP_ACCEPT);
       

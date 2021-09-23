@@ -119,7 +119,7 @@ public class HTTPChannel
   public void write(byte[] data) throws Exception
   {
     int wrote = 0;
-    int max = HTTPBuffers.chunk;
+    int max = HTTPBuffers.wmax;
     
     int size = data.length;
     int bsize = buffers.plain.capacity();
@@ -291,15 +291,19 @@ public class HTTPChannel
       case CLOSED : return(false);
     }
     
-    enlarge();
-    return(true);
+    return(enlarge());
   }
   
   
-  private void enlarge()
+  private boolean enlarge()
   {
+    if (buffers.plain.capacity() >= HTTPBuffers.smax)
+      return(false);
+    
     buffers.plain = enlarge(buffers.plain);
     buffers.encpt = enlarge(buffers.encpt);
+    
+    return(true);
   }
   
   

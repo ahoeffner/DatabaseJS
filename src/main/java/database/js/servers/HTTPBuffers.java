@@ -20,8 +20,9 @@ public class HTTPBuffers
   ByteBuffer encpt;
   ByteBuffer plain;
   
-  public final static int chunk = 4*1024;
-  private final static int size = 16*1024;
+  public final static int wmax = 4*1024;
+  public final static int size = 16*1024;
+  public final static int smax = 1024*1024;
 
 
   public HTTPBuffers()
