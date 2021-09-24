@@ -46,7 +46,7 @@ public class Launcher implements ILauncher
  
       if (launcher == null)
       {
-        Process.start(args);
+        start(args);
         return;
       }
     }
@@ -69,6 +69,23 @@ public class Launcher implements ILauncher
     System.out.println("usage database.js start|stop|status");
     System.exit(-1);
   }
+
+
+  public void startProcesses() throws Exception
+  {
+    Config config = new Config();    
+    config.getLogger().openControlLog();
+    Process process = new Process(config);
+    Topology topology = config.getTopology();
+    
+    if (topology.type() == Topology.Type.Micro)
+    {
+      process.start(Process.Type.http,0);
+
+      if (topology.hotstandby())
+        process.start(Process.Type.http,1);
+    }
+  }
   
 
   // Test json in classpath  
@@ -84,24 +101,6 @@ public class Launcher implements ILauncher
     }
     
     return(true);
-  }
-
-
-  public void startProcesses() throws Exception
-  {
-    String cp = classpath();
-    Config config = new Config();    
-    config.getLogger().openControlLog();
-    Process process = new Process(config,cp);
-    Topology topology = config.getTopology();
-    
-    if (topology.type() == Topology.Type.Micro)
-    {
-      process.start(Process.Type.http,0);
-
-      if (topology.hotstandby())
-        process.start(Process.Type.http,1);
-    }
   }
 
 
@@ -137,8 +136,6 @@ public class Launcher implements ILauncher
 
       Class Launcher = loader.getClass(Launcher.class);
       launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
-      
-      System.out.println("Loader worked");
 
       return(launcher);
     }
@@ -147,30 +144,30 @@ public class Launcher implements ILauncher
       return(null);
     }    
   }
-  
-  
-  public static String classpath() throws Exception
-  {
-    return(classpath(Paths.libdir).substring(1));
-  }
-  
-  
-  private static String classpath(String libdir) throws Exception
-  {
-    String cpath = "";
-    File dir = new File(libdir);
-    String[] content = dir.list();
-    
-    for(String c : content)
-    {
-      String fp = libdir+File.separator+c;
 
-      File f = new File(fp);
-      
-      if (f.isFile()) cpath += psep + fp;
-      else            cpath += classpath(fp);
-    }
-    
-    return(cpath);
+
+  public static void start(String[] args) throws Exception
+  {
+    String classpath = (String) System.getProperties().get("java.class.path");
+
+    String home = System.getProperties().getProperty("java.home");
+    String bindir = home + File.separator + "bin" + File.separator;
+
+    String exe = bindir + "java";
+    if (Config.windows()) exe += ".exe";
+
+    String path = Paths.libdir+File.separator+"json";
+
+    File dir = new File(path);
+    String[] jars = dir.list();
+
+    for(String jar : jars)
+      classpath += psep + path + File.separator + jar;
+
+    String argv = "";
+    for(String arg : args) argv += " "+arg;
+
+    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv;
+    Runtime.getRuntime().exec(cmd);
   }
 }

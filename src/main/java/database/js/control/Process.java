@@ -12,91 +12,84 @@
 
 package database.js.control;
 
-import java.io.InputStream;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import database.js.config.Config;
-
 import database.js.config.Paths;
-
-import java.io.File;
+import database.js.config.Config;
 
 
 public class Process
 {
-  private final String cmd;
+  private final String java;
   private final String htopt;
   private final String srvopt;
   private final Logger logger;
   private final static String psep = System.getProperty("path.separator");
-  
-  
-  public Process(Config config, String classpath) throws Exception
+
+
+  public Process(Config config) throws Exception
   {
+    java = config.getJava().exe();
     logger = config.getLogger().control;
-    String java = config.getJava().exe();
-    
+
     this.htopt = config.getJava().getHttpOptions();
     this.srvopt = config.getJava().getServerOptions();
+  }
 
-    String cmd = java+" -cp "+classpath;
-    this.cmd = cmd;
+
+  public void start(Type type, int inst)
+  {
+    String options = null;
+
+    if (type == Type.http) options = htopt;
+    else                   options = srvopt;
+
+    String classpath = classpath(type != Type.http);
+
+    String cmd = this.java + "-cp " + classpath + " " + options + " database.js.control.Server " + inst;
+    logger.info(cmd);
+
+    try
+    {
+      java.lang.Process p = Runtime.getRuntime().exec(cmd);
+      String status = p.isAlive() ? "started" : "failed";
+      logger.info("instance["+inst+"] "+status);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,null,e);
+    }
+  }
+
+
+  private String classpath(boolean jdbc)
+  {
+    String classpath = "";
+    
+    classpath += classpath("ipc");
+    classpath += classpath("json");
+    if (jdbc) classpath += classpath("json");
+    
+    return(classpath.substring(1));
   }
   
   
-  public static void start(String[] args) throws Exception
+  private String classpath(String sub)
   {
-    String classpath = (String) System.getProperties().get("java.class.path");
-    
-    String home = System.getProperties().getProperty("java.home");
-    String bindir = home + File.separator + "bin" + File.separator;
+    String classpath = "";
+    String path = Paths.libdir+File.separator+sub;
 
-    String exe = bindir + "java";
-    if (Config.windows()) exe += ".exe";
-    
-    String path = Paths.libdir+File.separator+"json";
-        
-    File dir = new File(path); 
+    File dir = new File(path);
     String[] jars = dir.list();
 
     for(String jar : jars)
       classpath += psep + path + File.separator + jar;
     
-    String argv = "";
-    for(String arg : args) argv += " "+arg;
-    
-    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv;
-    Runtime.getRuntime().exec(cmd);
+    return(classpath);
   }
-  
 
-  public void start(Type type, int inst)
-  {
-    String options = null;
-    
-    if (type == Type.http) options = htopt;
-    else                   options = srvopt;
 
-    String cmd = this.cmd + " " + options + " database.js.control.Server " + inst;
-
-    try
-    {
-      byte[] status = new byte[4094];
-      logger.info("Starting instance["+inst+"]");
-      
-      InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();
-      int read = in.read(status);
-      
-      if (read > 0) logger.info("Instance["+inst+"]: "+new String(status,0,read)); 
-      in.close();
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,null,e);
-    } 
-  }
-  
-  
   public static enum Type
   {
     http,

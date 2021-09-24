@@ -39,8 +39,6 @@ public class Server extends Thread implements Listener
     {
       short id = Short.parseShort(args[0]);
       Server server = new Server(id); server.start(id);
-      
-      System.out.println("server started");
     }
     catch (Exception e)
     {

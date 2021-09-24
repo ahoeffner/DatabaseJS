@@ -61,8 +61,6 @@ public class HTTPServer extends Thread
       default: port = -1; ssl = false; admin = false;
     }
 
-    System.out.println(type+" "+port);
-
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
