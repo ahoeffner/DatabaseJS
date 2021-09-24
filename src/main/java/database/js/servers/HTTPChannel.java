@@ -65,7 +65,6 @@ public class HTTPChannel
   
   public ByteBuffer read() throws Exception
   {
-    buffers.myAppData.clear();
     if (ssl) return(readssl());
     else     return(readplain());
   }
@@ -73,8 +72,11 @@ public class HTTPChannel
   
   private ByteBuffer readplain() throws Exception
   {
+    buffers.myAppData.clear();
+
     int read = channel.read(buffers.myAppData);    
     if (read <= 0) return(null);
+
     buffers.myAppData.flip();
     return(buffers.myAppData);
   }
@@ -82,29 +84,29 @@ public class HTTPChannel
   
   private ByteBuffer readssl() throws Exception
   {
-    buffers.peerNetData.clear();
+    buffers.myNetData.clear();
     
-    int read = channel.read(buffers.peerNetData);
+    int read = channel.read(buffers.myNetData);
     if (read < 0) return(null);
     
-    buffers.peerNetData.flip();
-    while(buffers.peerNetData.hasRemaining())
+    buffers.myNetData.flip();
+    while(buffers.myNetData.hasRemaining())
     {
-      buffers.peerAppData.clear();
-      SSLEngineResult result = engine.unwrap(buffers.peerNetData,buffers.peerAppData);
+      buffers.myAppData.clear();
+      SSLEngineResult result = engine.unwrap(buffers.myNetData,buffers.myAppData);
       
       switch(result.getStatus())
       {
         case OK:
-          buffers.peerAppData.flip();
+          buffers.myAppData.flip();
           break;
         
         case BUFFER_OVERFLOW:
-          buffers.peerAppData = enlarge(buffers.peerAppData);
+          buffers.myAppData = enlarge(buffers.myAppData);
           break;
         
         case BUFFER_UNDERFLOW:
-          buffers.peerNetData = enlarge(buffers.peerNetData);
+          buffers.myNetData = enlarge(buffers.myNetData);
           break;
         
         case CLOSED:
@@ -112,7 +114,7 @@ public class HTTPChannel
       }
     }
     
-    return(buffers.peerAppData);
+    return(buffers.myAppData);
   }
   
   
@@ -203,8 +205,7 @@ public class HTTPChannel
     SSLEngineResult result = null;
     HandshakeStatus status = null;
     
-    buffers.myNetData.clear();
-    buffers.peerNetData.clear();
+    buffers.clear();
     
     try
     {
@@ -222,11 +223,16 @@ public class HTTPChannel
             
             if (read < 0)
             {
-              System.out.println("READ "+read);
               if (engine.isInboundDone() && engine.isOutboundDone())
-                return(true);
+              {
+                buffers.reset();
+                return(true);                
+              }
               
-              close();
+              try {engine.closeInbound();}
+              catch (Exception e) {;}
+
+              engine.closeOutbound();
               break;
             }
 
@@ -240,6 +246,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
+              buffers.reset();
               engine.closeOutbound();
               return(false);
             }
@@ -281,6 +288,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
+              buffers.reset();
               engine.closeOutbound();
               return(false);
             }
@@ -354,9 +362,7 @@ public class HTTPChannel
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
     
-    System.out.println("DONE");
-    
-    //buffers.reset();
+    buffers.reset();
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }
@@ -369,33 +375,22 @@ public class HTTPChannel
     if (errm == null) errm = "An unknown error has occured";      
     if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
     if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
-    System.out.println(errm);
   }
   
   
-  private ByteBuffer enlarge(ByteBuffer buf)
+  private ByteBuffer enlarge(ByteBuffer buf) throws Exception
   {
     ByteBuffer bufc = buf;
     int size = 2 * buf.capacity();
 
-    System.out.println("enlarge "+size);
+    if (size > HTTPBuffers.smax)
+      throw new Exception("SSL keeps allocating memory, "+size);
+    
     buf = ByteBuffer.allocate(size);
     
     bufc.flip();
     buf.put(bufc);
     
     return(buf);
-  }
-  
-  
-  private boolean close()
-  {
-    try {engine.closeInbound();}
-    catch (Exception e) {;}
-
-    try {engine.closeOutbound();}
-    catch (Exception e) {;}
-
-    return(false);
   }
 }
