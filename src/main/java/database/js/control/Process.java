@@ -46,8 +46,7 @@ public class Process
     else                   options = srvopt;
 
     String classpath = classpath(type != Type.http);
-
-    String cmd = this.java + "-cp " + classpath + " " + options + " database.js.control.Server " + inst;
+    String cmd = this.java + " -cp " + classpath + " " + options + " database.js.control.Server " + inst;
     logger.info(cmd);
 
     try
@@ -66,12 +65,22 @@ public class Process
   private String classpath(boolean jdbc)
   {
     String classpath = "";
+    String path = Paths.libdir;
+
+    File dir = new File(path);
+    String[] jars = dir.list();
+    
+    for(String jar : jars)
+    {
+      if (jar.startsWith("database.js"))
+        classpath = path + File.separator + jar;
+    }
     
     classpath += classpath("ipc");
     classpath += classpath("json");
     if (jdbc) classpath += classpath("json");
     
-    return(classpath.substring(1));
+    return(classpath);
   }
   
   

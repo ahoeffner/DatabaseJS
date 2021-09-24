@@ -51,7 +51,11 @@ public class Server extends Thread implements Listener
   {
     this.config = new Config();
     this.setName("Server Main");
+
+    config.getLogger().open(id);
     this.logger = config.getLogger().logger;
+    
+    logger.info("Preparing instance");
 
     int http = 1;
     if (config.getTopology().hotstandby()) http++;
@@ -59,9 +63,9 @@ public class Server extends Thread implements Listener
     if (id < http) type = Type.http;
     else           type = Type.rest;
 
-    Broker.logger(logger);
-    config.getLogger().open(id);
+    Broker.logger(logger);    
     boolean master = type == Type.http;
+    
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
 
@@ -71,6 +75,7 @@ public class Server extends Thread implements Listener
   
   private void start(short id) throws Exception
   {
+    logger.info("Starting HTTP Servers");
     HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded); ssl.start();
     HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
     //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.admin,embedded); admin.start();
