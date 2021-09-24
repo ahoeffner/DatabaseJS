@@ -33,11 +33,11 @@ public class Loader extends ClassLoader
 {
   private final HashSet<String> skip =
     new HashSet<String>();
-  
+
   private final HashMap<String,Class<?>> classes =
     new HashMap<String,Class<?>>();
-  
-  
+
+
   public Loader(Class... skip)
   {
     super(null);
@@ -50,68 +50,67 @@ public class Loader extends ClassLoader
   protected Class<?> findClass(String name) throws ClassNotFoundException
   {
     Class<?> clazz = classes.get(name);
-    if (clazz != null) return(clazz); 
+    if (clazz != null) return(clazz);
     return(getSystemClassLoader().loadClass(name));
   }
-  
-  
+
+
   public Class<?> getClass(Class clazz) throws Exception
   {
     return(findClass(clazz.getName().replace('.','/')));
   }
-  
-  
+
+
   public void addClass(Class clazz) throws Exception
   {
     load(clazz);
   }
-  
-  
+
+
   public void load(String jar) throws Exception
   {
-    System.out.println("load "+jar);
-    ArrayList<Definition> failed = 
+    ArrayList<Definition> failed =
       new ArrayList<Definition>();
-        
+
     JarFile jarfile = new JarFile(jar);
     Enumeration<JarEntry> flist = jarfile.entries();
-    
+
     while (flist.hasMoreElements())
     {
       JarEntry entry = flist.nextElement();
-      
+
       if (entry.getName().endsWith(".class"))
       {
         String name = entry.getName();
         name = name.substring(0,name.length()-6);
-        
+
         String qname = name.replace('/','.');
-        
+
         if (skip.contains(qname))
           continue;
-        
+
         InputStream in = jarfile.getInputStream(entry);
         byte[] bcode = new byte[(int) entry.getSize()];
-        
+
         in.read(bcode);
         in.close();
 
         Definition cdef = new Definition(name,qname,bcode);
 
         Class<?> clazz = trydefine(cdef);
-        
+
         if (clazz == null) failed.add(cdef);
-        else               classes.put(name,clazz);            
+        else               classes.put(name,clazz);
       }
     }
-    
+
     for (int i = 0; i < 16 && failed.size() > 0; i++)
     {
       for (int j = 0; j < failed.size(); j++)
       {
         Definition cdef = failed.get(j);
         Class<?> clazz = trydefine(cdef);
-        
+
         if (clazz != null)
         {
           failed.remove(j--);
@@ -119,47 +118,47 @@ public class Loader extends ClassLoader
         }
       }
     }
-    
+
     if (failed.size() > 0)
     {
-      for(Definition cdef : failed) 
-        System.out.println("Unable to load "+cdef.name);      
-      
+      for(Definition cdef : failed)
+        System.out.println("Unable to load "+cdef.name);
+
       throw new Exception("Loading of "+jar+" failed");
     }
   }
-  
-  
+
+
   private void load(Class local) throws Exception
   {
     String name = local.getName().replace('.','/');
-    
+
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     InputStream in = local.getResourceAsStream("/"+name+".class");
-    
+
     int read = 0;
     byte[] buf = new byte[4096];
-    
+
     while(read >= 0)
     {
       if (read > 0) out.write(buf,0,read);
       read = in.read(buf);
     }
 
-    in.close();        
+    in.close();
     byte[] bcode = out.toByteArray();
-    
+
     Definition cdef = new Definition(name,local.getName(),bcode);
-    
+
     Class<?> clazz = trydefine(cdef);
-    
+
     if (clazz == null)
       throw new Exception("Unable to add "+local.getName()+" definition to Loader");
-    
-    classes.put(name,clazz);            
+
+    classes.put(name,clazz);
   }
-  
-  
+
+
   private Class<?> trydefine(Definition cdef)
   {
     try
@@ -167,22 +166,22 @@ public class Loader extends ClassLoader
       Class<?> clazz = this.defineClass(cdef.qname,cdef.bcode,0,cdef.bcode.length);;
       return(clazz);
     }
-    catch (Throwable e) 
+    catch (Throwable e)
     {return(null);}
   }
-  
-  
+
+
   private static class Definition
   {
     private final String name;
     private final String qname;
     private final byte[] bcode;
-    
+
     Definition(String name, String qname, byte[] bcode)
     {
       this.name = name;
       this.qname = qname;
       this.bcode = bcode;
     }
-  }  
+  }
 }

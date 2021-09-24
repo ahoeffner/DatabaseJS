@@ -42,8 +42,8 @@ public class HTTPServer extends Thread
   private final boolean embedded;
   private final boolean redirect;
   private final ThreadPool workers;
-  
-  
+
+
   public HTTPServer(Server server, Type type, boolean embedded) throws Exception
   {
     this.redirect = false;
@@ -51,7 +51,7 @@ public class HTTPServer extends Thread
     this.broker = server.broker();
     this.config = server.config();
     this.logger = config.getLogger().http;
-    this.threads = config.getTopology().threads(); 
+    this.threads = config.getTopology().threads();
 
     switch(type)
     {
@@ -60,40 +60,40 @@ public class HTTPServer extends Thread
       case admin  : this.port = config.getHTTP().admin(); ssl = true;  admin = true;  break;
       default: port = -1; ssl = false; admin = false;
     }
-    
+
     System.out.println(type+" "+port);
-    
+
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
   }
-  
-  
+
+
   public Config config()
   {
     return(config);
   }
-  
-  
+
+
   public Broker broker()
   {
     return(broker);
   }
-  
-  
+
+
   public boolean embedded()
   {
     return(embedded);
   }
-  
-  
+
+
   public void run()
   {
-    if (port <= 0) 
+    if (port <= 0)
       return;
-    
+
     HTTPBuffers buffers = new HTTPBuffers();
-    
+
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
 
@@ -101,35 +101,35 @@ public class HTTPServer extends Thread
     {
       int requests = 0;
       Selector selector = Selector.open();
-      
+
       ServerSocketChannel server = ServerSocketChannel.open();
-            
+
       server.configureBlocking(false);
       server.bind(new InetSocketAddress(port));
-      
+
       server.register(selector,SelectionKey.OP_ACCEPT);
-      
+
       while(true)
       {
         if (selector.select() <= 0)
-          continue;         
-        
+          continue;
+
         Set<SelectionKey> selected = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selected.iterator();
-        
+
         if (++requests % 64 == 0 && incomplete.size() > 0)
           cleanout(incomplete);
-        
+
         while(iterator.hasNext())
         {
           SelectionKey key = iterator.next();
           iterator.remove();
-          
+
           if (key.isAcceptable())
           {
             SocketChannel sac = server.accept();
             sac.configureBlocking(false);
-            
+
             HTTPChannel hcl = new HTTPChannel(config,buffers,sac,ssl,admin);
             boolean accept = hcl.accept();
 
@@ -139,31 +139,31 @@ public class HTTPServer extends Thread
               logger.fine("Connection Accepted: "+sac.getLocalAddress());
             }
           }
-          
+
           else if (key.isReadable())
           {
             try
             {
               HTTPChannel hcl = (HTTPChannel) key.attachment();
               SocketChannel req = (SocketChannel) key.channel();
-              
+
               ByteBuffer buf = hcl.read();
-                            
+
               if (buf == null)
               {
                 req.close();
                 continue;
               }
-              
-              if (buf.remaining() == 0) 
+
+              if (buf.remaining() == 0)
                 continue;
-              
+
               int read = buf.remaining();
-                            
+
               HTTPRequest request = incomplete.remove(key);
               if (request == null) request = new HTTPRequest(hcl);
-              
-              if (!request.add(buf.array(),read)) 
+
+              if (!request.add(buf.array(),read))
               {
                 incomplete.put(key,request);
                 continue;
@@ -186,19 +186,19 @@ public class HTTPServer extends Thread
 
     logger.info("HTTPServer stopped");
   }
-  
-  
+
+
   private void cleanout(HashMap<SelectionKey,HTTPRequest> incomplete)
   {
     ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
-    
+
     for(Map.Entry<SelectionKey,HTTPRequest> entry : incomplete.entrySet())
       if (entry.getValue().cancelled()) cancelled.add(entry.getKey());
-    
-    for(SelectionKey key : cancelled) 
+
+    for(SelectionKey key : cancelled)
     {
       incomplete.remove(key);
-      
+
       try
       {
         ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -211,22 +211,22 @@ public class HTTPServer extends Thread
       catch (Exception e) {;}
     }
   }
-  
-  
+
+
   private String EOL = "\r\n";
-  
+
   private byte[] err400()
   {
     String msg = "<b>Bad Request</b>";
-    
+
     String page = "HTTP/1.1 200 Bad Request" + EOL +
                   "Content-Type: text/html" + EOL +
                   "Content-Length: "+msg.length() + EOL + EOL + msg;
-    
+
     return(page.getBytes());
   }
-  
-  
+
+
   public static enum Type
   {
     ssl,

@@ -18,12 +18,12 @@ import java.nio.ByteBuffer;
 public class HTTPBuffers
 {
   boolean ssl = false;
-  
+
   ByteBuffer myNetData;
   ByteBuffer myAppData;
   ByteBuffer peerNetData;
   ByteBuffer peerAppData;
-  
+
   public final static int wmax = 4*1024;
   public final static int size = 16*1024;
   public final static int smax = 5*1024*1024;
@@ -33,8 +33,8 @@ public class HTTPBuffers
   {
     this.myAppData = ByteBuffer.allocate(size);
   }
-  
-  
+
+
   public void usessl()
   {
     this.ssl = true;
@@ -42,8 +42,8 @@ public class HTTPBuffers
     this.peerAppData = ByteBuffer.allocate(size);
     this.peerNetData = ByteBuffer.allocate(size);
   }
-  
-  
+
+
   public void reset()
   {
     this.peerAppData = null;
@@ -51,8 +51,8 @@ public class HTTPBuffers
     this.myAppData = ByteBuffer.allocate(size);
     this.myNetData = ByteBuffer.allocate(size);
   }
-  
-  
+
+
   public void clear()
   {
     this.myAppData = ByteBuffer.allocate(size);

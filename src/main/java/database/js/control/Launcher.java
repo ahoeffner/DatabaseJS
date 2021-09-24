@@ -23,6 +23,8 @@ import database.js.handlers.Handler;
 /**
  *
  * In case there are no json-lib in classpath, the launcher will dynamically load it.
+ * If the loader fails (java 1.8) it starts a new process with appropiate classpath.
+ * 
  * It then reads the topologi and starts the servers as per config.
  *
  */
@@ -33,24 +35,25 @@ public class Launcher implements ILauncher
 
   public static void main(String[] args) throws Exception
   {
-    ILauncher launcher;
+    ILauncher launcher = null;
     
     if (args.length != 1)
       usage();
-        
-    /*
-    // Doesn't work with java 1.8 
-    if (testcp()) launcher = new Launcher(); 
-    else          launcher = create();
-    */
-    
+            
     if (!testcp())
     {
-      Process.start(args);
-      return;
+      launcher = create();
+ 
+      if (launcher == null)
+      {
+        Process.start(args);
+        return;
+      }
     }
     
-    launcher = new Launcher();
+    if (launcher == null)
+      launcher = new Launcher();
+    
     String cmd = args[0].toLowerCase();
     
     switch(cmd)
@@ -106,33 +109,43 @@ public class Launcher implements ILauncher
   private static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
-    Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
+    
+    try
+    {
+      // Doesn't work with java 1.8
+      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
 
-    String path = Paths.libdir+File.separator+"json";
-    String classpath = (String) System.getProperties().get("java.class.path");
+      String path = Paths.libdir+File.separator+"json";
+      String classpath = (String) System.getProperties().get("java.class.path");
 
-    System.out.println("list "+path);
-    File dir = new File(path);
-    String[] jars = dir.list();
+      File dir = new File(path);
+      String[] jars = dir.list();
 
-    for(String jar : jars)
-      loader.load(path + File.separator + jar);
+      for(String jar : jars)
+        loader.load(path + File.separator + jar);
 
-    path = Paths.libdir+File.separator+"ipc";
-    dir = new File(path); jars = dir.list();
+      path = Paths.libdir+File.separator+"ipc";
+      dir = new File(path); jars = dir.list();
 
-    for(String jar : jars)
-      loader.load(path + File.separator + jar);
+      for(String jar : jars)
+        loader.load(path + File.separator + jar);
 
-    jars = classpath.split(psep);
+      jars = classpath.split(psep);
 
-    for(String jar : jars)
-      loader.load(jar);
+      for(String jar : jars)
+        loader.load(jar);
 
-    Class Launcher = loader.getClass(Launcher.class);
-    launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
+      Class Launcher = loader.getClass(Launcher.class);
+      launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
+      
+      System.out.println("Loader worked");
 
-    return(launcher);
+      return(launcher);
+    }
+    catch (Exception e)
+    {
+      return(null);
+    }    
   }
   
   

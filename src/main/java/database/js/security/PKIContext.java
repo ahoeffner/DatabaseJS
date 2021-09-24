@@ -32,8 +32,8 @@ public class PKIContext
   private KeyManager[] kmgrs;
   private TrustManager[] tmgrs;
   private X509Certificate[] chain;
-  
-  
+
+
   public PKIContext(Keystore identity, Keystore trust) throws Exception
   {
     this.setTrustStore(trust);
