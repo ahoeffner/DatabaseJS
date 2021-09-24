@@ -65,7 +65,7 @@ public class HTTPChannel
   
   public ByteBuffer read() throws Exception
   {
-    buffers.plain.clear();
+    buffers.myAppData.clear();
     if (ssl) return(readssl());
     else     return(readplain());
   }
@@ -73,38 +73,38 @@ public class HTTPChannel
   
   private ByteBuffer readplain() throws Exception
   {
-    int read = channel.read(buffers.plain);    
+    int read = channel.read(buffers.myAppData);    
     if (read <= 0) return(null);
-    buffers.plain.flip();
-    return(buffers.plain);
+    buffers.myAppData.flip();
+    return(buffers.myAppData);
   }
   
   
   private ByteBuffer readssl() throws Exception
   {
-    buffers.plain.clear();
-    buffers.encpt.clear();
+    buffers.peerNetData.clear();
     
-    int read = channel.read(buffers.encpt);
+    int read = channel.read(buffers.peerNetData);
     if (read < 0) return(null);
     
-    buffers.encpt.flip();
-    while(buffers.encpt.hasRemaining())
+    buffers.peerNetData.flip();
+    while(buffers.peerNetData.hasRemaining())
     {
-      SSLEngineResult result = engine.unwrap(buffers.encpt,buffers.plain);
+      buffers.peerAppData.clear();
+      SSLEngineResult result = engine.unwrap(buffers.peerNetData,buffers.peerAppData);
       
       switch(result.getStatus())
       {
         case OK:
-          buffers.plain.flip();
+          buffers.peerAppData.flip();
           break;
         
         case BUFFER_OVERFLOW:
-          buffers.plain = enlarge(buffers.plain);
+          buffers.peerAppData = enlarge(buffers.peerAppData);
           break;
         
         case BUFFER_UNDERFLOW:
-          buffers.plain = enlarge(buffers.plain);
+          buffers.peerNetData = enlarge(buffers.peerNetData);
           break;
         
         case CLOSED:
@@ -112,7 +112,7 @@ public class HTTPChannel
       }
     }
     
-    return(buffers.plain);
+    return(buffers.peerAppData);
   }
   
   
@@ -122,12 +122,12 @@ public class HTTPChannel
     int max = HTTPBuffers.wmax;
     
     int size = data.length;
-    int bsize = buffers.plain.capacity();
+    int bsize = buffers.myAppData.capacity();
     
     while(wrote < size)
     {
       int chunk = bsize;
-      buffers.plain.clear();
+      buffers.myAppData.clear();
       
       if (chunk > size - wrote)
         chunk = size - wrote;
@@ -135,9 +135,9 @@ public class HTTPChannel
       if (chunk > max)
         chunk = max;
       
-      buffers.plain.put(data,wrote,chunk);
+      buffers.myAppData.put(data,wrote,chunk);
       
-      buffers.plain.flip();
+      buffers.myAppData.flip();
 
       if (ssl) writessl();
       else     writeplain();
@@ -149,35 +149,34 @@ public class HTTPChannel
   
   private void writeplain() throws Exception
   {
-    while(buffers.plain.hasRemaining())
-      channel.write(buffers.plain);
+    while(buffers.myAppData.hasRemaining())
+      channel.write(buffers.myAppData);
   }
   
   
   private void writessl() throws Exception
   {
-    while(buffers.plain.hasRemaining())
+    while(buffers.myAppData.hasRemaining())
     {
-      buffers.encpt.clear();
-      SSLEngineResult result = engine.wrap(buffers.plain,buffers.encpt);
+      buffers.myNetData.clear();
+      SSLEngineResult result = engine.wrap(buffers.myAppData,buffers.myNetData);
       
       switch(result.getStatus())
       {
         case OK:
-          buffers.encpt.flip();
+          buffers.myNetData.flip();
           
-          while(buffers.encpt.hasRemaining())
-            channel.write(buffers.encpt);
+          while(buffers.myNetData.hasRemaining())
+            channel.write(buffers.myNetData);
           
           break;
         
         case BUFFER_OVERFLOW:
-          buffers.encpt = enlarge(buffers.encpt);
+          buffers.myNetData = enlarge(buffers.myNetData);
           break;
         
         case BUFFER_UNDERFLOW:
-          buffers.encpt = enlarge(buffers.encpt);
-          break;
+          throw new IllegalStateException("Unexpected behaivior");    
       }
     }
   }
@@ -204,8 +203,8 @@ public class HTTPChannel
     SSLEngineResult result = null;
     HandshakeStatus status = null;
     
-    buffers.plain.clear();
-    buffers.encpt.clear();
+    buffers.myNetData.clear();
+    buffers.peerNetData.clear();
     
     try
     {
@@ -214,37 +213,119 @@ public class HTTPChannel
       while(cont)
       {
         status = engine.getHandshakeStatus();
+        System.out.println(status);
         
         switch(status)
         {
           case NEED_UNWRAP:
-            read = channel.read(buffers.encpt);
-            if (read < 0) return(close());
-
-            buffers.encpt.flip();
-            result = engine.unwrap(buffers.encpt,buffers.plain);
-                        
-            if (result.getStatus() == SSLEngineResult.Status.OK)
-              buffers.encpt.compact();
+            read = channel.read(buffers.peerNetData);
             
-            if (!handle(result)) return(close());
+            if (read < 0)
+            {
+              System.out.println("READ "+read);
+              if (engine.isInboundDone() && engine.isOutboundDone())
+                return(true);
+              
+              close();
+              break;
+            }
+
+            buffers.peerNetData.flip();
+            
+            try
+            {
+              result = engine.unwrap(buffers.peerNetData,buffers.peerAppData);
+              buffers.peerNetData.compact();
+            }
+            catch (Exception e)
+            {
+              handle(e);
+              engine.closeOutbound();
+              return(false);
+            }
+            
+            switch(result.getStatus())
+            {
+              case OK:
+                break;
+              
+              case BUFFER_OVERFLOW:
+                buffers.peerAppData = enlarge(buffers.peerAppData);
+                break;
+
+              case BUFFER_UNDERFLOW:
+                buffers.peerNetData = enlarge(buffers.peerNetData);
+                break;
+              
+              case CLOSED:
+                System.out.println("UNWRAP DONE "+engine.isOutboundDone());
+                
+                if (engine.isOutboundDone())
+                  engine.closeOutbound();
+                
+                break;
+              
+              default:
+                throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
+            }
+
             break;
           
           case NEED_WRAP:
-            buffers.plain.flip();
-            buffers.encpt.clear();
+            buffers.myNetData.clear();
             
-            result = engine.wrap(buffers.plain,buffers.encpt);
-
-            if (result.getStatus() == SSLEngineResult.Status.OK)
+            try
             {
-              buffers.encpt.flip();
+              result = engine.wrap(buffers.myAppData,buffers.myNetData);
+            }
+            catch (Exception e)
+            {
+              handle(e);
+              engine.closeOutbound();
+              return(false);
+            }
+            
+            switch(result.getStatus())
+            {
+              case OK:
+                buffers.myNetData.flip();
+                
+                while(buffers.myNetData.hasRemaining())
+                  channel.write(buffers.myNetData);
+                
+                break;
               
-              while(buffers.encpt.hasRemaining())
-                channel.write(buffers.encpt);
+              case BUFFER_OVERFLOW:
+                buffers.myNetData = enlarge(buffers.myNetData);
+                break;
+              
+              case BUFFER_UNDERFLOW:
+                throw new IllegalStateException("Unexpected behaivior");    
+              
+              case CLOSED:
+                try
+                {
+                  buffers.myNetData.flip();
+                  
+                  while(buffers.myNetData.hasRemaining())
+                    channel.write(buffers.myNetData);
+                  
+                  buffers.myNetData.clear();                  
+                  System.out.println("WRAP DONE");
+                  
+                  break;
+                }
+                catch (Exception e)
+                {
+                  logger.warning("Failed to send server's CLOSE message");
+                }
+                
+                break;
+              
+              default:
+                throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
             }
 
-            if (!handle(result)) return(close());            
             break;
           
           case NEED_TASK:
@@ -257,49 +338,38 @@ public class HTTPChannel
             }
 
             break;
-          
-          default:
+
+          case FINISHED:
+          case NOT_HANDSHAKING:
             cont = false;
-            break;
+            break;          
+
+          default:
+            throw new IllegalStateException("Invalid SSL status: "+status);
         }
       }
     }
     catch (Exception e)
     {
-      boolean skip = false;
-      String errm = e.getMessage();
-      if (errm == null) errm = "An unknown error has occured";      
-      if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
-      if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
-
-    buffers.reset();
+    
+    System.out.println("DONE");
+    
+    //buffers.reset();
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }
   
   
-  private boolean handle(SSLEngineResult result)
+  private void handle(Exception e)
   {
-    switch (result.getStatus())
-    {
-      case OK: return(true);
-      case CLOSED : return(false);
-    }
-    
-    return(enlarge());
-  }
-  
-  
-  private boolean enlarge()
-  {
-    if (buffers.plain.capacity() >= HTTPBuffers.smax)
-      return(false);
-    
-    buffers.plain = enlarge(buffers.plain);
-    buffers.encpt = enlarge(buffers.encpt);
-    
-    return(true);
+    boolean skip = false;
+    String errm = e.getMessage();
+    if (errm == null) errm = "An unknown error has occured";      
+    if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
+    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
+    System.out.println(errm);
   }
   
   
@@ -308,6 +378,7 @@ public class HTTPChannel
     ByteBuffer bufc = buf;
     int size = 2 * buf.capacity();
 
+    System.out.println("enlarge "+size);
     buf = ByteBuffer.allocate(size);
     
     bufc.flip();

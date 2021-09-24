@@ -62,7 +62,7 @@ public class Server extends Thread implements Listener
     else           type = Type.rest;
 
     Broker.logger(logger);
-    config.getLogger().open(id);
+    //config.getLogger().open(id);
     boolean master = type == Type.http;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
