@@ -214,7 +214,6 @@ public class HTTPChannel
       while(cont)
       {
         status = engine.getHandshakeStatus();
-        System.out.println(status);
         
         switch(status)
         {
