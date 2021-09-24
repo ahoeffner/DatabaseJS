@@ -26,29 +26,34 @@ import static database.js.config.Config.*;
 
 public class Server extends Thread implements Listener
 {
+  private final short id;
   private final Broker broker;
   private final Logger logger;
   private final Config config;
   private final Config.Type type;
   private final boolean embedded;
   
+  private final HTTPServer ssl;
+  private final HTTPServer plain;
+  private final HTTPServer admin;
+  
   
   public static void main(String[] args)
   {
     try
     {
-      short id = Short.parseShort(args[0]);
-      Server server = new Server(id); server.start(id);
+      new Server(Short.parseShort(args[0]));
     }
     catch (Exception e)
     {
-      e.printStackTrace(System.out);
+      e.printStackTrace();
     }
   }
   
   
   Server(short id) throws Exception
   {
+    this.id = id;
     this.config = new Config();
     this.setName("Server Main");
 
@@ -69,16 +74,22 @@ public class Server extends Thread implements Listener
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
 
+    this.ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded);
+    this.plain = new HTTPServer(this,HTTPServer.Type.plain,embedded);
+    this.admin = new HTTPServer(this,HTTPServer.Type.admin,embedded);
+
     this.start();
+    
+    if (broker.manager())
+      startup();
   }
   
   
-  private void start(short id) throws Exception
-  {
-    logger.info("Starting HTTP Servers");
-    HTTPServer ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded); ssl.start();
-    HTTPServer plain = new HTTPServer(this,HTTPServer.Type.plain,embedded); plain.start();
-    //HTTPServer admin = new HTTPServer(this,HTTPServer.Type.admin,embedded); admin.start();
+  private void startup()
+  {    
+    ssl.start();
+    plain.start();
+    admin.start();
   }
   
   

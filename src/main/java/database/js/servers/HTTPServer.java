@@ -33,6 +33,7 @@ import java.nio.channels.ServerSocketChannel;
 public class HTTPServer extends Thread
 {
   private final int port;
+  private final Type type;
   private final boolean ssl;
   private final int threads;
   private final Config config;
@@ -46,6 +47,7 @@ public class HTTPServer extends Thread
 
   public HTTPServer(Server server, Type type, boolean embedded) throws Exception
   {
+    this.type = type;
     this.redirect = false;
     this.embedded = embedded;
     this.broker = server.broker();
@@ -91,6 +93,7 @@ public class HTTPServer extends Thread
       return;
 
     HTTPBuffers buffers = new HTTPBuffers();
+    logger.info("Starting HTTPServer("+type+")");
 
     HashMap<SelectionKey,HTTPRequest> incomplete =
       new HashMap<SelectionKey,HTTPRequest>();
@@ -182,7 +185,7 @@ public class HTTPServer extends Thread
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    logger.info("HTTPServer stopped");
+    logger.info("HTTPServer("+type+") stopped");
   }
 
 
