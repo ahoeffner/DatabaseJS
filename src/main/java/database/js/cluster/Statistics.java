@@ -12,15 +12,19 @@
 
 package database.js.cluster;
 
+import ipc.Guest;
 import ipc.Broker;
 import ipc.Resource;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.logging.Level;
+import database.js.config.Config;
 import database.js.servers.Server;
 
 
 public class Statistics
 {
+  private short id;
   private long pid;
   private long upd;
   private long mem;
@@ -68,30 +72,61 @@ public class Statistics
   }
   
   
-  public static Statistics get(Server server, short id)
+  public static ArrayList<Statistics> get(Config config)
   {
+    ArrayList<Statistics> list =
+      new ArrayList<Statistics>();
+    
     try
     {
-      String name = ""+(id+1);
-      Broker broker = server.broker();
-      Statistics stats = new Statistics();
-      Resource stat = broker.getResource(name);      
-      ByteBuffer data = ByteBuffer.wrap(stat.get());
-
-      if (data.capacity() > 0)
-      {
-        stats.pid = data.getLong();
-        stats.upd = data.getLong();
-        stats.mem = data.getLong();
-        stats.used = data.getLong();        
-      }
+      Short[] servers = Cluster.getServers(config);
       
-      return(stats);
+      for (short i = 0; i < servers[0] + servers[1]; i++)
+      {
+        String name = ""+(i+1);
+        Statistics stats = new Statistics();
+        Guest guest = new Guest(config.getIPConfig());
+        ByteBuffer data = ByteBuffer.wrap(guest.getResource(name));
+        
+        stats.id = i;
+
+        if (data.capacity() > 0)
+        {
+          stats.pid = data.getLong();
+          stats.upd = data.getLong();
+          stats.mem = data.getLong();
+          stats.used = data.getLong();        
+        }
+        
+        list.add(stats);
+      }
     }
-    catch (Exception e)
-    {
-      server.logger().log(Level.SEVERE,e.getMessage(),e);
-      return(new Statistics());
-    }
+    catch (Exception e) {;}
+    return(list);
+  }
+
+  public short id()
+  {
+    return(id);
+  }
+
+  public long pid()
+  {
+    return(pid);
+  }
+
+  public long updated()
+  {
+    return(upd);
+  }
+
+  public long memory()
+  {
+    return(mem);
+  }
+
+  public long used()
+  {
+    return(used);
   }
 }

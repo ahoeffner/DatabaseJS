@@ -20,18 +20,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
-import database.js.servers.http.HTTPServer;
+import database.js.cluster.Cluster;
 import static database.js.config.Config.*;
+import database.js.servers.http.HTTPServer;
 import database.js.servers.http.HTTPServerType;
 
 
 public class Server extends Thread implements Listener
 {
   private final short id;
+  private final int heartbeat;
   private final Broker broker;
   private final Logger logger;
   private final Config config;
-  private final Config.Type type;
+  private boolean stop = false;
   private final boolean embedded;
   
   private final HTTPServer ssl;
@@ -57,21 +59,18 @@ public class Server extends Thread implements Listener
     this.id = id;
     this.config = new Config();
     this.setName("Server Main");
+    
+    if (Cluster.isRunning(config,id))
+      throw new Exception("Server is already running");      
 
     config.getLogger().open(id);
-    this.logger = config.getLogger().logger;
-    
-    logger.info("Preparing instance");
+    this.logger = config.getLogger().logger;    
+    Config.Type type = Cluster.getType(config,id);
 
-    int http = 1;
-    if (config.getTopology().hotstandby()) http++;
-    
-    if (id < http) type = Type.http;
-    else           type = Type.rest;
-
-    Broker.logger(logger);    
+    Broker.logger(logger);
     boolean master = type == Type.http;
     
+    this.heartbeat = config.getIPConfig().heartbeat;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
 
@@ -79,18 +78,25 @@ public class Server extends Thread implements Listener
     this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
     this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
 
-    this.start();
-    
-    if (broker.manager())
+    if (broker.manager() && type == Type.http) 
       startup();
+
+    this.start();
   }
   
   
   private void startup()
-  {    
+  {
     ssl.start();
     plain.start();
     admin.start();
+    this.ensure();
+  }
+  
+  
+  private void ensure()
+  {
+    logger.info("Starting all instances");
   }
   
   
@@ -103,13 +109,6 @@ public class Server extends Thread implements Listener
   public short id()
   {
     return(id);
-  }
-  
-  
-  public void shutdown()
-  {
-    synchronized(this)
-     {this.notify();}
   }
   
   
@@ -130,15 +129,23 @@ public class Server extends Thread implements Listener
   {
   }
 
+
   @Override
   public void onServerDown(short s)
   {
   }
 
+
   @Override
   public void onNewManager(short s)
   {
+    if (s == id)
+    {
+      startup();
+      logger.info("Switching to http process "+id);
+    }
   }
+
 
   @Override
   public void onMessage(ArrayList<Message> arrayList)
@@ -146,10 +153,30 @@ public class Server extends Thread implements Listener
   }
   
   
+  public void shutdown()
+  {
+    synchronized(this)
+    {
+      stop = true;
+      this.notify();
+    }
+  }
+  
+  
   @Override
   public void run()
   {
-    try {synchronized(this) {this.wait();}}
+    try 
+    {
+      synchronized(this)
+      {
+        while(!stop)
+        {
+          Cluster.setStatistics(this);
+          this.wait(this.heartbeat);
+        }
+      }
+    }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     logger.info("Server stopped");
   }

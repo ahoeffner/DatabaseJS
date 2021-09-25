@@ -24,7 +24,7 @@ public class Service extends Thread implements Listener
   {
     this.start();
     this.config = new Config();
-    Launcher.main(new String[] {"start"});
+    Launcher.main(new String[] {"-s","start"});
     this.broker = new Broker(config.getIPConfig(),this);
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
   }
@@ -60,7 +60,7 @@ public class Service extends Thread implements Listener
     try 
     {
       synchronized(this) {this.wait();}
-      Launcher.main(new String[] {"stop","silent"});
+      Launcher.main(new String[] {"-s","stop"});
     }
     catch (Exception e) {;}
   }

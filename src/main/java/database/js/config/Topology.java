@@ -18,9 +18,9 @@ import org.json.JSONObject;
 public class Topology
 {
   private final Type type;
-  private final int threads;
-  private final int servers;
   private final boolean hot;
+  private final short threads;
+  private final short servers;
   
   private final int extnds;
   private final String extsize;
@@ -35,17 +35,17 @@ public class Topology
     if (type.toLowerCase().equals("micro")) this.type = Type.Micro;
     else                                    this.type = Type.Cluster;
     
-    if (this.type == Type.Micro) servers = 1;
-    else  servers = config.getInt("servers");
+    if (this.type == Type.Micro) servers = 0;
+    else  servers = (short) config.getInt("servers");
     
-    int threads = 0;
-    int multi = this.type == Type.Cluster ? servers : 1;
+    short threads = 0;
+    short multi = this.type == Type.Cluster ? servers : 1;
     
     if (!config.isNull("threads"))
-      threads = config.getInt("threads");
+      threads = (short) config.getInt("threads");
     
     if (threads > 0) this.threads = threads;
-    else             this.threads = multi * 8 * cores;
+    else             this.threads = (short) (multi * 8 * cores);
     
     this.hot = config.getBoolean("hot-standby");
     
@@ -66,7 +66,7 @@ public class Topology
     return(threads);
   }
 
-  public int servers()
+  public short servers()
   {
     return(servers);
   }

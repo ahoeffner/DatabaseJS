@@ -24,49 +24,52 @@ import database.js.handlers.Handler;
  *
  * In case there are no json-lib in classpath, the launcher will dynamically load it.
  * If the loader fails (java 1.8) it starts a new process with appropiate classpath.
- * 
+ *
  * It then reads the topologi and starts the servers as per config.
  *
  */
 public class Launcher implements ILauncher
 {
   private final static String psep = System.getProperty("path.separator");
-  
+
 
   public static void main(String[] args) throws Exception
   {
+    String cmd = null;
+    boolean silent = false;
     ILauncher launcher = null;
 
-    if (args.length == 1)
-      System.out.println(".....");
-    
-    if (args.length == 0)
-      usage();
-            
+    switch(args.length)
+    {
+      case 0: usage(); break;
+      case 1: cmd = args[0].toLowerCase(); break;
+      case 2: silent = true; cmd = args[1].toLowerCase(); break;
+    }
+
     if (!testcp())
     {
       launcher = create();
- 
+
       if (launcher == null)
       {
         start(args);
         return;
       }
     }
-    
+
     if (launcher == null)
       launcher = new Launcher();
-    
-    String cmd = args[0].toLowerCase();
-    
+
     switch(cmd)
     {
-      case "start": launcher.startProcesses();  break;
+      case "stop": launcher.stop();  break;
+      case "start": launcher.start();  break;
+
       default: usage();
     }
   }
-  
-  
+
+
   private static void usage()
   {
     System.out.println("usage database.js start|stop|status");
@@ -74,35 +77,30 @@ public class Launcher implements ILauncher
   }
 
 
-  public void startProcesses() throws Exception
+  public void stop() throws Exception
   {
-    Config config = new Config();    
-    config.getLogger().openControlLog();
-    Process process = new Process(config);
-    Topology topology = config.getTopology();
-    
-    if (topology.type() == Topology.Type.Micro)
-    {
-      process.start(Process.Type.http,0);
-
-      if (topology.hotstandby())
-        process.start(Process.Type.http,1);
-    }
   }
-  
 
-  // Test json in classpath  
+
+  public void start() throws Exception
+  {
+    Config config = new Config();
+    Process process = new Process(config);
+    process.start(Process.Type.http,0);
+  }
+
+
+  public void status() throws Exception
+  {
+    Config config = new Config();
+  }
+
+
+  // Test json in classpath
   private static boolean testcp()
   {
-    try
-    {
-      new JSONTokener("{}");
-    }
-    catch (Throwable e)
-    {
-      return(false);
-    }
-    
+    try {new JSONTokener("{}");}
+    catch (Throwable e) {return(false);}
     return(true);
   }
 
@@ -111,7 +109,7 @@ public class Launcher implements ILauncher
   private static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
-    
+
     try
     {
       // Doesn't work with java 1.8
@@ -145,7 +143,7 @@ public class Launcher implements ILauncher
     catch (Exception e)
     {
       return(null);
-    }    
+    }
   }
 
 
@@ -170,7 +168,7 @@ public class Launcher implements ILauncher
     String argv = "";
     for(String arg : args) argv += " "+arg;
 
-    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv + " silent";
+    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher -s " + argv;
     Runtime.getRuntime().exec(cmd);
   }
 }
