@@ -1,4 +1,4 @@
-package database.js.servers;
+package database.js.pools;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;

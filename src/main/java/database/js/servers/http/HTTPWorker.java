@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
@@ -47,10 +47,8 @@ public class HTTPWorker implements Runnable
       if (!admin) handler = handlers.getHandler(path,method);
       else        handler = new AdminHandler(server.config());
 
-      HTTPResponse response = handler.handle(request);
-      
-      HTTPChannel channel = request.channel();
-      channel.write(response.page());
+      HTTPResponse response = handler.handle(request);      
+      request.respond(response.page());
     }
     catch(Exception e)
     {

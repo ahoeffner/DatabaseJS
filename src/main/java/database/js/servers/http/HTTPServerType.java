@@ -10,24 +10,11 @@
  * accompanied this code).
  */
 
-package database.js.handlers;
+package database.js.servers.http;
 
-import database.js.config.Config;
-import database.js.servers.http.HTTPRequest;
-import database.js.servers.http.HTTPResponse;
-
-
-public class RestHandler extends Handler
+public enum HTTPServerType
 {
-  public RestHandler(Config config) throws Exception
-  {
-    super(config);
-  }
-  
-  
-  @Override
-  public HTTPResponse handle(HTTPRequest request) throws Exception
-  {
-    return null;
-  }
+  ssl,
+  plain,
+  admin
 }

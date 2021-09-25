@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.rest;
 
 public class RESTServer extends Thread
 {

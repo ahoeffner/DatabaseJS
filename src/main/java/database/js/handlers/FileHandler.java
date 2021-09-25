@@ -13,8 +13,8 @@
 package database.js.handlers;
 
 import database.js.config.Config;
-import database.js.servers.HTTPRequest;
-import database.js.servers.HTTPResponse;
+import database.js.servers.http.HTTPRequest;
+import database.js.servers.http.HTTPResponse;
 
 
 public class FileHandler extends Handler

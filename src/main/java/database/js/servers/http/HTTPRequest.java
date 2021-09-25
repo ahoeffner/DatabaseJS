@@ -10,13 +10,14 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import database.js.pools.PoolResponse;
 
 
-public class HTTPRequest
+public class HTTPRequest implements PoolResponse
 {
   private int header = -1;
   private int clength = -1;
@@ -47,7 +48,6 @@ public class HTTPRequest
     this.channel = channel;
   }
   
-  
   public String path()
   {
     return(path);
@@ -71,6 +71,12 @@ public class HTTPRequest
   public String getCookie(String cookie)
   {
     return(cookies.get(cookie));
+  }
+
+  @Override
+  public void respond(byte[] data) throws Exception
+  {
+    channel.write(data);
   }
   
   
@@ -291,8 +297,8 @@ public class HTTPRequest
   {
     return(new String(request));
   }
-  
-  
+
+
   public static class Pair<K,V>
   {
     private final K key;

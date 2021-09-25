@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import ipc.Broker;
 import java.util.Set;
@@ -25,6 +25,7 @@ import database.js.config.Config;
 import database.js.control.Server;
 import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
+import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
@@ -33,7 +34,6 @@ import java.nio.channels.ServerSocketChannel;
 public class HTTPServer extends Thread
 {
   private final int port;
-  private final Type type;
   private final boolean ssl;
   private final int threads;
   private final Config config;
@@ -43,9 +43,10 @@ public class HTTPServer extends Thread
   private final boolean embedded;
   private final boolean redirect;
   private final ThreadPool workers;
+  private final HTTPServerType type;
 
 
-  public HTTPServer(Server server, Type type, boolean embedded) throws Exception
+  public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
   {
     this.type = type;
     this.redirect = false;
@@ -225,13 +226,5 @@ public class HTTPServer extends Thread
                   "Content-Length: "+msg.length() + EOL + EOL + msg;
 
     return(page.getBytes());
-  }
-
-
-  public static enum Type
-  {
-    ssl,
-    plain,
-    admin
   }
 }

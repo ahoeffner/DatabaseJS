@@ -20,8 +20,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
-import database.js.servers.HTTPServer;
+import database.js.servers.http.HTTPServer;
 import static database.js.config.Config.*;
+import database.js.servers.http.HTTPServerType;
 
 
 public class Server extends Thread implements Listener
@@ -74,9 +75,9 @@ public class Server extends Thread implements Listener
     this.broker = new Broker(config.getIPConfig(),this,id,master);
     this.embedded = config.getTopology().type() == Topology.Type.Micro;
 
-    this.ssl = new HTTPServer(this,HTTPServer.Type.ssl,embedded);
-    this.plain = new HTTPServer(this,HTTPServer.Type.plain,embedded);
-    this.admin = new HTTPServer(this,HTTPServer.Type.admin,embedded);
+    this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
+    this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
+    this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
 
     this.start();
     

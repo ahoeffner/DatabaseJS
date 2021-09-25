@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import java.util.Date;
 import java.util.ArrayList;

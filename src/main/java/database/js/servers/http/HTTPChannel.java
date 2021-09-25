@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers;
+package database.js.servers.http;
 
 import java.nio.ByteBuffer;
 import javax.net.ssl.SSLEngine;

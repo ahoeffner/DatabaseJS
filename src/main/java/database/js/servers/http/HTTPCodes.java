@@ -1,4 +1,4 @@
-package database.js.servers;
+package database.js.servers.http;
 
 import java.util.concurrent.ConcurrentHashMap;
 
