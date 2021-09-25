@@ -26,10 +26,12 @@ public class Statistics
 {
   private short id;
   private long pid;
-  private long upd;
-  private long mem;
-  private long used;
-  private static final int statlen = 4*Long.BYTES;
+  private long updated;
+  private long started;
+  private long totmem;
+  private long usedmem;
+  
+  public static final int reclen = 5*Long.BYTES;
   
   
   private Statistics()
@@ -37,12 +39,13 @@ public class Statistics
   }
   
   
-  private Statistics init()
+  private Statistics init(Broker broker)
   {
-    this.upd = System.currentTimeMillis();
     this.pid = 0; //ProcessHandle.current().pid();
-    this.mem = Runtime.getRuntime().totalMemory();
-    this.used = (mem - Runtime.getRuntime().freeMemory());
+    this.started = broker.started();
+    this.updated = System.currentTimeMillis();
+    this.totmem = Runtime.getRuntime().totalMemory();
+    this.usedmem = (totmem - Runtime.getRuntime().freeMemory());
     return(this);
   }
   
@@ -54,13 +57,14 @@ public class Statistics
       Broker broker = server.broker();
       String name = ""+(broker.id()+1);
       Resource stat = broker.getResource(name);
-      Statistics stats = new Statistics().init();
-      ByteBuffer data = ByteBuffer.allocate(statlen);
+      ByteBuffer data = ByteBuffer.allocate(reclen);
+      Statistics stats = new Statistics().init(server.broker());
       
       data.putLong(stats.pid);
-      data.putLong(stats.upd);
-      data.putLong(stats.mem);
-      data.putLong(stats.used);
+      data.putLong(stats.started);
+      data.putLong(stats.updated);
+      data.putLong(stats.totmem);
+      data.putLong(stats.usedmem);
       
       stat.acquire();
       stat.put(data.array());
@@ -92,10 +96,11 @@ public class Statistics
 
         if (data.capacity() > 0)
         {
-          stats.pid = data.getLong();
-          stats.upd = data.getLong();
-          stats.mem = data.getLong();
-          stats.used = data.getLong();        
+          stats.pid     = data.getLong();
+          stats.started = data.getLong();
+          stats.updated = data.getLong();
+          stats.totmem  = data.getLong();
+          stats.usedmem = data.getLong();        
         }
         
         list.add(stats);
@@ -115,18 +120,23 @@ public class Statistics
     return(pid);
   }
 
+  public long started()
+  {
+    return(started);
+  }
+
   public long updated()
   {
-    return(upd);
+    return(updated);
   }
 
-  public long memory()
+  public long totmem()
   {
-    return(mem);
+    return(totmem);
   }
 
-  public long used()
+  public long usedmem()
   {
-    return(used);
+    return(usedmem);
   }
 }

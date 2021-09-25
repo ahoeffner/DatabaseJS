@@ -39,9 +39,8 @@ public class IPC
     props.put("request.pollfreq",100);
     props.put("response.pollfreq",2);
 
-    props.put("objects",processes);
-
-    props.put("namesize",(short) 3);
+    props.put("namesize",3);
+    props.put("objects",processes+1);
     props.put("objectsize",statesize);
 
     props.put("extends",extnds);
