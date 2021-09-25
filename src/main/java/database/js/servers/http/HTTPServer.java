@@ -82,6 +82,12 @@ public class HTTPServer extends Thread
   }
 
 
+  public boolean admin()
+  {
+    return(type == HTTPServerType.admin);
+  }
+
+
   public boolean embedded()
   {
     return(embedded);
