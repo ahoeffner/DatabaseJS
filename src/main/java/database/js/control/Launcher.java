@@ -36,6 +36,7 @@ public class Launcher implements ILauncher
   public static void main(String[] args) throws Exception
   {
     ILauncher launcher = null;
+    System.out.println(".....");
     
     if (args.length != 1)
       usage();
