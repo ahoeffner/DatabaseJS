@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.control.Server;
+import database.js.servers.Server;
 import java.net.InetSocketAddress;
 import java.nio.channels.Selector;
 import database.js.pools.ThreadPool;

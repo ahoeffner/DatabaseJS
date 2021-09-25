@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.control;
+package database.js.servers;
 
 import ipc.Broker;
 import ipc.Message;
@@ -91,6 +91,12 @@ public class Server extends Thread implements Listener
     ssl.start();
     plain.start();
     admin.start();
+  }
+  
+  
+  public short id()
+  {
+    return(id);
   }
   
   
