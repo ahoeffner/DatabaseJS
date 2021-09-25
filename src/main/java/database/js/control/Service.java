@@ -60,7 +60,7 @@ public class Service extends Thread implements Listener
     try 
     {
       synchronized(this) {this.wait();}
-      Launcher.main(new String[] {"stop"});
+      Launcher.main(new String[] {"stop","silent"});
     }
     catch (Exception e) {;}
   }

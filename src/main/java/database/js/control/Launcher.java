@@ -36,9 +36,11 @@ public class Launcher implements ILauncher
   public static void main(String[] args) throws Exception
   {
     ILauncher launcher = null;
-    System.out.println(".....");
+
+    if (args.length == 1)
+      System.out.println(".....");
     
-    if (args.length != 1)
+    if (args.length == 0)
       usage();
             
     if (!testcp())
@@ -168,7 +170,7 @@ public class Launcher implements ILauncher
     String argv = "";
     for(String arg : args) argv += " "+arg;
 
-    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv;
+    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher" + argv + " silent";
     Runtime.getRuntime().exec(cmd);
   }
 }
