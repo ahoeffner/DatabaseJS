@@ -40,7 +40,7 @@ public class HTTPWorker implements Runnable
     String method = request.method();
     
     Handler handler = null;
-    boolean admin = false;
+    boolean admin = server.admin();
     
     try
     {
