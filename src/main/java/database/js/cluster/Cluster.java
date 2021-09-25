@@ -19,7 +19,11 @@ public class Cluster
 {
   public static void setStatistics(Server server)
   {
-    Statistics stats = new Statistics();
-    stats.write(server.broker());
+    Statistics.save(server);
+  }
+
+  public static Statistics getStatistics(Server server, short id)
+  {
+    return(Statistics.get(server,id));
   }
 }

@@ -94,6 +94,12 @@ public class Server extends Thread implements Listener
   }
   
   
+  public Logger logger()
+  {
+    return(logger);
+  }
+  
+  
   public short id()
   {
     return(id);
