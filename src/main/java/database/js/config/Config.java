@@ -12,6 +12,8 @@
 
 package database.js.config;
 
+import database.js.cluster.Statistics;
+
 import ipc.Broker;
 import java.io.File;
 import org.json.JSONObject;
@@ -85,7 +87,7 @@ public class Config
     String extsize = topology.extsize();
     
     short processes = 4;
-    short statesize = 16;
+    short statesize = Statistics.reclen;
     
     Broker.logger(this.getLogger().logger);
     this.config = IPC.getConfig(Paths.ipcdir,processes,extnds,extsize,statesize);

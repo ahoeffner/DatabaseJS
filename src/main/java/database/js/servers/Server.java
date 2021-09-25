@@ -26,6 +26,28 @@ import database.js.servers.http.HTTPServer;
 import database.js.servers.http.HTTPServerType;
 
 
+/**
+ * 
+ * The start/stop sequence is rather complicated:
+ * 
+ * There are 2 roles:
+ *   The ipc guarantees that only 1 process holds the given role at any time.
+ *   
+ *   The secretary role. All processes is eligible for this role
+ *   The manager role. Only http processes is eligible for this role
+ * 
+ * 
+ * The secretary is responsible for keeping all other servers alive.
+ * The manager is responsible for the http interfaces, including the admin port.
+ * 
+ * When a server starts, it will check to see if it has become the secretary. in which
+ * case it will start all other processes that is not running.
+ * 
+ * When the manager receives a shutdown command, it will pass it on to the secretary.
+ * The secretary will then stop the automatic keep alive, and send a shutdown message to
+ * all other processes, and shut itself down.
+ * 
+ */
 public class Server extends Thread implements Listener
 {
   private final short id;
@@ -43,14 +65,8 @@ public class Server extends Thread implements Listener
   
   public static void main(String[] args)
   {
-    try
-    {
-      new Server(Short.parseShort(args[0]));
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
+    try {new Server(Short.parseShort(args[0]));}
+    catch (Exception e) {e.printStackTrace();}
   }
   
   
@@ -82,6 +98,7 @@ public class Server extends Thread implements Listener
       startup();
 
     this.start();
+    this.ensure();
   }
   
   
@@ -90,13 +107,25 @@ public class Server extends Thread implements Listener
     ssl.start();
     plain.start();
     admin.start();
-    this.ensure();
   }
   
   
   private void ensure()
   {
-    logger.info("Starting all instances");
+    try 
+    {
+      synchronized(this)
+      {
+        if (!stop && broker.secretary())
+        {
+          logger.info("Starting all instances");
+        }        
+      }
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
   }
   
   
@@ -133,6 +162,7 @@ public class Server extends Thread implements Listener
   @Override
   public void onServerDown(short s)
   {
+    ensure();
   }
 
 
@@ -141,20 +171,55 @@ public class Server extends Thread implements Listener
   {
     if (s == id)
     {
-      startup();
-      logger.info("Switching to http process "+id);
+      synchronized(this)
+      {
+        if (!stop)
+        {
+          startup();
+          logger.info("Switching to http process "+id);
+        }
+      }
     }
   }
 
 
   @Override
-  public void onMessage(ArrayList<Message> arrayList)
+  public void onMessage(ArrayList<Message> messages)
   {
+    for(Message message : messages)
+    {
+      int pos = 3;
+      byte[] msg = message.body();
+      String adm = new String(msg,0,pos);
+      
+      if (adm.equals("ADM"))
+      {
+        while(msg[pos] != '\r' && msg[pos+1] != '\n') 
+          pos++;
+        
+        String cmd = new String(msg,0,pos);
+        if (cmd.equals("ADM /shutdown HTTP/1.0"))
+          shutdown();
+      }
+    }
   }
   
   
-  public void shutdown()
+  void shutdown()
   {
+    try
+    {
+      Short[] servers = Cluster.getServers(config);      
+      byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
+      
+      for (short i = 0; i < servers[0] + servers[1]; i++)
+        if (i != id) broker.send(i,msg);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
     synchronized(this)
     {
       stop = true;
