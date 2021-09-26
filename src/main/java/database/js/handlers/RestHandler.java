@@ -12,16 +12,16 @@
 
 package database.js.handlers;
 
-import database.js.config.Config;
+import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
 
 public class RestHandler extends Handler
 {
-  public RestHandler(Config config) throws Exception
+  public RestHandler(Server server) throws Exception
   {
-    super(config);
+    super(server);
   }
   
   

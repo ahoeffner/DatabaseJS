@@ -14,17 +14,22 @@ package database.js.handlers;
 
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
 
 public abstract class Handler
 {
+  public final Server server;
+  public final Config config;
   public final Logger logger;
   
   
-  public Handler(Config config) throws Exception
+  public Handler(Server server) throws Exception
   {
+    this.server = server;
+    this.config = server.config();
     this.logger = config.getLogger().logger;  
   }
   

@@ -12,16 +12,16 @@
 
 package database.js.handlers;
 
-import database.js.config.Config;
+import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
 
 public class FileHandler extends Handler
 {
-  public FileHandler(Config config) throws Exception
+  public FileHandler(Server server) throws Exception
   {
-    super(config);
+    super(server);
   }
   
   
