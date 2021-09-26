@@ -45,7 +45,7 @@ public class HTTPWorker implements Runnable
     try
     {
       if (!admin) handler = handlers.getHandler(path,method);
-      else        handler = new AdminHandler(server.config());
+      else        handler = new AdminHandler(server.config()).server(server.server());
 
       HTTPResponse response = handler.handle(request);      
       request.respond(response.page());

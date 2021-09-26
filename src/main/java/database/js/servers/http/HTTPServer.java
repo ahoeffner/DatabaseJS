@@ -36,6 +36,7 @@ public class HTTPServer extends Thread
   private final int port;
   private final boolean ssl;
   private final int threads;
+  private final Server server;
   private final Config config;
   private final Broker broker;
   private final Logger logger;
@@ -49,6 +50,7 @@ public class HTTPServer extends Thread
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
   {
     this.type = type;
+    this.server = server;
     this.redirect = false;
     this.embedded = embedded;
     this.broker = server.broker();
@@ -67,6 +69,12 @@ public class HTTPServer extends Thread
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
+  }
+  
+  
+  public Server server()
+  {
+    return(server);
   }
 
 

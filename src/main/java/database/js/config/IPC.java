@@ -18,8 +18,9 @@ import java.util.Properties;
 
 public class IPC
 {
-  public static Config getConfig(String path, short processes, int extnds, String extsize, short statesize)
+  public static Config getConfig(String path, Short processes, int extnds, String extsize, Short statesize)
   {
+    Short namesize = 3;
     Properties props = new Properties();
     
     props.put("path",path);
@@ -39,8 +40,8 @@ public class IPC
     props.put("request.pollfreq",100);
     props.put("response.pollfreq",2);
 
-    props.put("namesize",3);
-    props.put("objects",processes+1);
+    props.put("namesize",namesize);
+    props.put("objects",processes);
     props.put("objectsize",statesize);
 
     props.put("extends",extnds);

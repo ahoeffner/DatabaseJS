@@ -1,5 +1,6 @@
 package database.js.handlers;
 
+import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
@@ -7,9 +8,19 @@ import database.js.servers.http.HTTPResponse;
 
 public class AdminHandler extends Handler
 {
-  public AdminHandler(Server server) throws Exception
+  private Server server = null;
+  
+  
+  public AdminHandler(Config config) throws Exception
   {
-    super(server);
+    super(config);
+  }
+  
+  
+  public AdminHandler server(Server server)
+  {
+    this.server = server;
+    return(this);
   }
   
   
@@ -19,7 +30,7 @@ public class AdminHandler extends Handler
     HTTPResponse response = new HTTPResponse();
     
     if (request.path().equals("/shutdown"))
-      this.server.shutdown();
+      server.shutdown();
     
     return(response);
   }

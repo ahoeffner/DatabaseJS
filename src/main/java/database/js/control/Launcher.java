@@ -80,7 +80,10 @@ public class Launcher implements ILauncher
   public void stop() throws Exception
   {
     Config config = new Config();
-    Client client = new Client("localhost",config.getHTTP().admin());
+    config.getLogger().openControlLog();
+    
+    int admin = config.getPorts()[2];
+    Client client = new Client("localhost",admin);
     
     client.connect();
     client.send("shutdown");
@@ -90,6 +93,9 @@ public class Launcher implements ILauncher
   public void start() throws Exception
   {
     Config config = new Config();
+    config.getLogger().openControlLog();
+    
+    config.getJava().exe();
     Process process = new Process(config);
     process.start(Process.Type.http,0);
   }

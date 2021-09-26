@@ -46,8 +46,7 @@ public class Process
     else                   options = srvopt;
 
     String classpath = classpath(type != Type.http);
-    String cmd = this.java + " -cp " + classpath + " " + options + " database.js.control.Server " + inst;
-    logger.info(cmd);
+    String cmd = this.java + " -cp " + classpath + " " + options + " database.js.servers.Server " + inst;
 
     try
     {

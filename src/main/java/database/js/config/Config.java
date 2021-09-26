@@ -88,6 +88,24 @@ public class Config
     else       securitye = config.getString("security");
   }
   
+  
+  public int[] getPorts() throws Exception
+  {
+    FileInputStream in = new FileInputStream(httppath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    JSONObject  pconfig = config.getJSONObject("ports");
+    
+    int[] ports = new int[3];
+
+    ports[0] = pconfig.getInt("ssl");
+    ports[1] = pconfig.getInt("plain");
+    ports[2] = pconfig.getInt("admin");
+
+    return(ports);
+  }
+  
     
   public synchronized ipc.config.Config getIPConfig() throws Exception
   {
