@@ -354,6 +354,8 @@ public class HTTPChannel
     }
     catch (Exception e)
     {
+      try {this.channel.close();}
+      catch (Exception chc) {;}
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
@@ -369,7 +371,7 @@ public class HTTPChannel
     String errm = e.getMessage();
     if (errm == null) errm = "An unknown error has occured";
     if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
-    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
+    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);      
   }
 
 
