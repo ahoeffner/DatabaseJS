@@ -54,7 +54,7 @@ public class HTTPChannel
       this.engine = pki.getSSLContext().createSSLEngine();
 
       this.engine.setUseClientMode(false);
-      this.engine.setWantClientAuth(twoway);
+      this.engine.setNeedClientAuth(twoway);
 
       this.worker = Executors.newSingleThreadExecutor();
     }

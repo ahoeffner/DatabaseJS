@@ -1,9 +1,9 @@
 package database.js.admin;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
+import javax.net.ssl.SSLSocket;
 import database.js.config.Config;
 import database.js.security.PKIContext;
 
@@ -12,7 +12,7 @@ public class Client
 {
   private int port;
   private String host;
-  private Socket socket;
+  private SSLSocket socket;
   private final PKIContext pki;
   
   
@@ -59,6 +59,6 @@ public class Client
   
   public void connect() throws Exception
   {
-    this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);;
+    this.socket = (SSLSocket) pki.getSSLContext().getSocketFactory().createSocket(host,port);
   }
 }
