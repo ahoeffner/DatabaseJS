@@ -54,6 +54,18 @@ public class Config
     String os = System.getProperty("os.name");
     return(os.toLowerCase().startsWith("win"));    
   }
+  
+  
+  public static PKIContext PKIContext() throws Exception
+  {
+    FileInputStream in = new FileInputStream(securitypath());
+    
+    JSONTokener tokener = new JSONTokener(in);
+    JSONObject  config  = new JSONObject(tokener);
+    
+    Security security = new Security(config);
+    return(new PKIContext(security.getIdentity(),security.getTrusted()));
+  }
 
 
   public Config() throws Exception
@@ -184,37 +196,37 @@ public class Config
   }
   
   
-  private String path()
+  private static String path()
   {
     return(Paths.confdir + File.separator);
   }
   
   
-  private String javapath()
+  private static String javapath()
   {
     return(path() + JAVADEF);
   }
   
   
-  private String httppath()
+  private static String httppath()
   {
     return(path() + HTTPDEF);
   }
   
   
-  private String loggerpath()
+  private static String loggerpath()
   {
     return(path() + LOGGERDEF);
   }
   
   
-  private String securitypath()
+  private static String securitypath()
   {
     return(path() + SECURITYDEF);
   }
   
   
-  private String confpath()
+  private static String confpath()
   {
     return(path() + CONFDEF);
   }

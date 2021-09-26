@@ -186,6 +186,7 @@ public class Server extends Thread implements Listener
   @Override
   public void onMessage(ArrayList<Message> messages)
   {
+    String cmd = null;
     boolean shutdown = false;
     
     for(Message message : messages)
@@ -199,9 +200,9 @@ public class Server extends Thread implements Listener
         while(msg[pos] != '\r' && msg[pos+1] != '\n') 
             pos++;
           
-        String cmd = new String(msg,0,pos);
+        cmd = new String(msg,0,pos);
         
-        if (cmd.equals("ADM /shutdown HTTP/1.0"))
+        if (cmd.startsWith("ADM /shutdown"))
         {
           shutdown = true;
           break;
@@ -216,11 +217,10 @@ public class Server extends Thread implements Listener
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);
-          byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
 
           // Signal other servers to shutdown
           for (short i = 0; i < servers[0] + servers[1]; i++)
-            if (i != id) broker.send(i,msg);
+            if (i != id) broker.send(i,cmd.getBytes());
 
           int down = Cluster.notRunning(config).size();
           
@@ -250,7 +250,7 @@ public class Server extends Thread implements Listener
   {
     try
     {
-      byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
+      byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       broker.send(broker.getSecretary(),msg);
     }
     catch (Exception e)

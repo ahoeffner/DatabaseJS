@@ -14,9 +14,9 @@ package database.js.control;
 
 import java.io.File;
 import org.json.JSONTokener;
+import database.js.admin.Client;
 import database.js.config.Paths;
 import database.js.config.Config;
-import database.js.config.Topology;
 import database.js.handlers.Handler;
 
 
@@ -79,6 +79,11 @@ public class Launcher implements ILauncher
 
   public void stop() throws Exception
   {
+    Config config = new Config();
+    Client client = new Client("localhost",config.getHTTP().admin());
+    
+    client.connect();
+    client.send("shutdown");
   }
 
 
