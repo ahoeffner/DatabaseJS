@@ -44,8 +44,8 @@ import database.js.servers.http.HTTPServerType;
  * case it will start all other processes that is not running.
  * 
  * When the manager receives a shutdown command, it will pass it on to the secretary.
- * The secretary will then stop the automatic keep alive, and send a shutdown message to
- * all other processes, and shut itself down.
+ * The secretary will then cease the automatic keep alive, and send a shutdown message
+ * to all other processes, and shut itself down.
  * 
  */
 public class Server extends Thread implements Listener
@@ -186,6 +186,8 @@ public class Server extends Thread implements Listener
   @Override
   public void onMessage(ArrayList<Message> messages)
   {
+    boolean shutdown = false;
+    
     for(Message message : messages)
     {
       int pos = 3;
@@ -195,35 +197,65 @@ public class Server extends Thread implements Listener
       if (adm.equals("ADM"))
       {
         while(msg[pos] != '\r' && msg[pos+1] != '\n') 
-          pos++;
-        
+            pos++;
+          
         String cmd = new String(msg,0,pos);
+        
         if (cmd.equals("ADM /shutdown HTTP/1.0"))
-          shutdown();
+        {
+          shutdown = true;
+          break;
+        }
       }
     }
-  }
-  
-  
-  void shutdown()
-  {
-    try
+    
+    if (shutdown)
     {
-      Short[] servers = Cluster.getServers(config);      
-      byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
-      
-      for (short i = 0; i < servers[0] + servers[1]; i++)
-        if (i != id) broker.send(i,msg);
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-    }
+      try
+      {
+        if (broker.secretary())
+        {
+          Short[] servers = Cluster.getServers(config);
+          byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
 
+          // Signal other servers to shutdown
+          for (short i = 0; i < servers[0] + servers[1]; i++)
+            if (i != id) broker.send(i,msg);
+
+          int down = Cluster.notRunning(config).size();
+          
+          // Wait for other servers to shutdown
+          while(down < servers[0] + servers[1] - 1)
+          {
+            Thread.sleep(config.getIPConfig().heartbeat);
+            down = Cluster.notRunning(config).size();
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+    }
+    
     synchronized(this)
     {
       stop = true;
       this.notify();
+    }
+  }
+  
+  
+  public void shutdown()
+  {
+    try
+    {
+      byte[] msg = "ADM /shutdown HTTP/1.0\r\n".getBytes();
+      broker.send(broker.getSecretary(),msg);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }
   
