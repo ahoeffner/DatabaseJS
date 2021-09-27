@@ -151,6 +151,7 @@ public class HTTPServer extends Thread
             
             if (accept)
             {
+              buffers.done();
               sac.register(selector,SelectionKey.OP_READ,hcl);
               logger.fine("Connection Accepted: "+sac.getLocalAddress());
             }

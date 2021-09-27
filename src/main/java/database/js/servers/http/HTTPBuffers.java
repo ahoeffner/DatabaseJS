@@ -17,47 +17,39 @@ import java.nio.ByteBuffer;
 
 public class HTTPBuffers
 {
-  boolean ssl = false;
+  private int asize = 0;
+  private int psize = 0;
+  private int size = 4*1024;
 
-  ByteBuffer myNetData;
-  ByteBuffer myAppData;
-  ByteBuffer peerNetData;
-  ByteBuffer peerAppData;
-
-  public final static int wmax = 4*1024;
-  public final static int size = 16*1024;
-  public final static int smax = 5*1024*1024;
+  ByteBuffer send;
+  ByteBuffer data;
+  ByteBuffer recv;
 
 
-  public HTTPBuffers()
+  public void nossl()
   {
-    this.myAppData = ByteBuffer.allocate(size);
+    this.data = ByteBuffer.allocate(size);
   }
 
 
-  public void usessl()
+  public void setSize(int asize, int psize)
   {
-    this.ssl = true;
-    this.myNetData = ByteBuffer.allocate(size);
-    this.peerAppData = ByteBuffer.allocate(size);
-    this.peerNetData = ByteBuffer.allocate(size);
+    this.asize = asize;
+    this.psize = psize;
   }
 
 
-  public void reset()
+  public void init()
   {
-    this.peerAppData = null;
-    this.peerNetData = null;
-    this.myAppData = ByteBuffer.allocate(size);
-    this.myNetData = ByteBuffer.allocate(size);
+    this.data = ByteBuffer.allocate(asize);
+    this.send = ByteBuffer.allocate(psize);
+    this.recv = ByteBuffer.allocate(psize);
   }
 
 
-  public void clear()
+  public void done()
   {
-    this.myAppData = ByteBuffer.allocate(size);
-    this.myNetData = ByteBuffer.allocate(size);
-    this.peerAppData = ByteBuffer.allocate(size);
-    this.peerNetData = ByteBuffer.allocate(size);
+    this.send = null;
+    this.recv = null;
   }
 }

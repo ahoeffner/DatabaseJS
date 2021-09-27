@@ -45,17 +45,17 @@ public class HTTPChannel
     {
       this.engine = null;
       this.worker = null;
+      this.buffers.nossl();
     }
     else
     {
-      this.buffers.usessl();
-
       PKIContext pki = config.getPKIContext();
       this.engine = pki.getSSLContext().createSSLEngine();
 
       this.engine.setUseClientMode(false);
       this.engine.setNeedClientAuth(twoway);
 
+      this.buffers.setSize(appsize(),packsize());
       this.worker = Executors.newSingleThreadExecutor();
     }
 
@@ -72,41 +72,42 @@ public class HTTPChannel
 
   private ByteBuffer readplain() throws Exception
   {
-    buffers.myAppData.clear();
+    buffers.data.clear();
 
-    int read = channel.read(buffers.myAppData);
+    int read = channel.read(buffers.data);
     if (read <= 0) return(null);
 
-    buffers.myAppData.flip();
-    return(buffers.myAppData);
+    buffers.data.flip();
+    return(buffers.data);
   }
 
 
   private ByteBuffer readssl() throws Exception
   {
-    buffers.myNetData.clear();
+    buffers.send.clear();
 
-    int read = channel.read(buffers.myNetData);
+    int read = channel.read(buffers.send);
     if (read < 0) return(null);
 
-    buffers.myNetData.flip();
-    while(buffers.myNetData.hasRemaining())
+    buffers.send.flip();
+    while(buffers.send.hasRemaining())
     {
-      buffers.myAppData.clear();
-      SSLEngineResult result = engine.unwrap(buffers.myNetData,buffers.myAppData);
+      buffers.data.clear();
+      SSLEngineResult result = engine.unwrap(buffers.send,buffers.data);
 
       switch(result.getStatus())
       {
         case OK:
-          buffers.myAppData.flip();
+          buffers.data.flip();
           break;
 
         case BUFFER_OVERFLOW:
-          buffers.myAppData = enlarge(buffers.myAppData);
+          buffers.data = enlarge(buffers.data,appsize());
           break;
 
         case BUFFER_UNDERFLOW:
-          buffers.myNetData = enlarge(buffers.myNetData);
+          if (buffers.send.limit() < packsize())
+            buffers.send = enlarge(buffers.send,packsize());
           break;
 
         case CLOSED:
@@ -114,22 +115,22 @@ public class HTTPChannel
       }
     }
 
-    return(buffers.myAppData);
+    return(buffers.data);
   }
 
 
   public void write(byte[] data) throws Exception
   {
     int wrote = 0;
-    int max = HTTPBuffers.wmax;
+    int max = buffers.data.limit();
 
     int size = data.length;
-    int bsize = buffers.myAppData.capacity();
+    int bsize = buffers.data.capacity();
 
     while(wrote < size)
     {
       int chunk = bsize;
-      buffers.myAppData.clear();
+      buffers.data.clear();
 
       if (chunk > size - wrote)
         chunk = size - wrote;
@@ -137,9 +138,9 @@ public class HTTPChannel
       if (chunk > max)
         chunk = max;
 
-      buffers.myAppData.put(data,wrote,chunk);
+      buffers.data.put(data,wrote,chunk);
 
-      buffers.myAppData.flip();
+      buffers.data.flip();
 
       if (ssl) writessl();
       else     writeplain();
@@ -151,30 +152,30 @@ public class HTTPChannel
 
   private void writeplain() throws Exception
   {
-    while(buffers.myAppData.hasRemaining())
-      channel.write(buffers.myAppData);
+    while(buffers.data.hasRemaining())
+      channel.write(buffers.data);
   }
 
 
   private void writessl() throws Exception
   {
-    while(buffers.myAppData.hasRemaining())
+    while(buffers.data.hasRemaining())
     {
-      buffers.myNetData.clear();
-      SSLEngineResult result = engine.wrap(buffers.myAppData,buffers.myNetData);
+      buffers.send.clear();
+      SSLEngineResult result = engine.wrap(buffers.data,buffers.send);
 
       switch(result.getStatus())
       {
         case OK:
-          buffers.myNetData.flip();
+          buffers.send.flip();
 
-          while(buffers.myNetData.hasRemaining())
-            channel.write(buffers.myNetData);
+          while(buffers.send.hasRemaining())
+            channel.write(buffers.send);
 
           break;
 
         case BUFFER_OVERFLOW:
-          buffers.myNetData = enlarge(buffers.myNetData);
+          buffers.send = enlarge(buffers.send,packsize());
           break;
 
         case BUFFER_UNDERFLOW:
@@ -205,7 +206,7 @@ public class HTTPChannel
     SSLEngineResult result = null;
     HandshakeStatus status = null;
 
-    buffers.clear();
+    buffers.init();
 
     try
     {
@@ -214,12 +215,11 @@ public class HTTPChannel
       while(cont)
       {
         status = engine.getHandshakeStatus();
-        System.out.println(status);
 
         switch(status)
         {
           case NEED_UNWRAP:
-            read = channel.read(buffers.peerNetData);
+            read = channel.read(buffers.recv);
 
             if (read < 0)
             {
@@ -233,12 +233,12 @@ public class HTTPChannel
               break;
             }
 
-            buffers.peerNetData.flip();
+            buffers.recv.flip();
 
             try
             {
-              result = engine.unwrap(buffers.peerNetData,buffers.peerAppData);
-              buffers.peerNetData.compact();
+              result = engine.unwrap(buffers.recv,buffers.data);
+              buffers.recv.compact();
             }
             catch (Exception e)
             {
@@ -253,11 +253,12 @@ public class HTTPChannel
                 break;
 
               case BUFFER_OVERFLOW:
-                buffers.peerAppData = enlarge(buffers.peerAppData);
+                buffers.data = enlarge(buffers.data,appsize());
                 break;
 
               case BUFFER_UNDERFLOW:
-                buffers.peerNetData = enlarge(buffers.peerNetData);
+                if (buffers.recv.limit() < packsize())
+                  buffers.recv = enlarge(buffers.recv,packsize());
                 break;
 
               case CLOSED:
@@ -271,11 +272,11 @@ public class HTTPChannel
             break;
 
           case NEED_WRAP:
-            buffers.myNetData.clear();
+            buffers.send.clear();
 
             try
             {
-              result = engine.wrap(buffers.myAppData,buffers.myNetData);
+              result = engine.wrap(buffers.data,buffers.send);
             }
             catch (Exception e)
             {
@@ -287,14 +288,14 @@ public class HTTPChannel
             switch(result.getStatus())
             {
               case OK:
-                buffers.myNetData.flip();
+                buffers.send.flip();
 
-                while(buffers.myNetData.hasRemaining())
-                  channel.write(buffers.myNetData);
+                while(buffers.send.hasRemaining())
+                  channel.write(buffers.send);
                 break;
 
               case BUFFER_OVERFLOW:
-                buffers.myNetData = enlarge(buffers.myNetData);
+                buffers.send = enlarge(buffers.send,packsize());
                 break;
 
               case BUFFER_UNDERFLOW:
@@ -303,12 +304,12 @@ public class HTTPChannel
               case CLOSED:
                 try
                 {
-                  buffers.myNetData.flip();
+                  buffers.send.flip();
 
-                  while(buffers.myNetData.hasRemaining())
-                    channel.write(buffers.myNetData);
+                  while(buffers.send.hasRemaining())
+                    channel.write(buffers.send);
 
-                  buffers.myNetData.clear();
+                  buffers.send.clear();
                   break;
                 }
                 catch (Exception e)
@@ -368,19 +369,31 @@ public class HTTPChannel
   }
 
 
-  private ByteBuffer enlarge(ByteBuffer buf) throws Exception
+  private ByteBuffer enlarge(ByteBuffer buf, int size) throws Exception
   {
     ByteBuffer bufc = buf;
-    int size = 2 * buf.capacity();
-
-    if (size > HTTPBuffers.smax)
-      throw new Exception("SSL keeps allocating memory, "+size);
-
-    buf = ByteBuffer.allocate(size);
-
-    bufc.flip();
-    buf.put(bufc);
-
+    int left = buf.remaining();
+    
+    if (left < size)
+    {
+      System.out.println("size: "+size);
+      buf = ByteBuffer.allocate(buf.position() + size);
+      bufc.flip();
+      buf.put(bufc);
+    }
+    
     return(buf);
+  }  
+
+  
+  public int packsize()
+  {
+    return(engine.getSession().getPacketBufferSize());
+  }
+  
+  
+  public int appsize()
+  {
+    return(engine.getSession().getApplicationBufferSize());
   }
 }
