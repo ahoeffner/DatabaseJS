@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import database.js.admin.Client;
 import database.js.config.Paths;
 import database.js.config.Config;
+import database.js.handlers.Handler;
 
 
 /**
@@ -85,7 +86,7 @@ public class Launcher implements ILauncher
 
   private static void usage()
   {
-    System.out.println("usage database.js start|stop|status");
+    System.out.println("usage database.js start|stop|status|reset");
     System.exit(-1);
   }
   
@@ -145,7 +146,7 @@ public class Launcher implements ILauncher
     try
     {
       // Doesn't work with java 1.8
-      Loader loader = new Loader(ILauncher.class, Paths.class);
+      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
 
       String path = Paths.libdir+File.separator+"json";
       String classpath = (String) System.getProperties().get("java.class.path");

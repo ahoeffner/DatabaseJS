@@ -163,6 +163,9 @@ public class HTTPRequest implements PoolResponse
     if (method == null)
       method = getMethod();
     
+    if (method == null)
+      return(false);
+    
     if (header < 0)
     {
       if (method.equals("GET")) this.bckward(last);          
