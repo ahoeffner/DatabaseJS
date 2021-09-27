@@ -84,16 +84,16 @@ public class HTTPChannel
 
   private ByteBuffer readssl() throws Exception
   {
-    buffers.send.clear();
+    buffers.sslb.clear();
 
-    int read = channel.read(buffers.send);
+    int read = channel.read(buffers.sslb);
     if (read < 0) return(null);
 
-    buffers.send.flip();
-    while(buffers.send.hasRemaining())
+    buffers.sslb.flip();
+    while(buffers.sslb.hasRemaining())
     {
       buffers.data.clear();
-      SSLEngineResult result = engine.unwrap(buffers.send,buffers.data);
+      SSLEngineResult result = engine.unwrap(buffers.sslb,buffers.data);
 
       switch(result.getStatus())
       {
@@ -106,8 +106,8 @@ public class HTTPChannel
           break;
 
         case BUFFER_UNDERFLOW:
-          if (buffers.send.limit() < packsize())
-            buffers.send = enlarge(buffers.send,packsize());
+          if (buffers.sslb.limit() < packsize())
+            buffers.sslb = enlarge(buffers.sslb,packsize());
           break;
 
         case CLOSED:
@@ -161,21 +161,21 @@ public class HTTPChannel
   {
     while(buffers.data.hasRemaining())
     {
-      buffers.send.clear();
-      SSLEngineResult result = engine.wrap(buffers.data,buffers.send);
+      buffers.sslb.clear();
+      SSLEngineResult result = engine.wrap(buffers.data,buffers.sslb);
 
       switch(result.getStatus())
       {
         case OK:
-          buffers.send.flip();
+          buffers.sslb.flip();
 
-          while(buffers.send.hasRemaining())
-            channel.write(buffers.send);
+          while(buffers.sslb.hasRemaining())
+            channel.write(buffers.sslb);
 
           break;
 
         case BUFFER_OVERFLOW:
-          buffers.send = enlarge(buffers.send,packsize());
+          buffers.sslb = enlarge(buffers.sslb,packsize());
           break;
 
         case BUFFER_UNDERFLOW:

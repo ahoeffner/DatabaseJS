@@ -24,6 +24,7 @@ public class HTTPBuffers
   ByteBuffer send;
   ByteBuffer data;
   ByteBuffer recv;
+  ByteBuffer sslb;
 
 
   public void nossl()
@@ -45,11 +46,11 @@ public class HTTPBuffers
     this.send = ByteBuffer.allocate(psize);
     this.recv = ByteBuffer.allocate(psize);
   }
-
-
+  
+  
   public void done()
   {
-    this.send = null;
-    this.recv = null;
+   this.send = null;
+   this.sslb = recv;
   }
 }
