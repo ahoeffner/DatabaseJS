@@ -69,7 +69,9 @@ public class Statistics
       data.putLong(stats.totmem);
       data.putLong(stats.usedmem);
       
-      stat.acquire();
+      if (!stat.owner()) 
+        stat.acquire();
+      
       stat.put(data.array());
     }
     catch (Exception e)

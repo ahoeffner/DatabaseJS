@@ -223,11 +223,15 @@ public class Server extends Thread implements Listener
           for (short i = 0; i < servers[0] + servers[1]; i++)
             if (i != id) broker.send(i,cmd.getBytes());
 
+          int tries = 0;
           int down = Cluster.notRunning(config).size();
           
           // Wait for other servers to shutdown
-          while(down < servers[0] + servers[1] - 1)
+          while(down == servers[0] + servers[1] - 1)
           {
+            if (++tries == 256) 
+              throw new Exception("Unable to shutdown servers");
+            
             Thread.sleep(config.getIPConfig().heartbeat);
             down = Cluster.notRunning(config).size();
           }
