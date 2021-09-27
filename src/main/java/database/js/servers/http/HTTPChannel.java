@@ -376,7 +376,6 @@ public class HTTPChannel
     
     if (left < size)
     {
-      System.out.println("size: "+size);
       buf = ByteBuffer.allocate(buf.position() + size);
       bufc.flip();
       buf.put(bufc);
