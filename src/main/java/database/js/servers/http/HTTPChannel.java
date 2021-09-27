@@ -214,6 +214,7 @@ public class HTTPChannel
       while(cont)
       {
         status = engine.getHandshakeStatus();
+        System.out.println(status);
 
         switch(status)
         {
@@ -223,10 +224,7 @@ public class HTTPChannel
             if (read < 0)
             {
               if (engine.isInboundDone() && engine.isOutboundDone())
-              {
-                buffers.reset();
                 return(true);
-              }
 
               try {engine.closeInbound();}
               catch (Exception e) {;}
@@ -245,7 +243,6 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
-              buffers.reset();
               engine.closeOutbound();
               return(false);
             }
@@ -283,7 +280,6 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
-              buffers.reset();
               engine.closeOutbound();
               return(false);
             }
@@ -357,7 +353,6 @@ public class HTTPChannel
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    buffers.reset();
     if (result == null) return(true);
     return(result.getStatus() == SSLEngineResult.Status.OK);
   }

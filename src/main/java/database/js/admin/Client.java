@@ -60,5 +60,6 @@ public class Client
   public void connect() throws Exception
   {
     this.socket = (SSLSocket) pki.getSSLContext().getSocketFactory().createSocket(host,port);
+    this.socket.setNeedClientAuth(true);
   }
 }

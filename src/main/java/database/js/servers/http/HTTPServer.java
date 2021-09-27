@@ -149,8 +149,6 @@ public class HTTPServer extends Thread
             HTTPChannel hcl = new HTTPChannel(config,buffers,sac,ssl,admin);
             boolean accept = hcl.accept();
             
-            System.out.println("Accept "+accept);
-
             if (accept)
             {
               sac.register(selector,SelectionKey.OP_READ,hcl);
