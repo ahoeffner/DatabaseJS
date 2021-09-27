@@ -218,7 +218,6 @@ public class Server extends Thread implements Listener
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);
-          System.out.println(servers[0]+" "+servers[1]);
 
           // Signal other servers to shutdown
           for (short i = 0; i < servers[0] + servers[1]; i++)

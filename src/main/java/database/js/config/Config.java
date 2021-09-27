@@ -116,8 +116,12 @@ public class Config
     int extnds = topology.extnds();
     String extsize = topology.extsize();
     
-    short processes = 4;
+    short http = 1;
+    if (topology.hotstandby()) http++;
+
+    
     short statesize = Statistics.reclen;
+    short processes = (short) (topology.servers() + http);
     
     Broker.logger(this.getLogger().logger);
     this.config = IPC.getConfig(Paths.ipcdir,processes,extnds,extsize,statesize);

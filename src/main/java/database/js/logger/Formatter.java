@@ -32,7 +32,7 @@ public class Formatter extends java.util.logging.Formatter
     
     String message = ": "+record.getMessage();
     String level = String.format("%-7s",record.getLevel().toString());
-    String source = String.format("%-35s",record.getSourceClassName()+"."+record.getSourceMethodName());
+    String source = String.format("%-45s",record.getSourceClassName()+"."+record.getSourceMethodName());
     
     StringBuffer entry = new StringBuffer();
     boolean exception = (record.getThrown() != null);
