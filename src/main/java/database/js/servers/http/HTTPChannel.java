@@ -266,13 +266,11 @@ public class HTTPChannel
               case CLOSED:
                 if (engine.isOutboundDone())
                   engine.closeOutbound();
-
                 break;
 
               default:
                 throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
             }
-
             break;
 
           case NEED_WRAP:
@@ -297,7 +295,6 @@ public class HTTPChannel
 
                 while(buffers.myNetData.hasRemaining())
                   channel.write(buffers.myNetData);
-
                 break;
 
               case BUFFER_OVERFLOW:
@@ -322,13 +319,11 @@ public class HTTPChannel
                 {
                   logger.warning("Failed to send server's CLOSE message");
                 }
-
                 break;
 
               default:
                 throw new IllegalStateException("Invalid SSL status: " + result.getStatus());
             }
-
             break;
 
           case NEED_TASK:
@@ -339,12 +334,15 @@ public class HTTPChannel
               worker.submit(task);
               task = engine.getDelegatedTask();
             }
-
             break;
 
           case FINISHED:
+            cont = false;
+            break;
+
           case NOT_HANDSHAKING:
             cont = false;
+            logger.warning("SSL not handshaking");
             break;
 
           default:
@@ -371,7 +369,7 @@ public class HTTPChannel
     String errm = e.getMessage();
     if (errm == null) errm = "An unknown error has occured";
     if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
-    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);      
+    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);  
   }
 
 

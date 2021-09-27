@@ -14,7 +14,9 @@ package database.js.control;
 
 public interface ILauncher
 {
+  void log(Exception e);
   void stop() throws Exception;
   void start() throws Exception;
   void status() throws Exception;
+  void setConfig() throws Exception;
 }

@@ -14,10 +14,11 @@ package database.js.control;
 
 import java.io.File;
 import org.json.JSONTokener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import database.js.admin.Client;
 import database.js.config.Paths;
 import database.js.config.Config;
-import database.js.handlers.Handler;
 
 
 /**
@@ -30,6 +31,8 @@ import database.js.handlers.Handler;
  */
 public class Launcher implements ILauncher
 {
+  private Config config = null;
+  private Logger logger = null;
   private final static String psep = System.getProperty("path.separator");
 
 
@@ -60,12 +63,22 @@ public class Launcher implements ILauncher
     if (launcher == null)
       launcher = new Launcher();
 
-    switch(cmd)
+    try
     {
-      case "stop": launcher.stop();  break;
-      case "start": launcher.start();  break;
+      launcher.setConfig();
+      
+      switch(cmd)
+      {
+        case "stop": launcher.stop();  break;
+        case "start": launcher.start();  break;
 
-      default: usage();
+        default: usage();
+      }
+    }
+    catch (Exception e)
+    {
+      launcher.log(e);
+      throw e;
     }
   }
 
@@ -75,13 +88,18 @@ public class Launcher implements ILauncher
     System.out.println("usage database.js start|stop|status");
     System.exit(-1);
   }
+  
+  
+  public void setConfig() throws Exception
+  {
+    this.config = new Config();
+    config.getLogger().openControlLog();
+    this.logger = config.getLogger().control;
+  }
 
 
   public void stop() throws Exception
   {
-    Config config = new Config();
-    config.getLogger().openControlLog();
-    
     int admin = config.getPorts()[2];
     Client client = new Client("localhost",admin);
     
@@ -92,9 +110,6 @@ public class Launcher implements ILauncher
 
   public void start() throws Exception
   {
-    Config config = new Config();
-    config.getLogger().openControlLog();
-    
     config.getJava().exe();
     Process process = new Process(config);
     process.start(Process.Type.http,0);
@@ -103,7 +118,13 @@ public class Launcher implements ILauncher
 
   public void status() throws Exception
   {
-    Config config = new Config();
+  }
+  
+  
+  public void log(Exception e)
+  {
+    if (logger != null)
+      logger.log(Level.SEVERE,e.getMessage(),e);
   }
 
 
@@ -124,7 +145,7 @@ public class Launcher implements ILauncher
     try
     {
       // Doesn't work with java 1.8
-      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
+      Loader loader = new Loader(ILauncher.class, Paths.class);
 
       String path = Paths.libdir+File.separator+"json";
       String classpath = (String) System.getProperties().get("java.class.path");
