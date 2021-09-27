@@ -44,6 +44,10 @@ public class HTTPResponse
   void finish()
   {
     finished = true;
+
+    if (body == null) 
+      body = new byte[0];
+
     add("Content-Length",body.length);
     if (this.response == null) setResponse(200);
   }

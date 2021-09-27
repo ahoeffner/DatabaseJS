@@ -18,10 +18,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import javax.net.ssl.SSLEngineResult;
-import java.util.concurrent.Executors;
 import database.js.security.PKIContext;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ExecutorService;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 
@@ -32,7 +30,6 @@ public class HTTPChannel
   private final SSLEngine engine;
   private final HTTPBuffers buffers;
   private final SocketChannel channel;
-  private final ExecutorService worker;
 
 
   public HTTPChannel(Config config, HTTPBuffers buffers, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
@@ -44,7 +41,6 @@ public class HTTPChannel
     if (!ssl)
     {
       this.engine = null;
-      this.worker = null;
       this.buffers.nossl();
     }
     else
@@ -56,7 +52,6 @@ public class HTTPChannel
       this.engine.setNeedClientAuth(twoway);
 
       this.buffers.setSize(appsize(),packsize());
-      this.worker = Executors.newSingleThreadExecutor();
     }
 
     this.logger = config.getLogger().logger;
@@ -328,7 +323,7 @@ public class HTTPChannel
 
             while(task != null)
             {
-              worker.submit(task);
+              task.run();
               task = engine.getDelegatedTask();
             }
             break;
@@ -339,7 +334,6 @@ public class HTTPChannel
 
           case NOT_HANDSHAKING:
             cont = false;
-            logger.warning("SSL not handshaking");
             break;
 
           default:

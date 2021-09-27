@@ -22,6 +22,7 @@ import database.js.config.Config;
 import database.js.config.Topology;
 import database.js.cluster.Cluster;
 import static database.js.config.Config.*;
+import database.js.pools.ThreadPool;
 import database.js.servers.http.HTTPServer;
 import database.js.servers.http.HTTPServerType;
 
@@ -275,6 +276,8 @@ public class Server extends Thread implements Listener
       }
     }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
+    
+    ThreadPool.shutdown();
     logger.info("Server stopped");
   }
 }

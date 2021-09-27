@@ -26,8 +26,10 @@ public class Statistics
 {
   private short id;
   private long pid;
+  
   private long updated;
   private long started;
+  
   private long totmem;
   private long usedmem;
   
@@ -55,7 +57,8 @@ public class Statistics
     try
     {
       Broker broker = server.broker();
-      String name = ""+(broker.id()+1);
+
+      String name = ""+broker.id();
       Resource stat = broker.getResource(name);
       ByteBuffer data = ByteBuffer.allocate(reclen);
       Statistics stats = new Statistics().init(server.broker());
@@ -87,7 +90,7 @@ public class Statistics
       
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
-        String name = ""+(i+1);
+        String name = ""+i;
         Statistics stats = new Statistics();
         Guest guest = new Guest(config.getIPConfig());
         ByteBuffer data = ByteBuffer.wrap(guest.getResource(name));

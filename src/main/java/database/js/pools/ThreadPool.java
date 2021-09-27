@@ -22,6 +22,13 @@ public class ThreadPool
   }
   
   
+  public static void shutdown()
+  {
+    if (workers != null)
+      workers.shutdown();
+  }
+  
+  
   public void submit(Runnable task)
   {
     workers.submit(task);
