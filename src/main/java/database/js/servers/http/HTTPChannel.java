@@ -196,7 +196,6 @@ public class HTTPChannel
   private boolean sslaccept()
   {
     int read;
-    int tries = 0;
     boolean cont = true;
 
     SSLEngineResult result = null;
@@ -211,9 +210,6 @@ public class HTTPChannel
       while(cont)
       {
         status = engine.getHandshakeStatus();
-        
-        if (++tries == 256) 
-          throw new Exception("SSLEngine looping");
 
         switch(status)
         {

@@ -218,6 +218,7 @@ public class Server extends Thread implements Listener
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);
+          System.out.println(servers[0]+" "+servers[1]);
 
           // Signal other servers to shutdown
           for (short i = 0; i < servers[0] + servers[1]; i++)
@@ -227,10 +228,10 @@ public class Server extends Thread implements Listener
           int down = Cluster.notRunning(config).size();
           
           // Wait for other servers to shutdown
-          while(down == servers[0] + servers[1] - 1)
+          while(servers[0] + servers[1] - down > 1)
           {
             if (++tries == 256) 
-              throw new Exception("Unable to shutdown servers");
+              throw new Exception("Unable to shutdown servers "+(servers[0] + servers[1])+" down "+down);
             
             Thread.sleep(config.getIPConfig().heartbeat);
             down = Cluster.notRunning(config).size();
