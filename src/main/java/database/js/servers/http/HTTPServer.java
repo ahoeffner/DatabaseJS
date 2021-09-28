@@ -29,6 +29,7 @@ import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class HTTPServer extends Thread
@@ -45,6 +46,9 @@ public class HTTPServer extends Thread
   private final boolean redirect;
   private final ThreadPool workers;
   private final HTTPServerType type;
+
+  private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
+    new ConcurrentHashMap<SelectionKey,HTTPRequest>();
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -76,6 +80,12 @@ public class HTTPServer extends Thread
   {
     return(server);
   }
+  
+  
+  public Logger logger()
+  {
+    return(logger);
+  }
 
 
   public Config config()
@@ -102,6 +112,18 @@ public class HTTPServer extends Thread
   }
 
 
+  public HTTPRequest getIncomplete(SelectionKey key)
+  {
+    return(incomplete.remove(key));
+  }
+  
+  
+  public void setIncomplete(SelectionKey key, HTTPRequest request)
+  {
+    incomplete.put(key,request);
+  }
+
+
   public void run()
   {
     if (port <= 0)
@@ -109,9 +131,6 @@ public class HTTPServer extends Thread
 
     HTTPBuffers buffers = new HTTPBuffers();
     logger.info("Starting HTTPServer("+type+")");
-
-    HashMap<SelectionKey,HTTPRequest> incomplete =
-      new HashMap<SelectionKey,HTTPRequest>();
 
     try
     {
@@ -134,26 +153,26 @@ public class HTTPServer extends Thread
         Iterator<SelectionKey> iterator = selected.iterator();
 
         if (++requests % 64 == 0 && incomplete.size() > 0)
-          cleanout(incomplete);
+          cleanout();
 
         while(iterator.hasNext())
         {
           SelectionKey key = iterator.next();
           iterator.remove();
-
+          
           if (key.isAcceptable())
           {
-            SocketChannel sac = server.accept();
-            sac.configureBlocking(false);
-
-            HTTPChannel hcl = new HTTPChannel(config,buffers,sac,ssl,admin);
-            boolean accept = hcl.accept();
+            SocketChannel sch = server.accept();
+            sch.configureBlocking(false);
+            
+            HTTPChannel helper = new HTTPChannel(config,buffers,sch,ssl,admin);
+            boolean accept = helper.accept();
             
             if (accept)
             {
               buffers.done();
-              sac.register(selector,SelectionKey.OP_READ,hcl);
-              logger.fine("Connection Accepted: "+sac.getLocalAddress());
+              sch.register(selector,SelectionKey.OP_READ,helper);
+              logger.fine("Connection Accepted: "+sch.getLocalAddress());
             }
           }
 
@@ -161,14 +180,14 @@ public class HTTPServer extends Thread
           {
             try
             {
-              HTTPChannel hcl = (HTTPChannel) key.attachment();
-              SocketChannel req = (SocketChannel) key.channel();
+              SocketChannel sch = (SocketChannel) key.channel();
+              HTTPChannel helper = (HTTPChannel) key.attachment();
 
-              ByteBuffer buf = hcl.read();
+              ByteBuffer buf = helper.read();
 
               if (buf == null)
               {
-                req.close();
+                sch.close();
                 continue;
               }
 
@@ -177,12 +196,12 @@ public class HTTPServer extends Thread
 
               int read = buf.remaining();
 
-              HTTPRequest request = incomplete.remove(key);
-              if (request == null) request = new HTTPRequest(hcl);
+              HTTPRequest request = getIncomplete(key);
+              if (request == null) request = new HTTPRequest(helper);
 
               if (!request.add(buf.array(),read))
               {
-                incomplete.put(key,request);
+                setIncomplete(key,request);
                 continue;
               }
 
@@ -205,7 +224,7 @@ public class HTTPServer extends Thread
   }
 
 
-  private void cleanout(HashMap<SelectionKey,HTTPRequest> incomplete)
+  private void cleanout()
   {
     ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
 

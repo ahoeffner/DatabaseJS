@@ -30,6 +30,7 @@ public class HTTPChannel
   private final SSLEngine engine;
   private final HTTPBuffers buffers;
   private final SocketChannel channel;
+  private boolean connected = false;
 
 
   public HTTPChannel(Config config, HTTPBuffers buffers, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
@@ -55,6 +56,12 @@ public class HTTPChannel
     }
 
     this.logger = config.getLogger().logger;
+  }
+  
+  
+  public boolean connected()
+  {
+    return(connected);
   }
 
 
@@ -189,7 +196,8 @@ public class HTTPChannel
 
   private boolean plainaccept()
   {
-    return(true);
+    this.connected = true;
+    return(this.connected);
   }
 
 
@@ -200,7 +208,7 @@ public class HTTPChannel
 
     SSLEngineResult result = null;
     HandshakeStatus status = null;
-
+    
     buffers.init();
 
     try
@@ -219,7 +227,10 @@ public class HTTPChannel
             if (read < 0)
             {
               if (engine.isInboundDone() && engine.isOutboundDone())
-                return(true);
+              {
+                this.connected = true;
+                return(this.connected);
+              }
 
               try {engine.closeInbound();}
               catch (Exception e) {;}
@@ -239,7 +250,8 @@ public class HTTPChannel
             {
               handle(e);
               engine.closeOutbound();
-              return(false);
+              this.connected = false;
+              return(this.connected);
             }
 
             switch(result.getStatus())
@@ -277,7 +289,8 @@ public class HTTPChannel
             {
               handle(e);
               engine.closeOutbound();
-              return(false);
+              this.connected = false;
+              return(this.connected);
             }
 
             switch(result.getStatus())
@@ -348,8 +361,14 @@ public class HTTPChannel
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    if (result == null) return(true);
-    return(result.getStatus() == SSLEngineResult.Status.OK);
+    if (result == null)
+    {
+      this.connected = true;
+      return(this.connected);      
+    }
+    
+    this.connected = result.getStatus() == SSLEngineResult.Status.OK;
+    return(this.connected);      
   }
 
 
