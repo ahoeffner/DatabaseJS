@@ -12,13 +12,12 @@
 
 package database.js.config;
 
-import database.js.cluster.Statistics;
-
 import ipc.Broker;
 import java.io.File;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.io.FileInputStream;
+import database.js.cluster.Statistics;
 import database.js.security.PKIContext;
 
 
@@ -263,12 +262,5 @@ public class Config
   private String toppath()
   {
     return(path() + TOPOLOGY + File.separator + topologye + ".json");
-  }
-  
-  
-  public static enum Type
-  {
-    http,
-    rest
   }
 }

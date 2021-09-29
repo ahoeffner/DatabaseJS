@@ -101,7 +101,6 @@ public class Process
   public static enum Type
   {
     http,
-    rest,
-    micro
+    rest
   }
 }

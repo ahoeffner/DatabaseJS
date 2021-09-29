@@ -20,10 +20,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
+import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
-import static database.js.config.Config.*;
 import database.js.servers.http.HTTPServer;
+import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
 
@@ -82,10 +83,10 @@ public class Server extends Thread implements Listener
 
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
-    Config.Type type = Cluster.getType(config,id);
+    Process.Type type = Cluster.getType(config,id);
 
     Broker.logger(logger);
-    boolean master = type == Type.http;
+    boolean master = type == Process.Type.http;
     
     this.heartbeat = config.getIPConfig().heartbeat;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
@@ -95,7 +96,7 @@ public class Server extends Thread implements Listener
     this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
     this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
 
-    if (broker.manager() && type == Type.http) 
+    if (broker.manager() && type == Process.Type.http) 
       startup();
 
     this.start();
@@ -119,7 +120,13 @@ public class Server extends Thread implements Listener
       {
         if (!stop && broker.secretary())
         {
+          Process process = new Process(config);
           logger.info("Starting all instances");
+          
+          ArrayList<ServerType> servers = Cluster.notRunning(config);
+          
+          for(ServerType server : servers)
+            process.start(server.type,server.id);
         }        
       }
     }
@@ -195,6 +202,7 @@ public class Server extends Thread implements Listener
       int pos = 3;
       byte[] msg = message.body();
       String adm = new String(msg,0,pos);
+      logger.info("message received");
       
       if (adm.equals("ADM"))
       {
@@ -218,6 +226,7 @@ public class Server extends Thread implements Listener
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);
+          logger.info("Broadcasting shutdown");
 
           // Signal other servers to shutdown
           for (short i = 0; i < servers[0] + servers[1]; i++)
@@ -242,6 +251,8 @@ public class Server extends Thread implements Listener
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
     }
+
+    logger.info("Shutting down");
     
     synchronized(this)
     {
@@ -255,6 +266,7 @@ public class Server extends Thread implements Listener
   {
     try
     {
+      logger.info("Shutdown received id="+broker.id()+" Secretary="+broker.getSecretary());
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       broker.send(broker.getSecretary(),msg);
     }

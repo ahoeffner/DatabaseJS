@@ -16,14 +16,15 @@ import ipc.Guest;
 import java.util.ArrayList;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.control.Process;
 
 
 public class Cluster
 {
-  public static Config.Type getType(Config config, short id) throws Exception
+  public static Process.Type getType(Config config, short id) throws Exception
   {  
     Short[] servers = getServers(config);
-    return(id < servers[0] ? Config.Type.http : Config.Type.rest);
+    return(id < servers[0] ? Process.Type.http : Process.Type.rest);
   }
   
   
@@ -52,14 +53,14 @@ public class Cluster
     for (short i = 0; i < servers[0]; i++)
     {
       if (!isRunning(config,i))
-        down.add(new ServerType(Config.Type.http,i));
+        down.add(new ServerType(Process.Type.http,i));
     }
     
     for (short i = 0; i < servers[1]; i++)
     {
       int id = i + servers[0];
       if (!isRunning(config,(short) id))
-        down.add(new ServerType(Config.Type.rest,i));
+        down.add(new ServerType(Process.Type.rest,i));
     }
 
     return(down);
@@ -89,9 +90,9 @@ public class Cluster
   public static class ServerType
   {
     public final short id;
-    public final Config.Type type;
+    public final Process.Type type;
     
-    ServerType(Config.Type type, short id)
+    ServerType(Process.Type type, short id)
     {
       this.id = id;
       this.type = type;

@@ -68,7 +68,7 @@ public class Statistics
       data.putLong(stats.updated);
       data.putLong(stats.totmem);
       data.putLong(stats.usedmem);
-      
+            
       if (!stat.owner()) 
         stat.acquire();
       

@@ -83,7 +83,7 @@ public class Paths
       
       File test = new File(conf);
       if (test.exists()) break;
-      path = path.substring(0,path.lastIndexOf(File.separator));
+      path = path.substring(0,path.lastIndexOf(sep));
     }
     
     return(path);
