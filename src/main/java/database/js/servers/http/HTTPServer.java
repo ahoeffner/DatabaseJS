@@ -204,12 +204,14 @@ public class HTTPServer extends Thread
             
             if (ssl)
             {
+              // Don't block while handshaking
               SSLHandshake ses = new SSLHandshake(this,key,sch,admin);
               queue.register(ses);
               workers.submit(ses);
             }
             else
             {
+              // Overkill to use threadpool
               HTTPChannel helper = new HTTPChannel(config,buffers,sch,ssl,admin);
               boolean accept = helper.accept();
               
