@@ -26,11 +26,11 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 public class HTTPChannel
 {
   private final boolean ssl;
+  private boolean connected;
   private final Logger logger;
   private final SSLEngine engine;
   private final HTTPBuffers buffers;
   private final SocketChannel channel;
-  private boolean connected = false;
 
 
   public HTTPChannel(Config config, HTTPBuffers buffers, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
@@ -38,6 +38,7 @@ public class HTTPChannel
     this.ssl = ssl;
     this.buffers = buffers;
     this.channel = channel;
+    this.connected = false;
 
     if (!ssl)
     {
@@ -86,35 +87,42 @@ public class HTTPChannel
 
   private ByteBuffer readssl() throws Exception
   {
-    buffers.sslb.clear();
-
-    int read = channel.read(buffers.sslb);
-    if (read < 0) return(null);
-
-    buffers.sslb.flip();
-    while(buffers.sslb.hasRemaining())
+    try
     {
-      buffers.data.clear();
-      SSLEngineResult result = engine.unwrap(buffers.sslb,buffers.data);
+      buffers.sslb.clear();
 
-      switch(result.getStatus())
+      int read = channel.read(buffers.sslb);
+      if (read < 0) return(null);
+
+      buffers.sslb.flip();
+      while(buffers.sslb.hasRemaining())
       {
-        case OK:
-          buffers.data.flip();
-          break;
+        buffers.data.clear();
+        SSLEngineResult result = engine.unwrap(buffers.sslb,buffers.data);
 
-        case BUFFER_OVERFLOW:
-          buffers.data = enlarge(buffers.data,appsize());
-          break;
+        switch(result.getStatus())
+        {
+          case OK:
+            buffers.data.flip();
+            break;
 
-        case BUFFER_UNDERFLOW:
-          if (buffers.sslb.limit() < packsize())
-            buffers.sslb = enlarge(buffers.sslb,packsize());
-          break;
+          case BUFFER_OVERFLOW:
+            buffers.data = enlarge(buffers.data,appsize());
+            break;
 
-        case CLOSED:
-          return(null);
+          case BUFFER_UNDERFLOW:
+            if (buffers.sslb.limit() < packsize())
+              buffers.sslb = enlarge(buffers.sslb,packsize());
+            break;
+
+          case CLOSED:
+            return(null);
+        }
       }
+    }
+    catch (Exception e)
+    {
+      handle(e);
     }
 
     return(buffers.data);

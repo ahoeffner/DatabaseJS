@@ -15,7 +15,6 @@ package database.js.servers.http;
 import ipc.Broker;
 import java.util.Set;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
@@ -44,8 +43,10 @@ public class HTTPServer extends Thread
   private final boolean admin;
   private final boolean embedded;
   private final boolean redirect;
+  private final Selector selector;
   private final ThreadPool workers;
   private final HTTPServerType type;
+  private final SSLHandshakeQueue queue;
 
   private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
     new ConcurrentHashMap<SelectionKey,HTTPRequest>();
@@ -59,6 +60,7 @@ public class HTTPServer extends Thread
     this.embedded = embedded;
     this.broker = server.broker();
     this.config = server.config();
+    this.selector = Selector.open();
     this.logger = config.getLogger().http;
     this.threads = config.getTopology().threads();
 
@@ -73,6 +75,9 @@ public class HTTPServer extends Thread
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
+    
+    if (!ssl) queue = null;
+    else      queue = new SSLHandshakeQueue();
   }
   
   
@@ -112,15 +117,50 @@ public class HTTPServer extends Thread
   }
 
 
-  public HTTPRequest getIncomplete(SelectionKey key)
+  HTTPRequest getIncomplete(SelectionKey key)
   {
     return(incomplete.remove(key));
   }
   
   
-  public void setIncomplete(SelectionKey key, HTTPRequest request)
+  void setIncomplete(SelectionKey key, HTTPRequest request)
   {
     incomplete.put(key,request);
+  }
+  
+  
+  SSLHandshakeQueue queue()
+  {
+    return(queue);
+  }
+  
+  
+  private int select() throws Exception
+  {
+    int ready = 0;
+
+    if (queue == null)
+      return(selector.select());
+    
+    while(ready == 0)
+    {
+      if (!queue.isWaiting()) ready = selector.select();
+      else                    ready = selector.select(5);
+      
+      while(queue.next())
+      {
+        SSLHandshake hndshk = queue.getSession();
+
+        HTTPChannel helper = hndshk.helper();
+        SocketChannel channel = hndshk.channel();
+
+        selector.wakeup();
+        channel.register(selector,SelectionKey.OP_READ,helper);
+        logger.fine("Connection Accepted: "+channel.getLocalAddress());
+      }
+    }
+    
+    return(ready);
   }
 
 
@@ -135,18 +175,15 @@ public class HTTPServer extends Thread
     try
     {
       int requests = 0;
-      Selector selector = Selector.open();
-
       ServerSocketChannel server = ServerSocketChannel.open();
 
       server.configureBlocking(false);
       server.bind(new InetSocketAddress(port));
-
       server.register(selector,SelectionKey.OP_ACCEPT);
 
       while(true)
       {
-        if (selector.select() <= 0)
+        if (select() <= 0)
           continue;
 
         Set<SelectionKey> selected = selector.selectedKeys();
@@ -165,15 +202,24 @@ public class HTTPServer extends Thread
             SocketChannel sch = server.accept();
             sch.configureBlocking(false);
             
-            HTTPChannel helper = new HTTPChannel(config,buffers,sch,ssl,admin);
-            boolean accept = helper.accept();
-            
-            if (accept)
+            if (ssl)
             {
-              buffers.done();
-              sch.register(selector,SelectionKey.OP_READ,helper);
-              logger.fine("Connection Accepted: "+sch.getLocalAddress());
+              SSLHandshake ses = new SSLHandshake(this,key,sch,admin);
+              queue.register(ses);
+              workers.submit(ses);
             }
+            else
+            {
+              HTTPChannel helper = new HTTPChannel(config,buffers,sch,ssl,admin);
+              boolean accept = helper.accept();
+              
+              if (accept)
+              {
+                buffers.done();
+                sch.register(selector,SelectionKey.OP_READ,helper);
+                logger.fine("Connection Accepted: "+sch.getLocalAddress());
+              }
+            }            
           }
 
           else if (key.isReadable())
