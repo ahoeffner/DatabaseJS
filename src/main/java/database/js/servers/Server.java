@@ -209,7 +209,7 @@ public class Server extends Thread implements Listener
         while(msg[pos] != '\r' && msg[pos+1] != '\n') 
             pos++;
           
-        cmd = new String(msg,0,pos);
+        cmd = new String(msg,0,pos+2);
         
         if (cmd.startsWith("ADM /shutdown"))
         {
