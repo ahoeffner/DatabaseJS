@@ -199,27 +199,27 @@ public class HTTPServer extends Thread
           
           if (key.isAcceptable())
           {
-            SocketChannel sch = server.accept();
-            sch.configureBlocking(false);
+            SocketChannel channel = server.accept();
+            channel.configureBlocking(false);
             
             if (ssl)
             {
               // Don't block while handshaking
-              SSLHandshake ses = new SSLHandshake(this,key,sch,admin);
+              SSLHandshake ses = new SSLHandshake(this,key,channel,admin);
               queue.register(ses);
               workers.submit(ses);
             }
             else
             {
               // Overkill to use threadpool
-              HTTPChannel helper = new HTTPChannel(config,buffers,sch,ssl,admin);
+              HTTPChannel helper = new HTTPChannel(config,channel,ssl,admin);
               boolean accept = helper.accept();
               
               if (accept)
               {
                 buffers.done();
-                sch.register(selector,SelectionKey.OP_READ,helper);
-                logger.fine("Connection Accepted: "+sch.getLocalAddress());
+                channel.register(selector,SelectionKey.OP_READ,helper);
+                logger.fine("Connection Accepted: "+channel.getLocalAddress());
               }
             }            
           }
@@ -228,32 +228,26 @@ public class HTTPServer extends Thread
           {
             try
             {
-              SocketChannel sch = (SocketChannel) key.channel();
               HTTPChannel helper = (HTTPChannel) key.attachment();
+              SocketChannel channel = (SocketChannel) key.channel();
 
               ByteBuffer buf = helper.read();
 
               if (buf == null)
               {
-                sch.close();
+                channel.close();
+                getIncomplete(key);
                 continue;
               }
-
-              if (buf.remaining() == 0)
-                continue;
 
               int read = buf.remaining();
 
-              HTTPRequest request = getIncomplete(key);
-              if (request == null) request = new HTTPRequest(helper);
-
-              if (!request.add(buf.array(),read))
+              if (read > 0)
               {
-                setIncomplete(key,request);
-                continue;
+                HTTPRequest request = getIncomplete(key);
+                if (request == null) request = new HTTPRequest(helper);
+                workers.submit(new HTTPWorker(this,key,request.add(buf.array(),read)));
               }
-
-              workers.submit(new HTTPWorker(this,request));
             }
             catch (Exception e)
             {

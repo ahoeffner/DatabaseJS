@@ -46,8 +46,8 @@ public class HTTPBuffers
     this.send = ByteBuffer.allocate(psize);
     this.recv = ByteBuffer.allocate(psize);
   }
-  
-  
+
+
   public void done()
   {
    this.send = null;

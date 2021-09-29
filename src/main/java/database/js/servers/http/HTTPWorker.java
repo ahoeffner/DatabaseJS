@@ -16,16 +16,20 @@ import database.js.config.Handlers;
 import database.js.handlers.Handler;
 import database.js.handlers.AdminHandler;
 
+import java.nio.channels.SelectionKey;
+
 
 public class HTTPWorker implements Runnable
 {
+  private final SelectionKey key;
   private final Handlers handlers;
   private final HTTPServer server;
   private final HTTPRequest request;
-  
-  
-  public HTTPWorker(HTTPServer server, HTTPRequest request) throws Exception
+
+
+  public HTTPWorker(HTTPServer server, SelectionKey key, HTTPRequest request) throws Exception
   {
+    this.key = key;
     this.server = server;
     this.request = request;
     this.handlers = server.config().getHTTP().handlers();
@@ -35,24 +39,30 @@ public class HTTPWorker implements Runnable
   @Override
   public void run()
   {
-    request.parse();    
-    String path = request.path();
-    String method = request.method();
-    
-    Handler handler = null;
-    boolean admin = server.admin();
-    
     try
     {
+      if (!request.apply())
+      {
+        server.setIncomplete(key,request);
+        return;
+      }
+
+      request.parse();
+      String path = request.path();
+      String method = request.method();
+
+      Handler handler = null;
+      boolean admin = server.admin();
+
       if (!admin) handler = handlers.getHandler(path,method);
       else        handler = new AdminHandler(server.config()).server(server.server());
 
-      HTTPResponse response = handler.handle(request);      
+      HTTPResponse response = handler.handle(request);
       request.respond(response.page());
     }
     catch(Exception e)
     {
       e.printStackTrace();
-    }    
+    }
   }
 }

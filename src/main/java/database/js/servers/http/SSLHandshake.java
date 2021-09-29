@@ -22,15 +22,14 @@ import java.nio.channels.SocketChannel;
 class SSLHandshake extends Thread
 {
   private HTTPChannel helper;
-  private HTTPBuffers buffers;
   private final Config config;
   private final Logger logger;
   private final boolean twoway;
   private final SelectionKey key;
   private final HTTPServer server;
-  private final SocketChannel channel; 
-  
-  
+  private final SocketChannel channel;
+
+
   SSLHandshake(HTTPServer server, SelectionKey key, SocketChannel channel, boolean twoway) throws Exception
   {
     this.key = key;
@@ -40,39 +39,35 @@ class SSLHandshake extends Thread
     this.config = server.config();
     this.logger = server.logger();
   }
-  
-  
+
+
   SelectionKey key()
   {
     return(key);
   }
-  
-  
+
+
   HTTPChannel helper()
   {
     return(helper);
   }
-  
-  
+
+
   SocketChannel channel()
   {
     return(channel);
   }
-  
-  
+
+
   @Override
   public void run()
   {
     try
     {
-      this.buffers = new HTTPBuffers();
-      this.helper = new HTTPChannel(config,buffers,channel,true,twoway);
-      
-      if (this.helper.accept())
-      {
-        buffers.done();
-        server.queue().done(this);
-      }
+      this.helper = new HTTPChannel(config,channel,true,twoway);
+
+      if (this.helper.accept()) server.queue().done(this);
+      else                      server.queue().remove(this);
     }
     catch (Exception e)
     {

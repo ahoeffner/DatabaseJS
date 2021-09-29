@@ -33,12 +33,12 @@ public class HTTPChannel
   private final SocketChannel channel;
 
 
-  public HTTPChannel(Config config, HTTPBuffers buffers, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
+  public HTTPChannel(Config config, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
   {
     this.ssl = ssl;
-    this.buffers = buffers;
     this.channel = channel;
     this.connected = false;
+    this.buffers = new HTTPBuffers();
 
     if (!ssl)
     {
@@ -58,8 +58,14 @@ public class HTTPChannel
 
     this.logger = config.getLogger().logger;
   }
-  
-  
+
+
+  public boolean ssl()
+  {
+    return(ssl);
+  }
+
+
   public boolean connected()
   {
     return(connected);
@@ -216,7 +222,7 @@ public class HTTPChannel
 
     SSLEngineResult result = null;
     HandshakeStatus status = null;
-    
+
     buffers.init();
 
     try
@@ -236,6 +242,7 @@ public class HTTPChannel
             {
               if (engine.isInboundDone() && engine.isOutboundDone())
               {
+                this.buffers.done();
                 this.connected = true;
                 return(this.connected);
               }
@@ -257,6 +264,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
+              this.buffers.done();
               engine.closeOutbound();
               this.connected = false;
               return(this.connected);
@@ -296,6 +304,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
+              this.buffers.done();
               engine.closeOutbound();
               this.connected = false;
               return(this.connected);
@@ -369,14 +378,16 @@ public class HTTPChannel
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
+    this.buffers.done();
+
     if (result == null)
     {
       this.connected = true;
-      return(this.connected);      
+      return(this.connected);
     }
-    
+
     this.connected = result.getStatus() == SSLEngineResult.Status.OK;
-    return(this.connected);      
+    return(this.connected);
   }
 
 
@@ -386,7 +397,7 @@ public class HTTPChannel
     String errm = e.getMessage();
     if (errm == null) errm = "An unknown error has occured";
     if (errm.startsWith("Received fatal alert: certificate_unknown")) skip = true;
-    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);  
+    if (!skip) logger.log(Level.SEVERE,e.getMessage(),e);
   }
 
 
@@ -394,24 +405,24 @@ public class HTTPChannel
   {
     ByteBuffer bufc = buf;
     int left = buf.remaining();
-    
+
     if (left < size)
     {
       buf = ByteBuffer.allocate(buf.position() + size);
       bufc.flip();
       buf.put(bufc);
     }
-    
-    return(buf);
-  }  
 
-  
+    return(buf);
+  }
+
+
   public int packsize()
   {
     return(engine.getSession().getPacketBufferSize());
   }
-  
-  
+
+
   public int appsize()
   {
     return(engine.getSession().getApplicationBufferSize());
