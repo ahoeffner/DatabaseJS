@@ -43,7 +43,7 @@ public class HTTPRequest implements PoolResponse
     new ArrayList<Pair<String,String>>();
 
   private final static String EOL = "\r\n";
-  private long started = System.currentTimeMillis();
+  private long touched = System.currentTimeMillis();
 
 
   HTTPRequest(HTTPChannel channel)
@@ -91,7 +91,7 @@ public class HTTPRequest implements PoolResponse
 
   boolean cancelled()
   {
-    return(System.currentTimeMillis() - started > 30000);
+    return(System.currentTimeMillis() - touched > 30000);
   }
 
 
@@ -154,6 +154,7 @@ public class HTTPRequest implements PoolResponse
   {
     this.chlen = len;
     this.chunk = data;
+    touched = System.currentTimeMillis();
     return(this);
   }
 

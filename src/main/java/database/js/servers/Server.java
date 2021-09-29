@@ -21,8 +21,8 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.config.Topology;
 import database.js.cluster.Cluster;
-import static database.js.config.Config.*;
 import database.js.pools.ThreadPool;
+import static database.js.config.Config.*;
 import database.js.servers.http.HTTPServer;
 import database.js.servers.http.HTTPServerType;
 
