@@ -32,7 +32,8 @@ public class Statistics
   
   private long totmem;
   private long usedmem;
-  
+
+  private static Statistics stats = null;  
   public static final int reclen = 5*Long.BYTES;
   
   
@@ -61,16 +62,18 @@ public class Statistics
       String name = ""+broker.id();
       Resource stat = broker.getResource(name);
       ByteBuffer data = ByteBuffer.allocate(reclen);
-      Statistics stats = new Statistics().init(server.broker());
+      
+      if (stats == null)
+      {
+        stats = new Statistics().init(server.broker());
+        stat.acquire();        
+      }
       
       data.putLong(stats.pid);
       data.putLong(stats.started);
       data.putLong(stats.updated);
       data.putLong(stats.totmem);
       data.putLong(stats.usedmem);
-            
-      if (!stat.owner()) 
-        stat.acquire();
       
       stat.put(data.array());
     }
