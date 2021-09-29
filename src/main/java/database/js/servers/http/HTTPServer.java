@@ -75,18 +75,18 @@ public class HTTPServer extends Thread
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
-    
+
     if (!ssl) queue = null;
     else      queue = new SSLHandshakeQueue();
   }
-  
-  
+
+
   public Server server()
   {
     return(server);
   }
-  
-  
+
+
   public Logger logger()
   {
     return(logger);
@@ -117,36 +117,42 @@ public class HTTPServer extends Thread
   }
 
 
+  ThreadPool workers()
+  {
+    return(workers);
+  }
+
+
   HTTPRequest getIncomplete(SelectionKey key)
   {
     return(incomplete.remove(key));
   }
-  
-  
+
+
   void setIncomplete(SelectionKey key, HTTPRequest request)
   {
     incomplete.put(key,request);
   }
-  
-  
+
+
   SSLHandshakeQueue queue()
   {
     return(queue);
   }
-  
-  
+
+
   private int select() throws Exception
   {
     int ready = 0;
 
     if (queue == null)
       return(selector.select());
-    
+
     while(ready == 0)
     {
       if (!queue.isWaiting()) ready = selector.select();
       else                    ready = selector.select(5);
-      
+
       while(queue.next())
       {
         SSLHandshake hndshk = queue.getSession();
@@ -159,7 +165,7 @@ public class HTTPServer extends Thread
         logger.fine("Connection Accepted: "+channel.getLocalAddress());
       }
     }
-    
+
     return(ready);
   }
 
@@ -175,6 +181,7 @@ public class HTTPServer extends Thread
     try
     {
       int requests = 0;
+      long lmsg = System.currentTimeMillis();
       ServerSocketChannel server = ServerSocketChannel.open();
 
       server.configureBlocking(false);
@@ -189,19 +196,25 @@ public class HTTPServer extends Thread
         Set<SelectionKey> selected = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selected.iterator();
 
-        if (++requests % 64 == 0 && incomplete.size() > 0)
+        if (++requests % 1024 == 0 && incomplete.size() > 0)
           cleanout();
+
+        if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
+        {
+          lmsg = System.currentTimeMillis();
+          logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
+        }
 
         while(iterator.hasNext())
         {
           SelectionKey key = iterator.next();
           iterator.remove();
-          
+
           if (key.isAcceptable())
           {
             SocketChannel channel = server.accept();
             channel.configureBlocking(false);
-            
+
             if (ssl)
             {
               // Don't block while handshaking
@@ -214,14 +227,14 @@ public class HTTPServer extends Thread
               // Overkill to use threadpool
               HTTPChannel helper = new HTTPChannel(config,channel,ssl,admin);
               boolean accept = helper.accept();
-              
+
               if (accept)
               {
                 buffers.done();
                 channel.register(selector,SelectionKey.OP_READ,helper);
                 logger.fine("Connection Accepted: "+channel.getLocalAddress());
               }
-            }            
+            }
           }
 
           else if (key.isReadable())
@@ -251,6 +264,11 @@ public class HTTPServer extends Thread
             }
             catch (Exception e)
             {
+              HTTPRequest request = getIncomplete(key);
+
+              if (request != null)
+                logger.severe("Could not read from socket trying to complete request");
+
               logger.log(Level.SEVERE,e.getMessage(),e);
             }
           }

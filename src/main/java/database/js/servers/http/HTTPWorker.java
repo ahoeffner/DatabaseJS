@@ -59,6 +59,8 @@ public class HTTPWorker implements Runnable
 
       HTTPResponse response = handler.handle(request);
       request.respond(response.page());
+      
+      server.workers().done();
     }
     catch(Exception e)
     {
