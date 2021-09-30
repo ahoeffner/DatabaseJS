@@ -17,27 +17,39 @@ import javax.net.ssl.SSLEngine;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.pools.ThreadPool;
+import database.js.servers.Server;
 import javax.net.ssl.SSLEngineResult;
 import database.js.security.PKIContext;
 import java.nio.channels.SocketChannel;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 
-public class HTTPChannel
+class HTTPChannel
 {
-  private final boolean ssl;
   private boolean connected;
+
+  private final boolean ssl;
+  private final boolean admin;
+  
+  private final Server server;
+  private final Config config;
   private final Logger logger;
   private final SSLEngine engine;
+  private final ThreadPool workers;
   private final HTTPBuffers buffers;
   private final SocketChannel channel;
 
 
-  public HTTPChannel(Config config, SocketChannel channel, boolean ssl, boolean twoway) throws Exception
+  HTTPChannel(Server server, ThreadPool workers, SocketChannel channel, boolean ssl, boolean admin) throws Exception
   {
     this.ssl = ssl;
+    this.admin = admin;
+    this.server = server;
+    this.workers = workers;
     this.channel = channel;
     this.connected = false;
+    this.config = server.config();
     this.buffers = new HTTPBuffers();
 
     if (!ssl)
@@ -51,7 +63,7 @@ public class HTTPChannel
       this.engine = pki.getSSLContext().createSSLEngine();
 
       this.engine.setUseClientMode(false);
-      this.engine.setNeedClientAuth(twoway);
+      this.engine.setNeedClientAuth(admin);
 
       this.buffers.setSize(appsize(),packsize());
     }
@@ -60,19 +72,49 @@ public class HTTPChannel
   }
 
 
-  public boolean ssl()
+  boolean ssl()
   {
     return(ssl);
   }
 
 
-  public boolean connected()
+  boolean admin()
+  {
+    return(admin);
+  }
+  
+  
+  Server server()
+  {
+    return(server);
+  }
+  
+  
+  Config config()
+  {
+    return(config);
+  }
+  
+  
+  ThreadPool workers()
+  {
+    return(workers);
+  }
+  
+  
+  SocketChannel channel()
+  {
+    return(channel);  
+  }
+
+
+  boolean connected()
   {
     return(connected);
   }
 
 
-  public ByteBuffer read() throws Exception
+  ByteBuffer read() throws Exception
   {
     if (ssl) return(readssl());
     else     return(readplain());
@@ -135,7 +177,7 @@ public class HTTPChannel
   }
 
 
-  public void write(byte[] data) throws Exception
+  void write(byte[] data) throws Exception
   {
     int wrote = 0;
     int max = buffers.data.limit();
@@ -201,7 +243,7 @@ public class HTTPChannel
   }
 
 
-  public boolean accept()
+  boolean accept()
   {
     if (ssl) return(sslaccept());
     else     return(plainaccept());
@@ -417,13 +459,13 @@ public class HTTPChannel
   }
 
 
-  public int packsize()
+  private int packsize()
   {
     return(engine.getSession().getPacketBufferSize());
   }
 
 
-  public int appsize()
+  private int appsize()
   {
     return(engine.getSession().getApplicationBufferSize());
   }

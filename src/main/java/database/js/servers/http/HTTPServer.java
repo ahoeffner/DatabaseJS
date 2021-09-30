@@ -14,10 +14,7 @@ package database.js.servers.http;
 
 import ipc.Broker;
 import java.util.Set;
-import java.util.Map;
 import java.util.Iterator;
-import java.util.ArrayList;
-import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -28,7 +25,6 @@ import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.ServerSocketChannel;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class HTTPServer extends Thread
@@ -46,10 +42,7 @@ public class HTTPServer extends Thread
   private final Selector selector;
   private final ThreadPool workers;
   private final HTTPServerType type;
-  private final SSLHandshakeQueue queue;
-
-  private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
-    new ConcurrentHashMap<SelectionKey,HTTPRequest>();
+  private final HTTPWaiter[] waiters;
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -63,6 +56,8 @@ public class HTTPServer extends Thread
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
     this.threads = config.getTopology().threads();
+    
+    this.waiters = new HTTPWaiter[] {new HTTPWaiter(server,0,embedded)};
 
     switch(type)
     {
@@ -75,43 +70,34 @@ public class HTTPServer extends Thread
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(threads);
-
-    if (!ssl) queue = null;
-    else      queue = new SSLHandshakeQueue(selector);
   }
 
 
-  public Server server()
+  Server server()
   {
     return(server);
   }
 
 
-  public Logger logger()
+  Logger logger()
   {
     return(logger);
   }
 
 
-  public Config config()
+  Config config()
   {
     return(config);
   }
 
 
-  public Broker broker()
-  {
-    return(broker);
-  }
-
-
-  public boolean admin()
+  boolean admin()
   {
     return(type == HTTPServerType.admin);
   }
 
 
-  public boolean embedded()
+  boolean embedded()
   {
     return(embedded);
   }
@@ -121,55 +107,22 @@ public class HTTPServer extends Thread
   {
     return(workers);
   }
+  
 
-
-  HTTPRequest getIncomplete(SelectionKey key)
+  // Assign a waiter for the client  
+  void assign(SelectionKey key, HTTPChannel client)
   {
-    return(incomplete.remove(key));
+    key.cancel();
+    HTTPWaiter waiter = waiters[0];    
+    try {waiter.addClient(client);}
+    catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }
 
 
-  void setIncomplete(SelectionKey key, HTTPRequest request)
+  private void select() throws Exception
   {
-    incomplete.put(key,request);
-  }
-
-
-  SSLHandshakeQueue queue()
-  {
-    return(queue);
-  }
-
-
-  private int select() throws Exception
-  {
-    int ready = 0;
-
-    if (queue == null)
-      return(selector.select());
-
-    while(ready == 0)
-    {
-      //if (!queue.isWaiting()) ready = selector.select();
-      //else                    ready = selector.select(5);
-
-      ready = selector.select();
-      System.out.println("running "+ready);
-
-      while(queue.next())
-      {
-        SSLHandshake hndshk = queue.getSession();
-
-        HTTPChannel helper = hndshk.helper();
-        SocketChannel channel = hndshk.channel();
-
-        //selector.wakeup();
-        channel.register(selector,SelectionKey.OP_READ,helper);
-        logger.fine("Connection Accepted: "+channel.getLocalAddress());
-      }
-    }
-
-    return(ready);
+    while(selector.select() == 0)
+      logger.warning("selector woke up empty handed");
   }
 
 
@@ -178,13 +131,10 @@ public class HTTPServer extends Thread
     if (port <= 0)
       return;
 
-    HTTPBuffers buffers = new HTTPBuffers();
     logger.info("Starting HTTPServer("+type+")");
 
     try
     {
-      int requests = 0;
-      long lmsg = System.currentTimeMillis();
       ServerSocketChannel server = ServerSocketChannel.open();
 
       server.configureBlocking(false);
@@ -193,20 +143,10 @@ public class HTTPServer extends Thread
 
       while(true)
       {
-        if (select() <= 0)
-          continue;
+        select();
 
         Set<SelectionKey> selected = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selected.iterator();
-
-        if (++requests % 1024 == 0 && incomplete.size() > 0)
-          cleanout();
-
-        if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
-        {
-          lmsg = System.currentTimeMillis();
-          logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
-        }
 
         while(iterator.hasNext())
         {
@@ -222,58 +162,19 @@ public class HTTPServer extends Thread
             {
               // Don't block while handshaking
               SSLHandshake ses = new SSLHandshake(this,key,channel,admin);
-              queue.register(ses);
               workers.submit(ses);
             }
             else
             {
               // Overkill to use threadpool
-              HTTPChannel helper = new HTTPChannel(config,channel,ssl,admin);
-              boolean accept = helper.accept();
-
-              if (accept)
-              {
-                buffers.done();
-                channel.register(selector,SelectionKey.OP_READ,helper);
-                logger.fine("Connection Accepted: "+channel.getLocalAddress());
-              }
+              key.cancel();
+              HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
+              if (client.accept()) this.assign(key,client);
             }
           }
-
-          else if (key.isReadable())
+          else
           {
-            try
-            {
-              HTTPChannel helper = (HTTPChannel) key.attachment();
-              SocketChannel channel = (SocketChannel) key.channel();
-
-              ByteBuffer buf = helper.read();
-
-              if (buf == null)
-              {
-                channel.close();
-                getIncomplete(key);
-                continue;
-              }
-
-              int read = buf.remaining();
-
-              if (read > 0)
-              {
-                HTTPRequest request = getIncomplete(key);
-                if (request == null) request = new HTTPRequest(helper);
-                workers.submit(new HTTPWorker(this,key,request.add(buf.array(),read)));
-              }
-            }
-            catch (Exception e)
-            {
-              HTTPRequest request = getIncomplete(key);
-
-              if (request != null)
-                logger.severe("Could not read from socket trying to complete request");
-
-              logger.log(Level.SEVERE,e.getMessage(),e);
-            }
+            logger.warning("Key is not acceptable");
           }
         }
       }
@@ -284,44 +185,5 @@ public class HTTPServer extends Thread
     }
 
     logger.info("HTTPServer("+type+") stopped");
-  }
-
-
-  private void cleanout()
-  {
-    ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
-
-    for(Map.Entry<SelectionKey,HTTPRequest> entry : incomplete.entrySet())
-      if (entry.getValue().cancelled()) cancelled.add(entry.getKey());
-
-    for(SelectionKey key : cancelled)
-    {
-      incomplete.remove(key);
-
-      try
-      {
-        ByteBuffer buf = ByteBuffer.allocate(1024);
-        SocketChannel rsp = (SocketChannel) key.channel();
-        buf.put(err400());
-        buf.position(0);
-        rsp.write(buf);
-        rsp.close();
-      }
-      catch (Exception e) {;}
-    }
-  }
-
-
-  private String EOL = "\r\n";
-
-  private byte[] err400()
-  {
-    String msg = "<b>Bad Request</b>";
-
-    String page = "HTTP/1.1 200 Bad Request" + EOL +
-                  "Content-Type: text/html" + EOL +
-                  "Content-Length: "+msg.length() + EOL + EOL + msg;
-
-    return(page.getBytes());
   }
 }

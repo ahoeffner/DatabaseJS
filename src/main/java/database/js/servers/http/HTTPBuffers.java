@@ -15,7 +15,7 @@ package database.js.servers.http;
 import java.nio.ByteBuffer;
 
 
-public class HTTPBuffers
+class HTTPBuffers
 {
   private int asize = 0;
   private int psize = 0;

@@ -14,20 +14,19 @@ package database.js.servers.http;
 
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
-import database.js.handlers.AdminHandler;
-
 import java.nio.channels.SelectionKey;
+import database.js.handlers.AdminHandler;
 
 
 public class HTTPWorker implements Runnable
 {
   private final SelectionKey key;
   private final Handlers handlers;
-  private final HTTPServer server;
+  private final HTTPChannel server;
   private final HTTPRequest request;
 
 
-  public HTTPWorker(HTTPServer server, SelectionKey key, HTTPRequest request) throws Exception
+  public HTTPWorker(HTTPChannel server, SelectionKey key, HTTPRequest request) throws Exception
   {
     this.key = key;
     this.server = server;
@@ -41,19 +40,13 @@ public class HTTPWorker implements Runnable
   {
     try
     {
-      if (!request.apply())
-      {
-        server.setIncomplete(key,request);
-        return;
-      }
-
       request.parse();
       String path = request.path();
       String method = request.method();
 
       Handler handler = null;
       boolean admin = server.admin();
-
+      
       if (!admin) handler = handlers.getHandler(path,method);
       else        handler = new AdminHandler(server.config()).server(server.server());
 

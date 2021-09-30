@@ -15,47 +15,31 @@ package database.js.servers.http;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.pools.ThreadPool;
+import database.js.servers.Server;
+
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 
 class SSLHandshake extends Thread
 {
-  private HTTPChannel helper;
   private final Config config;
   private final Logger logger;
-  private final boolean twoway;
+  private final boolean admin;
   private final SelectionKey key;
-  private final HTTPServer server;
+  private final HTTPServer httpserv;
   private final SocketChannel channel;
 
 
-  SSLHandshake(HTTPServer server, SelectionKey key, SocketChannel channel, boolean twoway) throws Exception
+  SSLHandshake(HTTPServer httpserv, SelectionKey key, SocketChannel channel, boolean admin) throws Exception
   {
     this.key = key;
-    this.twoway = twoway;
-    this.server = server;
+    this.admin = admin;
     this.channel = channel;
-    this.config = server.config();
-    this.logger = server.logger();
-  }
-
-
-  SelectionKey key()
-  {
-    return(key);
-  }
-
-
-  HTTPChannel helper()
-  {
-    return(helper);
-  }
-
-
-  SocketChannel channel()
-  {
-    return(channel);
+    this.httpserv = httpserv;
+    this.config = httpserv.config();
+    this.logger = httpserv.logger();
   }
 
 
@@ -64,10 +48,12 @@ class SSLHandshake extends Thread
   {
     try
     {
-      this.helper = new HTTPChannel(config,channel,true,twoway);
+      Server server = httpserv.server();
+      ThreadPool workers = httpserv.workers();
+      HTTPChannel client = new HTTPChannel(server,workers,channel,true,admin);
 
-      if (this.helper.accept()) server.queue().done(this);
-      else                      server.queue().remove(this);
+      if (client.accept()) 
+        httpserv.assign(key,client);
     }
     catch (Exception e)
     {

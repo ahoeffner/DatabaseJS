@@ -19,9 +19,6 @@ import database.js.pools.PoolResponse;
 
 public class HTTPRequest implements PoolResponse
 {
-  private int chlen;
-  private byte[] chunk;
-
   private int header = -1;
   private int clength = -1;
 
@@ -150,21 +147,12 @@ public class HTTPRequest implements PoolResponse
   }
 
 
-  HTTPRequest add(byte[] data, int len) throws Exception
-  {
-    this.chlen = len;
-    this.chunk = data;
-    touched = System.currentTimeMillis();
-    return(this);
-  }
-
-
-  boolean apply() throws Exception
+  boolean add(byte[] data, int len) throws Exception
   {
     int last = request.length;
-    byte[] request = new byte[this.request.length+chlen];
+    byte[] request = new byte[this.request.length+len];
 
-    System.arraycopy(chunk,0,request,last,chlen);
+    System.arraycopy(data,0,request,last,len);
     System.arraycopy(this.request,0,request,0,this.request.length);
 
     this.request = request;

@@ -12,16 +12,26 @@
 
 package database.js.servers.http;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import java.nio.channels.Selector;
 import database.js.pools.ThreadPool;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ConcurrentHashMap;
 
 
-public class HTTPWaiter extends Thread
+class HTTPWaiter extends Thread
 {
-  private final int threads;
+  private final int id;
+  private final int wthreads;
   private final Server server;
   private final Config config;
   private final Logger logger;
@@ -29,18 +39,165 @@ public class HTTPWaiter extends Thread
   private final Selector selector;
   private final ThreadPool workers;
   
+  private final ArrayList<HTTPChannel> queue =
+    new ArrayList<HTTPChannel>();
   
-  public HTTPWaiter(Server server, boolean embedded) throws Exception
+  private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
+    new ConcurrentHashMap<SelectionKey,HTTPRequest>();
+
+    
+  HTTPWaiter(Server server, int id, boolean embedded) throws Exception
   {
+    this.id = id;
     this.server = server;
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
-    this.threads = config.getTopology().threads();
+    this.wthreads = config.getTopology().threads();
 
     this.setDaemon(true);
-    this.setName("HTTPWaiter");
-    this.workers = new ThreadPool(threads);
+    this.setName("HTTPWaiter("+id+")");
+    this.workers = new ThreadPool(wthreads);
+    
+    this.start();
+  }
+  
+  
+  void addClient(HTTPChannel client) throws Exception
+  {
+    synchronized(this)
+    {queue.add(client);}
+    selector.wakeup();
+  }
+  
+  
+  private void select() throws Exception
+  {
+    int ready = 0;
+    
+    while(ready == 0)
+    {
+      ready = selector.select();
+      
+      synchronized(this)
+      {
+        for(HTTPChannel client : queue)
+          client.channel().register(selector,SelectionKey.OP_READ,client);                    
+
+        queue.clear();        
+      }
+    }
+  }
+  
+  
+  @Override
+  public void run()
+  {
+    int requests = 0;
+    long lmsg = System.currentTimeMillis();
+
+    try
+    {
+      while(true)
+      {
+        select();      
+        
+        Set<SelectionKey> selected = selector.selectedKeys();
+        Iterator<SelectionKey> iterator = selected.iterator();
+
+        if (++requests % 1024 == 0 && incomplete.size() > 0)
+          cleanout();
+
+        if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
+        {
+          lmsg = System.currentTimeMillis();
+          logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
+        }
+        
+        while(iterator.hasNext())
+        {
+          SelectionKey key = iterator.next();
+          iterator.remove();
+          
+          if (key.isReadable())
+          {
+            HTTPChannel client = (HTTPChannel) key.attachment();
+            SocketChannel channel = (SocketChannel) key.channel();
+
+            ByteBuffer buf = client.read();
+            //channel.register(selector,SelectionKey.OP_READ,client);                    
+
+            if (buf == null)
+            {
+              channel.close();
+              incomplete.remove(key);
+              continue;
+            }
+
+            int read = buf.remaining();
+
+            if (read > 0)
+            {
+              HTTPRequest request = incomplete.remove(key);
+              if (request == null) request = new HTTPRequest(client);
+              
+              if (!request.add(buf.array(),read)) incomplete.put(key,request);
+              else                                workers.submit(new HTTPWorker(client,key,request));
+            }
+
+          }
+          else
+          {
+            logger.warning("Key is not readable");          
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    logger.info("HTTPWaiter("+id+") stopped");
+  }
+
+
+  private void cleanout()
+  {
+    ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
+
+    for(Map.Entry<SelectionKey,HTTPRequest> entry : incomplete.entrySet())
+      if (entry.getValue().cancelled()) cancelled.add(entry.getKey());
+
+    for(SelectionKey key : cancelled)
+    {
+      incomplete.remove(key);
+
+      try
+      {
+        ByteBuffer buf = ByteBuffer.allocate(1024);
+        SocketChannel rsp = (SocketChannel) key.channel();
+        buf.put(err400());
+        buf.position(0);
+        rsp.write(buf);
+        rsp.close();
+      }
+      catch (Exception e) {;}
+    }
+  }
+
+
+  private String EOL = "\r\n";
+
+  private byte[] err400()
+  {
+    String msg = "<b>Bad Request</b>";
+
+    String page = "HTTP/1.1 200 Bad Request" + EOL +
+                  "Content-Type: text/html" + EOL +
+                  "Content-Length: "+msg.length() + EOL + EOL + msg;
+
+    return(page.getBytes());
   }
 }
