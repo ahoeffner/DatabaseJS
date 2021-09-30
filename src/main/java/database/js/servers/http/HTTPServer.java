@@ -112,7 +112,7 @@ public class HTTPServer extends Thread
   // Assign a waiter for the client  
   void assign(SelectionKey key, HTTPChannel client)
   {
-    key.cancel();
+    //key.cancel();
     System.out.println("Assign waiter");
     HTTPWaiter waiter = waiters[0];    
     try {waiter.addClient(client);}
@@ -168,7 +168,6 @@ public class HTTPServer extends Thread
             else
             {
               // Overkill to use threadpool
-              key.cancel();
               HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
               if (client.accept()) this.assign(key,client);
             }
