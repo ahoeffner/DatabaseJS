@@ -14,16 +14,26 @@ package database.js.servers.http;
 
 import java.util.ArrayList;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 
 class SSLHandshakeQueue
 {
+  private final Selector selector;
+  
   private final ArrayList<SSLHandshake> done =
     new ArrayList<SSLHandshake>();
 
   private final ConcurrentHashMap<SelectionKey,SSLHandshake> incomplete =
     new ConcurrentHashMap<SelectionKey,SSLHandshake>();
+  
+  
+  SSLHandshakeQueue(Selector selector)
+  {
+    this.selector = selector;
+  }
 
 
   boolean next()
@@ -54,6 +64,7 @@ class SSLHandshakeQueue
   {
     done.add(ses);
     incomplete.remove(ses.key());
+    selector.wakeup();
   }
 
 

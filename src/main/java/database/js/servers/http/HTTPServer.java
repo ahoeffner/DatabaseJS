@@ -77,7 +77,7 @@ public class HTTPServer extends Thread
     this.workers = new ThreadPool(threads);
 
     if (!ssl) queue = null;
-    else      queue = new SSLHandshakeQueue();
+    else      queue = new SSLHandshakeQueue(selector);
   }
 
 
@@ -150,8 +150,11 @@ public class HTTPServer extends Thread
 
     while(ready == 0)
     {
-      if (!queue.isWaiting()) ready = selector.select();
-      else                    ready = selector.select(5);
+      //if (!queue.isWaiting()) ready = selector.select();
+      //else                    ready = selector.select(5);
+
+      ready = selector.select();
+      System.out.println("running "+ready);
 
       while(queue.next())
       {
@@ -160,7 +163,7 @@ public class HTTPServer extends Thread
         HTTPChannel helper = hndshk.helper();
         SocketChannel channel = hndshk.channel();
 
-        selector.wakeup();
+        //selector.wakeup();
         channel.register(selector,SelectionKey.OP_READ,helper);
         logger.fine("Connection Accepted: "+channel.getLocalAddress());
       }
