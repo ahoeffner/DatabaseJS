@@ -113,6 +113,7 @@ public class HTTPServer extends Thread
   void assign(SelectionKey key, HTTPChannel client)
   {
     key.cancel();
+    System.out.println("Assign waiter");
     HTTPWaiter waiter = waiters[0];    
     try {waiter.addClient(client);}
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
