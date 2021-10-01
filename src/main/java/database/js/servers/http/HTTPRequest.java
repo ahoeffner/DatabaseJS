@@ -147,12 +147,12 @@ public class HTTPRequest implements PoolResponse
   }
 
 
-  boolean add(byte[] data, int len) throws Exception
+  boolean add(byte[] data) throws Exception
   {
     int last = request.length;
-    byte[] request = new byte[this.request.length+len];
+    byte[] request = new byte[this.request.length+data.length];
 
-    System.arraycopy(data,0,request,last,len);
+    System.arraycopy(data,0,request,last,data.length);
     System.arraycopy(this.request,0,request,0,this.request.length);
 
     this.request = request;
