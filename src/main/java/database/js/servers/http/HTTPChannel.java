@@ -456,7 +456,7 @@ class HTTPChannel
 
     if (left < size)
     {
-      buf = ByteBuffer.allocate(buf.position() + size);
+      buf = ByteBuffer.allocateDirect(buf.position() + size);
       bufc.flip();
       buf.put(bufc);
     }

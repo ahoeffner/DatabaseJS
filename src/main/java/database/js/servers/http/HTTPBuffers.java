@@ -29,7 +29,7 @@ class HTTPBuffers
 
   public void nossl()
   {
-    this.data = ByteBuffer.allocate(size);
+    this.data = ByteBuffer.allocateDirect(size);
   }
 
 
@@ -42,9 +42,9 @@ class HTTPBuffers
 
   public void init()
   {
-    this.data = ByteBuffer.allocate(asize);
-    this.send = ByteBuffer.allocate(psize);
-    this.recv = ByteBuffer.allocate(psize);
+    this.data = ByteBuffer.allocateDirect(asize);
+    this.send = ByteBuffer.allocateDirect(psize);
+    this.recv = ByteBuffer.allocateDirect(psize);
   }
 
 
