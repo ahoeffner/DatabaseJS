@@ -53,7 +53,7 @@ class SSLHandshake extends Thread
       HTTPChannel client = new HTTPChannel(server,workers,channel,true,admin);
 
       if (client.accept()) 
-        httpserv.assign(key,client);
+        httpserv.assign(client);
       
       httpserv.workers().done();
     }

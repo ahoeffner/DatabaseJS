@@ -107,10 +107,9 @@ public class HTTPServer extends Thread
   
 
   // Assign a waiter for the client  
-  void assign(SelectionKey key, HTTPChannel client)
+  void assign(HTTPChannel client)
   {
-    HTTPWaiter waiter = waiters.getWaiter();    
-    try {waiter.addClient(client);}
+    try {waiters.getWaiter().addClient(client);}
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }
 
@@ -166,7 +165,7 @@ public class HTTPServer extends Thread
               {
                 // Overkill to use threadpool
                 HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
-                if (client.accept()) this.assign(key,client);
+                if (client.accept()) this.assign(client);
               }
             }
             else
