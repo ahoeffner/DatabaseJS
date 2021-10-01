@@ -213,6 +213,9 @@ public class HTTPRequest implements PoolResponse
 
         if (path.length() > 1 && path.endsWith("/"))
           path = path.substring(0,path.length()-1);
+        
+        if (path.length() == 0)
+          path = "/";
 
         return(path);
       }

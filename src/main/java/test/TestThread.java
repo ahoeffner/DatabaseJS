@@ -1,27 +1,24 @@
 package test;
 
 import java.net.URL;
-import java.io.InputStream;
-import java.net.URLConnection;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.HttpsURLConnection;
 
 
-public class Files extends Thread
+public class TestThread extends Thread
 {
   private long avg;
   private int failed;
   private long elapsed;
   private final int loops;
   private final String url;
+  private final String payload;
   private static final TrustManager[] tmgrs = new TrustManager[] {new FakeTrustManager()};
   
   
-  public static void start(String url, int threads, int loops) throws Exception
+  public static void start(String url, int threads, int loops, String payload) throws Exception
   {
-    Files tests[] = new Files[threads];
-    for (int i = 0; i < tests.length; i++) tests[i] = new Files(loops,url);
+    TestThread tests[] = new TestThread[threads];
+    for (int i = 0; i < tests.length; i++) tests[i] = new TestThread(loops,url,payload);
     
     System.out.println();
     System.out.println("Testing static files interface threads: "+threads+" loops: "+loops+" "+url+" no delay");
@@ -41,10 +38,11 @@ public class Files extends Thread
   }
   
   
-  private Files(int loops, String url)
+  private TestThread(int loops, String url, String payload)
   {
     this.url = url;
     this.loops = loops;
+    this.payload = payload;
   }
   
   
@@ -56,31 +54,17 @@ public class Files extends Thread
     {
       URL url = new URL(this.url);
 
-      if (this.url.startsWith("https"))
-      {
-        SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null,tmgrs, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-      }
-            
+      String path = url.getPath();
+      boolean ssl = this.url.startsWith("https");
+      Session session = new Session(url.getHost(),url.getPort(),ssl);
+
       for (int i = 0; i < loops; i++)
       {
         long req = System.nanoTime();
 
         try
         {
-          
-          URLConnection conn = url.openConnection();
-          int size = conn.getContentLength();
-          InputStream in = conn.getInputStream();
-          byte[] content = new byte[size];
-
-          int read = 0;
-          while (read < content.length) 
-            read += in.read(content);
-          
-          if (read != content.length)
-            throw new Exception("server didn't receive all bytes");
+          session.invoke(path,payload);
         }
         catch (Exception e)
         {

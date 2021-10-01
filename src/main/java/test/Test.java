@@ -31,14 +31,6 @@ public class Test
       payload = new String(buf,0,read);
     }
     
-    if (payload == null)
-    {
-      Files.start(url,threads,loops);
-    }
-    else
-    {
-      System.out.println("Rest");
-      //Rest.start(url,payload,threads,loops);
-    }
+    TestThread.start(url,threads,loops,payload);
   }
 }
