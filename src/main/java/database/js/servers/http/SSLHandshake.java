@@ -54,9 +54,12 @@ class SSLHandshake extends Thread
 
       if (client.accept()) 
         httpserv.assign(key,client);
+      
+      httpserv.workers().done();
     }
     catch (Exception e)
     {
+      httpserv.workers().done();
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }

@@ -144,38 +144,45 @@ public class HTTPServer extends Thread
 
       while(true)
       {
-        select();
-
-        Set<SelectionKey> selected = selector.selectedKeys();
-        Iterator<SelectionKey> iterator = selected.iterator();
-
-        while(iterator.hasNext())
+        try
         {
-          SelectionKey key = iterator.next();
-          iterator.remove();
+          select();
 
-          if (key.isAcceptable())
+          Set<SelectionKey> selected = selector.selectedKeys();
+          Iterator<SelectionKey> iterator = selected.iterator();
+
+          while(iterator.hasNext())
           {
-            SocketChannel channel = server.accept();
-            channel.configureBlocking(false);
+            SelectionKey key = iterator.next();
+            iterator.remove();
 
-            if (ssl)
+            if (key.isAcceptable())
             {
-              // Don't block while handshaking
-              SSLHandshake ses = new SSLHandshake(this,key,channel,admin);
-              workers.submit(ses);
+              SocketChannel channel = server.accept();
+              channel.configureBlocking(false);
+
+              if (ssl)
+              {
+                // Don't block while handshaking
+                SSLHandshake ses = new SSLHandshake(this,key,channel,admin);
+                workers.submit(ses);
+              }
+              else
+              {
+                // Overkill to use threadpool
+                HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
+                if (client.accept()) this.assign(key,client);
+              }
             }
             else
             {
-              // Overkill to use threadpool
-              HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
-              if (client.accept()) this.assign(key,client);
+              logger.warning("Key is not acceptable");
             }
           }
-          else
-          {
-            logger.warning("Key is not acceptable");
-          }
+        }
+        catch (Exception e)
+        {
+          logger.log(Level.SEVERE,e.getMessage(),e);
         }
       }
     }

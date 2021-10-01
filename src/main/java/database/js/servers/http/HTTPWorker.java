@@ -12,6 +12,8 @@
 
 package database.js.servers.http;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
 import java.nio.channels.SelectionKey;
@@ -20,6 +22,7 @@ import database.js.handlers.AdminHandler;
 
 public class HTTPWorker implements Runnable
 {
+  private final Logger logger;
   private final SelectionKey key;
   private final Handlers handlers;
   private final HTTPChannel server;
@@ -31,6 +34,7 @@ public class HTTPWorker implements Runnable
     this.key = key;
     this.server = server;
     this.request = request;
+    this.logger = server.logger();
     this.handlers = server.config().getHTTP().handlers();
   }
 
@@ -57,7 +61,8 @@ public class HTTPWorker implements Runnable
     }
     catch(Exception e)
     {
-      e.printStackTrace();
+      server.workers().done();
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }
 }

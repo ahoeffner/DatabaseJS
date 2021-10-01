@@ -6,9 +6,11 @@ import java.util.concurrent.ExecutorService;
 
 public class ThreadPool
 {
-  private int queue = 0;
   private final int threads;
   private static ExecutorService workers = null;
+
+  private static int queue = 0;
+  private static final Object LOCK = new Object();
 
 
   public ThreadPool(int threads)
@@ -24,9 +26,10 @@ public class ThreadPool
   }
 
 
-  public synchronized void done()
+  public void done()
   {
-    queue--;
+    synchronized(LOCK) 
+     {queue--;}
   }
 
 
@@ -36,9 +39,10 @@ public class ThreadPool
   }
 
 
-  public synchronized int size()
+  public int size()
   {
-    return(queue);
+    synchronized(LOCK) 
+    {return(queue);}
   }
 
 
@@ -56,9 +60,11 @@ public class ThreadPool
   }
 
 
-  public synchronized void submit(Runnable task)
+  public void submit(Runnable task)
   {
-    queue++;
+    synchronized(LOCK) 
+      {queue++;}
+    
     workers.submit(task);
   }
 }

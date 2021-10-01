@@ -96,6 +96,12 @@ class HTTPChannel
   }
   
   
+  Logger logger()
+  {
+    return(logger);
+  }
+  
+  
   ThreadPool workers()
   {
     return(workers);

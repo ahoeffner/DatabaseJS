@@ -97,9 +97,9 @@ class HTTPWaiter extends Thread
     int requests = 0;
     long lmsg = System.currentTimeMillis();
 
-    try
+    while(true)
     {
-      while(true)
+      try
       {
         select();      
         
@@ -109,7 +109,8 @@ class HTTPWaiter extends Thread
         if (++requests % 1024 == 0 && incomplete.size() > 0)
           cleanout();
 
-        if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
+        //if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
+        if ((System.currentTimeMillis() - lmsg) > 5000)
         {
           lmsg = System.currentTimeMillis();
           logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
@@ -126,7 +127,6 @@ class HTTPWaiter extends Thread
             SocketChannel channel = (SocketChannel) key.channel();
 
             ByteBuffer buf = client.read();
-            //channel.register(selector,SelectionKey.OP_READ,client);                    
 
             if (buf == null)
             {
@@ -153,13 +153,11 @@ class HTTPWaiter extends Thread
           }
         }
       }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
     }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-    }
-
-    logger.info("HTTPWaiter("+id+") stopped");
   }
 
 
