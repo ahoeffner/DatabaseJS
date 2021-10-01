@@ -109,8 +109,7 @@ class HTTPWaiter extends Thread
         if (++requests % 1024 == 0 && incomplete.size() > 0)
           cleanout();
 
-        //if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
-        if ((System.currentTimeMillis() - lmsg) > 5000)
+        if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
         {
           lmsg = System.currentTimeMillis();
           logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
