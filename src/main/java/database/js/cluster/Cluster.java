@@ -21,6 +21,18 @@ import database.js.control.Process;
 
 public class Cluster
 {
+  private static Guest guest = null;
+  
+  
+  public synchronized static Guest guest(Config config) throws Exception
+  {
+    if (guest == null)
+      guest = new Guest(config.getIPConfig());
+    
+    return(guest);
+  }
+  
+  
   public static Process.Type getType(Config config, short id) throws Exception
   {  
     Short[] servers = getServers(config);
@@ -32,7 +44,7 @@ public class Cluster
   {
     boolean running = true;
     
-    Guest guest = new Guest(config.getIPConfig());    
+    Guest guest = guest(config);    
     int heartbeat = config.getIPConfig().heartbeat;
     
     for (int i = 0; i < 8 && running; i++)
@@ -45,21 +57,25 @@ public class Cluster
   }
 
 
-  public static ArrayList<ServerType> notRunning(Config config) throws Exception
+  public static ArrayList<ServerType> notRunning(Server server) throws Exception
   {
-    Short[] servers = getServers(config);
+    Short[] servers = getServers(server.config());
     ArrayList<ServerType> down = new ArrayList<ServerType>();    
     
     for (short i = 0; i < servers[0]; i++)
     {
-      if (!isRunning(config,i))
+      if (i == server.id()) continue;
+      
+      if (!isRunning(server.config(),i))
         down.add(new ServerType(Process.Type.http,i));
     }
     
     for (short i = 0; i < servers[1]; i++)
     {
       int id = i + servers[0];
-      if (!isRunning(config,(short) id))
+      if (i == server.id()) continue;
+      
+      if (!isRunning(server.config(),(short) id))
         down.add(new ServerType(Process.Type.rest,i));
     }
 

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.config.Topology;
 import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
@@ -119,6 +118,8 @@ public class Server extends Thread implements Listener
   
   private void startup()
   {
+    logger.info("Open http sockets");
+
     ssl.start();
     plain.start();
     admin.start();
@@ -136,10 +137,14 @@ public class Server extends Thread implements Listener
           Process process = new Process(config);
           logger.info("Checking all instances are up");
           
-          ArrayList<ServerType> servers = Cluster.notRunning(config);
+          ArrayList<ServerType> servers = Cluster.notRunning(this);
           
           for(ServerType server : servers)
+          {
+            logger.info("Starting "+server.id);
+            trysleep(1000);
             process.start(server.type,server.id);
+          }
         }        
       }
     }
@@ -190,14 +195,23 @@ public class Server extends Thread implements Listener
   @Override
   public void onNewManager(short s)
   {
+    logger.info("Switching manager to "+s);
+
     if (s == id)
     {
       synchronized(this)
       {
         if (!stop && !shutdown)
         {
-          startup();
-          logger.info("Switching to http process "+id);
+          try
+          {
+            //Thread.sleep(config.getIPConfig().heartbeat);
+            startup();
+          }
+          catch (Exception e)
+          {
+            logger.log(Level.SEVERE,e.getMessage(),e);
+          }
         }
       }
     }
@@ -244,7 +258,7 @@ public class Server extends Thread implements Listener
             if (i != id) broker.send(i,cmd.getBytes());
 
           int tries = 0;
-          int down = Cluster.notRunning(config).size();;
+          int down = Cluster.notRunning(this).size();;
                     
           // Wait for other servers to shutdown
           while(servers[0] + servers[1] - down > 1)
@@ -255,7 +269,7 @@ public class Server extends Thread implements Listener
               throw new Exception("Unable to shutdown servers: "+(servers[0] + servers[1])+", down: "+down);
             
             Thread.sleep(config.getIPConfig().heartbeat);
-            down = Cluster.notRunning(config).size();
+            down = Cluster.notRunning(this).size();
           }
         }
       }
@@ -265,13 +279,13 @@ public class Server extends Thread implements Listener
       }
     }
 
+    logger.info("Shutting down");
+
     synchronized(this)
     {
       stop = true;
       this.notify();
     }
-
-    logger.info("Shutting down");
   }
   
   
@@ -279,7 +293,7 @@ public class Server extends Thread implements Listener
   {
     try
     {
-      logger.info("Shutdown received id="+broker.id()+" Secretary="+broker.getSecretary());
+      logger.info("Shutdown command received");
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       broker.send(broker.getSecretary(),msg);
     }
@@ -308,5 +322,12 @@ public class Server extends Thread implements Listener
     
     ThreadPool.shutdown();
     logger.info("Server stopped");
+  }
+  
+  
+  private void trysleep(int ms)
+  {
+    try {sleep(ms);}
+    catch (Exception e) {;}
   }
 }
