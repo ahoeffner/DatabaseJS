@@ -25,6 +25,12 @@ class HTTPBuffers
   ByteBuffer data;
   ByteBuffer recv;
   ByteBuffer sslb;
+  
+  
+  public int size()
+  {
+    return(size);
+  }
 
 
   public void nossl()

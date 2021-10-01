@@ -56,6 +56,9 @@ class HTTPChannel
     {
       this.engine = null;
       this.buffers.nossl();
+
+      channel.socket().setSendBufferSize(buffers.size());
+      channel.socket().setReceiveBufferSize(buffers.size());
     }
     else
     {
@@ -64,8 +67,11 @@ class HTTPChannel
 
       this.engine.setUseClientMode(false);
       this.engine.setNeedClientAuth(admin);
-
+      
       this.buffers.setSize(appsize(),packsize());
+
+      channel.socket().setSendBufferSize(packsize());
+      channel.socket().setReceiveBufferSize(packsize());
     }
 
     this.logger = config.getLogger().logger;
@@ -203,7 +209,6 @@ class HTTPChannel
         chunk = max;
 
       buffers.data.put(data,wrote,chunk);
-
       buffers.data.flip();
 
       if (ssl) writessl();
