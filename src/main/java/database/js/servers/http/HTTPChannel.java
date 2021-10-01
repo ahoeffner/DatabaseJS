@@ -118,6 +118,13 @@ class HTTPChannel
   {
     return(channel);  
   }
+  
+  
+  void failed()
+  {
+    try {channel.close();}
+    catch (Exception e) {;}
+  }
 
 
   boolean connected()

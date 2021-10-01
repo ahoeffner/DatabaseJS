@@ -61,6 +61,7 @@ public class HTTPWorker implements Runnable
     }
     catch(Exception e)
     {
+      request.failed();
       server.workers().done();
       logger.log(Level.SEVERE,e.getMessage(),e);
     }

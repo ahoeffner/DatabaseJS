@@ -72,6 +72,14 @@ public class HTTPRequest implements PoolResponse
   {
     return(cookies.get(cookie));
   }
+  
+  
+  @Override
+  public void failed()
+  {
+    channel.failed();
+  }
+
 
   @Override
   public void respond(byte[] data) throws Exception
@@ -109,8 +117,11 @@ public class HTTPRequest implements PoolResponse
     for (int i = 1; i < lines.length; i++)
     {
       int pos = lines[i].indexOf(':');
+      if (pos <= 0) continue;
+      
       String key = lines[i].substring(0,pos).trim();
       String val = lines[i].substring(pos+1).trim();
+      
       this.headers.put(key,val);
     }
 

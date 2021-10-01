@@ -21,7 +21,7 @@ public class TestThread extends Thread
     for (int i = 0; i < tests.length; i++) tests[i] = new TestThread(loops,url,payload);
     
     System.out.println();
-    System.out.println("Testing static files interface threads: "+threads+" loops: "+loops+" "+url+" no delay");
+    System.out.println("Testing, threads: "+threads+" loops: "+loops+" "+url+" no delay, reconnect after 64 hits");
     System.out.println();
 
     long avg = 0;
@@ -56,7 +56,7 @@ public class TestThread extends Thread
 
       String path = url.getPath();
       boolean ssl = this.url.startsWith("https");
-      Session session = new Session(url.getHost(),url.getPort(),ssl);
+      Session session = new Session(url.getHost(),url.getPort(),ssl);;
 
       for (int i = 0; i < loops; i++)
       {
@@ -64,11 +64,19 @@ public class TestThread extends Thread
 
         try
         {
+          if (i > 0 && i % 64 == 0)
+          {
+            session.close();
+            session = new Session(url.getHost(),url.getPort(),ssl);            
+          }
+
           session.invoke(path,payload);
         }
         catch (Exception e)
         {
           failed++;
+          session.close();
+          session = new Session(url.getHost(),url.getPort(),ssl);            
         }
         
         avg += System.nanoTime()-req;
