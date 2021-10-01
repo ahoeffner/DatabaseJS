@@ -84,6 +84,7 @@ public class Server extends Thread implements Listener
     Process.Type type = Cluster.getType(config,id);
     
     Broker.logger(logger);
+    logger.info("Starting up");
     
     try
     {
@@ -112,6 +113,8 @@ public class Server extends Thread implements Listener
       startup();
 
     this.start();
+    logger.info("Startet");
+
     this.ensure();
   }
   
@@ -222,6 +225,7 @@ public class Server extends Thread implements Listener
   public void onMessage(ArrayList<Message> messages)
   {
     String cmd = null;
+    logger.info("Messages received");
     
     for(Message message : messages)
     {
@@ -263,7 +267,7 @@ public class Server extends Thread implements Listener
           // Wait for other servers to shutdown
           while(servers[0] + servers[1] - down > 1)
           {
-            logger.info("waiting for other servers to shutdown");
+            logger.info("Waiting for other servers to shutdown");
 
             if (++tries == 256) 
               throw new Exception("Unable to shutdown servers: "+(servers[0] + servers[1])+", down: "+down);
@@ -293,9 +297,13 @@ public class Server extends Thread implements Listener
   {
     try
     {
-      logger.info("Shutdown command received");
+      this.shutdown = true;
+      logger.info("Shutdown command received, passing on to "+broker.getSecretary());
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
-      broker.send(broker.getSecretary(),msg);
+      
+      Message message = broker.send(broker.getSecretary(),msg);
+      boolean delivered = message.delivered(100);
+      logger.info("Shutdown command passed on "+delivered);
     }
     catch (Exception e)
     {
@@ -317,6 +325,8 @@ public class Server extends Thread implements Listener
           this.wait(this.heartbeat);
         }
       }
+      
+      sleep(500);
     }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     
