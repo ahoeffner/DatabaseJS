@@ -31,7 +31,6 @@ public class HTTPServer extends Thread
 {
   private final int port;
   private final boolean ssl;
-  private final int threads;
   private final Server server;
   private final Config config;
   private final Broker broker;
@@ -42,7 +41,7 @@ public class HTTPServer extends Thread
   private final Selector selector;
   private final ThreadPool workers;
   private final HTTPServerType type;
-  private final HTTPWaiter[] waiters;
+  private final HTTPWaiterPool waiters;
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -55,9 +54,6 @@ public class HTTPServer extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
-    this.threads = config.getTopology().threads();
-    
-    this.waiters = new HTTPWaiter[] {new HTTPWaiter(server,0,embedded)};
 
     switch(type)
     {
@@ -69,7 +65,8 @@ public class HTTPServer extends Thread
 
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
-    this.workers = new ThreadPool(threads);
+    this.workers = new ThreadPool(config.getTopology().workers());
+    this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
   }
 
 
@@ -112,9 +109,7 @@ public class HTTPServer extends Thread
   // Assign a waiter for the client  
   void assign(SelectionKey key, HTTPChannel client)
   {
-    //key.cancel();
-    System.out.println("Assign waiter");
-    HTTPWaiter waiter = waiters[0];    
+    HTTPWaiter waiter = waiters.getWaiter();    
     try {waiter.addClient(client);}
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }

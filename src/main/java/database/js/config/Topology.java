@@ -19,7 +19,8 @@ public class Topology
 {
   private final Type type;
   private final boolean hot;
-  private final short threads;
+  private final short workers;
+  private final short waiters;
   private final short servers;
   
   private final int extnds;
@@ -38,14 +39,27 @@ public class Topology
     if (this.type == Type.Micro) servers = 0;
     else  servers = (short) config.getInt("servers");
     
-    short threads = 0;
+    short waiters = 0;
+    short workers = 0;
+
     short multi = this.type == Type.Cluster ? servers : 1;
     
-    if (!config.isNull("threads"))
-      threads = (short) config.getInt("threads");
+    if (!config.isNull("waiters"))
+      waiters = (short) config.getInt("waiters");
     
-    if (threads > 0) this.threads = threads;
-    else             this.threads = (short) (multi * 8 * cores);
+    if (waiters == 0) 
+    {
+      waiters = (short) (cores/2);
+      if (waiters < 2) waiters = (short) cores;
+    }
+      
+    this.waiters = waiters;
+    
+    if (!config.isNull("workers"))
+      workers = (short) config.getInt("workers");
+    
+    if (workers > 0) this.workers = workers;
+    else             this.workers = (short) (multi * 8 * cores);
     
     this.hot = config.getBoolean("hot-standby");
     
@@ -61,9 +75,14 @@ public class Topology
     return(type);
   }
 
-  public int threads()
+  public short waiters()
   {
-    return(threads);
+    return(waiters);
+  }
+
+  public short workers()
+  {
+    return(workers);
   }
 
   public short servers()

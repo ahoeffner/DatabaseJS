@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 class HTTPWaiter extends Thread
 {
   private final int id;
-  private final int wthreads;
   private final Server server;
   private final Config config;
   private final Logger logger;
@@ -54,11 +53,10 @@ class HTTPWaiter extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
-    this.wthreads = config.getTopology().threads();
 
     this.setDaemon(true);
     this.setName("HTTPWaiter("+id+")");
-    this.workers = new ThreadPool(wthreads);
+    this.workers = new ThreadPool(config.getTopology().workers());
     
     this.start();
   }
