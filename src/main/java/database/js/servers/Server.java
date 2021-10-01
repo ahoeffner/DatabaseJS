@@ -209,6 +209,8 @@ public class Server extends Thread implements Listener
     String cmd = null;
     boolean shutdown = false;
     
+    logger.info("Messages received");
+    
     for(Message message : messages)
     {
       int pos = 3;
@@ -232,13 +234,6 @@ public class Server extends Thread implements Listener
     
     if (shutdown)
     {
-      
-      synchronized(this)
-      {
-        stop = true;
-        this.notify();
-      }
-
       try
       {
         if (broker.secretary())
@@ -250,17 +245,22 @@ public class Server extends Thread implements Listener
           for (short i = 0; i < servers[0] + servers[1]; i++)
             if (i != id) broker.send(i,cmd.getBytes());
 
+          logger.info("Broadcast done, wait");
+
           int tries = 0;
-          int down = Cluster.notRunning(config).size();
-          
+          int down = Cluster.notRunning(config).size();;
+                    
           // Wait for other servers to shutdown
+          logger.info("servers "+(servers[0] + servers[1] - down));
           while(servers[0] + servers[1] - down > 1)
           {
             if (++tries == 256) 
               throw new Exception("Unable to shutdown servers "+(servers[0] + servers[1])+" down "+down);
             
+            logger.info("wait for other servers to shutdown");
             Thread.sleep(config.getIPConfig().heartbeat);
             down = Cluster.notRunning(config).size();
+            logger.info("after sleep "+(servers[0] + servers[1] - down));
           }
         }
       }
@@ -268,6 +268,12 @@ public class Server extends Thread implements Listener
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
+    }
+
+    synchronized(this)
+    {
+      stop = true;
+      this.notify();
     }
 
     logger.info("Shutting down");
