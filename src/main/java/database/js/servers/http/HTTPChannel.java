@@ -31,6 +31,7 @@ class HTTPChannel
 
   private final boolean ssl;
   private final boolean admin;
+  private final boolean reqssl;
   
   private final Server server;
   private final Config config;
@@ -51,6 +52,7 @@ class HTTPChannel
     this.connected = false;
     this.config = server.config();
     this.buffers = new HTTPBuffers();
+    this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
     {
@@ -87,6 +89,13 @@ class HTTPChannel
   boolean admin()
   {
     return(admin);
+  }
+
+
+  boolean redirect()
+  {
+    if (ssl || admin) return(false);
+    else              return(reqssl);
   }
   
   

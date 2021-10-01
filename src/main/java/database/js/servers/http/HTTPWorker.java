@@ -47,6 +47,25 @@ public class HTTPWorker implements Runnable
       request.parse();
       String path = request.path();
       String method = request.method();
+            
+      if (request.redirect())
+      {
+        int ssl = server.config().getHTTP().ssl();
+        int plain = server.config().getHTTP().plain();
+
+        String host = request.getHeader("Host");
+        host = host.replace(plain+"",ssl+"");
+        
+        HTTPResponse response = new HTTPResponse();
+
+        response.setResponse(301);
+        response.setHeader("Location","https://"+host);
+
+        request.respond(response.page());        
+        server.workers().done();
+        
+        return;
+      }
 
       Handler handler = null;
       boolean admin = server.admin();

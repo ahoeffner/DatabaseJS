@@ -34,10 +34,10 @@ public class HTTPResponse
   
   public HTTPResponse()
   {
-    add("server",server);
-    add("Date",new Date());
-    add("Connection","Keep-Alive");
-    add("Keep-Alive","timeout=5, max=100");
+    setHeader("server",server);
+    setHeader("Date",new Date());
+    setHeader("Connection","Keep-Alive");
+    setHeader("Keep-Alive","timeout=5, max=100");
   }
   
   
@@ -48,7 +48,7 @@ public class HTTPResponse
     if (body == null) 
       body = new byte[0];
 
-    add("Content-Length",body.length);
+    setHeader("Content-Length",body.length);
     if (this.response == null) setResponse(200);
   }
   
@@ -67,8 +67,8 @@ public class HTTPResponse
   
   public void setLastModified(Date date)
   {
-    add("Last-Modified",format.format(date));
-    add("ETag",Long.toHexString(date.getTime()));
+    setHeader("Last-Modified",format.format(date));
+    setHeader("ETag",Long.toHexString(date.getTime()));
   }
   
   
@@ -80,19 +80,19 @@ public class HTTPResponse
   }
   
   
-  public void add(String header, Date value)
+  public void setHeader(String header, Date value)
   {
     headers.add(header+": "+format.format(value));
   }
   
   
-  public void add(String header, int value)
+  public void setHeader(String header, int value)
   {
     headers.add(header+": "+value);
   }
   
   
-  public void add(String header, String value)
+  public void setHeader(String header, String value)
   {
     headers.add(header+": "+value);
   }
@@ -115,7 +115,7 @@ public class HTTPResponse
     if (expires != null) 
       expire = "; expires="+format.format(expires);
     
-    add("Set-Cookie",cookie+"="+value+expire+"; path="+path);
+    setHeader("Set-Cookie",cookie+"="+value+expire+"; path="+path);
   }
 
 

@@ -14,10 +14,9 @@ package database.js.servers.http;
 
 import java.util.HashMap;
 import java.util.ArrayList;
-import database.js.pools.PoolResponse;
 
 
-public class HTTPRequest implements PoolResponse
+public class HTTPRequest
 {
   private int header = -1;
   private int clength = -1;
@@ -26,6 +25,7 @@ public class HTTPRequest implements PoolResponse
   private String method = null;
   private String version = null;
   private boolean parsed = false;
+  private boolean redirect = false;
 
   private HTTPChannel channel;
   private byte[] request = new byte[0];
@@ -46,6 +46,7 @@ public class HTTPRequest implements PoolResponse
   HTTPRequest(HTTPChannel channel)
   {
     this.channel = channel;
+    this.redirect = channel.redirect();
   }
 
   public String path()
@@ -72,27 +73,26 @@ public class HTTPRequest implements PoolResponse
   {
     return(cookies.get(cookie));
   }
+
+  public boolean redirect()
+  {
+    return(redirect);
+  }
   
-  
-  @Override
   public void failed()
   {
     channel.failed();
   }
 
-
-  @Override
   public void respond(byte[] data) throws Exception
   {
     channel.write(data);
   }
 
-
   boolean done()
   {
     return(clength >= 0);
   }
-
 
   boolean cancelled()
   {
