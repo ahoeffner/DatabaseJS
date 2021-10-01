@@ -258,6 +258,8 @@ public class HTTPRequest implements PoolResponse
         }
 
         // Skip HTTP/ (5 bytes)
+
+        if (e-b-4 < b + 5) return(null);
         return(new String(request,b+5,e-b-4));
       }
     }
