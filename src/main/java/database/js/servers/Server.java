@@ -57,8 +57,10 @@ public class Server extends Thread implements Listener
   private final Broker broker;
   private final Logger logger;
   private final Config config;
-  private boolean stop = false;
   private final boolean embedded;
+
+  private volatile boolean stop = false;
+  private volatile boolean shutdown = false;
   
   private final HTTPServer ssl;
   private final HTTPServer plain;
@@ -129,11 +131,10 @@ public class Server extends Thread implements Listener
     {
       synchronized(this)
       {
-        logger.info("ensure, stop="+stop+" secretary="+broker.secretary());
-        if (!stop && broker.secretary())
+        if (!shutdown && broker.secretary())
         {
           Process process = new Process(config);
-          logger.info("Starting all instances");
+          logger.info("Checking all instances are up");
           
           ArrayList<ServerType> servers = Cluster.notRunning(config);
           
@@ -193,7 +194,7 @@ public class Server extends Thread implements Listener
     {
       synchronized(this)
       {
-        if (!stop)
+        if (!stop && !shutdown)
         {
           startup();
           logger.info("Switching to http process "+id);
@@ -207,9 +208,6 @@ public class Server extends Thread implements Listener
   public void onMessage(ArrayList<Message> messages)
   {
     String cmd = null;
-    boolean shutdown = false;
-    
-    logger.info("Messages received");
     
     for(Message message : messages)
     {
@@ -245,22 +243,19 @@ public class Server extends Thread implements Listener
           for (short i = 0; i < servers[0] + servers[1]; i++)
             if (i != id) broker.send(i,cmd.getBytes());
 
-          logger.info("Broadcast done, wait");
-
           int tries = 0;
           int down = Cluster.notRunning(config).size();;
                     
           // Wait for other servers to shutdown
-          logger.info("servers "+(servers[0] + servers[1] - down));
           while(servers[0] + servers[1] - down > 1)
           {
+            logger.info("waiting for other servers to shutdown");
+
             if (++tries == 256) 
-              throw new Exception("Unable to shutdown servers "+(servers[0] + servers[1])+" down "+down);
+              throw new Exception("Unable to shutdown servers: "+(servers[0] + servers[1])+", down: "+down);
             
-            logger.info("wait for other servers to shutdown");
             Thread.sleep(config.getIPConfig().heartbeat);
             down = Cluster.notRunning(config).size();
-            logger.info("after sleep "+(servers[0] + servers[1] - down));
           }
         }
       }
