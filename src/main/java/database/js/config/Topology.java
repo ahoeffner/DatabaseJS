@@ -17,7 +17,6 @@ import org.json.JSONObject;
 
 public class Topology
 {
-  private final Type type;
   private final boolean hot;
   private final short workers;
   private final short waiters;
@@ -31,18 +30,13 @@ public class Topology
   
   Topology(JSONObject config) throws Exception
   {
-    String type = config.getString("type");
-    
-    if (type.toLowerCase().equals("micro")) this.type = Type.Micro;
-    else                                    this.type = Type.Cluster;
-    
-    if (this.type == Type.Micro) servers = 0;
-    else  servers = (short) config.getInt("servers");
-    
+    if (!config.has("servers")) servers = 0;
+    else servers = (short) config.getInt("servers");
+        
     short waiters = 0;
     short workers = 0;
 
-    short multi = this.type == Type.Cluster ? servers : 1;
+    short multi = servers > 0 ? servers : 1;
     
     if (!config.isNull("waiters"))
       waiters = (short) config.getInt("waiters");
@@ -67,12 +61,6 @@ public class Topology
     
     this.extnds = ipc.getInt("extends");
     this.extsize = ipc.get("extsize").toString();
-  }
-
-
-  public Type type()
-  {
-    return(type);
   }
 
   public short waiters()
@@ -103,12 +91,5 @@ public class Topology
   public String extsize()
   {
     return(extsize);
-  }
-
-
-  public static enum Type
-  {
-    Micro,
-    Cluster
   }
 }

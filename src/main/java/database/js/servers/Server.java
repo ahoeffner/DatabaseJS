@@ -77,20 +77,31 @@ public class Server extends Thread implements Listener
     this.id = id;
     this.config = new Config();
     this.setName("Server Main");
-    
-    if (Cluster.isRunning(config,id))
-      throw new Exception("Server is already running");      
 
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
     Process.Type type = Cluster.getType(config,id);
-
-    Broker.logger(logger);
-    boolean master = type == Process.Type.http;
     
+    Broker.logger(logger);
+    
+    try
+    {
+      if (Cluster.isRunning(config,id))
+      {
+        logger.severe("Server is already running");
+        throw new Exception("Server is already running");            
+      }
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      throw e;
+    }
+    
+    boolean master = type == Process.Type.http;    
     this.heartbeat = config.getIPConfig().heartbeat;
+    this.embedded = config.getTopology().servers() > 0;
     this.broker = new Broker(config.getIPConfig(),this,id,master);
-    this.embedded = config.getTopology().type() == Topology.Type.Micro;
 
     this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
     this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
@@ -118,6 +129,7 @@ public class Server extends Thread implements Listener
     {
       synchronized(this)
       {
+        logger.info("ensure, stop="+stop+" secretary="+broker.secretary());
         if (!stop && broker.secretary())
         {
           Process process = new Process(config);
@@ -202,7 +214,6 @@ public class Server extends Thread implements Listener
       int pos = 3;
       byte[] msg = message.body();
       String adm = new String(msg,0,pos);
-      logger.info("message received");
       
       if (adm.equals("ADM"))
       {
@@ -221,6 +232,13 @@ public class Server extends Thread implements Listener
     
     if (shutdown)
     {
+      
+      synchronized(this)
+      {
+        stop = true;
+        this.notify();
+      }
+
       try
       {
         if (broker.secretary())
@@ -253,12 +271,6 @@ public class Server extends Thread implements Listener
     }
 
     logger.info("Shutting down");
-    
-    synchronized(this)
-    {
-      stop = true;
-      this.notify();
-    }
   }
   
   
