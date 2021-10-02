@@ -144,7 +144,7 @@ public class Server extends Thread implements Listener
           
           for(ServerType server : servers)
           {
-            logger.info("Starting "+server.id);
+            logger.info("Starting instance "+server.id);
             trysleep(1000);
             process.start(server.type,server.id);
           }
@@ -209,7 +209,7 @@ public class Server extends Thread implements Listener
           try
           {
             logger.info("Manager is now "+broker.getManager());
-            //Thread.sleep(config.getIPConfig().heartbeat);
+            trysleep(100);
             startup();
           }
           catch (Exception e)
