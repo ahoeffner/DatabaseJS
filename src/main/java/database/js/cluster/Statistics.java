@@ -49,7 +49,7 @@ public class Statistics
   
   private Statistics init(Broker broker)
   {
-    this.pid = 0; //ProcessHandle.current().pid();
+    this.pid = ProcessHandle.current().pid();
     this.started = broker.started();
     this.updated = System.currentTimeMillis();
     this.totmem = Runtime.getRuntime().totalMemory();
