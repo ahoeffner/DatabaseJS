@@ -183,24 +183,26 @@ public class Server extends Thread implements Listener
 
 
   @Override
-  public void onServerUp(short s)
+  public void onServerUp(short id)
   {
+    logger.info("Instance "+id+" is online");
   }
 
 
   @Override
-  public void onServerDown(short s)
+  public void onServerDown(short id)
   {
+    logger.info("Instance "+id+" is down");
     ensure();
   }
 
 
   @Override
-  public void onNewManager(short s)
+  public void onNewManager(short id)
   {
-    logger.info("Switching manager to "+s);
+    logger.info("Switching manager to "+id);
 
-    if (s == id)
+    if (id == this.id)
     {
       synchronized(this)
       {
@@ -208,7 +210,6 @@ public class Server extends Thread implements Listener
         {
           try
           {
-            logger.info("Manager is now "+broker.getManager());
             trysleep(100);
             startup();
           }
