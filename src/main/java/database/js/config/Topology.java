@@ -82,6 +82,11 @@ public class Topology
     return(servers);
   }
 
+  public int heartbeat()
+  {
+    return(heartbeat);
+  }
+
   public boolean hotstandby()
   {
     return(hot);

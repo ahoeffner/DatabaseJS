@@ -118,11 +118,13 @@ public class Config
     short http = 1;
     if (topology.hotstandby()) http++;
     
+    int heartbeat = topology.heartbeat();
+  
     short statesize = Statistics.reclen;
     short processes = (short) (topology.servers() + http);
     
     Broker.logger(this.getLogger().logger);
-    this.config = IPC.getConfig(Paths.ipcdir,processes,extnds,extsize,statesize);
+    this.config = IPC.getConfig(Paths.ipcdir,processes,heartbeat,extnds,extsize,statesize);
     
     return(config);
   }
