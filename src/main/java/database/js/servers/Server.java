@@ -377,7 +377,7 @@ public class Server extends Thread implements Listener
         while(!stop)
         {
           Cluster.setStatistics(this);
-          this.wait(this.heartbeat);
+          this.wait(4*this.heartbeat);
         }
       }
       

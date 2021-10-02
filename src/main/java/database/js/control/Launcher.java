@@ -13,6 +13,7 @@
 package database.js.control;
 
 import java.io.File;
+import java.util.Date;
 import java.util.ArrayList;
 import org.json.JSONTokener;
 import java.util.logging.Level;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 import database.js.admin.Client;
 import database.js.config.Paths;
 import database.js.config.Config;
+import java.text.SimpleDateFormat;
 import database.js.cluster.Cluster;
 import database.js.handlers.Handler;
 import database.js.cluster.Statistics;
@@ -123,23 +125,84 @@ public class Launcher implements ILauncher
 
   public void status() throws Exception
   {
+    String line = null;
+    System.out.println();
+    
+    SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     ArrayList<Statistics> statistics = Cluster.getStatistics(config);
 
-    String id = String.format("%4s","id");    
-    String pid = String.format("%8s","pid");
+    String hid = String.format("%3s"," id");
+    String hpid = String.format("%8s"," pid ");
+
+    String hmgr = String.format("%4s"," mgr");
+    String hsec = String.format("%4s"," sec");
+
+    String hused = String.format("%-9s"," used(mb)");
+    String htotal = String.format("%-10s"," total(mb)");
+
+    String hstarted = String.format("%-21s","  started");
+    String hupdated = String.format("%-21s","  updated");
+
+    // Memory
     
-    System.out.println(id+" "+pid);
+    System.out.println("Memory");
+    line = String.format("%29s"," ").replace(" ","-");
+
+    System.out.println(line);
+    System.out.println("|"+hid+" |"+hused+" |"+htotal+" |");    
+    System.out.println(line);
 
     for (Statistics stats : statistics)
     {
-      System.out.print(" "+stats.id());
-      System.out.print(" "+stats.pid());
-      System.out.print(" "+stats.started());
-      System.out.print(" "+stats.updated());
-      System.out.print(" "+stats.totmem());
-      System.out.print(" "+stats.usedmem());
-      System.out.println();
+      String id = String.format(" %2s ",stats.id());
+      String tm = String.format(" %9s ",stats.totmem()/(1024*1024));
+      String um = String.format(" %8s ",stats.usedmem()/(1024*1024));
+      
+      System.out.print("|"+id+"");
+      System.out.print("|"+tm+"");
+      System.out.print("|"+um+"");
+
+      System.out.print("|");      
+      System.out.print(System.lineSeparator());
     }
+
+    System.out.println(line);    
+    System.out.println();
+
+
+    // Processes
+    
+    System.out.println("Processes");
+    line = String.format("%73s"," ").replace(" ","-");
+
+    System.out.println(line);
+    System.out.println("|"+hid+" |"+hpid+" |"+hmgr+" |"+hsec+" |"+hstarted+" |"+hupdated+" |");    
+    System.out.println(line);
+    
+    for (Statistics stats : statistics)
+    {
+      String id = String.format(" %2s ",stats.id());
+      String pid = String.format("%8s ",stats.pid());
+      
+      String mgr = stats.manager() ? "  X  " : "     ";
+      String sec = stats.secretary() ? "  X  " : "     ";
+
+      String started = " "+format.format(new Date(stats.started()))+" ";
+      String updated = " "+format.format(new Date(stats.updated()))+" ";
+
+      System.out.print("|"+id+"");
+      System.out.print("|"+pid+"");
+      System.out.print("|"+mgr+"");
+      System.out.print("|"+sec+"");
+      System.out.print("|"+started+"");
+      System.out.print("|"+updated+"");
+
+      System.out.print("|");      
+      System.out.print(System.lineSeparator());
+    }
+
+    System.out.println(line);    
+    System.out.println();
   }
   
   
