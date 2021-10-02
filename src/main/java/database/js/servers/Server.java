@@ -62,6 +62,7 @@ public class Server extends Thread implements Listener
   private final Config config;
   private final boolean embedded;
 
+  private long requests = 0;
   private volatile boolean stop = false;
   private volatile boolean shutdown = false;
   
@@ -69,6 +70,8 @@ public class Server extends Thread implements Listener
   private final HTTPServer plain;
   private final HTTPServer admin;
   
+  private final Object SYNC = new Object();
+
   
   public static void main(String[] args)
   {
@@ -220,6 +223,18 @@ public class Server extends Thread implements Listener
   {
     return(broker);
   }
+  
+  
+  public synchronized void request()
+  {
+    requests++;
+  }
+  
+  
+  public synchronized long requests()
+  {
+    return(requests);
+  }
 
 
   @Override
@@ -244,18 +259,13 @@ public class Server extends Thread implements Listener
 
     if (id == this.id)
     {
-      synchronized(this)
+      synchronized(SYNC)
       {
         if (!stop && !shutdown)
         {
-          try
-          {
-            startup();
-          }
+          try {startup();}
           catch (Exception e)
-          {
-            logger.log(Level.SEVERE,e.getMessage(),e);
-          }
+          {logger.log(Level.SEVERE,e.getMessage(),e);}
         }
       }
     }
@@ -376,6 +386,14 @@ public class Server extends Thread implements Listener
       {
         while(!stop)
         {
+          short mgr = broker.getManager();
+          
+          if (mgr < 0) 
+          {
+            logger.severe("Broker has no manager");
+            stop = true;
+          }
+          
           Cluster.setStatistics(this);
           this.wait(4*this.heartbeat);
         }

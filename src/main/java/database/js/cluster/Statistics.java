@@ -29,15 +29,17 @@ public class Statistics
   
   private boolean manager;
   private boolean secretary;
-  
+
   private long updated;
   private long started;
   
   private long totmem;
   private long usedmem;
+  
+  private long requests;
 
   private static Statistics stats = null;  
-  public static final int reclen = 5*Long.BYTES+2;
+  public static final int reclen = 6*Long.BYTES+2;
   
   
   private Statistics()
@@ -72,6 +74,7 @@ public class Statistics
         stat.acquire();        
       }
       
+      stats.requests = server.requests();      
       stats.updated = System.currentTimeMillis();      
       byte manager = broker.manager() ? (byte) 1 : 0;
       byte secretary = broker.secretary() ? (byte) 1 : 0;
@@ -81,6 +84,7 @@ public class Statistics
       data.putLong(stats.updated);
       data.putLong(stats.totmem);
       data.putLong(stats.usedmem);
+      data.putLong(stats.requests);
       
       data.put(manager);
       data.put(secretary);
@@ -114,11 +118,12 @@ public class Statistics
 
         if (data.capacity() > 0)
         {
-          stats.pid     = data.getLong();
-          stats.started = data.getLong();
-          stats.updated = data.getLong();
-          stats.totmem  = data.getLong();
-          stats.usedmem = data.getLong();  
+          stats.pid      = data.getLong();
+          stats.started  = data.getLong();
+          stats.updated  = data.getLong();
+          stats.totmem   = data.getLong();
+          stats.usedmem  = data.getLong();  
+          stats.requests = data.getLong();  
           
           byte manager = data.get();
           byte secretary = data.get();
@@ -162,6 +167,11 @@ public class Statistics
   public long usedmem()
   {
     return(usedmem);
+  }
+
+  public long requests()
+  {
+    return(requests);
   }
 
   public boolean manager()

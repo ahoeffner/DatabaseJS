@@ -26,7 +26,7 @@ public class Process
   private final String srvopt;
   private final Config config;
   private final Logger logger;
-  private final static String psep = System.getProperty("path.separator");
+  private final static String psep = File.pathSeparator;
 
 
   public Process(Config config) throws Exception
@@ -35,7 +35,7 @@ public class Process
     this.java = config.getJava().exe();
     this.logger = config.getLogger().control;
     this.htopt = config.getJava().getHttpOptions();
-    this.srvopt = config.getJava().getServerOptions();
+    this.srvopt = config.getJava().getRestOptions();
   }
 
 

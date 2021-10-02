@@ -19,8 +19,10 @@ import org.json.JSONObject;
 public class Java
 {
   private final String exe;
-  private final String http;
-  private final String server;
+  private final String httpopts;
+  private final String restopts;
+  private final String httpjars;
+  private final String restjars;
   
   
   Java(JSONObject config) throws Exception
@@ -34,8 +36,43 @@ public class Java
     if (Config.windows()) exe += ".exe";
     
     this.exe = exe;
-    this.http = config.getString("http");
-    this.server = config.getString("server");
+    this.httpopts = config.getString("http.opts");
+    this.restopts = config.getString("rest.opts");
+    
+    String httpjars = "";
+    if (!config.isNull("http.jars"))
+    {
+      String path = "";
+      httpjars = config.getString("http.jars");
+      String[] jars = httpjars.split(", ;:");
+
+      for(String jar : jars) 
+        path += File.pathSeparator+jar;
+      
+      if (path.length() > 0)
+        path = path.substring(1);
+      
+      httpjars = path;
+    }
+    
+    String restjars = "";
+    if (!config.isNull("http.jars"))
+    {
+      String path = "";
+      restjars = config.getString("rest.jars");
+      String[] jars = restjars.split(", ;:");
+
+      for(String jar : jars) 
+        path += File.pathSeparator+jar;
+      
+      if (path.length() > 0)
+        path = path.substring(1);
+      
+      restjars = path;
+    }
+    
+    this.httpjars = httpjars;
+    this.restjars = restjars;
   }
   
   
@@ -51,14 +88,24 @@ public class Java
   {
     return(exe);
   }
+  
+  public String getHTTPClassPath()
+  {
+    return(httpjars);
+  }
+  
+  public String getRESTClassPath()
+  {
+    return(restjars);
+  }
 
   public String getHttpOptions()
   {
-    return(http);
+    return(httpopts);
   }
 
-  public String getServerOptions()
+  public String getRestOptions()
   {
-    return(server);
+    return(restopts);
   }
 }

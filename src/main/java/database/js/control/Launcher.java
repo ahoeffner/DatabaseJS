@@ -39,7 +39,7 @@ public class Launcher implements ILauncher
 {
   private Config config = null;
   private Logger logger = null;
-  private final static String psep = System.getProperty("path.separator");
+  private final static String psep = File.pathSeparator;
 
 
   public static void main(String[] args) throws Exception
@@ -133,6 +133,7 @@ public class Launcher implements ILauncher
 
     String hid = String.format("%3s"," id");
     String hpid = String.format("%8s"," pid ");
+    String hhits = String.format("%8s"," hits  ");
 
     String hmgr = String.format("%4s"," mgr");
     String hsec = String.format("%4s"," sec");
@@ -173,16 +174,17 @@ public class Launcher implements ILauncher
     // Processes
     
     System.out.println("Processes");
-    line = String.format("%73s"," ").replace(" ","-");
+    line = String.format("%84s"," ").replace(" ","-");
 
     System.out.println(line);
-    System.out.println("|"+hid+" |"+hpid+" |"+hmgr+" |"+hsec+" |"+hstarted+" |"+hupdated+" |");    
+    System.out.println("|"+hid+" |"+hpid+" |"+hmgr+" |"+hsec+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");    
     System.out.println(line);
     
     for (Statistics stats : statistics)
     {
       String id = String.format(" %2s ",stats.id());
       String pid = String.format("%8s ",stats.pid());
+      String hits = String.format("%8s ",stats.requests());
       
       String mgr = stats.manager() ? "  X  " : "     ";
       String sec = stats.secretary() ? "  X  " : "     ";
@@ -196,6 +198,7 @@ public class Launcher implements ILauncher
       System.out.print("|"+sec+"");
       System.out.print("|"+started+"");
       System.out.print("|"+updated+"");
+      System.out.print("|"+hits+"");
 
       System.out.print("|");      
       System.out.print(System.lineSeparator());
