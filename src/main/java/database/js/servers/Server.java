@@ -265,6 +265,7 @@ public class Server extends Thread implements Listener
 
           int tries = 0;
           int down = Cluster.notRunning(this).size();;
+          logger.info("Online servers: "+(servers[0] + servers[1] - down));
                     
           // Wait for other servers to shutdown
           while(servers[0] + servers[1] - down > 1)
