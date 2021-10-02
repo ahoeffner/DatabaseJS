@@ -24,15 +24,16 @@ public class Process
   private final String java;
   private final String htopt;
   private final String srvopt;
+  private final Config config;
   private final Logger logger;
   private final static String psep = System.getProperty("path.separator");
 
 
   public Process(Config config) throws Exception
   {
-    java = config.getJava().exe();
-    logger = config.getLogger().control;
-
+    this.config = config;
+    this.java = config.getJava().exe();
+    this.logger = config.getLogger().control;
     this.htopt = config.getJava().getHttpOptions();
     this.srvopt = config.getJava().getServerOptions();
   }
@@ -44,15 +45,13 @@ public class Process
 
     if (type == Type.http) options = htopt;
     else                   options = srvopt;
-
+    
     String classpath = classpath(type != Type.http);
     String cmd = this.java + " -cp " + classpath + " " + options + " database.js.servers.Server " + inst;
 
     try
     {
       java.lang.Process p = Runtime.getRuntime().exec(cmd);
-      String status = p.isAlive() ? "started" : "failed";
-      logger.info("instance["+inst+"] "+status);
     }
     catch (Exception e)
     {

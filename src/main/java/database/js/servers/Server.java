@@ -15,39 +15,43 @@ package database.js.servers;
 import ipc.Broker;
 import ipc.Message;
 import ipc.Listener;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.FileOutputStream;
 import database.js.config.Config;
 import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
+import java.io.BufferedOutputStream;
 import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
 
 /**
- * 
+ *
  * The start/stop sequence is rather complicated:
- * 
+ *
  * There are 2 roles:
  *   The ipc guarantees that only 1 process holds the given role at any time.
- *   
+ *
  *   The secretary role. All processes is eligible for this role
  *   The manager role. Only http processes is eligible for this role
- * 
- * 
+ *
+ *
  * The secretary is responsible for keeping all other servers alive.
  * The manager is responsible for the http interfaces, including the admin port.
- * 
+ *
  * When a server starts, it will check to see if it has become the secretary. in which
  * case it will start all other processes that is not running.
- * 
+ *
  * When the manager receives a shutdown command, it will pass it on to the secretary.
  * The secretary will then cease the automatic keep alive, and send a shutdown message
  * to all other processes, and shut itself down.
- * 
+ *
  */
 public class Server extends Thread implements Listener
 {
@@ -77,7 +81,11 @@ public class Server extends Thread implements Listener
   {
     this.id = id;
     this.config = new Config();
+    PrintStream out = stdout();
     this.setName("Server Main");
+
+    System.setOut(out);
+    System.setErr(out);
 
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
@@ -103,6 +111,8 @@ public class Server extends Thread implements Listener
     boolean master = type == Process.Type.http;    
     this.heartbeat = config.getIPConfig().heartbeat;
     this.embedded = config.getTopology().servers() > 0;
+    
+    logger.info("Connect to IPC");
     this.broker = new Broker(config.getIPConfig(),this,id,master);
 
     this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
@@ -121,11 +131,41 @@ public class Server extends Thread implements Listener
   
   private void startup()
   {
+    if (!test())
+    {
+      logger.info("Address already in use");
+      return;
+    }
+    
     logger.info("Open http sockets");
 
     ssl.start();
     plain.start();
     admin.start();
+  }
+  
+  
+  private boolean test()
+  {
+    try
+    {
+      ServerSocket socket = null;
+      
+      socket = new ServerSocket(ssl.port());
+      socket.close();
+      
+      socket = new ServerSocket(plain.port());
+      socket.close();
+      
+      socket = new ServerSocket(admin.port());
+      socket.close();
+      
+      return(true);
+    }
+    catch (Exception e)
+    {
+      return(false);
+    }
   }
   
   
@@ -138,14 +178,13 @@ public class Server extends Thread implements Listener
         if (!shutdown && broker.secretary())
         {
           Process process = new Process(config);
-          logger.info("Checking all instances are up");
+          logger.info("Checking all instances are up, manager="+broker.getManager());
           
           ArrayList<ServerType> servers = Cluster.notRunning(this);
           
           for(ServerType server : servers)
           {
             logger.info("Starting instance "+server.id);
-            trysleep(1000);
             process.start(server.type,server.id);
           }
         }        
@@ -210,7 +249,7 @@ public class Server extends Thread implements Listener
         {
           try
           {
-            trysleep(100);
+            trysleep(1);
             startup();
           }
           catch (Exception e)
@@ -270,9 +309,7 @@ public class Server extends Thread implements Listener
           // Wait for other servers to shutdown
           while(servers[0] + servers[1] - down > 1)
           {
-            logger.info("Waiting for other servers to shutdown");
-
-            if (++tries == 256) 
+            if (++tries == 16) 
               throw new Exception("Unable to shutdown servers: "+(servers[0] + servers[1])+", down: "+down);
             
             Thread.sleep(config.getIPConfig().heartbeat);
@@ -298,19 +335,32 @@ public class Server extends Thread implements Listener
   
   public void shutdown()
   {
+    this.shutdown = true;
+    boolean delivered = false;
+    
     try
     {
-      this.shutdown = true;
       logger.info("Shutdown command received, passing on to "+broker.getSecretary());
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       
       Message message = broker.send(broker.getSecretary(),msg);
-      boolean delivered = message.delivered(100);
-      logger.info("Shutdown command passed on "+delivered+" "+message.reason());
+      delivered = message.delivered(100);
+      
+      if (!delivered) 
+        logger.warning("Could not pass on shutdown command to secretary");
     }
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+    
+    if (!delivered)
+    {
+      synchronized(this)
+      {
+        stop = true;
+        this.notify();
+      }
     }
   }
   
@@ -342,5 +392,12 @@ public class Server extends Thread implements Listener
   {
     try {sleep(ms);}
     catch (Exception e) {;}
+  }
+  
+  
+  private PrintStream stdout() throws Exception
+  {
+    String srvout = config.getLogger().getServerOut(id);
+    return(new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)), true));
   }
 }

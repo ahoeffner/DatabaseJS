@@ -15,6 +15,7 @@ package database.js.config;
 import java.io.File;
 import org.json.JSONObject;
 import java.util.logging.Level;
+import java.io.FileOutputStream;
 import database.js.logger.Formatter;
 import java.util.logging.FileHandler;
 
@@ -82,6 +83,20 @@ public class Logger
   }
   
   
+  public synchronized String getServerOut(int inst)
+  {
+    File ldir = new File(logdir);
+    if (!ldir.exists()) ldir.mkdir();
+
+    String instdir = logdir + File.separator+"inst"+String.format("%1$2s",inst).replace(' ','0');
+
+    ldir = new File(instdir);
+    if (!ldir.exists()) ldir.mkdir();
+
+    return(instdir+File.separator+"server.out");
+  }
+  
+  
   public synchronized void openControlLog() throws Exception
   {
     File ldir = new File(logdir);
@@ -104,8 +119,20 @@ public class Logger
 
     File ldir = new File(instdir);
     if (!ldir.exists()) ldir.mkdir();
+    
+    String lfile = instdir+File.separator+logfile;
 
-    FileHandler handler = new FileHandler(instdir+File.separator+logfile,size,count,true);
+    File check = new File(lfile+".0");
+    if (check.exists())
+    {
+      FileOutputStream out = new FileOutputStream(lfile+".0",true);
+      out.write(System.lineSeparator().getBytes());
+      out.write(System.lineSeparator().getBytes());
+      out.write(System.lineSeparator().getBytes());
+      out.close();
+    }
+
+    FileHandler handler = new FileHandler(lfile,size,count,true);
     handler.setFormatter(formatter);
 
     http.setUseParentHandlers(false);

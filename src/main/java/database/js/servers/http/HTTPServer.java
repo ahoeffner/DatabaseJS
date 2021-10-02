@@ -68,6 +68,12 @@ public class HTTPServer extends Thread
     this.workers = new ThreadPool(config.getTopology().workers());
     this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
   }
+  
+  
+  public int port()
+  {
+    return(port);
+  }
 
 
   Server server()
