@@ -1,13 +1,12 @@
 package database.js.handlers;
 
-import java.util.logging.Level;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
 
-public class AdminHandler extends Handler implements Runnable
+public class AdminHandler extends Handler
 {
   private Server server = null;
   
@@ -31,25 +30,8 @@ public class AdminHandler extends Handler implements Runnable
     HTTPResponse response = new HTTPResponse();
     
     if (request.path().equals("/shutdown"))
-    {
-      Thread thread = new Thread(this);
-      thread.start();
-    }
+      server.shutdown();      
 
     return(response);
-  }
-
-
-  @Override
-  public void run()
-  {
-    try
-    {
-      server.shutdown();      
-    }
-    catch (Exception e)
-    {
-      this.server.logger().log(Level.SEVERE,e.getMessage(),e);
-    }
   }
 }

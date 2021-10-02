@@ -113,7 +113,7 @@ public class Server extends Thread implements Listener
       startup();
 
     this.start();
-    logger.info("Startet");
+    logger.info("Instance startet");
 
     this.ensure();
   }
@@ -208,6 +208,7 @@ public class Server extends Thread implements Listener
         {
           try
           {
+            logger.info("Manager is now "+broker.getManager());
             //Thread.sleep(config.getIPConfig().heartbeat);
             startup();
           }
@@ -303,7 +304,7 @@ public class Server extends Thread implements Listener
       
       Message message = broker.send(broker.getSecretary(),msg);
       boolean delivered = message.delivered(100);
-      logger.info("Shutdown command passed on "+delivered);
+      logger.info("Shutdown command passed on "+delivered+" "+message.reason());
     }
     catch (Exception e)
     {
