@@ -121,7 +121,9 @@ public class Server extends Thread implements Listener
       startup();
 
     this.start();
-    logger.info("Instance startet");
+    
+    Thread.sleep(100);
+    logger.info("Instance startet"+System.lineSeparator());
 
     this.ensure();
   }
@@ -176,13 +178,14 @@ public class Server extends Thread implements Listener
         if (!shutdown && broker.secretary())
         {
           Process process = new Process(config);
-          logger.info("Checking all instances are up, manager="+broker.getManager());
+          logger.fine("Checking all instances are up");
           
           ArrayList<ServerType> servers = Cluster.notRunning(this);
           
           for(ServerType server : servers)
           {
             logger.info("Starting instance "+server.id);
+            broker.forceUpdate();
             process.start(server.type,server.id);
           }
         }        
@@ -336,8 +339,9 @@ public class Server extends Thread implements Listener
     
     try
     {
-      if (!broker.secretary())
-        logger.info("Shutdown command received, passing on to secretary "+broker.getSecretary());
+      String nl = System.lineSeparator();
+      if (broker.secretary()) logger.info(nl+nl+"Shutdown command received"+nl);
+      else logger.info(nl+nl+"Shutdown command received, passing on to secretary "+broker.getSecretary()+nl);
       
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       

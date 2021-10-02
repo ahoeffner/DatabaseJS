@@ -13,13 +13,16 @@
 package database.js.control;
 
 import java.io.File;
+import java.util.ArrayList;
 import org.json.JSONTokener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.admin.Client;
 import database.js.config.Paths;
 import database.js.config.Config;
+import database.js.cluster.Cluster;
 import database.js.handlers.Handler;
+import database.js.cluster.Statistics;
 
 
 /**
@@ -72,6 +75,7 @@ public class Launcher implements ILauncher
       {
         case "stop": launcher.stop();  break;
         case "start": launcher.start();  break;
+        case "status": launcher.status();  break;
 
         default: usage();
       }
@@ -119,6 +123,23 @@ public class Launcher implements ILauncher
 
   public void status() throws Exception
   {
+    ArrayList<Statistics> statistics = Cluster.getStatistics(config);
+
+    String id = String.format("%4s","id");    
+    String pid = String.format("%8s","pid");
+    
+    System.out.println(id+" "+pid);
+
+    for (Statistics stats : statistics)
+    {
+      System.out.print(" "+stats.id());
+      System.out.print(" "+stats.pid());
+      System.out.print(" "+stats.started());
+      System.out.print(" "+stats.updated());
+      System.out.print(" "+stats.totmem());
+      System.out.print(" "+stats.usedmem());
+      System.out.println();
+    }
   }
   
   

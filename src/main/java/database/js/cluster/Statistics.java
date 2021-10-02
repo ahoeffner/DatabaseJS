@@ -91,13 +91,13 @@ public class Statistics
     
     try
     {
+      Guest guest = Cluster.guest(config);      
       Short[] servers = Cluster.getServers(config);
       
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
         String name = ""+i;
         Statistics stats = new Statistics();
-        Guest guest = new Guest(config.getIPConfig());
         ByteBuffer data = ByteBuffer.wrap(guest.getResource(name));
         
         stats.id = i;
