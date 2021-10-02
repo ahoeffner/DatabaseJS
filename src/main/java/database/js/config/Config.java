@@ -117,7 +117,6 @@ public class Config
     
     short http = 1;
     if (topology.hotstandby()) http++;
-
     
     short statesize = Statistics.reclen;
     short processes = (short) (topology.servers() + http);

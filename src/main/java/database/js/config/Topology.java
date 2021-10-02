@@ -21,6 +21,8 @@ public class Topology
   private final short workers;
   private final short waiters;
   private final short servers;
+
+  private final int heartbeat;
   
   private final int extnds;
   private final String extsize;
@@ -61,6 +63,8 @@ public class Topology
     
     this.extnds = ipc.getInt("extends");
     this.extsize = ipc.get("extsize").toString();
+    
+    this.heartbeat = ipc.getInt("heartbeat");
   }
 
   public short waiters()

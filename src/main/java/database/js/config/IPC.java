@@ -18,7 +18,7 @@ import java.util.Properties;
 
 public class IPC
 {
-  public static Config getConfig(String path, Short processes, int extnds, String extsize, Short statesize)
+  public static Config getConfig(String path, Short processes, int heartbeat, int extnds, String extsize, Short statesize)
   {
     Short namesize = 3;
     Properties props = new Properties();
