@@ -386,14 +386,6 @@ public class Server extends Thread implements Listener
       {
         while(!stop)
         {
-          short mgr = broker.getManager();
-          
-          if (mgr < 0) 
-          {
-            logger.severe("Broker has no manager");
-            stop = true;
-          }
-          
           Cluster.setStatistics(this);
           this.wait(4*this.heartbeat);
         }
