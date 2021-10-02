@@ -111,8 +111,6 @@ public class Server extends Thread implements Listener
     boolean master = type == Process.Type.http;    
     this.heartbeat = config.getIPConfig().heartbeat;
     this.embedded = config.getTopology().servers() > 0;
-    
-    logger.info("Connect to IPC");
     this.broker = new Broker(config.getIPConfig(),this,id,master);
 
     this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
@@ -249,7 +247,6 @@ public class Server extends Thread implements Listener
         {
           try
           {
-            trysleep(1);
             startup();
           }
           catch (Exception e)
@@ -266,7 +263,6 @@ public class Server extends Thread implements Listener
   public void onMessage(ArrayList<Message> messages)
   {
     String cmd = null;
-    logger.info("Messages received");
     
     for(Message message : messages)
     {
@@ -381,19 +377,12 @@ public class Server extends Thread implements Listener
         }
       }
       
-      sleep(500);
+      sleep(100);
     }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     
     ThreadPool.shutdown();
     logger.info("Server stopped");
-  }
-  
-  
-  private void trysleep(int ms)
-  {
-    try {sleep(ms);}
-    catch (Exception e) {;}
   }
   
   
