@@ -340,7 +340,9 @@ public class Server extends Thread implements Listener
     
     try
     {
-      logger.info("Shutdown command received, passing on to "+broker.getSecretary());
+      if (!broker.secretary())
+        logger.info("Shutdown command received, passing on to secretary "+broker.getSecretary());
+      
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       
       Message message = broker.send(broker.getSecretary(),msg);
