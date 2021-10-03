@@ -139,7 +139,6 @@ public class Launcher implements ILauncher
     String hsec = String.format("%4s"," sec");
 
     String hused = String.format("%-9s"," used");
-    String hfree = String.format("%-9s"," free");
     String halloc = String.format("%-9s"," alloc");
     String htotal = String.format("%-10s"," total");
 
@@ -149,23 +148,24 @@ public class Launcher implements ILauncher
     // Memory
     
     System.out.println("Memory in MB");
-    line = String.format("%29s"," ").replace(" ","-");
+    line = String.format("%40s"," ").replace(" ","-");
 
     System.out.println(line);
-    System.out.println("|"+hid+" |"+htotal+" |"+hused+" |");    
+    System.out.println("|"+hid+" |"+htotal+" |"+halloc+" |"+hused+" |");    
     System.out.println(line);
 
     for (Statistics stats : statistics)
     {
-      long nalloc = stats.usedmem() + stats.freemem();
+      long alloc = stats.usedmem() + stats.freemem();
       
       String id = String.format(" %2s ",stats.id());
-      String al = String.format(" %8s ",nalloc/(1024*1024));
+      String am = String.format(" %8s ",alloc/(1024*1024));
       String tm = String.format(" %9s ",stats.totmem()/(1024*1024));
       String um = String.format(" %8s ",stats.usedmem()/(1024*1024));
       
       System.out.print("|"+id+"");
       System.out.print("|"+tm+"");
+      System.out.print("|"+am+"");
       System.out.print("|"+um+"");
 
       System.out.print("|");      
