@@ -21,42 +21,44 @@ import database.js.config.Config;
 
 public class Process
 {
-  private final String java;
-  private final String htopt;
-  private final String srvopt;
   private final Config config;
   private final Logger logger;
+  private final String javaexe;
+  private final String httpopts;
+  private final String restopts;
+  private final String httpjars;
+  private final String restjars;
   private final static String psep = File.pathSeparator;
 
 
   public Process(Config config) throws Exception
   {
     this.config = config;
-    this.java = config.getJava().exe();
+    this.javaexe = config.getJava().exe();
     this.logger = config.getLogger().control;
-    this.htopt = config.getJava().getHttpOptions();
-    this.srvopt = config.getJava().getRestOptions();
+    this.httpopts = config.getJava().getHttpOptions();
+    this.restopts = config.getJava().getRestOptions();
+    this.httpjars = config.getJava().getHTTPClassPath();
+    this.restjars = config.getJava().getRESTClassPath();
   }
 
 
   public void start(Type type, int inst)
   {
+    String jars = null;
     String options = null;
 
-    if (type == Type.http) options = htopt;
-    else                   options = srvopt;
-    
-    String classpath = classpath(type != Type.http);
-    String cmd = this.java + " -cp " + classpath + " " + options + " database.js.servers.Server " + inst;
+    if (type == Type.http) jars = httpjars;
+    else                   jars = restjars;
 
-    try
-    {
-      java.lang.Process p = Runtime.getRuntime().exec(cmd);
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,null,e);
-    }
+    if (type == Type.http) options = httpopts;
+    else                   options = restopts;
+    
+    String classpath = classpath(type != Type.http) + jars;
+    String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + inst;
+
+    try {Runtime.getRuntime().exec(cmd);}
+    catch (Exception e) {logger.log(Level.SEVERE,null,e);}
   }
 
 

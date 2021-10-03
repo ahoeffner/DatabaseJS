@@ -49,9 +49,6 @@ public class Java
       for(String jar : jars) 
         path += File.pathSeparator+jar;
       
-      if (path.length() > 0)
-        path = path.substring(1);
-      
       httpjars = path;
     }
     
@@ -64,9 +61,6 @@ public class Java
 
       for(String jar : jars) 
         path += File.pathSeparator+jar;
-      
-      if (path.length() > 0)
-        path = path.substring(1);
       
       restjars = path;
     }
