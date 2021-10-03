@@ -78,7 +78,7 @@ public class Statistics
       stats.totmem = Runtime.getRuntime().maxMemory();
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-
+      
       byte manager = broker.manager() ? (byte) 1 : 0;
       byte secretary = broker.secretary() ? (byte) 1 : 0;
       

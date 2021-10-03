@@ -46,9 +46,14 @@ public class Formatter extends java.util.logging.Formatter
     }
     else
     {
+      StackTraceElement[]  elements = record.getThrown().getStackTrace();
+
+      StackTraceElement elem = elements[0];
+      String pos = elem.getClassName()+"."+elem.getMethodName()+"("+elem.getFileName()+":"+elem.getLineNumber()+")";
+      
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       record.getThrown().printStackTrace(new PrintStream(out));
-      message = " SEVERE :"+nl+nl+new String(out.toByteArray());
+      message = " SEVERE :"+pos+nl+nl+new String(out.toByteArray());
     }
 
     entry.append(message+nl);    

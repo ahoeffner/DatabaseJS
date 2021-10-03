@@ -119,6 +119,8 @@ public class Server extends Thread implements Listener
     this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
     this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
     this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
+    
+    logger.info("IPC started, manager="+broker.getManager());
 
     if (broker.manager() && type == Process.Type.http) 
       startup();
