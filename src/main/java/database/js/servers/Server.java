@@ -278,6 +278,7 @@ public class Server extends Thread implements Listener
   public void onMessage(ArrayList<Message> messages)
   {
     String cmd = null;
+    logger.info("Shutdown message received");
     
     for(Message message : messages)
     {
@@ -304,6 +305,7 @@ public class Server extends Thread implements Listener
     {
       try
       {
+        logger.info("Broadcasting if secretary");
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);
