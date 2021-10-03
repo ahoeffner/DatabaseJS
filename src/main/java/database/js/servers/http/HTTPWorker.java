@@ -71,7 +71,7 @@ public class HTTPWorker implements Runnable
       boolean admin = server.admin();
       
       if (!admin) handler = handlers.getHandler(path,method);
-      else        handler = new AdminHandler(server.config()).server(server.server());
+      else        handler = new AdminHandler(server.config());
 
       HTTPResponse response = handler.handle(request);
       request.respond(response.page());

@@ -35,11 +35,12 @@ public class Statistics
   
   private long totmem;
   private long usedmem;
+  private long freemem;
   
   private long requests;
 
   private static Statistics stats = null;  
-  public static final int reclen = 6*Long.BYTES+2;
+  public static final int reclen = 7*Long.BYTES+2;
   
   
   private Statistics()
@@ -51,9 +52,6 @@ public class Statistics
   {
     this.pid = ProcessHandle.current().pid();
     this.started = broker.started();
-    this.updated = System.currentTimeMillis();
-    this.totmem = Runtime.getRuntime().totalMemory();
-    this.usedmem = (totmem - Runtime.getRuntime().freeMemory());
     return(this);
   }
   
@@ -73,9 +71,14 @@ public class Statistics
         stats = new Statistics().init(server.broker());
         stat.acquire();        
       }
-      
+
       stats.requests = server.requests();      
       stats.updated = System.currentTimeMillis();      
+      
+      stats.totmem = Runtime.getRuntime().maxMemory();
+      stats.freemem = Runtime.getRuntime().freeMemory();
+      stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+
       byte manager = broker.manager() ? (byte) 1 : 0;
       byte secretary = broker.secretary() ? (byte) 1 : 0;
       
@@ -84,6 +87,7 @@ public class Statistics
       data.putLong(stats.updated);
       data.putLong(stats.totmem);
       data.putLong(stats.usedmem);
+      data.putLong(stats.freemem);
       data.putLong(stats.requests);
       
       data.put(manager);
@@ -126,6 +130,7 @@ public class Statistics
           stats.updated  = data.getLong();
           stats.totmem   = data.getLong();
           stats.usedmem  = data.getLong();  
+          stats.freemem  = data.getLong();  
           stats.requests = data.getLong();  
           
           byte manager = data.get();
@@ -170,6 +175,11 @@ public class Statistics
   public long usedmem()
   {
     return(usedmem);
+  }
+
+  public long freemem()
+  {
+    return(freemem);
   }
 
   public long requests()

@@ -8,26 +8,19 @@ import database.js.servers.http.HTTPResponse;
 
 public class AdminHandler extends Handler
 {
-  private Server server = null;
-  
-  
   public AdminHandler(Config config) throws Exception
   {
     super(config);
   }
   
   
-  public AdminHandler server(Server server)
-  {
-    this.server = server;
-    return(this);
-  }
-  
-  
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
+    Server server = request.server();
     HTTPResponse response = new HTTPResponse();
+    
+    server.request();
     
     if (request.path().equals("/shutdown"))
       server.shutdown();      

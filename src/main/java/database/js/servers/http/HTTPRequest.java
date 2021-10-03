@@ -14,6 +14,7 @@ package database.js.servers.http;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import database.js.servers.Server;
 
 
 public class HTTPRequest
@@ -27,7 +28,9 @@ public class HTTPRequest
   private boolean parsed = false;
   private boolean redirect = false;
 
+  private Server server;
   private HTTPChannel channel;
+  
   private byte[] request = new byte[0];
 
   private HashMap<String,String> headers =
@@ -46,7 +49,13 @@ public class HTTPRequest
   HTTPRequest(HTTPChannel channel)
   {
     this.channel = channel;
+    this.server = channel.server();
     this.redirect = channel.redirect();
+  }
+  
+  public Server server()
+  {
+    return(server);
   }
 
   public String path()

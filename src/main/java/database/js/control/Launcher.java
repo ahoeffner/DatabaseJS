@@ -138,24 +138,29 @@ public class Launcher implements ILauncher
     String hmgr = String.format("%4s"," mgr");
     String hsec = String.format("%4s"," sec");
 
-    String hused = String.format("%-9s"," used(mb)");
-    String htotal = String.format("%-10s"," total(mb)");
+    String hused = String.format("%-9s"," used");
+    String hfree = String.format("%-9s"," free");
+    String halloc = String.format("%-9s"," alloc");
+    String htotal = String.format("%-10s"," total");
 
     String hstarted = String.format("%-21s","  started");
     String hupdated = String.format("%-21s","  updated");
 
     // Memory
     
-    System.out.println("Memory");
+    System.out.println("Memory in MB");
     line = String.format("%29s"," ").replace(" ","-");
 
     System.out.println(line);
-    System.out.println("|"+hid+" |"+hused+" |"+htotal+" |");    
+    System.out.println("|"+hid+" |"+htotal+" |"+hused+" |");    
     System.out.println(line);
 
     for (Statistics stats : statistics)
     {
+      long nalloc = stats.usedmem() + stats.freemem();
+      
       String id = String.format(" %2s ",stats.id());
+      String al = String.format(" %8s ",nalloc/(1024*1024));
       String tm = String.format(" %9s ",stats.totmem()/(1024*1024));
       String um = String.format(" %8s ",stats.usedmem()/(1024*1024));
       
