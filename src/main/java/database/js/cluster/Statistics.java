@@ -108,6 +108,9 @@ public class Statistics
       Guest guest = Cluster.guest(config);      
       Short[] servers = Cluster.getServers(config);
       
+      System.out.println("Manager "+guest.getManager());
+      System.out.println("Secretary "+guest.getSecretary());
+      
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
         String name = ""+i;
@@ -135,7 +138,7 @@ public class Statistics
         list.add(stats);
       }
     }
-    catch (Exception e) {;}
+    catch (Exception e) {e.printStackTrace();}
     return(list);
   }
 
