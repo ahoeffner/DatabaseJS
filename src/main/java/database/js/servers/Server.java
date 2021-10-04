@@ -30,6 +30,9 @@ import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  *
@@ -278,7 +281,12 @@ public class Server extends Thread implements Listener
   public void onMessage(ArrayList<Message> messages)
   {
     String cmd = null;
-    logger.info("Shutdown message received");
+
+    String nl = System.lineSeparator();
+    logger.info(nl+nl+"Shutdown message received"+nl);
+    HashMap<Short,Boolean> state = broker.servers();
+    for(Map.Entry<Short,Boolean> server : state.entrySet())
+      logger.info(server.getKey()+" status "+server.getValue());
     
     for(Message message : messages)
     {
@@ -335,7 +343,8 @@ public class Server extends Thread implements Listener
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
     }
-
+    
+    broker.close();
     logger.info("Shutting down");
 
     synchronized(this)
@@ -356,6 +365,11 @@ public class Server extends Thread implements Listener
       String nl = System.lineSeparator();
       if (broker.secretary()) logger.info(nl+nl+"Shutdown command received"+nl);
       else logger.info(nl+nl+"Shutdown command received, passing on to secretary "+broker.getSecretary()+nl);
+
+      logger.info(nl+"Shutdown message received");
+      HashMap<Short,Boolean> state = broker.servers();
+      for(Map.Entry<Short,Boolean> server : state.entrySet())
+        logger.info(server.getKey()+" status "+server.getValue());
       
       byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
       
