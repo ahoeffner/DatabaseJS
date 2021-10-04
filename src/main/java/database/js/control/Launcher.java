@@ -128,22 +128,25 @@ public class Launcher implements ILauncher
     String line = null;
     System.out.println();
     
+    System.out.println("HTTP "+Statistics.mgr());
+    System.out.println("PROC "+Statistics.sec());
+    
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     ArrayList<Statistics> statistics = Cluster.getStatistics(config);
 
     String hid = String.format("%3s"," id");
     String hpid = String.format("%8s"," pid ");
-    String hhits = String.format("%8s"," hits  ");
+    String hhits = String.format("%12s","hits  ");
 
-    String hmgr = String.format("%4s"," mgr");
-    String hsec = String.format("%4s"," sec");
+    String hmgr = String.format("%6s"," http");
+    String hsec = String.format("%6s"," owner");
 
     String hused = String.format("%-9s"," used");
     String halloc = String.format("%-9s"," alloc");
     String htotal = String.format("%-10s"," total");
 
     String hstarted = String.format("%-21s","  started");
-    String hupdated = String.format("%-21s","  updated");
+    String hupdated = String.format("%-13s","    uptime");
 
     // Memory
     
@@ -156,6 +159,8 @@ public class Launcher implements ILauncher
 
     for (Statistics stats : statistics)
     {
+      if (!stats.online()) continue;
+
       long alloc = stats.usedmem() + stats.freemem();
       
       String id = String.format(" %2s ",stats.id());
@@ -187,22 +192,42 @@ public class Launcher implements ILauncher
     
     for (Statistics stats : statistics)
     {
+      if (!stats.online()) continue;
+
       String id = String.format(" %2s ",stats.id());
       String pid = String.format("%8s ",stats.pid());
-      String hits = String.format("%8s ",stats.requests());
+      String hits = String.format("%12s ",stats.requests());
       
-      String mgr = stats.manager() ? "  X  " : "     ";
-      String sec = stats.secretary() ? "  X  " : "     ";
+      String mgr = stats.manager() ? "   X   " : "       ";
+      String sec = stats.secretary() ? "   X   " : "       ";
+      
+      int up = (int) ((stats.updated() - stats.started())/1000);
 
+      int days = up/(24*3600);      
+      up -= days * 24*3600;
+
+      int hours = up/3600;
+      up -= hours * 3600;
+
+      int mins = up/60;
+      up -= mins * 60;
+      
+      int secs = up;
+      
+      String uptime = " ";
+      uptime += String.format("%3d",days) + " ";
+      uptime += String.format("%2d",hours).replace(' ','0') + ":";
+      uptime += String.format("%2d",mins) .replace(' ','0') + ":";
+      uptime += String.format("%2d",secs) .replace(' ','0') + " ";
+      
       String started = " "+format.format(new Date(stats.started()))+" ";
-      String updated = " "+format.format(new Date(stats.updated()))+" ";
 
       System.out.print("|"+id+"");
       System.out.print("|"+pid+"");
       System.out.print("|"+mgr+"");
       System.out.print("|"+sec+"");
       System.out.print("|"+started+"");
-      System.out.print("|"+updated+"");
+      System.out.print("|"+uptime+"");
       System.out.print("|"+hits+"");
 
       System.out.print("|");      

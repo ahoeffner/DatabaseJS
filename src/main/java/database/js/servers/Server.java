@@ -313,7 +313,7 @@ public class Server extends Thread implements Listener
     {
       try
       {
-        logger.info("Broadcasting if secretary");
+        logger.info("Broadcasting if process owner");
         if (broker.secretary())
         {
           Short[] servers = Cluster.getServers(config);

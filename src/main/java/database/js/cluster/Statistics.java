@@ -25,8 +25,10 @@ import database.js.servers.Server;
 public class Statistics
 {
   private short id;
+  
   private long pid;
   
+  private boolean online;
   private boolean manager;
   private boolean secretary;
 
@@ -39,6 +41,9 @@ public class Statistics
   
   private long requests;
 
+  private static short mgr;
+  private static short sec;
+  
   private static Statistics stats = null;  
   public static final int reclen = 7*Long.BYTES+2;
   
@@ -46,6 +51,18 @@ public class Statistics
   private Statistics()
   {    
   }
+  
+  
+  public static short mgr()
+  {
+    return(mgr);
+  }
+
+  public static short sec()
+  {
+    return(sec);
+  }
+
   
   
   private Statistics init(Broker broker)
@@ -112,8 +129,8 @@ public class Statistics
       Guest guest = Cluster.guest(config);      
       Short[] servers = Cluster.getServers(config);
       
-      System.out.println("Manager "+guest.getManager());
-      System.out.println("Secretary "+guest.getSecretary());
+      mgr = guest.getManager();
+      sec = guest.getSecretary();
       
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
@@ -138,6 +155,8 @@ public class Statistics
           
           stats.manager = manager == 1;
           stats.secretary = secretary == 1;
+          
+          stats.online = guest.online(i);
         }
         
         list.add(stats);
@@ -185,6 +204,11 @@ public class Statistics
   public long requests()
   {
     return(requests);
+  }
+
+  public boolean online()
+  {
+    return(online);
   }
 
   public boolean manager()
