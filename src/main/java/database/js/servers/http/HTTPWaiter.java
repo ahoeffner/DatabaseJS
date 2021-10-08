@@ -151,7 +151,7 @@ class HTTPWaiter extends Thread
             {
               HTTPRequest request = incomplete.remove(key);
               byte[] chunk = new byte[read]; buf.get(chunk);
-              if (request == null) request = new HTTPRequest(key,this,client);
+              if (request == null) request = new HTTPRequest(this,client,key);
                             
               if (!request.add(chunk)) incomplete.put(key,request);
               else                     workers.submit(new HTTPWorker(request));
