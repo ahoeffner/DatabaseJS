@@ -1,5 +1,6 @@
 package database.js.handlers;
 
+import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
@@ -17,16 +18,17 @@ public class AdminHandler extends Handler
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
+    Logger logger = getAdminLogger();
     Server server = request.server();
     HTTPResponse response = new HTTPResponse();
     
     server.request();
-    getAdminLogger().info("adm request received <"+request.path()+">");
+    logger.info("adm request received <"+request.path()+">");
     
     if (request.path().equals("/connect"))
     {
       response.setBody("connected");
-      getAdminLogger().info("response <"+new String(response.page())+">");
+      request.unlist();
     }
         
     if (request.path().equals("/shutdown"))

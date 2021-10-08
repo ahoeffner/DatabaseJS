@@ -15,6 +15,7 @@ package database.js.servers.http;
 import java.util.HashMap;
 import java.util.ArrayList;
 import database.js.servers.Server;
+import java.nio.channels.SelectionKey;
 
 
 public class HTTPRequest
@@ -29,9 +30,10 @@ public class HTTPRequest
   private boolean redirect = false;
 
   private final Server server;
+  private final SelectionKey key;
   private final HTTPWaiter waiter;
   private final HTTPChannel channel;
-  
+
   private byte[] body = null;
   private byte[] request = new byte[0];
 
@@ -48,21 +50,13 @@ public class HTTPRequest
   private long touched = System.currentTimeMillis();
 
 
-  HTTPRequest(HTTPWaiter waiter, HTTPChannel channel)
+  HTTPRequest(SelectionKey key, HTTPWaiter waiter, HTTPChannel channel)
   {
+    this.key = key;
     this.waiter = waiter;
     this.channel = channel;
     this.server = channel.server();
     this.redirect = channel.redirect();
-  }
-  
-  
-  protected HTTPRequest()
-  {
-    this.waiter = null;
-    this.server = null;
-    this.channel = null;
-    this.redirect = false;
   }
 
   
@@ -123,6 +117,11 @@ public class HTTPRequest
   public void respond(byte[] data) throws Exception
   {
     channel.write(data);
+  }
+  
+  public void unlist()
+  {
+    waiter.unlist(key);
   }
 
   boolean done()

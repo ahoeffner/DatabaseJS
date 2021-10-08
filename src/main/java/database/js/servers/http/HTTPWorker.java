@@ -16,22 +16,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
-import java.nio.channels.SelectionKey;
 import database.js.handlers.AdminHandler;
 
 
 public class HTTPWorker implements Runnable
 {
   private final Logger logger;
-  private final SelectionKey key;
   private final Handlers handlers;
   private final HTTPChannel channel;
   private final HTTPRequest request;
 
 
-  public HTTPWorker(SelectionKey key, HTTPRequest request) throws Exception
+  public HTTPWorker(HTTPRequest request) throws Exception
   {
-    this.key = key;
     this.request = request;
     this.channel = request.channel();
     this.logger = channel.logger();
