@@ -27,7 +27,6 @@ import database.js.servers.http.HTTPServer;
 import database.js.servers.rest.RESTServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
-import database.js.servers.rest.RESTEngine;
 
 
 /**
@@ -60,7 +59,6 @@ public class Server extends Thread
   private final Logger logger;
   private final Config config;
   private final boolean embedded;
-  private final RESTEngine restengine;
 
   private long requests = 0;
   private volatile boolean stop = false;
@@ -98,9 +96,6 @@ public class Server extends Thread
     this.embedded = config.getTopology().servers() > 0;
     this.heartbeat = config.getTopology().heartbeat();
     
-    if (embedded) this.restengine = null;
-    else this.restengine = new RESTEngine();
-
     if (type == Process.Type.rest)
     {
       this.ssl = null;
@@ -202,12 +197,6 @@ public class Server extends Thread
   public long started()
   {
     return(started);
-  }
-  
-  
-  public RESTEngine restengine()
-  {
-    return(restengine);
   }
   
   

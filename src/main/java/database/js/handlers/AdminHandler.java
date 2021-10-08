@@ -32,7 +32,9 @@ public class AdminHandler extends Handler
       buf.clear();
       buf.putShort(server.id());
       buf.putLong(server.started());
-      response.setBody((byte[]) buf.flip().array(),0,10);
+      //response.setBody((byte[]) buf.flip().array(),0,10);
+      response.setBody("Hello");
+      getAdminLogger().info("replied with "+server.id()+" "+server.started());
     }
         
     if (request.path().equals("/shutdown"))

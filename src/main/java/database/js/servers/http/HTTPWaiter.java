@@ -127,8 +127,10 @@ class HTTPWaiter extends Thread
 
             if (buf == null)
             {
+              key.cancel();
               channel.close();
               incomplete.remove(key);
+              logger.warning("Removed key "+key);
               continue;
             }
 
@@ -143,7 +145,6 @@ class HTTPWaiter extends Thread
               if (!request.add(chunk)) incomplete.put(key,request);
               else                     workers.submit(new HTTPWorker(client,key,request));
             }
-
           }
           else
           {
