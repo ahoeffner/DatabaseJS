@@ -14,18 +14,37 @@ package database.js.handlers;
 
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.control.Process.Type;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
 
 public abstract class Handler
 {
-  public final Logger logger;
+  private final Config config;
   
   
   public Handler(Config config) throws Exception
   {
-    this.logger = config.getLogger().logger;  
+    this.config = config;
+  }
+  
+  
+  public Logger getLogger(Type type) throws Exception
+  {
+    switch(type)
+    {
+      case http: return(config.getLogger().http);
+      case rest: return(config.getLogger().rest);
+    }
+    
+    return(config.getLogger().logger);
+  }
+  
+  
+  public Logger getAdminLogger() throws Exception
+  {
+    return(config.getLogger().admin);
   }
   
   

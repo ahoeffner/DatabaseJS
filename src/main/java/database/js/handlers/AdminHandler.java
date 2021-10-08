@@ -20,6 +20,8 @@ public class AdminHandler extends Handler
     Server server = request.server();
     HTTPResponse response = new HTTPResponse();
     
+    getAdminLogger().info("adm request received");
+    
     server.request();
     
     if (request.path().equals("/shutdown"))

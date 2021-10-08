@@ -12,9 +12,6 @@
 
 package database.js.cluster;
 
-import ipc.Guest;
-import ipc.Broker;
-import ipc.Resource;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -24,9 +21,8 @@ import database.js.servers.Server;
 
 public class Statistics
 {
-  private short id;
-  
   private long pid;
+  private short id;
   
   private boolean online;
   private boolean manager;
@@ -65,20 +61,19 @@ public class Statistics
 
   
   
-  private Statistics init(Broker broker)
+  private Statistics init()
   {
-    this.pid = ProcessHandle.current().pid();
-    this.started = broker.started();
+    this.pid = 0; //ProcessHandle.current().pid();
+    this.started = System.currentTimeMillis();
     return(this);
   }
   
   
   public static void save(Server server)
   {
+    /*
     try
     {
-      Broker broker = server.broker();
-
       String name = ""+broker.id();
       Resource stat = broker.getResource(name);
       ByteBuffer data = ByteBuffer.allocate(reclen);
@@ -116,6 +111,7 @@ public class Statistics
     {
       server.logger().log(Level.SEVERE,e.getMessage(),e);
     }
+  */
   }
   
   
@@ -124,9 +120,11 @@ public class Statistics
     ArrayList<Statistics> list =
       new ArrayList<Statistics>();
     
+    return(list);
+/*
+    
     try
     {
-      Guest guest = Cluster.guest(config);      
       Short[] servers = Cluster.getServers(config);
       
       mgr = guest.getManager();
@@ -164,6 +162,7 @@ public class Statistics
     }
     catch (Exception e) {e.printStackTrace();}
     return(list);
+*/
   }
 
   public short id()

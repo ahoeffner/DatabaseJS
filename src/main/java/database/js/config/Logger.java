@@ -23,6 +23,8 @@ import java.util.logging.FileHandler;
 public class Logger
 {
   public final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
+  public final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
+  public final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
   public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("others");
   public final java.util.logging.Logger control = java.util.logging.Logger.getLogger("control");
   public final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
@@ -139,6 +141,16 @@ public class Logger
     http.setLevel(Level.parse(htlevel.toUpperCase()));
 
     http.addHandler(handler);
+
+    rest.setUseParentHandlers(false);
+    rest.setLevel(Level.parse(level.toUpperCase()));
+
+    rest.addHandler(handler);
+
+    admin.setUseParentHandlers(false);
+    admin.setLevel(Level.parse(level.toUpperCase()));
+
+    admin.addHandler(handler);
 
     logger.setUseParentHandlers(false);
     logger.setLevel(Level.parse(level.toUpperCase()));

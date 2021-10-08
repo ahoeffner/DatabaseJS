@@ -13,14 +13,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>ipc</groupId>
-      <artifactId>ipc</artifactId>
-      <version>2.1</version>
-      <scope>system</scope>
-      <systemPath>/Users/alex/Repository/DatabaseJS/lib/ipc/ipc-2.1.jar</systemPath>
-    </dependency>
-
-    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.2.10</version>

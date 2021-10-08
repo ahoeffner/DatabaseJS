@@ -12,7 +12,6 @@
 
 package database.js.cluster;
 
-import ipc.Guest;
 import java.util.ArrayList;
 import database.js.config.Config;
 import database.js.servers.Server;
@@ -21,18 +20,6 @@ import database.js.control.Process;
 
 public class Cluster
 {
-  private static Guest guest = null;
-  
-  
-  public synchronized static Guest guest(Config config) throws Exception
-  {
-    if (guest == null)
-      guest = new Guest(config.getIPConfig());
-    
-    return(guest);
-  }
-  
-  
   public static Process.Type getType(Config config, short id) throws Exception
   {  
     Short[] servers = getServers(config);
@@ -43,16 +30,6 @@ public class Cluster
   public static boolean isRunning(Config config, short id) throws Exception
   {
     boolean running = true;
-    
-    Guest guest = guest(config);    
-    int heartbeat = config.getIPConfig().heartbeat;
-    
-    for (int i = 0; i < 8 && running; i++)
-    {
-      running = guest.online(id);
-      if (running) Thread.sleep(heartbeat/4);      
-    }
-
     return(running);
   }
 

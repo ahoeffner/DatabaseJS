@@ -12,7 +12,6 @@
 
 package database.js.servers.http;
 
-import ipc.Broker;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -33,7 +32,6 @@ public class HTTPServer extends Thread
   private final boolean ssl;
   private final Server server;
   private final Config config;
-  private final Broker broker;
   private final Logger logger;
   private final boolean admin;
   private final boolean embedded;
@@ -50,7 +48,6 @@ public class HTTPServer extends Thread
     this.server = server;
     this.redirect = false;
     this.embedded = embedded;
-    this.broker = server.broker();
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;

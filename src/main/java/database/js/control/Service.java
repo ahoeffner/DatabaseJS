@@ -1,16 +1,11 @@
 package database.js.control;
 
-import ipc.Broker;
-import ipc.Message;
-import ipc.Listener;
-import java.util.ArrayList;
 import database.js.config.Config;
 
 
-public class Service extends Thread implements Listener
+public class Service extends Thread
 {
   private final Config config;
-  private final Broker broker;
 
 
   @SuppressWarnings("unused")
@@ -25,32 +20,7 @@ public class Service extends Thread implements Listener
     this.start();
     this.config = new Config();
     Launcher.main(new String[] {"-s","start"});
-    this.broker = new Broker(config.getIPConfig(),this);
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
-  }
-
-
-  @Override
-  public void onServerUp(short id)
-  {
-    System.out.println("Server "+id+" started");
-  }
-
-  @Override
-  public void onServerDown(short id)
-  {
-    System.out.println("Server "+id+" stopped");
-  }
-
-  @Override
-  public void onNewManager(short id)
-  {
-    System.out.println("HTTPServer switched");
-  }
-
-  @Override
-  public void onMessage(ArrayList<Message> arrayList)
-  {
   }
   
   

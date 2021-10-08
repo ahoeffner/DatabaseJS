@@ -110,8 +110,13 @@ public class Launcher implements ILauncher
     int admin = config.getPorts()[2];
     Client client = new Client("localhost",admin);
     
+    logger.info("Connecting");
     client.connect();
+    
+    logger.info("Sending message");
     client.send("shutdown");
+    
+    logger.info("Message sent");
   }
 
 

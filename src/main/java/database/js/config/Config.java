@@ -12,12 +12,10 @@
 
 package database.js.config;
 
-import ipc.Broker;
 import java.io.File;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.io.FileInputStream;
-import database.js.cluster.Statistics;
 import database.js.security.PKIContext;
 
 
@@ -36,7 +34,6 @@ public class Config
   private Security security = null;
   private Topology topology = null;
   private Database database = null;
-  private ipc.config.Config config = null;
   
   private static final String CONFDEF = "conf.json";
   private static final String JAVADEF = "java.json";
@@ -103,30 +100,6 @@ public class Config
     ports[2] = pconfig.getInt("admin");
 
     return(ports);
-  }
-  
-    
-  public synchronized ipc.config.Config getIPConfig() throws Exception
-  {
-    if (config != null) return(config);
-    
-    Topology topology = this.getTopology();
-
-    int extnds = topology.extnds();
-    String extsize = topology.extsize();
-    
-    short http = 1;
-    if (topology.hotstandby()) http++;
-    
-    int heartbeat = topology.heartbeat();
-  
-    short statesize = Statistics.reclen;
-    short processes = (short) (topology.servers() + http);
-    
-    Broker.logger(this.getLogger().logger);
-    this.config = IPC.getConfig(Paths.ipcdir,processes,heartbeat,extnds,extsize,statesize);
-    
-    return(config);
   }
   
     

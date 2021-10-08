@@ -12,9 +12,6 @@
 
 package database.js.servers;
 
-import ipc.Broker;
-import ipc.Message;
-import ipc.Listener;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.net.ServerSocket;
@@ -29,9 +26,6 @@ import java.io.BufferedOutputStream;
 import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**
@@ -56,11 +50,10 @@ import java.util.Map;
  * to all other processes, and shut itself down.
  *
  */
-public class Server extends Thread implements Listener
+public class Server extends Thread
 {
   private final short id;
   private final int heartbeat;
-  private final Broker broker;
   private final Logger logger;
   private final Config config;
   private final boolean embedded;
@@ -72,8 +65,6 @@ public class Server extends Thread implements Listener
   private final HTTPServer ssl;
   private final HTTPServer plain;
   private final HTTPServer admin;
-  
-  private final Object SYNC = new Object();
 
   
   public static void main(String[] args)
@@ -96,43 +87,21 @@ public class Server extends Thread implements Listener
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
     Process.Type type = Cluster.getType(config,id);
-    
-    Broker.logger(logger);
-    logger.info("Starting up");
-    
-    try
-    {
-      if (Cluster.isRunning(config,id))
-      {
-        logger.severe("Server is already running");
-        throw new Exception("Server is already running");            
-      }
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-      throw e;
-    }
-    
-    boolean master = type == Process.Type.http;    
-    this.heartbeat = config.getIPConfig().heartbeat;
+        
     this.embedded = config.getTopology().servers() > 0;
-    this.broker = new Broker(config.getIPConfig(),this,id,master);
-
+    this.heartbeat = config.getTopology().heartbeat();
+ 
     this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
     this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
     this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
     
-    logger.info("IPC started, manager="+broker.getManager());
-
-    if (broker.manager() && type == Process.Type.http) 
-      startup();
-
-    this.start();
+    if (type == Process.Type.http)
+      this.startup();
     
     Thread.sleep(100);
     logger.info("Instance startet"+System.lineSeparator());
 
+    this.start();
     this.ensure();
   }
   
@@ -183,7 +152,7 @@ public class Server extends Thread implements Listener
     {
       synchronized(this)
       {
-        if (!shutdown && broker.secretary())
+        if (!shutdown)
         {
           Process process = new Process(config);
           logger.fine("Checking all instances are up");
@@ -193,7 +162,6 @@ public class Server extends Thread implements Listener
           for(ServerType server : servers)
           {
             logger.info("Starting instance "+server.id);
-            broker.forceUpdate();
             process.start(server.type,server.id);
           }
         }        
@@ -224,12 +192,6 @@ public class Server extends Thread implements Listener
   }
   
   
-  public Broker broker()
-  {
-    return(broker);
-  }
-  
-  
   public synchronized void request()
   {
     requests++;
@@ -240,157 +202,14 @@ public class Server extends Thread implements Listener
   {
     return(requests);
   }
-
-
-  @Override
-  public void onServerUp(short id)
+  public void shutdown()
   {
-    logger.info("Instance "+id+" is online");
-  }
-
-
-  @Override
-  public void onServerDown(short id)
-  {
-    logger.info("Instance "+id+" is down");
-    ensure();
-  }
-
-
-  @Override
-  public void onNewManager(short id)
-  {
-    logger.info("Switching manager to "+id);
-
-    if (id == this.id)
-    {
-      synchronized(SYNC)
-      {
-        if (!stop && !shutdown)
-        {
-          try {startup();}
-          catch (Exception e)
-          {logger.log(Level.SEVERE,e.getMessage(),e);}
-        }
-      }
-    }
-  }
-
-
-  @Override
-  public void onMessage(ArrayList<Message> messages)
-  {
-    String cmd = null;
-
-    String nl = System.lineSeparator();
-    logger.info(nl+nl+"Shutdown message received"+nl);
-    HashMap<Short,Boolean> state = broker.servers();
-    for(Map.Entry<Short,Boolean> server : state.entrySet())
-      logger.info(server.getKey()+" status "+server.getValue());
-    
-    for(Message message : messages)
-    {
-      int pos = 3;
-      byte[] msg = message.body();
-      String adm = new String(msg,0,pos);
-      
-      if (adm.equals("ADM"))
-      {
-        while(msg[pos] != '\r' && msg[pos+1] != '\n') 
-            pos++;
-          
-        cmd = new String(msg,0,pos+2);
+    this.shutdown = true;
         
-        if (cmd.startsWith("ADM /shutdown"))
-        {
-          shutdown = true;
-          break;
-        }
-      }
-    }
-    
-    if (shutdown)
-    {
-      try
-      {
-        logger.info("Broadcasting if process owner");
-        if (broker.secretary())
-        {
-          Short[] servers = Cluster.getServers(config);
-          logger.info("Broadcasting shutdown");
-
-          // Signal other servers to shutdown
-          for (short i = 0; i < servers[0] + servers[1]; i++)
-            if (i != id) broker.send(i,cmd.getBytes());
-
-          int tries = 0;
-          int down = Cluster.notRunning(this).size();;
-          logger.info("Online servers: "+(servers[0] + servers[1] - down));
-                    
-          // Wait for other servers to shutdown
-          while(servers[0] + servers[1] - down > 1)
-          {
-            if (++tries == 16) 
-              throw new Exception("Unable to shutdown servers: "+(servers[0] + servers[1])+", down: "+down);
-            
-            Thread.sleep(config.getIPConfig().heartbeat);
-            down = Cluster.notRunning(this).size();
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        logger.log(Level.SEVERE,e.getMessage(),e);
-      }
-    }
-    
-    broker.close();
-    logger.info("Shutting down");
-
     synchronized(this)
     {
       stop = true;
       this.notify();
-    }
-  }
-  
-  
-  public void shutdown()
-  {
-    this.shutdown = true;
-    boolean delivered = false;
-    
-    try
-    {
-      String nl = System.lineSeparator();
-      if (broker.secretary()) logger.info(nl+nl+"Shutdown command received"+nl);
-      else logger.info(nl+nl+"Shutdown command received, passing on to secretary "+broker.getSecretary()+nl);
-
-      logger.info(nl+"Shutdown message received");
-      HashMap<Short,Boolean> state = broker.servers();
-      for(Map.Entry<Short,Boolean> server : state.entrySet())
-        logger.info(server.getKey()+" status "+server.getValue());
-      
-      byte[] msg = "ADM /shutdown HTTP/1.1\r\n".getBytes();
-      
-      Message message = broker.send(broker.getSecretary(),msg);
-      delivered = message.delivered(100);
-      
-      if (!delivered) 
-        logger.warning("Could not pass on shutdown command to secretary");
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-    }
-    
-    if (!delivered)
-    {
-      synchronized(this)
-      {
-        stop = true;
-        this.notify();
-      }
     }
   }
   
