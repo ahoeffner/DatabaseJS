@@ -146,6 +146,13 @@ public class HTTPResponse
   }
   
   
+  public void setBody(byte[] body, int pos, int len)
+  {
+    this.body = new byte[len];
+    System.arraycopy(body,pos,this.body,0,len);
+  }
+  
+  
   public String header()
   {
     if (header != null)

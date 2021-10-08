@@ -108,7 +108,7 @@ public class Launcher implements ILauncher
   public void stop() throws Exception
   {
     int admin = config.getPorts()[2];
-    Client client = new Client("localhost",admin);
+    Client client = new Client("localhost",admin,true);
     
     logger.info("Connecting");
     client.connect();

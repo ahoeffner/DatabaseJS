@@ -24,6 +24,7 @@ import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
 import database.js.servers.http.HTTPServer;
+import database.js.servers.rest.RESTServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
@@ -53,6 +54,7 @@ import database.js.servers.http.HTTPServerType;
 public class Server extends Thread
 {
   private final short id;
+  private final long started;
   private final int heartbeat;
   private final Logger logger;
   private final Config config;
@@ -66,6 +68,8 @@ public class Server extends Thread
   private final HTTPServer plain;
   private final HTTPServer admin;
 
+  private final RESTServer rest;
+
   
   public static void main(String[] args)
   {
@@ -74,7 +78,7 @@ public class Server extends Thread
   }
   
   
-  Server(short id) throws Exception
+  public Server(short id) throws Exception
   {
     this.id = id;
     this.config = new Config();
@@ -86,29 +90,39 @@ public class Server extends Thread
 
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
+    this.started = System.currentTimeMillis();
     Process.Type type = Cluster.getType(config,id);
         
     this.embedded = config.getTopology().servers() > 0;
     this.heartbeat = config.getTopology().heartbeat();
- 
-    this.ssl = new HTTPServer(this, HTTPServerType.ssl,embedded);
-    this.plain = new HTTPServer(this, HTTPServerType.plain,embedded);
-    this.admin = new HTTPServer(this, HTTPServerType.admin,embedded);
-    
-    if (type == Process.Type.http)
+
+    if (type == Process.Type.rest)
+    {
+      this.ssl = null;
+      this.plain = null;
+      this.admin = null;
+      this.rest = new RESTServer(this);
+    }
+    else
+    {
+      this.rest = null;
+      this.ssl = new HTTPServer(this,HTTPServerType.ssl,embedded);
+      this.plain = new HTTPServer(this,HTTPServerType.plain,embedded);
+      this.admin = new HTTPServer(this,HTTPServerType.admin,embedded);
+
       this.startup();
-    
-    Thread.sleep(100);
-    logger.info("Instance startet"+System.lineSeparator());
+    }
 
     this.start();
     this.ensure();
+    
+    logger.info("Instance startet"+System.lineSeparator());
   }
   
   
   private void startup()
   {
-    if (!test())
+    if (!open())
     {
       logger.info("Address already in use");
       return;
@@ -122,7 +136,7 @@ public class Server extends Thread
   }
   
   
-  private boolean test()
+  private boolean open()
   {
     try
     {
@@ -183,6 +197,12 @@ public class Server extends Thread
   public short id()
   {
     return(id);
+  }
+  
+  
+  public long started()
+  {
+    return(started);
   }
   
   

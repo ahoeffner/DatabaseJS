@@ -3,6 +3,7 @@ package database.js.admin;
 public class HTTPRequest
 {
   private String body;
+  private String method;
   private final String host;
   private final String path;
   private static final String EOL = "\r\n";
@@ -21,11 +22,18 @@ public class HTTPRequest
   }
   
   
+  public void setMethod(String method)
+  {
+    this.method = method;    
+  }
+  
+  
   public byte[] getPage()
   {
-    String header = (body == null) ? "GET" : "POST";
-    header += " "+path + " HTTP/1.1"+EOL+"Host: "+host+EOL;
+    String header = method;
+    if (header == null) header = (body == null) ? "GET" : "POST";
     
+    header += " "+path + " HTTP/1.1"+EOL+"Host: "+host+EOL;
     byte[] body = this.body == null ? null : this.body.getBytes();
     if (body != null) header += "Content-Length: "+body.length+EOL;
     

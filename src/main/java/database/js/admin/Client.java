@@ -12,37 +12,39 @@
 
 package database.js.admin;
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.net.ssl.SSLSocket;
 import database.js.config.Config;
 import database.js.security.PKIContext;
 
 
 public class Client
 {
-  private int port;
-  private String host;
-  private SSLSocket socket;
+  private Socket socket;
+  private final int port;
+  private final String host;
   private final PKIContext pki;
 
 
-  public Client(String host, int port) throws Exception
+  public Client(String host, int port, boolean ssl) throws Exception
   {
     this.host = host;
     this.port = port;
-    this.pki = Config.PKIContext();
+    
+    if (!ssl) this.pki = null;
+    else this.pki = Config.PKIContext();    
   }
 
 
-  public String send(String cmd) throws Exception
+  public byte[] send(String cmd) throws Exception
   {
     return(send(cmd,null));
   }
 
 
-  public String send(String cmd, String message) throws Exception
+  public byte[] send(String cmd, String message) throws Exception
   {
     HTTPRequest request = new HTTPRequest(host,"/"+cmd);
     request.setBody(message);
@@ -61,8 +63,8 @@ public class Client
         cl = Integer.parseInt(header.split(":")[1].trim());
     }
 
-    String response = null;
-    if (cl > 0) response = new String(reader.getContent(cl));
+    byte[] response = null;
+    if (cl > 0) response = reader.getContent(cl);
 
     return(response);
   }
@@ -70,6 +72,7 @@ public class Client
 
   public void connect() throws Exception
   {
-    this.socket = (SSLSocket) pki.getSSLContext().getSocketFactory().createSocket(host,port);
+    if (pki == null) this.socket = new Socket(host,port);
+    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
   }
 }
