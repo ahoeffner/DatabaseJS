@@ -60,9 +60,7 @@ public class RESTEngine
       this.channel.connect(port);
       HTTPRequest request = new HTTPRequest("localhost","/connect");
 
-      channel.configureBlocking(true);      
-      channel.write(request.getPage());
-      
+      channel.write(request.getPage());      
       HTTPResponse response = new HTTPResponse();
 
       while(!response.finished())
@@ -72,6 +70,7 @@ public class RESTEngine
     }
     catch (Exception e)
     {
+      e.printStackTrace();
       return(false);
     }
     

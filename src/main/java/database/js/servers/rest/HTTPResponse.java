@@ -13,24 +13,135 @@
 package database.js.servers.rest;
 
 import java.nio.ByteBuffer;
-import database.js.servers.http.HTTPRequest;
+
+import java.util.HashMap;
 
 
-public class HTTPResponse extends HTTPRequest
+public class HTTPResponse
 {
-  boolean finished = false;
+  private int code = -1;
+  private int header = -1;
+  private int clength = -1;
   
-  
-  void add(ByteBuffer buf) throws Exception
-  {
-    int read = buf.remaining();
-    byte[] data = new byte[read]; buf.get(data);
-    finished = super.add(data);
-  }
+  private byte[] body = null;
+  private boolean finished = false;
+  private byte[] response = new byte[0];
+  private final static String EOL = "\r\n";
+
+  private HashMap<String,String> headers =
+    new HashMap<String,String>();
+
+  private HashMap<String,String> cookies =
+    new HashMap<String,String>();
   
   
   boolean finished()
   {
     return(finished);
+  }
+  
+  
+  public byte[] getBody()
+  {
+    if (body != null) return(body);
+    int blen = response.length - this.header - 4;
+
+    if (blen > 0)
+    {
+      this.body = new byte[blen];
+      System.arraycopy(response,this.header+4,this.body,0,blen);
+    }
+
+    return(body);
+  }
+  
+  
+  public void add(ByteBuffer buf) throws Exception
+  {
+    int read = buf.remaining();
+    byte[] data = new byte[read]; buf.get(data);
+    
+    int last = response.length;
+    byte[] response = new byte[this.response.length+data.length];
+
+    System.arraycopy(data,0,response,last,data.length);
+    System.arraycopy(this.response,0,response,0,this.response.length);
+
+    this.response = response;
+    
+    if (response.length < 16)
+      return;
+    
+    if (header < 0)
+      forward(last);
+    
+    if (header < 0)
+      return;
+    
+    if (code < 0)
+      parse();
+
+    if (clength < 0)
+    {
+      String cl = headers.get("Content-Length");
+
+      if (cl == null) clength = 0;
+      else clength = Integer.parseInt(cl);
+    }
+    
+    finished = response.length == header + clength + 4;
+  }
+  
+  
+  void parse()
+  {
+    String header = new String(response,0,this.header);
+
+    String[] lines = header.split(EOL);
+    String[] resp = lines[0].split(" ");
+    
+    this.code = Integer.parseInt(resp[1]);
+    
+    for (int i = 1; i < lines.length; i++)
+    {
+      int pos = lines[i].indexOf(':');
+      if (pos <= 0) continue;
+      
+      String key = lines[i].substring(0,pos).trim();
+      String val = lines[i].substring(pos+1).trim();
+      
+      this.headers.put(key,val);
+    }
+
+    String hcookie = headers.get("Cookie");
+
+    if (hcookie != null)
+    {
+      String[] cookies = hcookie.split(";");
+      for (int i = 0; i < cookies.length; i++)
+      {
+        String[] nvp = cookies[i].split("=");
+
+        String name = nvp[0].trim();
+        String value = nvp.length > 1 ? nvp[1].trim() : "";
+        this.cookies.put(name,value);
+      }
+    }
+  }
+
+
+  void forward(int last)
+  {
+    int start = 0;
+    if (last > 3) start = last - 3;
+
+    for (int h = start; h < response.length-3; h++)
+    {
+      if (response[h] == '\r' && response[h+1] == '\n' && response[h+2] == '\r' && response[h+3] == '\n')
+      {
+        header = h;
+        return;
+      }
+    }
   }
 }

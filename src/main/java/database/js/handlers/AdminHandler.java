@@ -26,6 +26,7 @@ public class AdminHandler extends Handler
     if (request.path().equals("/connect"))
     {
       response.setBody("connected");
+      getAdminLogger().info("response <"+new String(response.page())+">");
     }
         
     if (request.path().equals("/shutdown"))

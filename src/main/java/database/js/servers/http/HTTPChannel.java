@@ -191,7 +191,6 @@ public class HTTPChannel
     }
     else
     {
-      channel.configureBlocking(false);
       channel.connect(new InetSocketAddress(host,port));
       
       while(!channel.finishConnect()) Thread.sleep(1);
@@ -260,7 +259,6 @@ public class HTTPChannel
         switch(result.getStatus())
         {
           case OK:
-            buffers.data.flip();
             break;
 
           case BUFFER_OVERFLOW:
@@ -283,6 +281,7 @@ public class HTTPChannel
       return(null);
     }
 
+    buffers.data.flip();
     return(buffers.data);
   }
 

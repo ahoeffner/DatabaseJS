@@ -166,7 +166,7 @@ public class HTTPResponse
   }
   
   
-  byte[] page()
+  public byte[] page()
   {
     if (!finished) finish();
     

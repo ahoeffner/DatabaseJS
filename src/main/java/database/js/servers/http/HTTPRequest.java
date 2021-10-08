@@ -88,7 +88,16 @@ public class HTTPRequest
   
   public byte[] getBody()
   {
-    return(this.body);
+    if (body != null) return(body);
+    int blen = request.length - this.header - 4;
+
+    if (blen > 0)
+    {
+      this.body = new byte[blen];
+      System.arraycopy(request,this.header+4,this.body,0,blen);
+    }
+
+    return(body);
   }
 
   public String getHeader(String header)
@@ -181,14 +190,6 @@ public class HTTPRequest
         String value = nvp.length > 1 ? nvp[1].trim() : "";
         this.cookies.put(name,value);
       }
-    }
-
-    int blen = request.length - this.header - 4;
-
-    if (blen > 0)
-    {
-      this.body = new byte[blen];
-      System.arraycopy(request,this.header+4,this.body,0,blen);
     }
   }
 
