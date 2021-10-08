@@ -23,6 +23,7 @@ import database.js.pools.ThreadPool;
 
 public class RESTServer extends Thread
 {
+  private final short rid;
   private final Server server;
   private final Config config;
   private final Logger logger;
@@ -33,8 +34,7 @@ public class RESTServer extends Thread
   
   public static void main(String[] args) throws Exception
   {
-    Server server = new Server((short) 3);
-    RESTServer rest = new RESTServer(server);
+    Server.main(new String[] {"3"});
   }
 
   
@@ -47,62 +47,94 @@ public class RESTServer extends Thread
     int port = config.getHTTP().admin();    
     this.client = new Client("localhost",port,true);
     
+    int http = 1;
+    if (config.getTopology().hotstandby()) http++;
+    
+    this.rid = (short) (server.id() - http);
+    
     this.setDaemon(true);
     this.setName("RESTServer");
     this.workers = new ThreadPool(config.getTopology().workers());
     
-    this.connect();
+    this.start();
   }
   
   
   @Override
   public void run()
   {
+    ServerID server = new ServerID();
+    logger.info("Starting RESTServer "+rid);
+    
+    try
+    {
+      while(true)
+      {
+        server = connect(server);
+        
+        while(true)
+        {
+          try
+          {
+            ;
+          }
+          catch (Exception e)
+          {
+            // TODO: Add catch code
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    logger.info("RESTServer "+rid+" stopped");
+  }
+  
+  
+  private ServerID connect(ServerID id) throws Exception
+  {
+    ServerID nid = new ServerID();
+    
     while(true)
     {
       try
       {
-        ;
-      }
-      catch (Exception e)
-      {
-        logger.log(Level.SEVERE,e.getMessage(),e);
-      }
-    }
-  }
-  
-  
-  private ID connect()
-  {
-    ID id = new ID();
-    
-    try
-    {
-      client.connect();
-      byte[] data = client.send("connect");
+        client.connect();
+        byte[] data = client.send("connect");
 
-      buf.clear();
-      buf.put(data);
-      
-      buf.flip();
-      id.id = buf.getShort();
-      id.started = buf.getLong();
-    }
-    catch (Exception e) {e.printStackTrace();}
-    
-    System.out.println("id="+id);
-    return(id);
+        buf.clear();
+        buf.put(data);
+        
+        buf.flip();
+        nid.prc = buf.getShort();
+        nid.started = buf.getLong();
+        
+        if (id.prc != nid.prc || id.started != nid.started)
+          logger.info("Server switched/restarted");
+        
+        return(nid);
+      }
+      catch (Exception e) 
+      {
+        logger.info("Server down");
+        sleep(250);
+      }
+    }        
   }
   
   
-  private static class ID
+  private static class ServerID
   {
-    short id = -1;
+    short prc = -1;
     long started = -1;
     
     public String toString()
     {
-      return(id+" "+started);
+      return(prc+" "+started);
     }
   }
 }
