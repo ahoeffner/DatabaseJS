@@ -50,7 +50,7 @@ public class HTTPRequest
   private long touched = System.currentTimeMillis();
 
 
-  HTTPRequest(SelectionKey key, HTTPWaiter waiter, HTTPChannel channel)
+  HTTPRequest(HTTPWaiter waiter, HTTPChannel channel, SelectionKey key)
   {
     this.key = key;
     this.waiter = waiter;
