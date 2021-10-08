@@ -1,9 +1,22 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.servers.rest;
+
+import database.js.admin.HTTPRequest;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import database.js.servers.Server;
-import database.js.admin.HTTPRequest;
 import java.nio.channels.SocketChannel;
 import database.js.servers.http.HTTPChannel;
 
@@ -50,12 +63,12 @@ public class RESTEngine
       channel.configureBlocking(true);      
       channel.write(request.getPage());
       
-      ByteBuffer buf = channel.read();
-      
-      int read = buf.remaining();
-      byte[] data = new byte[read];
-      buf.get(data);
-      logger.info(new String(data));
+      HTTPResponse response = new HTTPResponse();
+
+      while(!response.finished())
+        response.add(channel.read());        
+
+      logger.info("<"+new String(response.getBody())+">");
     }
     catch (Exception e)
     {

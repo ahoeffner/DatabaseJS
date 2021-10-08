@@ -275,11 +275,17 @@ public class Launcher implements ILauncher
 
       for(String jar : jars)
         loader.load(path + File.separator + jar);
+      
+      String classpath = (String) System.getProperties().get("java.class.path");
+      
+      jars = classpath.split(psep);
+
+      for(String jar : jars)
+        loader.load(jar);
 
       Class Launcher = loader.getClass(Launcher.class);
       launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
 
-      System.out.println("Loader works "+launcher);
       return(launcher);
     }
     catch (Exception e)

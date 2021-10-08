@@ -32,6 +32,7 @@ public class HTTPRequest
   private final HTTPWaiter waiter;
   private final HTTPChannel channel;
   
+  private byte[] body = null;
   private byte[] request = new byte[0];
 
   private HashMap<String,String> headers =
@@ -55,6 +56,16 @@ public class HTTPRequest
     this.redirect = channel.redirect();
   }
   
+  
+  protected HTTPRequest()
+  {
+    this.waiter = null;
+    this.server = null;
+    this.channel = null;
+    this.redirect = false;
+  }
+
+  
   public Server server()
   {
     return(server);
@@ -73,6 +84,11 @@ public class HTTPRequest
   public String version()
   {
     return(version);
+  }
+  
+  public byte[] getBody()
+  {
+    return(this.body);
   }
 
   public String getHeader(String header)
@@ -166,10 +182,18 @@ public class HTTPRequest
         this.cookies.put(name,value);
       }
     }
+
+    int blen = request.length - this.header - 4;
+
+    if (blen > 0)
+    {
+      this.body = new byte[blen];
+      System.arraycopy(request,this.header+4,this.body,0,blen);
+    }
   }
 
 
-  boolean add(byte[] data) throws Exception
+  public boolean add(byte[] data) throws Exception
   {
     int last = request.length;
     byte[] request = new byte[this.request.length+data.length];
