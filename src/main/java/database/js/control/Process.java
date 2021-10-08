@@ -76,7 +76,6 @@ public class Process
         classpath = path + File.separator + jar;
     }
     
-    classpath += classpath("ipc");
     classpath += classpath("json");
     if (jdbc) classpath += classpath("json");
     

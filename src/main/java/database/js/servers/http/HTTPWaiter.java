@@ -62,6 +62,12 @@ class HTTPWaiter extends Thread
   }
   
   
+  Server server()
+  {
+    return(server);
+  }
+  
+  
   void addClient(HTTPChannel client) throws Exception
   {
     synchronized(this)
@@ -130,7 +136,6 @@ class HTTPWaiter extends Thread
               key.cancel();
               channel.close();
               incomplete.remove(key);
-              logger.warning("Removed key "+key);
               continue;
             }
 
@@ -140,10 +145,10 @@ class HTTPWaiter extends Thread
             {
               HTTPRequest request = incomplete.remove(key);
               byte[] chunk = new byte[read]; buf.get(chunk);
-              if (request == null) request = new HTTPRequest(client);
+              if (request == null) request = new HTTPRequest(this,client);
                             
               if (!request.add(chunk)) incomplete.put(key,request);
-              else                     workers.submit(new HTTPWorker(client,key,request));
+              else                     workers.submit(new HTTPWorker(key,request));
             }
           }
           else

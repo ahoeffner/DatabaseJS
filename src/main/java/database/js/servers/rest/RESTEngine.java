@@ -47,7 +47,7 @@ public class RESTEngine
       this.channel.connect(port);
       HTTPRequest request = new HTTPRequest("localhost","/connect");
 
-      //channel.configureBlocking(true);      
+      channel.configureBlocking(true);      
       channel.write(request.getPage());
       
       ByteBuffer buf = channel.read();
@@ -55,12 +55,7 @@ public class RESTEngine
       int read = buf.remaining();
       byte[] data = new byte[read];
       buf.get(data);
-      System.out.println(new String(data));
-      
-      //short id = buf.getShort();
-      //long started = buf.getLong();
-      
-      //logger.info("handshake "+id+" "+started);  
+      logger.info(new String(data));
     }
     catch (Exception e)
     {

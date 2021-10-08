@@ -28,8 +28,9 @@ public class HTTPRequest
   private boolean parsed = false;
   private boolean redirect = false;
 
-  private Server server;
-  private HTTPChannel channel;
+  private final Server server;
+  private final HTTPWaiter waiter;
+  private final HTTPChannel channel;
   
   private byte[] request = new byte[0];
 
@@ -46,8 +47,9 @@ public class HTTPRequest
   private long touched = System.currentTimeMillis();
 
 
-  HTTPRequest(HTTPChannel channel)
+  HTTPRequest(HTTPWaiter waiter, HTTPChannel channel)
   {
+    this.waiter = waiter;
     this.channel = channel;
     this.server = channel.server();
     this.redirect = channel.redirect();

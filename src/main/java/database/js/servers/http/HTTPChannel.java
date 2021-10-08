@@ -221,7 +221,7 @@ public class HTTPChannel
       if (ssl) buf = readssl();
       else     buf = readplain();
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
       logger.log(Level.WARNING,e.getMessage(),e);
     }
@@ -280,6 +280,7 @@ public class HTTPChannel
     catch (Exception e)
     {
       handle(e);
+      return(null);
     }
 
     return(buffers.data);

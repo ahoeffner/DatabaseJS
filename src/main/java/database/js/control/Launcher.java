@@ -267,11 +267,8 @@ public class Launcher implements ILauncher
 
     try
     {
-      // Doesn't work with java 1.8
-      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
-
       String path = Paths.libdir+File.separator+"json";
-      String classpath = (String) System.getProperties().get("java.class.path");
+      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
 
       File dir = new File(path);
       String[] jars = dir.list();
@@ -279,20 +276,10 @@ public class Launcher implements ILauncher
       for(String jar : jars)
         loader.load(path + File.separator + jar);
 
-      path = Paths.libdir+File.separator+"ipc";
-      dir = new File(path); jars = dir.list();
-
-      for(String jar : jars)
-        loader.load(path + File.separator + jar);
-
-      jars = classpath.split(psep);
-
-      for(String jar : jars)
-        loader.load(jar);
-
       Class Launcher = loader.getClass(Launcher.class);
       launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
 
+      System.out.println("Loader works "+launcher);
       return(launcher);
     }
     catch (Exception e)

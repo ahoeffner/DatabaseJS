@@ -25,17 +25,17 @@ public class HTTPWorker implements Runnable
   private final Logger logger;
   private final SelectionKey key;
   private final Handlers handlers;
-  private final HTTPChannel server;
+  private final HTTPChannel channel;
   private final HTTPRequest request;
 
 
-  public HTTPWorker(HTTPChannel server, SelectionKey key, HTTPRequest request) throws Exception
+  public HTTPWorker(SelectionKey key, HTTPRequest request) throws Exception
   {
     this.key = key;
-    this.server = server;
     this.request = request;
-    this.logger = server.logger();
-    this.handlers = server.config().getHTTP().handlers();
+    this.channel = request.channel();
+    this.logger = channel.logger();
+    this.handlers = channel.config().getHTTP().handlers();
   }
 
 
@@ -50,8 +50,8 @@ public class HTTPWorker implements Runnable
             
       if (request.redirect())
       {
-        int ssl = server.config().getHTTP().ssl();
-        int plain = server.config().getHTTP().plain();
+        int ssl = channel.config().getHTTP().ssl();
+        int plain = channel.config().getHTTP().plain();
 
         String host = request.getHeader("Host");
         host = host.replace(plain+"",ssl+"");
@@ -62,26 +62,26 @@ public class HTTPWorker implements Runnable
         response.setHeader("Location","https://"+host);
 
         request.respond(response.page());        
-        server.workers().done();
+        channel.workers().done();
         
         return;
       }
 
       Handler handler = null;
-      boolean admin = server.admin();
+      boolean admin = channel.admin();
       
       if (!admin) handler = handlers.getHandler(path,method);
-      else        handler = new AdminHandler(server.config());
+      else        handler = new AdminHandler(channel.config());
 
       HTTPResponse response = handler.handle(request);
       request.respond(response.page());
       
-      server.workers().done();
+      channel.workers().done();
     }
     catch(Exception e)
     {
       request.failed();
-      server.workers().done();
+      channel.workers().done();
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }
