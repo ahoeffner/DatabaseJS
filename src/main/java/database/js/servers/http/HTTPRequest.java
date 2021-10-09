@@ -136,7 +136,7 @@ public class HTTPRequest
   }
 
 
-  HTTPChannel channel()
+  public HTTPChannel channel()
   {
     return(channel);
   }

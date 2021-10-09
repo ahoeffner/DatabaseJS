@@ -23,8 +23,15 @@ public class HTTPRequest
   
   public HTTPRequest(String host, String path)
   {
+    this(host,path,null);
+  }
+  
+  
+  public HTTPRequest(String host, String path, String body)
+  {
     this.host = host;
     this.path = path;
+    this.body = body;
   }
 
 

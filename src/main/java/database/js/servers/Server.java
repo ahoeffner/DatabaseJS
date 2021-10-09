@@ -25,6 +25,7 @@ import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
 import database.js.servers.http.HTTPServer;
 import database.js.servers.rest.RESTServer;
+import database.js.servers.rest.RESTEngine;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
@@ -69,6 +70,7 @@ public class Server extends Thread
   private final HTTPServer admin;
 
   private final RESTServer rest;
+  private final RESTEngine[] workers;
 
   
   public static void main(String[] args)
@@ -91,9 +93,12 @@ public class Server extends Thread
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
     this.started = System.currentTimeMillis();
+    
+    int servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(config,id);
-        
-    this.embedded = config.getTopology().servers() > 0;
+
+    this.embedded = servers > 0;
+    this.workers = new RESTEngine[servers];
     this.heartbeat = config.getTopology().heartbeat();
     
     if (type == Process.Type.rest)
@@ -133,6 +138,64 @@ public class Server extends Thread
     ssl.start();
     plain.start();
     admin.start();
+  }
+  
+  
+  public short id()
+  {
+    return(id);
+  }
+  
+  
+  public long started()
+  {
+    return(started);
+  }
+  
+  
+  public Config config()
+  {
+    return(config);
+  }
+  
+  
+  public Logger logger()
+  {
+    return(logger);
+  }
+  
+  
+  public synchronized void request()
+  {
+    requests++;
+  }
+  
+  
+  public synchronized long requests()
+  {
+    return(requests);
+  }
+  public void shutdown()
+  {
+    this.shutdown = true;
+        
+    synchronized(this)
+    {
+      stop = true;
+      this.notify();
+    }
+  }
+  
+  
+  public void unlist(RESTEngine engine)
+  {
+    workers[engine.id()] = null;
+  }
+  
+  
+  public void engine(RESTEngine engine)
+  {
+    workers[engine.id()] = engine;
   }
   
   
@@ -184,52 +247,6 @@ public class Server extends Thread
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
-    }
-  }
-  
-  
-  public short id()
-  {
-    return(id);
-  }
-  
-  
-  public long started()
-  {
-    return(started);
-  }
-  
-  
-  public Config config()
-  {
-    return(config);
-  }
-  
-  
-  public Logger logger()
-  {
-    return(logger);
-  }
-  
-  
-  public synchronized void request()
-  {
-    requests++;
-  }
-  
-  
-  public synchronized long requests()
-  {
-    return(requests);
-  }
-  public void shutdown()
-  {
-    this.shutdown = true;
-        
-    synchronized(this)
-    {
-      stop = true;
-      this.notify();
     }
   }
   

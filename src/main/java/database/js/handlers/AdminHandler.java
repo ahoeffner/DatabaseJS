@@ -5,6 +5,7 @@ import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.servers.rest.RESTEngine;
 
 
 public class AdminHandler extends Handler
@@ -27,8 +28,15 @@ public class AdminHandler extends Handler
     
     if (request.path().equals("/connect"))
     {
-      response.setBody("connected");
+      String body = new String(request.getBody());
+      response.setBody(server.id()+" "+server.started());
+      
       request.unlist();
+      
+      short id = Short.parseShort(body);
+      RESTEngine engine = new RESTEngine(request.channel(),id);
+      
+      server.engine(engine);
     }
         
     if (request.path().equals("/shutdown"))
