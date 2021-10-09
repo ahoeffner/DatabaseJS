@@ -12,7 +12,11 @@
 
 package database.js.handlers;
 
+import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.servers.Server;
+import database.js.control.Process.Type;
+import database.js.servers.rest.RESTEngine;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
@@ -28,6 +32,20 @@ public class RestHandler extends Handler
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
-    return null;
+    Server server = request.server();
+    Logger logger = getLogger(Type.rest);
+    HTTPResponse response = new HTTPResponse();
+
+    server.request();
+    logger.info("Rest request received <"+request.path()+"> embedded="+server.embedded());
+    
+    if (!server.embedded())
+    {
+      RESTEngine engine = server.engine();
+      logger.info("RESTEngine "+engine);
+    }
+
+    response.setBody("{\"status\": \"ok\"}");
+    return(response);
   }
 }

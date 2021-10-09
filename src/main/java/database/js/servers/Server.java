@@ -97,7 +97,7 @@ public class Server extends Thread
     int servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(config,id);
 
-    this.embedded = servers > 0;
+    this.embedded = servers <= 0;
     this.workers = new RESTEngine[servers];
     this.heartbeat = config.getTopology().heartbeat();
     
@@ -153,6 +153,12 @@ public class Server extends Thread
   }
   
   
+  public boolean embedded()
+  {
+    return(embedded);
+  }
+  
+  
   public Config config()
   {
     return(config);
@@ -187,6 +193,28 @@ public class Server extends Thread
   }
   
   
+  int engine = 0;
+  public RESTEngine engine() throws Exception
+  {
+    int tries = 0;
+    
+    while(++tries < 32)
+    {
+      for (int i = 0; i < workers.length; i++)
+      {
+        int pos = engine++ % workers.length;
+        
+        if (workers[pos] != null)
+          return(workers[pos]);
+      }
+      
+      sleep(250);
+    }
+    
+    throw new Exception("No available RESTEngines, bailing out");
+  }
+  
+  
   public void unlist(RESTEngine engine)
   {
     workers[engine.id()] = null;
@@ -196,6 +224,7 @@ public class Server extends Thread
   public void engine(RESTEngine engine)
   {
     workers[engine.id()] = engine;
+    logger.info("workers["+engine.id()+"] = "+engine);
   }
   
   
