@@ -13,6 +13,7 @@
 package database.js.servers.http;
 
 import java.util.HashMap;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import database.js.servers.Server;
 import java.nio.channels.SelectionKey;
@@ -193,12 +194,26 @@ public class HTTPRequest
   }
 
 
+  public boolean add(ByteBuffer buf) throws Exception
+  {
+    int read = buf.remaining();
+    byte[] data = new byte[read]; buf.get(data);
+    return(add(data,0,data.length));
+  }
+
+
   public boolean add(byte[] data) throws Exception
   {
-    int last = request.length;
-    byte[] request = new byte[this.request.length+data.length];
+    return(add(data,0,data.length));
+  }
 
-    System.arraycopy(data,0,request,last,data.length);
+
+  public boolean add(byte[] data, int pos, int len) throws Exception
+  {
+    int last = request.length;
+    byte[] request = new byte[this.request.length+len];
+
+    System.arraycopy(data,pos,request,last,len);
     System.arraycopy(this.request,0,request,0,this.request.length);
 
     this.request = request;

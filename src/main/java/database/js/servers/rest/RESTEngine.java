@@ -12,11 +12,10 @@
 
 package database.js.servers.rest;
 
-import database.js.admin.HTTPRequest;
-
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import database.js.servers.Server;
+import database.js.client.HTTPRequest;
+import database.js.client.HTTPResponse;
 import java.nio.channels.SocketChannel;
 import database.js.servers.http.HTTPChannel;
 

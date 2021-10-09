@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.admin;
+package database.js.client;
 
 public class HTTPRequest
 {

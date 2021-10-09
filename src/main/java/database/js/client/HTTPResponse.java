@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package database.js.servers.rest;
+package database.js.client;
 
 import java.nio.ByteBuffer;
 
@@ -35,9 +35,9 @@ public class HTTPResponse
     new HashMap<String,String>();
   
   
-  boolean finished()
+  public boolean finished()
   {
-    return(finished);
+    return (finished);
   }
   
   
@@ -60,11 +60,22 @@ public class HTTPResponse
   {
     int read = buf.remaining();
     byte[] data = new byte[read]; buf.get(data);
-    
+    add(data,0,data.length);
+  }
+  
+  
+  public void add(byte[] data) throws Exception
+  {
+    add(data,0,data.length);
+  }
+  
+  
+  public void add(byte[] data, int pos, int len) throws Exception
+  {
     int last = response.length;
-    byte[] response = new byte[this.response.length+data.length];
+    byte[] response = new byte[this.response.length+len];
 
-    System.arraycopy(data,0,response,last,data.length);
+    System.arraycopy(data,pos,response,last,len);
     System.arraycopy(this.response,0,response,0,this.response.length);
 
     this.response = response;

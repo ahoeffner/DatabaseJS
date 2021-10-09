@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
 import database.js.config.Config;
+import database.js.client.HTTPRequest;
 import database.js.security.PKIContext;
 
 
