@@ -12,6 +12,7 @@
 
 package database.js.servers.http;
 
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import javax.net.ssl.SSLEngine;
 import java.util.logging.Level;
@@ -131,6 +132,12 @@ public class HTTPChannel
   {
     if (ssl || admin) return(false);
     else              return(reqssl);
+  }
+  
+  
+  public Socket socket()
+  {
+    return(channel.socket());
   }
   
   
