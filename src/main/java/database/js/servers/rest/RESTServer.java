@@ -106,8 +106,10 @@ public class RESTServer extends Thread
     {
       this.channel.connect(port);
       HTTPRequest request = new HTTPRequest("localhost","/connect",""+id);
-
-      channel.write(request.getPage());      
+      
+      request.setBody(server.id()+" "+server.started());
+      
+      channel.write(request.getPage());   
       HTTPResponse response = new HTTPResponse();
 
       while(!response.finished())

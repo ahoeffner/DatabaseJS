@@ -28,15 +28,20 @@ public class AdminHandler extends Handler
     
     if (request.path().equals("/connect"))
     {
+      logger.info("RESTServer connect");
       String body = new String(request.getBody());
       response.setBody(server.id()+" "+server.started());
       
-      request.unlist();
+      String[] args = new String(request.getBody()).split(" ");
       
-      short id = Short.parseShort(body);
-      RESTClient engine = new RESTClient(request.channel(),id);
+      short id = Short.parseShort(args[0]);
+      long started = Long.parseLong(args[1]);
+
+      request.unlist();      
+      RESTClient worker = new RESTClient(request.channel(),id);
       
-      server.engine(engine);
+      server.engine(worker);
+      worker.send(response.page());
     }
         
     if (request.path().equals("/shutdown"))

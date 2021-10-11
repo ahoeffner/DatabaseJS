@@ -47,9 +47,8 @@ public class RESTClient
   }
   
   
-  public void send() throws Exception
+  public void send(byte[] buf) throws Exception
   {
-    byte[] cmd = "1234".getBytes();
-    socket.getOutputStream().write(cmd);    
+    socket.getOutputStream().write(buf);    
   }
 }

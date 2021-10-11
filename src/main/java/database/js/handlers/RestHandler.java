@@ -43,7 +43,7 @@ public class RestHandler extends Handler
     {
       RESTClient client = server.worker();
       logger.info("RESTClient "+client);
-      client.send();
+      client.send("1234".getBytes());
     }
 
     response.setBody("{\"status\": \"ok\"}");
