@@ -254,6 +254,9 @@ public class HTTPRequest
         else clength = Integer.parseInt(cl);
       }
     }
+    
+    if (request.length > header + clength + 4)
+      throw new Exception("Received multiple requests without client waiting for response");
 
     return(request.length == header + clength + 4);
   }
@@ -332,6 +335,11 @@ public class HTTPRequest
   }
 
 
+  /**
+   *
+   * Returns the length of the header (pos+1)
+   * 
+   */
   void forward(int last)
   {
     int start = 0;
@@ -348,6 +356,11 @@ public class HTTPRequest
   }
 
 
+  /**
+   *
+   * Returns the length of the header (pos+1)
+   * 
+   */
   void bckward(int last)
   {
     for (int h = request.length-1; h >= 3 && h >= last-3; h--)
