@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.control.Process.Type;
-import database.js.servers.rest.RESTEngine;
+import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 
@@ -41,8 +41,9 @@ public class RestHandler extends Handler
     
     if (!server.embedded())
     {
-      RESTEngine engine = server.engine();
-      logger.info("RESTEngine "+engine);
+      RESTClient client = server.worker();
+      logger.info("RESTClient "+client);
+      client.send();
     }
 
     response.setBody("{\"status\": \"ok\"}");

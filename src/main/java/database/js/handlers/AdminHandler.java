@@ -3,9 +3,9 @@ package database.js.handlers;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
-import database.js.servers.rest.RESTEngine;
 
 
 public class AdminHandler extends Handler
@@ -34,7 +34,7 @@ public class AdminHandler extends Handler
       request.unlist();
       
       short id = Short.parseShort(body);
-      RESTEngine engine = new RESTEngine(request.channel(),id);
+      RESTClient engine = new RESTClient(request.channel(),id);
       
       server.engine(engine);
     }

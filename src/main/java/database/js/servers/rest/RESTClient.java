@@ -4,6 +4,8 @@ import java.util.logging.Logger;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPChannel;
 
+import java.net.Socket;
+
 
 public class RESTClient
 {
@@ -12,6 +14,7 @@ public class RESTClient
   
   private final Logger logger;
   private final Server server;
+  private final Socket socket;
   private final HTTPChannel channel;
 
 
@@ -19,6 +22,7 @@ public class RESTClient
   {
     this.id = id;
     this.channel = channel;
+    this.socket = channel.socket();
     this.server = channel.server();
     this.started = System.currentTimeMillis();
     this.logger = server.config().getLogger().rest;
@@ -40,5 +44,12 @@ public class RESTClient
   public long started()
   {
     return(started);
+  }
+  
+  
+  public void send() throws Exception
+  {
+    byte[] cmd = "1234".getBytes();
+    socket.getOutputStream().write(cmd);    
   }
 }

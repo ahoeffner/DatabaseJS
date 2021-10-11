@@ -30,13 +30,13 @@ public class RESTServer extends Thread
   private long started = -1;
   private Socket socket = null;
   private boolean connected = false;
+  private SocketReader reader = null;
 
   private final int port;
   private final short rid;
   private final Server server;
   private final Config config;
   private final Logger logger;
-  private final RESTEngine engine;
   private final ThreadPool workers;
   private final HTTPChannel channel;
   
@@ -63,7 +63,6 @@ public class RESTServer extends Thread
     this.channel = new HTTPChannel(server,channel,ssl);
 
     this.rid = (short) (server.id() - http);
-    this.engine = new RESTEngine(server,port,true);
     this.workers = new ThreadPool(config.getTopology().workers());
     
     this.setDaemon(true);
@@ -88,7 +87,8 @@ public class RESTServer extends Thread
           if (!connected) sleep(250);        
         }
         
-        sleep(1000);
+        byte[] request = reader.read(4);
+        logger.info("read 4 bytes");
       }
     }
     catch (Exception e)
@@ -105,7 +105,7 @@ public class RESTServer extends Thread
     try
     {
       this.channel.connect(port);
-      HTTPRequest request = new HTTPRequest("localhost","/connect",""+engine.id());
+      HTTPRequest request = new HTTPRequest("localhost","/connect",""+id);
 
       channel.write(request.getPage());      
       HTTPResponse response = new HTTPResponse();
@@ -127,6 +127,7 @@ public class RESTServer extends Thread
       this.id = id;
       this.started = started;
       this.socket = channel.socket();
+      this.reader = new SocketReader(socket.getInputStream());
     }
     catch (Exception e)
     {

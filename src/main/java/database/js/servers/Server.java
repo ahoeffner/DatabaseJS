@@ -23,9 +23,9 @@ import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
-import database.js.servers.http.HTTPServer;
 import database.js.servers.rest.RESTServer;
-import database.js.servers.rest.RESTEngine;
+import database.js.servers.rest.RESTClient;
+import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
@@ -70,7 +70,7 @@ public class Server extends Thread
   private final HTTPServer admin;
 
   private final RESTServer rest;
-  private final RESTEngine[] workers;
+  private final RESTClient[] workers;
 
   
   public static void main(String[] args)
@@ -98,7 +98,7 @@ public class Server extends Thread
     Process.Type type = Cluster.getType(config,id);
 
     this.embedded = servers <= 0;
-    this.workers = new RESTEngine[servers];
+    this.workers = new RESTClient[servers];
     this.heartbeat = config.getTopology().heartbeat();
     
     if (type == Process.Type.rest)
@@ -193,8 +193,8 @@ public class Server extends Thread
   }
   
   
-  int engine = 0;
-  public RESTEngine engine() throws Exception
+  int worker = 0;
+  public RESTClient worker() throws Exception
   {
     int tries = 0;
     
@@ -202,7 +202,7 @@ public class Server extends Thread
     {
       for (int i = 0; i < workers.length; i++)
       {
-        int pos = engine++ % workers.length;
+        int pos = worker++ % workers.length;
         
         if (workers[pos] != null)
           return(workers[pos]);
@@ -215,16 +215,16 @@ public class Server extends Thread
   }
   
   
-  public void unlist(RESTEngine engine)
+  public void unlist(RESTClient client)
   {
-    workers[engine.id()] = null;
+    workers[client.id()] = null;
   }
   
   
-  public void engine(RESTEngine engine)
+  public void engine(RESTClient client)
   {
-    workers[engine.id()] = engine;
-    logger.info("workers["+engine.id()+"] = "+engine);
+    workers[client.id()] = client;
+    logger.info("workers["+client.id()+"] = "+worker);
   }
   
   
