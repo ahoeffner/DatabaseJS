@@ -1,10 +1,9 @@
 package database.js.servers.rest;
 
+import java.net.Socket;
 import java.util.logging.Logger;
 import database.js.servers.Server;
 import database.js.servers.http.HTTPChannel;
-
-import java.net.Socket;
 
 
 public class RESTClient
@@ -49,6 +48,6 @@ public class RESTClient
   
   public void send(byte[] buf) throws Exception
   {
-    socket.getOutputStream().write(buf);    
+    channel.write(buf);    
   }
 }

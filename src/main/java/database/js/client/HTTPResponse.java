@@ -76,7 +76,7 @@ public class HTTPResponse
     byte[] response = new byte[this.response.length+len];
 
     System.arraycopy(data,pos,response,last,len);
-    System.arraycopy(this.response,0,response,0,this.response.length);
+    System.arraycopy(this.response,0,response,0,last);
 
     this.response = response;
     
@@ -99,6 +99,9 @@ public class HTTPResponse
       if (cl == null) clength = 0;
       else clength = Integer.parseInt(cl);
     }
+    
+    if (response.length > header + clength + 4)
+      throw new Exception("Received multiple requests without client waiting for response");
     
     finished = response.length == header + clength + 4;
   }

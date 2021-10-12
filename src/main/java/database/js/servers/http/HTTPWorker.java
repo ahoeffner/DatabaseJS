@@ -71,7 +71,7 @@ public class HTTPWorker implements Runnable
       else        handler = new AdminHandler(channel.config());
 
       HTTPResponse response = handler.handle(request);
-      request.respond(response.page());
+      if (response != null) request.respond(response.page());
       
       channel.workers().done();
     }

@@ -231,7 +231,7 @@ public class HTTPChannel
     {
       logger.log(Level.WARNING,e.getMessage(),e);
     }
-
+    
     return(buf);
   }
 
@@ -296,7 +296,7 @@ public class HTTPChannel
   public void write(byte[] data) throws Exception
   {
     int wrote = 0;
-    int max = buffers.data.limit();
+    int max = buffers.data.capacity();
 
     int size = data.length;
     int bsize = buffers.data.capacity();
@@ -317,7 +317,7 @@ public class HTTPChannel
 
       if (ssl) writessl();
       else     writeplain();
-
+      
       wrote += chunk;
     }
   }

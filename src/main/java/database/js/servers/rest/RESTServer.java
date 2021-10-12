@@ -12,7 +12,6 @@
 
 package database.js.servers.rest;
 
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -28,7 +27,6 @@ public class RESTServer extends Thread
 {
   private short id = -1;
   private long started = -1;
-  private Socket socket = null;
   private boolean connected = false;
   private SocketReader reader = null;
 
@@ -87,8 +85,8 @@ public class RESTServer extends Thread
           if (!connected) sleep(250);        
         }
         
-        byte[] request = reader.read(4);
-        logger.info("read 4 bytes");
+        //byte[] request = reader.read(4);
+        //logger.info("read 4 bytes");
       }
     }
     catch (Exception e)
@@ -105,20 +103,23 @@ public class RESTServer extends Thread
     try
     {
       this.channel.connect(port);
-      HTTPRequest request = new HTTPRequest("localhost","/connect",""+id);
-      
+      this.channel.configureBlocking(true);
+
+      HTTPRequest request = new HTTPRequest("localhost","/connect",""+id);      
       request.setBody(server.id()+" "+server.started());
       
       channel.write(request.getPage());   
       HTTPResponse response = new HTTPResponse();
 
       while(!response.finished())
-        response.add(channel.read());        
+        response.add(channel.read());
 
       String[] args = new String(response.getBody()).split(" ");
       
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
+      
+      logger.info("connected id="+id+" started="+started);
       
       if (this.id >= 0)
       {
@@ -128,8 +129,6 @@ public class RESTServer extends Thread
       
       this.id = id;
       this.started = started;
-      this.socket = channel.socket();
-      this.reader = new SocketReader(socket.getInputStream());
     }
     catch (Exception e)
     {

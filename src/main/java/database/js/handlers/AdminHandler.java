@@ -32,16 +32,19 @@ public class AdminHandler extends Handler
       String body = new String(request.getBody());
       response.setBody(server.id()+" "+server.started());
       
-      String[] args = new String(request.getBody()).split(" ");
-      
+      String[] args = body.split(" ");
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
 
       request.unlist();      
       RESTClient worker = new RESTClient(request.channel(),id);
       
+      logger.info("connect to REST id="+id+" started="+started);
+      
       server.engine(worker);
       worker.send(response.page());
+
+      return(null);
     }
         
     if (request.path().equals("/shutdown"))
