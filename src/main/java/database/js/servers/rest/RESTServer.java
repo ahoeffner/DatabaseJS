@@ -85,8 +85,10 @@ public class RESTServer extends Thread
           if (!connected) sleep(250);        
         }
         
-        //byte[] request = reader.read(4);
-        //logger.info("read 4 bytes");
+        reader = new SocketReader(channel.socket().getInputStream());
+        
+        byte[] request = reader.read(4);
+        System.out.println("RESTServer read socket input");
       }
     }
     catch (Exception e)
@@ -119,7 +121,7 @@ public class RESTServer extends Thread
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
       
-      logger.info("connected id="+id+" started="+started);
+      logger.info("Connected to HTTPServer, id="+id+" started="+started);
       
       if (this.id >= 0)
       {

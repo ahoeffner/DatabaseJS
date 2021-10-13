@@ -36,14 +36,13 @@ public class AdminHandler extends Handler
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
 
-      request.unlist();      
-      RESTClient worker = new RESTClient(request.channel(),id);
+      request.unlist();
       
-      logger.info("connect to REST id="+id+" started="+started);
-      
+      RESTClient worker = new RESTClient(request.channel(),id);      
       server.engine(worker);
-      worker.send(response.page());
-
+      
+      request.respond(response.page());
+      worker.init();
       return(null);
     }
         

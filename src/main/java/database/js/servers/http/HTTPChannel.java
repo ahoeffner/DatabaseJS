@@ -293,6 +293,14 @@ public class HTTPChannel
   }
 
 
+  public void write(ByteBuffer buf) throws Exception
+  {
+    int read = buf.remaining();
+    byte[] data = new byte[read]; buf.get(data);
+    write(data);
+  }
+  
+
   public void write(byte[] data) throws Exception
   {
     int wrote = 0;
