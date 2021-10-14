@@ -55,9 +55,9 @@ public class SocketReader
     {
       if (available > 0)
       {
-        if (available > this.size - this.pos) 
+        if (available > size - pos) 
           available = size - pos;
-        
+                
         System.arraycopy(this.buffer,this.pos,data,pos,available);        
         
         pos += available;

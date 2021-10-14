@@ -25,7 +25,7 @@ public class Topology
   private final int heartbeat;
   
   private final int extnds;
-  private final String extsize;
+  private final int extsize;
 
   private static final int cores = Runtime.getRuntime().availableProcessors();
   
@@ -62,7 +62,24 @@ public class Topology
     JSONObject ipc = config.getJSONObject("ipc");
     
     this.extnds = ipc.getInt("extends");
-    this.extsize = ipc.get("extsize").toString();
+    
+    String extsz = ipc.get("extsize").toString();
+    extsz = extsz.replaceAll(" ","").trim().toUpperCase();
+    
+    int mfac = 1;
+
+    if (extsz.endsWith("K"))
+    {
+      mfac = 1024;
+      extsz = extsz.substring(0,extsz.length()-1);
+    }
+    else if (extsz.endsWith("M"))
+    {
+      mfac = 1024 * 1024;
+      extsz = extsz.substring(0,extsz.length()-1);
+    }
+    
+    this.extsize = Integer.parseInt(extsz) * mfac;
     
     this.heartbeat = ipc.getInt("heartbeat");
   }
@@ -97,7 +114,7 @@ public class Topology
     return(extnds);
   }
 
-  public String extsize()
+  public int extsize()
   {
     return(extsize);
   }

@@ -81,7 +81,12 @@ public class HTTPRequest
     return(version);
   }
   
-  public byte[] getBody()
+  public byte[] page()
+  {
+    return(request);
+  }
+  
+  public byte[] body()
   {
     if (body != null) return(body);
     int blen = request.length - this.header - 4;

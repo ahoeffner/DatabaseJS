@@ -12,10 +12,12 @@
 
 package database.js.servers.rest;
 
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.cluster.MailBox;
 import database.js.pools.ThreadPool;
 import database.js.client.HTTPRequest;
 import database.js.client.HTTPResponse;
@@ -29,14 +31,20 @@ public class RESTServer extends Thread
   private long started = -1;
   private boolean connected = false;
   private SocketReader reader = null;
+  private final ByteBuffer buf = ByteBuffer.allocate(8);
 
   private final int port;
   private final short rid;
   private final Server server;
   private final Config config;
   private final Logger logger;
+  private final MailBox mailbox;
   private final ThreadPool workers;
   private final HTTPChannel channel;
+  
+  private final static byte STOP = -1;
+  private final static byte SHMMEM = 1;
+  private final static byte STREAM = 2;
   
   
   public static void main(String[] args) throws Exception
@@ -52,6 +60,7 @@ public class RESTServer extends Thread
     this.server = server;
     this.config = server.config();
     this.logger = config.getLogger().rest;
+    this.mailbox = new MailBox(config,server.id());
     
     int http = 1;
     this.port = config.getHTTP().admin();
@@ -75,20 +84,46 @@ public class RESTServer extends Thread
   {
     logger.info("Starting RESTServer");
 
+    long id = 0;
+    int ext = 0;
+    int size = 0;
+    boolean stop = false;
+    byte[] request = null;
+
     try
     {
-      while(true)
+      while(!stop)
       {
         while(!connected)
         {
           connected = connect();
           if (!connected) sleep(250);        
+          reader = new SocketReader(channel.socket().getInputStream());
+        }        
+        
+        byte type = reader.read();
+        
+        switch(type)
+        {
+          case STOP : 
+            stop = true;
+            break;
+          
+          case STREAM :
+            id = getLong();
+            ext = getInt();
+            size = getInt();
+            request = reader.read(size);
+            break;
+          
+          case SHMMEM :
+            id = getLong();
+            ext = getInt();
+            size = getInt();
+            request = mailbox.read(ext,size);
         }
         
-        reader = new SocketReader(channel.socket().getInputStream());
-        
-        byte[] request = reader.read(4);
-        System.out.println("RESTServer read socket input");
+        logger.info("thread="+id+" extend="+ext+" size="+size+" <"+new String(request)+">");
       }
     }
     catch (Exception e)
@@ -97,6 +132,24 @@ public class RESTServer extends Thread
     }    
 
     logger.info("RESTServer stopped");
+  }
+  
+  
+  private int getInt() throws Exception
+  {
+    buf.clear();
+    buf.put(reader.read(4));
+    buf.flip();
+    return(buf.getInt());
+  }
+  
+  
+  private long getLong() throws Exception
+  {
+    buf.clear();
+    buf.put(reader.read(8));
+    buf.flip();
+    return(buf.getLong());
   }
   
   

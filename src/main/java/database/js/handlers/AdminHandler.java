@@ -29,7 +29,7 @@ public class AdminHandler extends Handler
     if (request.path().equals("/connect"))
     {
       logger.info("RESTServer connect");
-      String body = new String(request.getBody());
+      String body = new String(request.body());
       response.setBody(server.id()+" "+server.started());
       
       String[] args = body.split(" ");
