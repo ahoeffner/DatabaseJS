@@ -28,6 +28,12 @@ public class SocketReader
   {
     this.in = in;
   }
+  
+  
+  public boolean empty()
+  {
+    return(pos >= size);
+  }
 
 
   public byte read() throws Exception

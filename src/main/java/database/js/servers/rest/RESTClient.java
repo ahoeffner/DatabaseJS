@@ -13,32 +13,31 @@
 package database.js.servers.rest;
 
 import java.net.Socket;
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.cluster.MailBox;
 import database.js.servers.http.HTTPChannel;
+import java.util.concurrent.ConcurrentHashMap;
 
 
-public class RESTClient
+public class RESTClient implements RESTConnection
 {
   private short id = -1;
   private long started = -1;
-  private OutputStream writer;
   
   private final Config config;
   private final Logger logger;
   private final Server server;
   private final Socket socket;
   private final MailBox mailbox;
+  private final RESTWriter writer;
+  private final RESTReader reader;
   private final HTTPChannel channel;
-  private final ByteBuffer buffer = ByteBuffer.allocate(17);
-    
-  private final static byte STOP = -1;
-  private final static byte SHMMEM = 1;
-  private final static byte STREAM = 2;
+  private final ConcurrentHashMap<Long,RESTComm> incoming;
 
 
 
@@ -49,21 +48,18 @@ public class RESTClient
     this.socket = channel.socket();
     this.server = channel.server();
     this.config = channel.config();
+    this.writer = new RESTWriter(this);
+    this.reader = new RESTReader(this);
     this.mailbox = new MailBox(config,id);
     this.started = System.currentTimeMillis();
     this.logger = server.config().getLogger().rest;
+    this.incoming = new ConcurrentHashMap<Long,RESTComm>();
   }
   
   
   public short id()
   {
     return(id);
-  }
-  
-  
-  Logger logger()
-  {
-    return(logger);
   }
   
   
@@ -76,37 +72,80 @@ public class RESTClient
   public void init() throws Exception
   {
     channel.configureBlocking(true);
-    this.writer = socket.getOutputStream();
+
+    this.writer.start();
+    this.reader.start();
   }
   
   
-  public void send(byte[] data) throws Exception
+  public byte[] send(byte[] data) throws Exception
   {
     long id = thread();
     int extend = mailbox.write(id,data);
-    writer.write(message(id,extend,data));
-    if (extend == -1) writer.write(data);
-  }
-  
-  
-  private byte[] message(long id, int extend, byte[] data)
-  {
-    byte type = SHMMEM;
-    if (extend < 0) type = STREAM;
+    writer.write(new RESTComm(id,extend,data));
     
-    buffer.clear();
-    buffer.put(type);
-    buffer.putLong(id);
-    buffer.putInt(extend);
-    buffer.putInt(data.length);
-    logger.info("Sending, data placed in extend "+extend);
+    RESTComm resp = null;
     
-    return(buffer.array());
+    synchronized(this)
+    {
+      while(true)
+      {
+        resp = incoming.get(id);
+        if (resp != null) break;
+        this.wait();
+      }
+    }
+    
+    if (resp.extend < 0) data = resp.data();
+    else data = mailbox.read(extend,resp.size);
+
+    if (extend >= 0) mailbox.clear(extend);
+    return(data);
   }
   
   
   private long thread()
   {
     return(Thread.currentThread().getId());
+  }
+
+
+  @Override
+  public String parent()
+  {
+    return("RESTClient");
+  }
+
+
+  @Override
+  public void failed()
+  {
+    logger.severe("RESTClient failed, bailing out");
+  }
+
+  @Override
+  public Logger logger()
+  {
+    return(logger);
+  }
+
+  @Override
+  public InputStream reader() throws Exception
+  {
+    return(socket.getInputStream());
+  }
+
+  @Override
+  public OutputStream writer() throws Exception
+  {
+    return(socket.getOutputStream());
+  }
+
+  @Override
+  public void received(ArrayList<RESTComm> calls)
+  {
+    for(RESTComm call : calls)
+      incoming.put(call.id,call);
+    synchronized(this) {this.notifyAll();}
   }
 }

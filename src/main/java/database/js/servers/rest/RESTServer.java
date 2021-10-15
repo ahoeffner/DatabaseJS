@@ -12,7 +12,9 @@
 
 package database.js.servers.rest;
 
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -25,13 +27,12 @@ import java.nio.channels.SocketChannel;
 import database.js.servers.http.HTTPChannel;
 
 
-public class RESTServer extends Thread
+public class RESTServer implements RESTConnection
 {
   private short id = -1;
   private long started = -1;
-  private boolean connected = false;
-  private SocketReader reader = null;
-  private final ByteBuffer buf = ByteBuffer.allocate(8);
+  private RESTReader reader = null;
+  private RESTWriter writer = null;
 
   private final int port;
   private final short rid;
@@ -41,10 +42,6 @@ public class RESTServer extends Thread
   private final MailBox mailbox;
   private final ThreadPool workers;
   private final HTTPChannel channel;
-  
-  private final static byte STOP = -1;
-  private final static byte SHMMEM = 1;
-  private final static byte STREAM = 2;
   
   
   public static void main(String[] args) throws Exception
@@ -56,7 +53,7 @@ public class RESTServer extends Thread
   public RESTServer(Server server) throws Exception
   {
     boolean ssl = true;
-    
+
     this.server = server;
     this.config = server.config();
     this.logger = config.getLogger().rest;
@@ -72,84 +69,40 @@ public class RESTServer extends Thread
     this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers());
     
-    this.setDaemon(true);
-    this.setName("RESTServer");
-
-    this.start();
+    accept();
   }
   
   
-  @Override
-  public void run()
+  public void accept()
   {
-    logger.info("Starting RESTServer");
-
-    long id = 0;
-    int ext = 0;
-    int size = 0;
-    boolean stop = false;
-    byte[] request = null;
-
+    int tries = 0;
+    
+    while(!connect())
+    {
+      if (++tries > 16)
+      {
+        logger.severe("Unable to connect to HTTPServer, bailing out");
+        server.shutdown();
+      }
+      
+      try {Thread.sleep(250);}
+      catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
+    }
+    
     try
     {
-      while(!stop)
-      {
-        while(!connected)
-        {
-          connected = connect();
-          if (!connected) sleep(250);        
-          reader = new SocketReader(channel.socket().getInputStream());
-        }        
-        
-        byte type = reader.read();
-        
-        switch(type)
-        {
-          case STOP : 
-            stop = true;
-            break;
-          
-          case STREAM :
-            id = getLong();
-            ext = getInt();
-            size = getInt();
-            request = reader.read(size);
-            break;
-          
-          case SHMMEM :
-            id = getLong();
-            ext = getInt();
-            size = getInt();
-            request = mailbox.read(ext,size);
-        }
-        
-        logger.info("thread="+id+" extend="+ext+" size="+size+" <"+new String(request)+">");
-      }
+      reader = new RESTReader(this);
+      writer = new RESTWriter(this);
+      
+      reader.start();
+      writer.start();
     }
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
-    }    
-
-    logger.info("RESTServer stopped");
-  }
-  
-  
-  private int getInt() throws Exception
-  {
-    buf.clear();
-    buf.put(reader.read(4));
-    buf.flip();
-    return(buf.getInt());
-  }
-  
-  
-  private long getLong() throws Exception
-  {
-    buf.clear();
-    buf.put(reader.read(8));
-    buf.flip();
-    return(buf.getLong());
+      logger.severe("Unable to start RESTServer, bailing out");
+      server.shutdown();
+    }
   }
   
   
@@ -187,10 +140,55 @@ public class RESTServer extends Thread
     }
     catch (Exception e)
     {
-      e.printStackTrace();
+      logger.log(Level.WARNING,e.getMessage(),e);
       return(false);
     }
     
     return(true);
+  }
+
+
+  @Override
+  public String parent()
+  {
+    return("RESTServer");
+  }
+
+
+  @Override
+  public void failed()
+  {
+    logger.severe("RESTServer failed, bailing out");
+  }
+
+
+  @Override
+  public Logger logger()
+  {
+    return(logger);
+  }
+
+
+  @Override
+  public InputStream reader() throws Exception
+  {
+    return(channel.socket().getInputStream());
+  }
+
+
+  @Override
+  public OutputStream writer() throws Exception
+  {
+    return(channel.socket().getOutputStream());
+  }
+
+
+  @Override
+  public void received(ArrayList<RESTComm> calls)
+  {
+    logger.info("Received request");
+    
+    for(RESTComm http : calls)
+      writer.write(http);
   }
 }

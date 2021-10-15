@@ -56,7 +56,7 @@ public class ThreadPool
   public static void shutdown()
   {
     if (workers != null)
-      workers.shutdown();
+      workers.shutdownNow();
   }
 
 
