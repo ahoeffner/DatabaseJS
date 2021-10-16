@@ -37,7 +37,7 @@ public class RestHandler extends Handler
     HTTPResponse response = new HTTPResponse();
 
     server.request();
-    logger.info("REST request received <"+request.path()+"> embedded="+server.embedded());
+    logger.fine("REST request received <"+request.path()+"> embedded="+server.embedded());
     
     if (!server.embedded())
     {

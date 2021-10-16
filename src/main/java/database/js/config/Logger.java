@@ -32,6 +32,7 @@ public class Logger
   private final String level;
   private final String dblevel;
   private final String htlevel;
+  private final String rtlevel;
   private final Formatter formatter = new Formatter();
   
   private int count = 2;
@@ -51,6 +52,7 @@ public class Logger
     
     level = config.getString("others");
     htlevel = config.getString("http");
+    rtlevel = config.getString("rest");
     dblevel = config.getString("database");
     
     if (config.has("files"))   count = config.getInt("files");
@@ -143,7 +145,7 @@ public class Logger
     http.addHandler(handler);
 
     rest.setUseParentHandlers(false);
-    rest.setLevel(Level.parse(level.toUpperCase()));
+    rest.setLevel(Level.parse(rtlevel.toUpperCase()));
 
     rest.addHandler(handler);
 
