@@ -37,7 +37,7 @@ public class RestHandler extends Handler
     HTTPResponse response = new HTTPResponse();
 
     server.request();
-    logger.info("Rest request received <"+request.path()+"> embedded="+server.embedded());
+    logger.info("REST request received <"+request.path()+"> embedded="+server.embedded());
     
     if (!server.embedded())
     {
@@ -50,7 +50,6 @@ public class RestHandler extends Handler
         return(response);
       }
       
-      logger.info("Found RESTClient "+client.id());
       client.send(request.page());
     }
 

@@ -69,7 +69,7 @@ public class RESTClient implements RESTConnection
       this.up = true;
       this.writer.start();
       this.reader.start();
-      logger.info("RESTClient ready");
+      logger.info("External RESTEngine ready");
     }
   }
   
@@ -87,7 +87,6 @@ public class RESTClient implements RESTConnection
       while(true)
       {
         resp = incoming.get(id);
-        logger.info("checking incoming id="+id+" resp="+resp);
 
         if (resp != null) break;
         if (!up) throw new Exception("Lost connection to RESTServer");
