@@ -180,6 +180,7 @@ class HTTPWaiter extends Thread
     for(SelectionKey key : cancelled)
     {
       incomplete.remove(key);
+      logger.info("Removing incomplete request");
 
       try
       {
