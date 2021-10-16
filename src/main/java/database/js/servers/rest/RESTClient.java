@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.cluster.MailBox;
+import database.js.servers.Server;
 import database.js.servers.http.HTTPChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,9 +30,11 @@ public class RESTClient implements RESTConnection
   
   private HTTPChannel rchannel;
   private HTTPChannel wchannel;
+  private volatile boolean up = false;
   
   private final Config config;
   private final Logger logger;
+  private final Server server;
   private final MailBox mailbox;
   private final RESTWriter writer;
   private final RESTReader reader;
@@ -39,11 +42,13 @@ public class RESTClient implements RESTConnection
 
 
 
-  public RESTClient(Config config, short id, long started) throws Exception
+  public RESTClient(Server server, short id, long started) throws Exception
   {
     this.id = id;
-    this.config = config;
     this.started = started;
+    
+    this.server = server;
+    this.config = server.config();
     this.writer = new RESTWriter(this);
     this.reader = new RESTReader(this);
     this.mailbox = new MailBox(config,id);
@@ -61,6 +66,7 @@ public class RESTClient implements RESTConnection
     
     if (this.rchannel != null)
     {
+      this.up = true;
       this.writer.start();
       this.reader.start();
       logger.info("RESTClient ready");
@@ -82,7 +88,10 @@ public class RESTClient implements RESTConnection
       {
         resp = incoming.get(id);
         logger.info("checking incoming id="+id+" resp="+resp);
+
         if (resp != null) break;
+        if (!up) throw new Exception("Lost connection to RESTServer");
+        
         this.wait();
       }
     }
@@ -111,6 +120,12 @@ public class RESTClient implements RESTConnection
   {
     return(started);
   }
+  
+  
+  public boolean up()
+  {
+    return(up);
+  }
 
 
   @Override
@@ -123,6 +138,8 @@ public class RESTClient implements RESTConnection
   @Override
   public void failed()
   {
+    this.up = false;
+    server.deregister(this);
     logger.severe("RESTClient failed, bailing out");
   }
 

@@ -134,7 +134,6 @@ class HTTPWaiter extends Thread
           {
             HTTPChannel client = (HTTPChannel) key.attachment();
             SocketChannel channel = (SocketChannel) key.channel();
-            logger.info("key "+key);
 
             ByteBuffer buf = client.read();
 

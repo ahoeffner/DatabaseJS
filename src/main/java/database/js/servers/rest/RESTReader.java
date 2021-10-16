@@ -47,10 +47,8 @@ class RESTReader extends Thread
         logger.info(conn.parent()+" received data");
         
         int need = http.need();
-        logger.info("need extra "+need);
         if (need > 0) http.add(reader.read(need));
         
-        logger.info("Add incoming, empty="+reader.empty());
         incoming.add(http);
         
         if (reader.empty())
@@ -63,6 +61,7 @@ class RESTReader extends Thread
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
+      this.conn.failed();
     }
   }
 }

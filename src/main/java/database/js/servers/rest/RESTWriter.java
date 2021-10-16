@@ -41,6 +41,7 @@ class RESTWriter extends Thread
   {
     outgoing.put(call.id,call);
     synchronized (this) {this.notify();}
+    conn.logger().info("Sending message");
   }
   
   
@@ -75,14 +76,14 @@ class RESTWriter extends Thread
         
         byte[] data = buffer.toByteArray();
         
-        logger.info(conn.parent()+" sending data "+data.length+" "+conn.writer());
+        logger.info(conn.parent()+" sending data "+data.length);
         writer.write(data);
-        logger.info("Data sendt !!");
       }      
     }
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
+      this.conn.failed();
     }
   }
 }

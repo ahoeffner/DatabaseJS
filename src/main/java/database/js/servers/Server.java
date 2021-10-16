@@ -55,7 +55,9 @@ import database.js.servers.http.HTTPServerType;
 public class Server extends Thread
 {
   private final short id;
+  private final short htsrvs;
   private final long started;
+  private final short servers;
   private final int heartbeat;
   private final Logger logger;
   private final Config config;
@@ -84,6 +86,7 @@ public class Server extends Thread
   {
     this.id = id;
     this.config = new Config();
+    
     PrintStream out = stdout();
     this.setName("Server Main");
 
@@ -94,7 +97,11 @@ public class Server extends Thread
     this.logger = config.getLogger().logger;    
     this.started = System.currentTimeMillis();
     
-    int servers = config.getTopology().servers();
+    short htsrvs = 1;
+    if (config.getTopology().hotstandby()) htsrvs++;
+    
+    this.htsrvs = htsrvs;
+    this.servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(config,id);
 
     this.embedded = servers <= 0;
@@ -197,7 +204,7 @@ public class Server extends Thread
 
   public RESTClient worker(short id)
   {
-    return(workers[id]);
+    return(workers[id-this.htsrvs-1]);
   }
   
   
@@ -223,16 +230,16 @@ public class Server extends Thread
   }
   
   
-  public void unlist(RESTClient client)
+  public void register(RESTClient client)
   {
-    workers[client.id()] = null;
+    workers[client.id()-this.htsrvs-1] = client;
+    logger.info("workers["+(client.id()-this.htsrvs-1)+"] = "+client);
   }
   
   
-  public void engine(RESTClient client)
+  public void deregister(RESTClient client)
   {
-    workers[client.id()] = client;
-    logger.info("workers["+client.id()+"] = "+worker);
+    workers[client.id()-this.htsrvs-1] = null;
   }
   
   

@@ -42,7 +42,15 @@ public class RestHandler extends Handler
     if (!server.embedded())
     {
       RESTClient client = server.worker();
-      logger.info("RESTClient "+client);
+
+      if (client == null)
+      {
+        logger.warning("No RESTServer's connected");
+        response.setBody("{\"status\": \"failed\"}");
+        return(response);
+      }
+      
+      logger.info("Found RESTClient "+client.id());
       client.send(request.page());
     }
 

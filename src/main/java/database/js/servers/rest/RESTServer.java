@@ -111,17 +111,13 @@ public class RESTServer implements RESTConnection
   }
   
   
-  /**
-   *
-   * Make sure HTTPServer has not switched between
-   * getting read and write channel
-   */
   private boolean connect()
   {
     if (!connect(this.rchannel)) 
       return(false);
     
     byte[] readsig = this.httpid;
+    // Make sure HTTPServer has not switched
     
     if (!connect(this.wchannel)) 
       return(false);

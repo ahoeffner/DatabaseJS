@@ -28,7 +28,8 @@ public class AdminHandler extends Handler
     
     if (request.path().equals("/connect"))
     {
-      logger.info("RESTServer connect");
+      logger.info("RESTServer connecting ...");
+      
       String body = new String(request.body());
       response.setBody(server.id()+" "+server.started());
       
@@ -41,9 +42,9 @@ public class AdminHandler extends Handler
       RESTClient worker = server.worker(id);
       
       if (worker == null || started != worker.started()) 
-        worker = new RESTClient(this.config(),id,started);
+        worker = new RESTClient(server,id,started);        
       
-      server.engine(worker);
+      server.register(worker);
       request.respond(response.page());
       
       worker.init(request.channel());
