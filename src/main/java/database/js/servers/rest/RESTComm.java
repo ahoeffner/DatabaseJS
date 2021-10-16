@@ -36,9 +36,10 @@ class RESTComm
     buffer.putLong(id);
     buffer.putInt(extend);
     buffer.putInt(data.length);
-
+    
     byte[] header = buffer.array();
-    if (extend < 0) request = header;
+
+    if (extend >= 0) request = header;
     else
     {
       request = new byte[16 + data.length];
@@ -56,6 +57,8 @@ class RESTComm
     this.id = buffer.getLong();
     this.extend = buffer.getInt();
     this.size = buffer.getInt();
+    
+    this.request = data;
   }
   
   

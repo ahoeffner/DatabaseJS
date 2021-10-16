@@ -13,12 +13,11 @@
 package database.js.servers.rest;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
-
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -68,7 +67,9 @@ class RESTWriter extends Thread
         for(Map.Entry<Long,RESTComm> entry : outgoing.entrySet())
         {
           sent.add(entry.getKey());
-          buffer.write(entry.getValue().request());          
+          logger.info("sending RESTComm request "+entry.getValue().request());
+          buffer.write(entry.getValue().request());
+          logger.info("sending "+entry.getValue().request().length+" bytes <"+new String(entry.getValue().request())+">");
         }
         
         for(Long id : sent)
