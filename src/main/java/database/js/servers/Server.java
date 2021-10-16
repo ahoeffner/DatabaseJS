@@ -220,7 +220,7 @@ public class Server extends Thread
         int pos = worker++ % workers.length;
         
         if (workers[pos] != null && workers[pos].up())
-          return(workers[pos]);
+          return(workers[pos]);          
       }
       
       sleep(250);

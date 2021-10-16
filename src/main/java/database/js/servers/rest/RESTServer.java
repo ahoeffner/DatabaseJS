@@ -147,6 +147,8 @@ public class RESTServer implements RESTConnection
   {
     try
     {
+      channel.configureBlocking(false);
+      
       channel.connect(port);
       channel.configureBlocking(true);
 
