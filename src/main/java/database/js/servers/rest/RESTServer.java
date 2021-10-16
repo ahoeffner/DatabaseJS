@@ -26,6 +26,7 @@ import database.js.client.HTTPRequest;
 import database.js.client.HTTPResponse;
 import java.nio.channels.SocketChannel;
 import database.js.servers.http.HTTPChannel;
+import java.nio.channels.ClosedChannelException;
 
 
 public class RESTServer implements RESTConnection
@@ -56,8 +57,6 @@ public class RESTServer implements RESTConnection
   
   public RESTServer(Server server) throws Exception
   {
-    boolean ssl = true;
-
     this.server = server;
     this.config = server.config();
     this.logger = config.getLogger().rest;
@@ -77,28 +76,13 @@ public class RESTServer implements RESTConnection
   public void serve()
   {
     int tries = 0;
-
-    try
-    {
-      SocketChannel rchannel = SocketChannel.open();    
-      this.rchannel = new HTTPChannel(server,rchannel,true);
-
-      SocketChannel wchannel = SocketChannel.open();    
-      this.wchannel = new HTTPChannel(server,wchannel,true);
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-      logger.severe("Unable to start RESTServer, bailing out");
-      server.shutdown();
-    }
     
     if (reader != null)
       logger.info("RESTServer reconnecting ...");
     
     while(!connect())
     {
-      if (++tries > 16)
+      if (++tries > 256)
       {
         logger.severe("Unable to connect to HTTPServer, bailing out");
         server.shutdown();
@@ -127,6 +111,21 @@ public class RESTServer implements RESTConnection
   
   private boolean connect()
   {
+    try
+    {
+      SocketChannel rchannel = SocketChannel.open();    
+      this.rchannel = new HTTPChannel(server,rchannel,true);
+
+      SocketChannel wchannel = SocketChannel.open();    
+      this.wchannel = new HTTPChannel(server,wchannel,true);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.severe("Unable to start RESTServer, bailing out");
+      server.shutdown();
+    }
+
     if (!connect(this.rchannel)) 
       return(false);
     
@@ -167,13 +166,16 @@ public class RESTServer implements RESTConnection
       byte[] signature = signature(id,started);
       if (this.httpid == null) this.httpid = signature;
             
-      if (signature != this.httpid)
-          logger.info("HTTPServer switched");          
+      if (!signature.equals(this.httpid))
+          logger.info("HTTPServer switched"); 
       
+      this.httpid = signature;      
     }
     catch (Exception e)
     {
-      logger.log(Level.WARNING,e.getMessage(),e);
+      if (!(e instanceof ClosedChannelException))
+        logger.log(Level.WARNING,e.getMessage(),e);
+      
       return(false);
     }
     

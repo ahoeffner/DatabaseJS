@@ -75,7 +75,7 @@ class RESTWriter extends Thread
         
         byte[] data = buffer.toByteArray();
         
-        if (data.length > 16) logger.info(conn.parent()+" sending data "+data.length);
+        logger.finest(conn.parent()+" sending data "+data.length);
         writer.write(data);
       }      
     }
