@@ -12,13 +12,11 @@
 
 package database.js.servers.rest;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.servers.Server;
 import database.js.cluster.MailBox;
 import database.js.servers.http.HTTPChannel;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,55 +24,47 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RESTClient implements RESTConnection
 {
-  private short id = -1;
-  private long started = -1;
+  private final short id;
+  private final long started;
+  
+  private HTTPChannel rchannel;
+  private HTTPChannel wchannel;
   
   private final Config config;
   private final Logger logger;
-  private final Server server;
-  private final Socket socket;
   private final MailBox mailbox;
   private final RESTWriter writer;
   private final RESTReader reader;
-  private final HTTPChannel channel;
   private final ConcurrentHashMap<Long,RESTComm> incoming;
 
 
 
-  public RESTClient(HTTPChannel channel, short id) throws Exception
+  public RESTClient(Config config, short id, long started) throws Exception
   {
     this.id = id;
-    this.channel = channel;
-    this.socket = channel.socket();
-    this.server = channel.server();
-    this.config = channel.config();
+    this.config = config;
+    this.started = started;
     this.writer = new RESTWriter(this);
     this.reader = new RESTReader(this);
     this.mailbox = new MailBox(config,id);
-    this.started = System.currentTimeMillis();
-    this.logger = server.config().getLogger().rest;
+    this.logger = config.getLogger().rest;
     this.incoming = new ConcurrentHashMap<Long,RESTComm>();
   }
   
   
-  public short id()
-  {
-    return(id);
-  }
-  
-  
-  public long started()
-  {
-    return(started);
-  }
-  
-  
-  public void init() throws Exception
+  public void init(HTTPChannel channel) throws Exception
   {
     channel.configureBlocking(true);
-
-    this.writer.start();
-    this.reader.start();
+    
+    if (this.wchannel == null) this.wchannel = channel;
+    else                       this.rchannel = channel;
+    
+    if (this.rchannel != null)
+    {
+      this.writer.start();
+      this.reader.start();
+      logger.info("RESTClient ready");
+    }
   }
   
   
@@ -109,6 +99,18 @@ public class RESTClient implements RESTConnection
   {
     return(Thread.currentThread().getId());
   }
+  
+  
+  public short id()
+  {
+    return(id);
+  }
+  
+  
+  public long started()
+  {
+    return(started);
+  }
 
 
   @Override
@@ -133,13 +135,13 @@ public class RESTClient implements RESTConnection
   @Override
   public InputStream reader() throws Exception
   {
-    return(channel.socket().getInputStream());
+    return(rchannel.socket().getInputStream());
   }
 
   @Override
   public OutputStream writer() throws Exception
   {
-    return(channel.socket().getOutputStream());
+    return(wchannel.socket().getOutputStream());
   }
 
   @Override

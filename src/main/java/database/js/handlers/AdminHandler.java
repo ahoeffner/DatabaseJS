@@ -38,11 +38,15 @@ public class AdminHandler extends Handler
 
       request.unlist();
       
-      RESTClient worker = new RESTClient(request.channel(),id);      
-      server.engine(worker);
+      RESTClient worker = server.worker(id);
       
+      if (worker == null || started != worker.started()) 
+        worker = new RESTClient(this.config(),id,started);
+      
+      server.engine(worker);
       request.respond(response.page());
-      worker.init();
+      
+      worker.init(request.channel());
       return(null);
     }
         

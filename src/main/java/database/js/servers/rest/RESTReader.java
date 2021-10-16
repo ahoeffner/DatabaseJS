@@ -42,7 +42,6 @@ class RESTReader extends Thread
       
       while(true)
       {
-        sleep(10000);
         byte[] head = reader.read(16);
         RESTComm http = new RESTComm(head);
         logger.info(conn.parent()+" received data");

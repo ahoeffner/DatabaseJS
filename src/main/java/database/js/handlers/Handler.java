@@ -30,6 +30,12 @@ public abstract class Handler
   }
   
   
+  public Config config()
+  {
+    return(config);
+  }
+  
+  
   public Logger getLogger(Type type) throws Exception
   {
     switch(type)

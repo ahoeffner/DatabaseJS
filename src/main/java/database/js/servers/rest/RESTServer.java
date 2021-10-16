@@ -12,6 +12,7 @@
 
 package database.js.servers.rest;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,11 +30,10 @@ import database.js.servers.http.HTTPChannel;
 
 public class RESTServer implements RESTConnection
 {
-  private short id = -1;
-  private long started = -1;
-
+  private byte[] httpid = null;
   private RESTReader reader = null;
   private RESTWriter writer = null;
+  private ByteBuffer buffer = ByteBuffer.allocate(10);
 
   private final int port;
   private final short rid;
@@ -42,7 +42,8 @@ public class RESTServer implements RESTConnection
   private final Logger logger;
   private final MailBox mailbox;
   private final ThreadPool workers;
-  private final HTTPChannel channel;
+  private final HTTPChannel rchannel;
+  private final HTTPChannel wchannel;
   
   
   public static void main(String[] args) throws Exception
@@ -64,8 +65,11 @@ public class RESTServer implements RESTConnection
     this.port = config.getHTTP().admin();
     if (config.getTopology().hotstandby()) http++;
 
-    SocketChannel channel = SocketChannel.open();    
-    this.channel = new HTTPChannel(server,channel,ssl);
+    SocketChannel rchannel = SocketChannel.open();    
+    this.rchannel = new HTTPChannel(server,rchannel,ssl);
+
+    SocketChannel wchannel = SocketChannel.open();    
+    this.wchannel = new HTTPChannel(server,wchannel,ssl);
 
     this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers());
@@ -107,14 +111,37 @@ public class RESTServer implements RESTConnection
   }
   
   
+  /**
+   *
+   * Make sure HTTPServer has not switched between
+   * getting read and write channel
+   */
   private boolean connect()
+  {
+    if (!connect(this.rchannel)) 
+      return(false);
+    
+    byte[] readsig = this.httpid;
+    
+    if (!connect(this.wchannel)) 
+      return(false);
+    
+    if (this.httpid != readsig)
+      return(false);
+        
+    logger.info("Connected to HTTPServer");
+    return(true);
+  }
+  
+  
+  private boolean connect(HTTPChannel channel)
   {
     try
     {
-      this.channel.connect(port);
-      this.channel.configureBlocking(true);
+      channel.connect(port);
+      channel.configureBlocking(true);
 
-      HTTPRequest request = new HTTPRequest("localhost","/connect",""+id);      
+      HTTPRequest request = new HTTPRequest("localhost","/connect");      
       request.setBody(server.id()+" "+server.started());
       
       channel.write(request.getPage());   
@@ -127,17 +154,12 @@ public class RESTServer implements RESTConnection
       
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
-      
-      logger.info("Connected to HTTPServer, id="+id+" started="+started);
-      
-      if (this.id >= 0)
-      {
-        if (id != this.id || started != this.started)
+      byte[] signature = signature(id,started);
+      if (this.httpid == null) this.httpid = signature;
+            
+      if (signature != this.httpid)
           logger.info("HTTPServer switched");          
-      }
       
-      this.id = id;
-      this.started = started;
     }
     catch (Exception e)
     {
@@ -146,6 +168,15 @@ public class RESTServer implements RESTConnection
     }
     
     return(true);
+  }
+  
+  
+  private byte[] signature(Short id, long started)
+  {
+    buffer.clear();
+    buffer.putShort(id);
+    buffer.putLong(started);
+    return(buffer.array());
   }
 
 
@@ -173,14 +204,14 @@ public class RESTServer implements RESTConnection
   @Override
   public InputStream reader() throws Exception
   {
-    return(channel.socket().getInputStream());
+    return(rchannel.socket().getInputStream());
   }
 
 
   @Override
   public OutputStream writer() throws Exception
   {
-    return(channel.socket().getOutputStream());
+    return(wchannel.socket().getOutputStream());
   }
 
 

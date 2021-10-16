@@ -181,6 +181,8 @@ public class Server extends Thread
   {
     return(requests);
   }
+  
+  
   public void shutdown()
   {
     this.shutdown = true;
@@ -190,6 +192,12 @@ public class Server extends Thread
       stop = true;
       this.notify();
     }
+  }
+
+
+  public RESTClient worker(short id)
+  {
+    return(workers[id]);
   }
   
   
