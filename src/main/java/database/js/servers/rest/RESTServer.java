@@ -12,6 +12,7 @@
 
 package database.js.servers.rest;
 
+import java.util.Arrays;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.io.InputStream;
@@ -31,12 +32,11 @@ import java.nio.channels.ClosedChannelException;
 
 public class RESTServer implements RESTConnection
 {
-  private byte[] httpid = null;
-  
   private RESTReader reader = null;
   private RESTWriter writer = null;
   private HTTPChannel rchannel = null;
   private HTTPChannel wchannel = null;
+  private volatile byte[] httpid = null;
 
   private ByteBuffer buffer = ByteBuffer.allocate(10);
 
@@ -75,7 +75,7 @@ public class RESTServer implements RESTConnection
   
   public void serve()
   {
-    int tries = 0;
+    int tries = 0;    
     
     if (reader != null)
       logger.info("RESTServer reconnecting ...");
@@ -135,9 +135,9 @@ public class RESTServer implements RESTConnection
     if (!connect(this.wchannel)) 
       return(false);
     
-    if (this.httpid != readsig)
+    if (!Arrays.equals(readsig,this.httpid))
       return(false);
-        
+    
     logger.info("Connected to HTTPServer");
     return(true);
   }
@@ -165,17 +165,22 @@ public class RESTServer implements RESTConnection
       long started = Long.parseLong(args[1]);
       byte[] signature = signature(id,started);
       if (this.httpid == null) this.httpid = signature;
-            
-      if (!signature.equals(this.httpid))
-          logger.info("HTTPServer switched"); 
       
-      this.httpid = signature;      
+      if (!Arrays.equals(signature,this.httpid))
+          logger.info("HTTPServer restarted or switched"); 
+            
+      this.httpid = signature;
     }
     catch (Exception e)
     {
-      if (!(e instanceof ClosedChannelException))
-        logger.log(Level.WARNING,e.getMessage(),e);
-      
+      boolean skip = false;
+      String message = e.getMessage();
+      if (message == null) message = "Unknown error";
+
+      if (e instanceof ClosedChannelException) skip = true;
+      if (message.equals("Connection refused")) skip = true;
+
+      if (!skip) logger.log(Level.WARNING,e.getMessage(),e);      
       return(false);
     }
     
@@ -188,7 +193,9 @@ public class RESTServer implements RESTConnection
     buffer.clear();
     buffer.putShort(id);
     buffer.putLong(started);
-    return(buffer.array());
+    byte[] signature = new byte[10];
+    System.arraycopy(buffer.array(),0,signature,0,10);
+    return(signature);
   }
 
 
