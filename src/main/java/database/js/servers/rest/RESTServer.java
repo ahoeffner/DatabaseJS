@@ -31,6 +31,7 @@ public class RESTServer implements RESTConnection
 {
   private short id = -1;
   private long started = -1;
+
   private RESTReader reader = null;
   private RESTWriter writer = null;
 

@@ -67,16 +67,17 @@ class RESTWriter extends Thread
         for(Map.Entry<Long,RESTComm> entry : outgoing.entrySet())
         {
           sent.add(entry.getKey());
-          logger.info("sending RESTComm request "+entry.getValue().request());
           buffer.write(entry.getValue().request());
-          logger.info("sending "+entry.getValue().request().length+" bytes <"+new String(entry.getValue().request())+">");
         }
         
         for(Long id : sent)
           outgoing.remove(id);
         
-        writer.write(buffer.toByteArray());
-        logger.info(conn.parent()+" sending data");
+        byte[] data = buffer.toByteArray();
+        
+        logger.info(conn.parent()+" sending data "+data.length+" "+conn.writer());
+        writer.write(data);
+        logger.info("Data sendt !!");
       }      
     }
     catch (Exception e)

@@ -42,12 +42,13 @@ class RESTReader extends Thread
       
       while(true)
       {
+        sleep(10000);
         byte[] head = reader.read(16);
         RESTComm http = new RESTComm(head);
         logger.info(conn.parent()+" received data");
         
         int need = http.need();
-        logger.info("nedd extra "+need);
+        logger.info("need extra "+need);
         if (need > 0) http.add(reader.read(need));
         
         logger.info("Add incoming, empty="+reader.empty());

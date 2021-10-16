@@ -59,6 +59,7 @@ class RESTComm
     this.size = buffer.getInt();
     
     this.request = data;
+    System.out.println("Received id="+id+" extend="+extend+" size="+size);
   }
   
   

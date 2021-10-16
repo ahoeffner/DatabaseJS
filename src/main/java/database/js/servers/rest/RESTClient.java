@@ -91,6 +91,7 @@ public class RESTClient implements RESTConnection
       while(true)
       {
         resp = incoming.get(id);
+        logger.info("checking incoming id="+id+" resp="+resp);
         if (resp != null) break;
         this.wait();
       }
@@ -132,18 +133,19 @@ public class RESTClient implements RESTConnection
   @Override
   public InputStream reader() throws Exception
   {
-    return(socket.getInputStream());
+    return(channel.socket().getInputStream());
   }
 
   @Override
   public OutputStream writer() throws Exception
   {
-    return(socket.getOutputStream());
+    return(channel.socket().getOutputStream());
   }
 
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
+    logger.info("Client Received response");
     for(RESTComm call : calls)
       incoming.put(call.id,call);
     synchronized(this) {this.notifyAll();}
