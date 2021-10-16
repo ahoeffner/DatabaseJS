@@ -219,7 +219,7 @@ public class Server extends Thread
       {
         int pos = worker++ % workers.length;
         
-        if (workers[pos] != null)
+        if (workers[pos] != null && workers[pos].up())
           return(workers[pos]);
       }
       
@@ -233,7 +233,6 @@ public class Server extends Thread
   public void register(RESTClient client)
   {
     workers[client.id()-this.htsrvs-1] = client;
-    logger.info("workers["+(client.id()-this.htsrvs-1)+"] = "+client);
   }
   
   
