@@ -31,8 +31,12 @@ import database.js.servers.http.HTTPChannel;
 public class RESTServer implements RESTConnection
 {
   private byte[] httpid = null;
+  
   private RESTReader reader = null;
   private RESTWriter writer = null;
+  private HTTPChannel rchannel = null;
+  private HTTPChannel wchannel = null;
+
   private ByteBuffer buffer = ByteBuffer.allocate(10);
 
   private final int port;
@@ -42,8 +46,6 @@ public class RESTServer implements RESTConnection
   private final Logger logger;
   private final MailBox mailbox;
   private final ThreadPool workers;
-  private final HTTPChannel rchannel;
-  private final HTTPChannel wchannel;
   
   
   public static void main(String[] args) throws Exception
@@ -65,23 +67,31 @@ public class RESTServer implements RESTConnection
     this.port = config.getHTTP().admin();
     if (config.getTopology().hotstandby()) http++;
 
-    SocketChannel rchannel = SocketChannel.open();    
-    this.rchannel = new HTTPChannel(server,rchannel,ssl);
-
-    SocketChannel wchannel = SocketChannel.open();    
-    this.wchannel = new HTTPChannel(server,wchannel,ssl);
-
     this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers());
     
-    while(true) 
-      serve();
+    serve();
   }
   
   
   public void serve()
   {
     int tries = 0;
+
+    try
+    {
+      SocketChannel rchannel = SocketChannel.open();    
+      this.rchannel = new HTTPChannel(server,rchannel,true);
+
+      SocketChannel wchannel = SocketChannel.open();    
+      this.wchannel = new HTTPChannel(server,wchannel,true);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.severe("Unable to start RESTServer, bailing out");
+      server.shutdown();
+    }
     
     if (reader != null)
       logger.info("RESTServer reconnecting ...");
@@ -190,7 +200,8 @@ public class RESTServer implements RESTConnection
   @Override
   public void failed()
   {
-    logger.severe("RESTServer failed, bailing out");
+    logger.severe("RESTServer failed, reconnect");
+    serve();
   }
 
 
