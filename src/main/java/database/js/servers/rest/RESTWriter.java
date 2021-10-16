@@ -41,7 +41,6 @@ class RESTWriter extends Thread
   {
     outgoing.put(call.id,call);
     synchronized (this) {this.notify();}
-    conn.logger().info("Sending message");
   }
   
   
@@ -76,7 +75,7 @@ class RESTWriter extends Thread
         
         byte[] data = buffer.toByteArray();
         
-        logger.info(conn.parent()+" sending data "+data.length);
+        if (data.length > 16) logger.info(conn.parent()+" sending data "+data.length);
         writer.write(data);
       }      
     }

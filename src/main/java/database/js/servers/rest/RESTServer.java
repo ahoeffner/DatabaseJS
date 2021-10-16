@@ -74,13 +74,17 @@ public class RESTServer implements RESTConnection
     this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers());
     
-    accept();
+    while(true) 
+      serve();
   }
   
   
-  public void accept()
+  public void serve()
   {
     int tries = 0;
+    
+    if (reader != null)
+      logger.info("RESTServer reconnecting ...");
     
     while(!connect())
     {
@@ -214,8 +218,6 @@ public class RESTServer implements RESTConnection
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
-    logger.info("Received request");
-    
     for(RESTComm http : calls)
       writer.write(http);
   }
