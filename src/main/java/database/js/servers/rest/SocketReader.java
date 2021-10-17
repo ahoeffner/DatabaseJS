@@ -19,6 +19,7 @@ public class SocketReader
 {
   private int pos = 0;
   private int size = 0;
+  private long total = 0;
   private final InputStream in;
   private final static int MAX = 8192;
   private final byte[] buffer = new byte[MAX];
@@ -34,6 +35,12 @@ public class SocketReader
   {
     return(pos >= size);
   }
+  
+  
+  public long bytes()
+  {
+    return(total);
+  }
 
 
   public byte read() throws Exception
@@ -43,6 +50,7 @@ public class SocketReader
 
     this.pos = 0;
     this.size = in.read(buffer);
+    if (size > 0) this.total += this.size;
     
     if (this.size == -1)
       throw new Exception("Socket closed");
@@ -75,6 +83,7 @@ public class SocketReader
       
       this.pos = 0;
       this.size = in.read(buffer);
+      if (size > 0) this.total += this.size;
       available = this.size - this.pos;
       
       if (this.size == -1)

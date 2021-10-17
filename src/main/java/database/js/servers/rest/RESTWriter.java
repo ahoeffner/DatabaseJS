@@ -12,21 +12,19 @@
 
 package database.js.servers.rest;
 
-import java.util.Map;
 import java.util.ArrayList;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 class RESTWriter extends Thread
 {
   private final RESTConnection conn;
 
-  private final ConcurrentHashMap<Long,RESTComm> outgoing =
-    new ConcurrentHashMap<Long,RESTComm>();
+  private ArrayList<RESTComm> outgoing =
+    new ArrayList<RESTComm>();
 
 
   RESTWriter(RESTConnection conn) throws Exception
@@ -37,9 +35,15 @@ class RESTWriter extends Thread
   }
   
   
+  int calls = 0;
   void write(RESTComm call)
   {
-    outgoing.put(call.id,call);
+    calls++;
+
+    if (calls % 100 == 0)
+      conn.logger().info("RESTWriter buffered "+calls);
+
+    outgoing.add(call);
     synchronized (this) {this.notify();}
   }
   
@@ -47,36 +51,43 @@ class RESTWriter extends Thread
   @Override
   public void run()
   {
+    int calls = 0;
+    long total = 0;
     Logger logger = conn.logger();
-
+    ArrayList<RESTComm> outgoing = null;
+    
     try
     {
       OutputStream writer = conn.writer();
-      ArrayList<Long> sent = new ArrayList<Long>();
       
       while(true)
       {
         synchronized(this)
         {
-          while(outgoing.size() == 0)
+          while(this.outgoing.size() == 0)
             this.wait();
+          
+          outgoing = this.outgoing;
+          this.outgoing = new ArrayList<RESTComm>();
         }
         
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(4192);
         
-        for(Map.Entry<Long,RESTComm> entry : outgoing.entrySet())
+        for(RESTComm entry : outgoing)
         {
-          sent.add(entry.getKey());
-          buffer.write(entry.getValue().request());
+          calls++;
+          buffer.write(entry.request());
         }
-        
-        for(Long id : sent)
-          outgoing.remove(id);
-        
+                
         byte[] data = buffer.toByteArray();
+        total += data.length;
         
         logger.finest(conn.parent()+" sending data "+data.length);
         writer.write(data);
+        writer.flush();
+        
+        if (calls % 100 == 0)
+          logger.info("Sent "+calls+" bytes = "+total+" "+total/16);
       }      
     }
     catch (Exception e)

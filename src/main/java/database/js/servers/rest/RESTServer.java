@@ -261,22 +261,21 @@ public class RESTServer implements RESTConnection
   }
 
 
-  private int calls = 0;
+  private int incoming = 0;
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
     for(RESTComm http : calls)
     {
+      incoming++;
       this.server.request();
       byte[] data = http.data();
       
       if (http.extend >= 0) 
         data = mailbox.read(http.extend,http.size);
-
-      logger.info("["+new String(data)+"]");
       
-      RESTTest test = new RESTTest(new String(data));
-      logger.info("received: thread="+test.getLong("thread")+" loop="+test.getInt("loop"));
+      if (incoming % 100 == 0)
+        logger.info("Responds "+incoming);
       
       writer.write(http);      
     }
