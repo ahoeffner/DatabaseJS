@@ -62,6 +62,8 @@ public class RESTServer implements RESTConnection
     this.logger = config.getLogger().rest;
     this.mailbox = new MailBox(config,server.id());
     
+    logger.info("RESTServer starting ...");
+    
     int http = 1;
     this.port = config.getHTTP().admin();
     if (config.getTopology().hotstandby()) http++;

@@ -61,7 +61,7 @@ public class Topology
     
     JSONObject ipc = config.getJSONObject("ipc");
     
-    this.extnds = ipc.getInt("extends");
+    this.extnds = workers * 2;
     
     String extsz = ipc.get("extsize").toString();
     extsz = extsz.replaceAll(" ","").trim().toUpperCase();

@@ -94,6 +94,19 @@ public class PKIContext
     {
       ctx = SSLContext.getInstance("TLS");
       ctx.init(kmgrs,tmgrs,new java.security.SecureRandom());
+      
+      while(true)
+      {
+        try
+        {
+          ctx.createSSLEngine();
+          break;
+        }
+        catch (Exception e)
+        {
+          System.err.println("Waiting for SSLContext to initialize");
+        }
+      }
     }
 
     return(ctx);

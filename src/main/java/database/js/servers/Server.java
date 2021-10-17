@@ -32,29 +32,12 @@ import database.js.servers.http.HTTPServerType;
 
 /**
  *
- * The start/stop sequence is rather complicated:
- *
- * There are 2 roles:
- *   The ipc guarantees that only 1 process holds the given role at any time.
- *
- *   The secretary role. All processes is eligible for this role
- *   The manager role. Only http processes is eligible for this role
- *
- *
- * The secretary is responsible for keeping all other servers alive.
- * The manager is responsible for the http interfaces, including the admin port.
- *
- * When a server starts, it will check to see if it has become the secretary. in which
- * case it will start all other processes that is not running.
- *
- * When the manager receives a shutdown command, it will pass it on to the secretary.
- * The secretary will then cease the automatic keep alive, and send a shutdown message
- * to all other processes, and shut itself down.
  *
  */
 public class Server extends Thread
 {
   private final short id;
+  private final long pid;
   private final short htsrvs;
   private final long started;
   private final short servers;
@@ -95,7 +78,15 @@ public class Server extends Thread
 
     config.getLogger().open(id);
     this.logger = config.getLogger().logger;    
+
+    this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();
+    
+    if (Cluster.isRunning(config,id,pid))
+    {
+      logger.warning("Server "+id+" is already running. Bailing out");
+      System.exit(-1);
+    }
     
     short htsrvs = 1;
     if (config.getTopology().hotstandby()) htsrvs++;

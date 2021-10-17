@@ -31,6 +31,8 @@ public class AdminHandler extends Handler
       String body = new String(request.body());
       response.setBody(server.id()+" "+server.started());
       
+      logger.info("Received connect request "+new String(request.page()));
+      
       String[] args = body.split(" ");
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
