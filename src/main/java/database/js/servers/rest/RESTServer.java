@@ -261,12 +261,20 @@ public class RESTServer implements RESTConnection
   }
 
 
+  private int calls = 0;
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
     for(RESTComm http : calls)
     {
       this.server.request();
+      byte[] data = http.data();
+      
+      if (http.extend >= 0) 
+        data = mailbox.read(http.extend,http.size);
+      
+      logger.info("received: "+new String(data));
+      
       writer.write(http);      
     }
   }

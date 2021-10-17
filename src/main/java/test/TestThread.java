@@ -69,6 +69,13 @@ public class TestThread extends Thread
             session.close();
             session = new Session(url.getHost(),url.getPort(),ssl);            
           }
+          
+          String payload = null;
+          if (this.payload != null)
+          {
+            long id = Thread.currentThread().getId();
+            payload = "{\"thread\": "+id+", \"loop\": "+i+"}";
+          }
 
           session.invoke(path,payload);
         }

@@ -40,7 +40,7 @@ public class AdminHandler extends Handler
       RESTClient worker = server.worker(id);
       
       if (worker == null) logger.info("RESTServer connecting");
-      else logger.finest("RESTServer connecting secondary channel");
+      else logger.fine("RESTServer connecting secondary channel");
       
       if (worker == null || started != worker.started()) 
         worker = new RESTClient(server,id,started);        
