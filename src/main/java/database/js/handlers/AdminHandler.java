@@ -24,7 +24,7 @@ public class AdminHandler extends Handler
     HTTPResponse response = new HTTPResponse();
     
     server.request();
-    logger.info("adm request received <"+request.path()+">");
+    logger.fine("adm request received <"+request.path()+">");
     
     if (request.path().equals("/connect"))
     {
@@ -40,7 +40,7 @@ public class AdminHandler extends Handler
       RESTClient worker = server.worker(id);
       
       if (worker == null) logger.info("RESTServer connecting");
-      else logger.info("RESTServer connecting secondary channel");
+      else logger.finest("RESTServer connecting secondary channel");
       
       if (worker == null || started != worker.started()) 
         worker = new RESTClient(server,id,started);        

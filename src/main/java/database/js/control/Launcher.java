@@ -133,9 +133,6 @@ public class Launcher implements ILauncher
     String line = null;
     System.out.println();
     
-    System.out.println("HTTP "+Statistics.mgr());
-    System.out.println("PROC "+Statistics.sec());
-    
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     ArrayList<Statistics> statistics = Cluster.getStatistics(config);
 

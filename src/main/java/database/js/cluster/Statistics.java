@@ -37,22 +37,8 @@ public class Statistics
   private long freemem;
   
   private long requests;
-
-  private static short mgr;
-  private static short sec;
   
   public static final int reclen = 7*Long.BYTES+2;
-  
-  
-  public static short mgr()
-  {
-    return(mgr);
-  }
-
-  public static short sec()
-  {
-    return(sec);
-  }
   
   
   public static void save(Server server)
@@ -105,12 +91,8 @@ public class Statistics
       Short[] servers = Cluster.getServers(config);
       HashSet<Short> running = Cluster.getRunningServers();
       
-      mgr = 0;
-      sec = 0;
-      
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
-        String name = ""+i;
         Statistics stats = new Statistics();
         ByteBuffer data = ByteBuffer.wrap(Cluster.read(i));
         
