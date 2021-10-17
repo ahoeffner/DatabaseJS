@@ -33,7 +33,6 @@ class RESTReader extends Thread
   @Override
   public void run()
   {    
-    int calls = 0;
     Logger logger = conn.logger();
 
     try
@@ -50,11 +49,7 @@ class RESTReader extends Thread
         int need = http.need();
         if (need > 0) http.add(reader.read(need));
         
-        calls++;
         incoming.add(http);
-        
-        if (calls % 100 == 0)
-          logger.info("Read "+calls+" requests, read="+reader.bytes()+" "+reader.bytes()/16);
         
         if (reader.empty())
         {

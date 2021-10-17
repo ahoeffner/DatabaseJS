@@ -25,8 +25,8 @@ class RESTWriter extends Thread
 
   private ArrayList<RESTComm> outgoing =
     new ArrayList<RESTComm>();
-
-
+  
+  
   RESTWriter(RESTConnection conn) throws Exception
   {
     this.conn = conn;    
@@ -35,24 +35,19 @@ class RESTWriter extends Thread
   }
   
   
-  int calls = 0;
   void write(RESTComm call)
   {
-    calls++;
-
-    if (calls % 100 == 0)
-      conn.logger().info("RESTWriter buffered "+calls);
-
-    outgoing.add(call);
-    synchronized (this) {this.notify();}
+    synchronized (this) 
+    {
+      outgoing.add(call);
+      this.notify();
+    }
   }
   
   
   @Override
   public void run()
   {
-    int calls = 0;
-    long total = 0;
     Logger logger = conn.logger();
     ArrayList<RESTComm> outgoing = null;
     
@@ -74,20 +69,13 @@ class RESTWriter extends Thread
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(4192);
         
         for(RESTComm entry : outgoing)
-        {
-          calls++;
           buffer.write(entry.request());
-        }
                 
         byte[] data = buffer.toByteArray();
-        total += data.length;
         
         logger.finest(conn.parent()+" sending data "+data.length);
         writer.write(data);
         writer.flush();
-        
-        if (calls % 100 == 0)
-          logger.info("Sent "+calls+" bytes = "+total+" "+total/16);
       }      
     }
     catch (Exception e)
