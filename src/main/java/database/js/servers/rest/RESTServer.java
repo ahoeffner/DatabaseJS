@@ -272,8 +272,11 @@ public class RESTServer implements RESTConnection
       
       if (http.extend >= 0) 
         data = mailbox.read(http.extend,http.size);
+
+      logger.info("["+new String(data)+"]");
       
-      logger.info("received: "+new String(data));
+      RESTTest test = new RESTTest(new String(data));
+      logger.info("received: thread="+test.getLong("thread")+" loop="+test.getInt("loop"));
       
       writer.write(http);      
     }
