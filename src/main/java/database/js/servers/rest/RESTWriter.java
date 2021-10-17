@@ -75,7 +75,6 @@ class RESTWriter extends Thread
         
         logger.finest(conn.parent()+" sending data "+data.length);
         writer.write(data);
-        writer.flush();
       }      
     }
     catch (Exception e)

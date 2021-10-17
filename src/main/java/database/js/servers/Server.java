@@ -38,7 +38,6 @@ public class Server extends Thread
 {
   private final short id;
   private final long pid;
-  private final short htsrvs;
   private final long started;
   private final short servers;
   private final int heartbeat;
@@ -55,7 +54,7 @@ public class Server extends Thread
   private final HTTPServer admin;
 
   private final RESTServer rest;
-  private final RESTClient[] workers;
+  private final LoadBalancer loadblcr;
 
   
   public static void main(String[] args)
@@ -77,8 +76,8 @@ public class Server extends Thread
     System.setErr(out);
 
     config.getLogger().open(id);
-    this.logger = config.getLogger().logger;    
-
+    this.logger = config.getLogger().logger; 
+    
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();
     
@@ -90,15 +89,10 @@ public class Server extends Thread
       System.exit(-1);
     }
     
-    short htsrvs = 1;
-    if (config.getTopology().hotstandby()) htsrvs++;
-    
-    this.htsrvs = htsrvs;
     this.servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(id);
 
     this.embedded = servers <= 0;
-    this.workers = new RESTClient[servers];
     this.heartbeat = config.getTopology().heartbeat();
     
     if (type == Process.Type.rest)
@@ -106,11 +100,16 @@ public class Server extends Thread
       this.ssl = null;
       this.plain = null;
       this.admin = null;
+      this.loadblcr = null;
       this.rest = new RESTServer(this);
     }
     else
     {
       this.rest = null;
+      
+      if (this.embedded) this.loadblcr = null;
+      else this.loadblcr = new LoadBalancer(config);
+
       this.ssl = new HTTPServer(this,HTTPServerType.ssl,embedded);
       this.plain = new HTTPServer(this,HTTPServerType.plain,embedded);
       this.admin = new HTTPServer(this,HTTPServerType.admin,embedded);
@@ -204,41 +203,25 @@ public class Server extends Thread
 
   public RESTClient worker(short id)
   {
-    return(workers[id-this.htsrvs]);
+    return(loadblcr.worker(id));
   }
   
-  
-  int worker = 0;
+
   public RESTClient worker() throws Exception
   {
-    int tries = 0;
-    
-    while(++tries < 32)
-    {
-      for (int i = 0; i < workers.length; i++)
-      {
-        int pos = worker++ % workers.length;
-        
-        if (workers[pos] != null && workers[pos].up())
-          return(workers[pos]);          
-      }
-      
-      sleep(250);
-    }
-    
-    throw new Exception("No available RESTEngines, bailing out");
+    return(loadblcr.worker());
   }
   
   
   public void register(RESTClient client)
   {
-    workers[client.id()-this.htsrvs] = client;
+    loadblcr.register(client);
   }
   
   
   public void deregister(RESTClient client)
   {
-    workers[client.id()-this.htsrvs] = null;
+    loadblcr.deregister(client);
   }
   
   

@@ -275,7 +275,7 @@ public class RESTServer implements RESTConnection
         data = mailbox.read(http.extend,http.size);
       
       if (incoming % 100 == 0)
-        logger.info("Received "+incoming);
+        logger.fine("Received "+incoming);
       
       writer.write(http);      
     }
