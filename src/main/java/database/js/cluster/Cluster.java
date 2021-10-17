@@ -12,29 +12,97 @@
 
 package database.js.cluster;
 
+import java.io.File;
 import java.util.List;
+import java.util.HashSet;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.stream.Stream;
+import database.js.config.Paths;
 import java.util.logging.Logger;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.MappedByteBuffer;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.control.Process;
-
-import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.nio.channels.FileChannel;
+import static java.nio.file.StandardOpenOption.*;
 
 
 public class Cluster
 {
-  public static Process.Type getType(Config config, short id) throws Exception
+  private final Logger logger;
+  private final Config config;
+  private final MappedByteBuffer shmmem;
+  
+  private static Cluster cluster = null;
+  
+  
+  Cluster(Config config) throws Exception
+  {
+    this.config = config;
+    String filename = getFileName();
+    this.logger = config.getLogger().logger;
+    FileSystem fs = FileSystems.getDefault();
+    
+    Short[] servers = getServers(config);
+    int processes = servers[0] + servers[1];
+    int size = processes * Statistics.reclen + Long.BYTES;
+    
+    Path path = fs.getPath(filename);
+    FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);
+    this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,size);
+  }
+  
+  
+  private byte[] readdata(short id)
+  {
+    byte[] data = new byte[Statistics.reclen];
+    int offset = Long.BYTES + id * Statistics.reclen;
+    this.shmmem.get(offset,data);
+    return(data);
+  }
+  
+  
+  private void writedata(short id, byte[] data)
+  {
+    int offset = Long.BYTES + id * Statistics.reclen;
+    this.shmmem.put(offset,data);
+  }
+
+
+  private String getFileName()
+  {
+    return(Paths.ipcdir + File.separator + "cluster.dat");
+  }
+
+
+  private String getLockFileName()
+  {
+    return(Paths.ipcdir + File.separator + "cluster.dat");
+  }
+  
+  
+  public static void init(Config config) throws Exception
+  {
+    if (cluster != null) return;
+    cluster = new Cluster(config);
+  }
+  
+
+  public static Process.Type getType(short id) throws Exception
   {  
+    Config config = cluster.config;
     Short[] servers = getServers(config);
     return(id < servers[0] ? Process.Type.http : Process.Type.rest);
   }
   
   
-  public static ArrayList<ServerProcess> running(Config config) throws Exception
+  public static ArrayList<ServerProcess> running() throws Exception
   {    
+    Config config = cluster.config;
     Logger logger = config.getLogger().logger;
     String cname = "database.js.servers.Server";
     String match = ".*java?(\\.exe)?\\s+.*"+cname+".*";
@@ -58,7 +126,7 @@ public class Cluster
       }
       catch(Exception e) 
       {
-        logger.warning("Uanable to parse process-handle "+cmd);
+        logger.warning("Unable to parse process-handle "+cmd);
       }
     }
     
@@ -66,9 +134,9 @@ public class Cluster
   }
   
   
-  public static boolean isRunning(Config config, short id, long pid) throws Exception
+  public static boolean isRunning(short id, long pid) throws Exception
   {
-    ArrayList<ServerProcess> running = running(config);
+    ArrayList<ServerProcess> running = running();
     
     for(ServerProcess p : running)
     {
@@ -85,7 +153,7 @@ public class Cluster
     Short[] servers = getServers(server.config());
     ArrayList<ServerType> down = new ArrayList<ServerType>();
 
-    HashSet<Short> running = getRunningServers(server.config());
+    HashSet<Short> running = getRunningServers();
     
     for (short i = 0; i < servers[0]; i++)
     {
@@ -113,9 +181,29 @@ public class Cluster
   }
 
 
-  public static ArrayList<Statistics> getStatistics(Config config)
+  public static ArrayList<Statistics> getStatistics()
   {
+    Config config = cluster.config;
     return(Statistics.get(config));
+  }
+
+
+  public static ArrayList<Statistics> getStatistics(Config config) throws Exception
+  {
+    init(config);
+    return(Statistics.get(config));
+  }
+  
+  
+  static byte[] read(short id)
+  {
+    return(cluster.readdata(id));
+  }
+  
+  
+  static void write(short id, byte[] data)
+  {
+    cluster.writedata(id,data);
   }
   
   
@@ -127,10 +215,10 @@ public class Cluster
   }
   
   
-  private static HashSet<Short> getRunningServers(Config config) throws Exception
+  public static HashSet<Short> getRunningServers() throws Exception
   {
     HashSet<Short> sids =new HashSet<Short>();
-    ArrayList<ServerProcess> running = running(config);
+    ArrayList<ServerProcess> running = running();
     for(ServerProcess p : running) sids.add(p.id);
     return(sids);
   }

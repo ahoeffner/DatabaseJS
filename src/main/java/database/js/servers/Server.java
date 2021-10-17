@@ -82,7 +82,9 @@ public class Server extends Thread
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();
     
-    if (Cluster.isRunning(config,id,pid))
+    Cluster.init(config);
+    
+    if (Cluster.isRunning(id,pid))
     {
       logger.warning("Server "+id+" is already running. Bailing out");
       System.exit(-1);
@@ -93,7 +95,7 @@ public class Server extends Thread
     
     this.htsrvs = htsrvs;
     this.servers = config.getTopology().servers();
-    Process.Type type = Cluster.getType(config,id);
+    Process.Type type = Cluster.getType(id);
 
     this.embedded = servers <= 0;
     this.workers = new RESTClient[servers];
@@ -142,6 +144,12 @@ public class Server extends Thread
   public short id()
   {
     return(id);
+  }
+  
+  
+  public long pid()
+  {
+    return(pid);
   }
   
   
@@ -296,7 +304,7 @@ public class Server extends Thread
         while(!stop)
         {
           Cluster.setStatistics(this);
-          this.wait(4*this.heartbeat);
+          this.wait(this.heartbeat);
         }
       }
       

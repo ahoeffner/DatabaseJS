@@ -12,6 +12,7 @@
 
 package database.js.cluster;
 
+import java.util.HashSet;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -40,13 +41,7 @@ public class Statistics
   private static short mgr;
   private static short sec;
   
-  private static Statistics stats = null;  
   public static final int reclen = 7*Long.BYTES+2;
-  
-  
-  private Statistics()
-  {    
-  }
   
   
   public static short mgr()
@@ -58,41 +53,27 @@ public class Statistics
   {
     return(sec);
   }
-
-  
-  
-  private Statistics init()
-  {
-    this.pid = 0; //ProcessHandle.current().pid();
-    this.started = System.currentTimeMillis();
-    return(this);
-  }
   
   
   public static void save(Server server)
   {
-    /*
     try
     {
-      String name = ""+broker.id();
-      Resource stat = broker.getResource(name);
+      Statistics stats = new Statistics();
       ByteBuffer data = ByteBuffer.allocate(reclen);
       
-      if (stats == null)
-      {
-        stats = new Statistics().init(server.broker());
-        stat.acquire();        
-      }
-
-      stats.requests = server.requests();      
+      stats.id = server.id();
+      stats.pid = server.pid();
+      stats.started = server.started();
+      stats.requests = server.requests(); 
       stats.updated = System.currentTimeMillis();      
       
       stats.totmem = Runtime.getRuntime().maxMemory();
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
       
-      byte manager = broker.manager() ? (byte) 1 : 0;
-      byte secretary = broker.secretary() ? (byte) 1 : 0;
+      byte manager = 0;
+      byte secretary = 0;
       
       data.putLong(stats.pid);
       data.putLong(stats.started);
@@ -105,13 +86,12 @@ public class Statistics
       data.put(manager);
       data.put(secretary);
       
-      stat.put(data.array());
+      Cluster.write(server.id(),data.array());
     }
     catch (Exception e)
     {
       server.logger().log(Level.SEVERE,e.getMessage(),e);
     }
-  */
   }
   
   
@@ -120,21 +100,19 @@ public class Statistics
     ArrayList<Statistics> list =
       new ArrayList<Statistics>();
     
-    return(list);
-/*
-    
     try
     {
       Short[] servers = Cluster.getServers(config);
+      HashSet<Short> running = Cluster.getRunningServers();
       
-      mgr = guest.getManager();
-      sec = guest.getSecretary();
+      mgr = 0;
+      sec = 0;
       
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
         String name = ""+i;
         Statistics stats = new Statistics();
-        ByteBuffer data = ByteBuffer.wrap(guest.getResource(name));
+        ByteBuffer data = ByteBuffer.wrap(Cluster.read(i));
         
         stats.id = i;
 
@@ -154,7 +132,7 @@ public class Statistics
           stats.manager = manager == 1;
           stats.secretary = secretary == 1;
           
-          stats.online = guest.online(i);
+          stats.online = running.contains(i);
         }
         
         list.add(stats);
@@ -162,7 +140,6 @@ public class Statistics
     }
     catch (Exception e) {e.printStackTrace();}
     return(list);
-*/
   }
 
   public short id()

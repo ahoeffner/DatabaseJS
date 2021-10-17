@@ -265,6 +265,9 @@ public class RESTServer implements RESTConnection
   public void received(ArrayList<RESTComm> calls)
   {
     for(RESTComm http : calls)
-      writer.write(http);
+    {
+      this.server.request();
+      writer.write(http);      
+    }
   }
 }
