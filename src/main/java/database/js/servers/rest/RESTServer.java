@@ -87,7 +87,7 @@ public class RESTServer implements RESTConnection
       if (++tries > 256)
       {
         logger.severe("Unable to connect to HTTPServer, bailing out");
-        server.shutdown();
+        System.exit(-1);
       }
       
       if (tries % 16 == 0)
@@ -109,7 +109,7 @@ public class RESTServer implements RESTConnection
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
       logger.severe("Unable to start RESTServer, bailing out");
-      server.shutdown();
+      System.exit(-1);
     }
   }
   
@@ -128,7 +128,7 @@ public class RESTServer implements RESTConnection
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
       logger.severe("Unable to start RESTServer, bailing out");
-      server.shutdown();
+      System.exit(-1);
     }
 
     if (!connect(this.rchannel)) 
