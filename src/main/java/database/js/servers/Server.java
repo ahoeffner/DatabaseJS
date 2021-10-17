@@ -184,6 +184,7 @@ public class Server extends Thread
   public void shutdown()
   {
     this.shutdown = true;
+    logger.info("Server "+id+" shutting down");
         
     synchronized(this)
     {
@@ -195,7 +196,7 @@ public class Server extends Thread
 
   public RESTClient worker(short id)
   {
-    return(workers[id-this.htsrvs-1]);
+    return(workers[id-this.htsrvs]);
   }
   
   
@@ -223,13 +224,13 @@ public class Server extends Thread
   
   public void register(RESTClient client)
   {
-    workers[client.id()-this.htsrvs-1] = client;
+    workers[client.id()-this.htsrvs] = client;
   }
   
   
   public void deregister(RESTClient client)
   {
-    workers[client.id()-this.htsrvs-1] = null;
+    workers[client.id()-this.htsrvs] = null;
   }
   
   

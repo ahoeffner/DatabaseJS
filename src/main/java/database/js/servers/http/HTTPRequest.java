@@ -125,6 +125,11 @@ public class HTTPRequest
     channel.write(data);
   }
   
+  public SelectionKey key()
+  {
+    return(key);
+  }
+  
   public void unlist()
   {
     waiter.unlist(key);

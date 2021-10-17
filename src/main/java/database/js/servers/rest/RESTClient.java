@@ -59,6 +59,13 @@ public class RESTClient implements RESTConnection
   
   public void init(HTTPChannel channel) throws Exception
   {
+    for (int i = 0; i < 8; i++)
+    {
+      Thread.sleep(25);
+      channel.socket().getOutputStream().flush();
+      //Make absolute sure response is flushed
+    }
+
     channel.configureBlocking(true);
     
     if (this.wchannel == null) this.wchannel = channel;

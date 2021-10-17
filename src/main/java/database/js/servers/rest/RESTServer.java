@@ -79,8 +79,8 @@ public class RESTServer implements RESTConnection
   {
     int tries = 0;    
     
-    if (reader != null)
-      logger.info("RESTServer reconnecting ...");
+    if (reader == null) logger.info("RESTServer connecting ...");
+    else                logger.info("RESTServer reconnecting ...");
     
     while(!connect())
     {
@@ -89,6 +89,9 @@ public class RESTServer implements RESTConnection
         logger.severe("Unable to connect to HTTPServer, bailing out");
         server.shutdown();
       }
+      
+      if (tries % 16 == 0)
+        logger.info("Unable to connect to HTTPServer");
       
       try {Thread.sleep(250);}
       catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
@@ -150,18 +153,30 @@ public class RESTServer implements RESTConnection
     try
     {
       channel.configureBlocking(false);
-      
+
       channel.connect(port);
       channel.configureBlocking(true);
 
       HTTPRequest request = new HTTPRequest("localhost","/connect");      
       request.setBody(server.id()+" "+server.started());
       
+      logger.finest("Sending connect request to HTTPServer");
       channel.write(request.getPage());   
       HTTPResponse response = new HTTPResponse();
 
+      logger.finest("Waiting for response from HTTPServer");
       while(!response.finished())
-        response.add(channel.read());
+      {
+        ByteBuffer buf = channel.read();
+        
+        if (buf == null) 
+        {
+          logger.warning("Missing reply from HTTPServer");
+          return(false);          
+        }
+
+        response.add(buf);
+      }
 
       String[] args = new String(response.getBody()).split(" ");
       
@@ -184,7 +199,7 @@ public class RESTServer implements RESTConnection
       if (e instanceof ClosedChannelException) skip = true;
       if (message.equals("Connection refused")) skip = true;
 
-      if (!skip) logger.log(Level.WARNING,e.getMessage(),e);      
+      if (!skip) logger.log(Level.WARNING,e.getMessage(),e);
       return(false);
     }
     
