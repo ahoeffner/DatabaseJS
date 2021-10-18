@@ -21,6 +21,7 @@ import database.js.config.Config;
 
 public class Process
 {
+  private final String instnm;
   private final Config config;
   private final Logger logger;
   private final String javaexe;
@@ -34,6 +35,7 @@ public class Process
   public Process(Config config) throws Exception
   {
     this.config = config;
+    this.instnm = config.instance();
     this.javaexe = config.getJava().exe();
     this.logger = config.getLogger().control;
     this.httpopts = config.getJava().getHttpOptions();
@@ -55,7 +57,7 @@ public class Process
     else                   options = restopts;
     
     String classpath = classpath(type != Type.http) + jars;
-    String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + inst;
+    String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
     try {Runtime.getRuntime().exec(cmd);}
     catch (Exception e) {logger.log(Level.SEVERE,null,e);}

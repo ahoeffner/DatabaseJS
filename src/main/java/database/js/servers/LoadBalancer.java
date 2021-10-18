@@ -37,15 +37,16 @@ class LoadBalancer
   public RESTClient worker() throws Exception
   {
     int tries = 0;
+    int next = next();
     
     while(++tries < 32)
     {
       for (int i = 0; i < workers.length; i++)
       {
-        int next = next();
-        
         if (workers[next] != null && workers[next].up())
-          return(workers[next]);          
+          return(workers[next]); 
+        
+        next = ++next % workers.length;        
       }
       
       Thread.sleep(250);

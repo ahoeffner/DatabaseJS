@@ -33,6 +33,7 @@ import static java.nio.file.StandardOpenOption.*;
 
 public class Cluster
 {
+  private final String inst;
   private final Logger logger;
   private final Config config;
   private final MappedByteBuffer shmmem;
@@ -43,6 +44,8 @@ public class Cluster
   Cluster(Config config) throws Exception
   {
     this.config = config;
+    this.inst = config.instance();
+    
     String filename = getFileName();
     this.logger = config.getLogger().logger;
     FileSystem fs = FileSystems.getDefault();
@@ -143,11 +146,12 @@ public class Cluster
   
   
   public static ArrayList<ServerProcess> running() throws Exception
-  {    
+  {
     Config config = cluster.config;
     Logger logger = config.getLogger().logger;
     String cname = "database.js.servers.Server";
-    String match = ".*java?(\\.exe)?\\s+.*"+cname+".*";
+    String match = ".*java?(\\.exe)?\\s+.*"+cname+"\\s"+cluster.inst+".*";
+
     ArrayList<ServerProcess> running = new ArrayList<ServerProcess>();
     
     Stream<ProcessHandle> stream = ProcessHandle.allProcesses();
@@ -164,7 +168,7 @@ public class Cluster
       {
         int end = cmd.indexOf(cname) + cname.length();
         String[] args = cmd.substring(end).trim().split(" ");
-        running.add(new ServerProcess(Short.parseShort(args[0]),pid));
+        running.add(new ServerProcess(Short.parseShort(args[1]),pid));
       }
       catch(Exception e) 
       {
@@ -173,6 +177,20 @@ public class Cluster
     }
     
     return(running);
+  }
+  
+  
+  public static boolean isRunning(short id) throws Exception
+  {
+    ArrayList<ServerProcess> running = running();
+    
+    for(ServerProcess p : running)
+    {
+      if (p.id == id)
+        return(true);
+    }
+    
+    return(false);
   }
   
   

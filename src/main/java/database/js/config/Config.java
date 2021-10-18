@@ -21,7 +21,8 @@ import database.js.security.PKIContext;
 
 public class Config
 {
-  private final String loge; 
+  private final String inst;
+  private final String loge;
   private final String httpe; 
   private final String securitye; 
   private final String topologye; 
@@ -71,6 +72,7 @@ public class Config
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);
     
+    this.inst = config.getString("instance");
     this.topologye = config.getString("topology");
     this.databasee = config.getString("database");
 
@@ -82,6 +84,12 @@ public class Config
     
     if (!config.has("security")) securitye = "security"; 
     else       securitye = config.getString("security");
+  }
+  
+  
+  public String instance()
+  {
+    return(inst);
   }
   
   

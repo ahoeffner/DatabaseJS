@@ -122,7 +122,15 @@ public class Launcher implements ILauncher
 
   public void start() throws Exception
   {
+    Cluster.init(config);
     config.getJava().exe();
+    
+    if (Cluster.isRunning((short) 0))
+    {
+      logger.info("database.js instance "+config.instance()+" is already running");
+      return;
+    }
+    
     Process process = new Process(config);
     process.start(Process.Type.http,0);
   }

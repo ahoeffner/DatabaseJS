@@ -59,7 +59,8 @@ public class Server extends Thread
   
   public static void main(String[] args)
   {
-    try {new Server(Short.parseShort(args[0]));}
+    // args[0] is instance name
+    try {new Server(Short.parseShort(args[1]));}
     catch (Exception e) {e.printStackTrace();}
   }
   
