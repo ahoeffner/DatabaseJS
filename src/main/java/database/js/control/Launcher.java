@@ -148,8 +148,8 @@ public class Launcher implements ILauncher
     String hpid = String.format("%8s"," pid ");
     String hhits = String.format("%12s","hits  ");
 
-    String hmgr = String.format("%6s"," http");
-    String hsec = String.format("%6s"," owner");
+    String hmgr = String.format("%5s"," http");
+    String hsec = String.format("%5s"," cmgr");
 
     String hused = String.format("%-9s"," used");
     String halloc = String.format("%-9s"," alloc");
@@ -194,7 +194,7 @@ public class Launcher implements ILauncher
     // Processes
     
     System.out.println("Processes");
-    line = String.format("%84s"," ").replace(" ","-");
+    line = String.format("%82s"," ").replace(" ","-");
 
     System.out.println(line);
     System.out.println("|"+hid+" |"+hpid+" |"+hmgr+" |"+hsec+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");    
@@ -208,8 +208,8 @@ public class Launcher implements ILauncher
       String pid = String.format("%8s ",stats.pid());
       String hits = String.format("%12s ",stats.requests());
       
-      String mgr = stats.manager() ? "   X   " : "       ";
-      String sec = stats.secretary() ? "   X   " : "       ";
+      String http = stats.http() ? "  X   " : "      ";
+      String procmgr = stats.procmgr() ? "  X   " : "      ";
       
       int up = (int) ((stats.updated() - stats.started())/1000);
 
@@ -234,8 +234,8 @@ public class Launcher implements ILauncher
 
       System.out.print("|"+id+"");
       System.out.print("|"+pid+"");
-      System.out.print("|"+mgr+"");
-      System.out.print("|"+sec+"");
+      System.out.print("|"+http+"");
+      System.out.print("|"+procmgr+"");
       System.out.print("|"+started+"");
       System.out.print("|"+uptime+"");
       System.out.print("|"+hits+"");

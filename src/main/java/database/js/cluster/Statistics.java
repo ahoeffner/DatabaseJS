@@ -26,8 +26,9 @@ public class Statistics
   private short id;
   
   private boolean online;
-  private boolean manager;
-  private boolean secretary;
+
+  private boolean http;
+  private boolean procmgr;
 
   private long updated;
   private long started;
@@ -58,8 +59,8 @@ public class Statistics
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
       
-      byte manager = 0;
-      byte secretary = 0;
+      byte procmgr = 0;
+      byte http = server.http() ? (byte) 1 : 0;
       
       data.putLong(stats.pid);
       data.putLong(stats.started);
@@ -69,8 +70,8 @@ public class Statistics
       data.putLong(stats.freemem);
       data.putLong(stats.requests);
       
-      data.put(manager);
-      data.put(secretary);
+      data.put(http);
+      data.put(procmgr);
       
       Cluster.write(server.id(),data.array());
     }
@@ -108,11 +109,11 @@ public class Statistics
           stats.freemem  = data.getLong();  
           stats.requests = data.getLong();  
           
-          byte manager = data.get();
-          byte secretary = data.get();
+          byte http = data.get();
+          byte procmgr = data.get();
           
-          stats.manager = manager == 1;
-          stats.secretary = secretary == 1;
+          stats.http = http == 1;
+          stats.procmgr = procmgr == 1;
           
           stats.online = running.contains(i);
         }
@@ -169,13 +170,13 @@ public class Statistics
     return(online);
   }
 
-  public boolean manager()
+  public boolean http()
   {
-    return(manager);
+    return(http);
   }
 
-  public boolean secretary()
+  public boolean procmgr()
   {
-    return(secretary);
+    return(procmgr);
   }
 }

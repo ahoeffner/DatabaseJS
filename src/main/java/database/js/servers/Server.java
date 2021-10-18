@@ -56,6 +56,8 @@ public class Server extends Thread
   private final RESTServer rest;
   private final LoadBalancer loadblcr;
 
+  private volatile boolean sowner = false;
+
   
   public static void main(String[] args)
   {
@@ -139,6 +141,8 @@ public class Server extends Thread
     ssl.start();
     plain.start();
     admin.start();
+    
+    this.sowner = true;
   }
   
   
@@ -157,6 +161,12 @@ public class Server extends Thread
   public long started()
   {
     return(started);
+  }
+  
+  
+  public boolean http()
+  {
+    return(sowner);
   }
   
   
