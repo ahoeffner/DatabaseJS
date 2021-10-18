@@ -102,7 +102,7 @@ public class RESTClient implements RESTConnection
       }
     }
     
-    if (resp.extend < 0) data = resp.data();
+    if (resp.extend() < 0) data = resp.data();
     else data = mailbox.read(extend,resp.size);
 
     if (extend >= 0) mailbox.clear(extend);

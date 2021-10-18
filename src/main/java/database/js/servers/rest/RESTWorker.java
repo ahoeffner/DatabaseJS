@@ -41,7 +41,16 @@ public class RESTWorker implements Runnable
       HTTPResponse response = handler.handle(request);
       byte[] data = response.page();
       
-      this.bridge.set(data);
+      if (data == null)
+      {
+        logger.severe("Received null respond from RestHandler");
+        data = "{\"status\": \"failed\"}".getBytes();
+      }
+      
+      long id = bridge.id();
+      int extend = bridge.extend();
+      
+      RESTComm bridge = new RESTComm(id,extend,data);
       rserver.respond(bridge);
     }
     catch (Exception e)

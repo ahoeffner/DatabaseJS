@@ -188,7 +188,7 @@ public class HTTPResponse
     byte[] head = header().getBytes();
     this.page = new byte[header.length()+this.body.length];
 
-    System.arraycopy(head,0,page,0,head.length);    
+    System.arraycopy(head,0,page,0,head.length); 
     System.arraycopy(this.body,0,page,head.length,this.body.length);
     
     return(page);
@@ -200,7 +200,7 @@ public class HTTPResponse
     for (int h = 0; h < data.length-3; h++)
     {
       if (data[h] == '\r' && data[h+1] == '\n' && data[h+2] == '\r' && data[h+3] == '\n')
-        return(h);
+        return(h+3);
     }
     
     return(data.length);

@@ -69,7 +69,7 @@ class RESTWriter extends Thread
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(4192);
         
         for(RESTComm entry : outgoing)
-          buffer.write(entry.request());
+          buffer.write(entry.page());
                 
         byte[] data = buffer.toByteArray();
         

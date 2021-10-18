@@ -21,8 +21,9 @@ class RESTComm
   final int size;
   final int extend;
 
+  byte[] page;
   byte[] data;
-  byte[] request;
+  byte[] header;
   
   public final static int HEADER = 16;
   private final ByteBuffer buffer = ByteBuffer.allocate(16);
@@ -31,6 +32,7 @@ class RESTComm
   RESTComm(long id, int extend, byte[] data)
   {
     this.id = id;
+    this.data = data;
     this.extend = extend;
     this.size = data.length;
     
@@ -38,14 +40,14 @@ class RESTComm
     buffer.putInt(extend);
     buffer.putInt(data.length);
     
-    byte[] header = buffer.array();
+    this.header = buffer.array();
 
-    if (extend >= 0) request = header;
+    if (extend >= 0) page = header;
     else
     {
-      request = new byte[HEADER + data.length];
-      System.arraycopy(header,0,request,0,header.length);
-      System.arraycopy(data,0,request,header.length,data.length);
+      page = new byte[HEADER + data.length];
+      System.arraycopy(header,0,page,0,header.length);
+      System.arraycopy(data,0,page,header.length,data.length);
     }
   }
   
@@ -59,7 +61,8 @@ class RESTComm
     this.extend = buffer.getInt();
     this.size = buffer.getInt();
     
-    this.request = data;
+    this.page = data;
+    this.header = data;
   }
   
   
@@ -94,14 +97,22 @@ class RESTComm
   }
   
   
-  byte[] request()
+  byte[] page()
   {
-    return(request);
+    return(page);
   }
   
   
   byte[] data()
   {
     return(data);
+  }
+  
+  
+  @Override
+  public String toString()
+  {
+    if (data == null) return("id="+id+" extend="+extend+" size="+size);
+    return("id="+id+" extend="+extend+" size="+size+System.lineSeparator()+"<"+new String(data)+">"+System.lineSeparator());
   }
 }
