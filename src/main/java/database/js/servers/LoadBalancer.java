@@ -42,10 +42,10 @@ class LoadBalancer
     {
       for (int i = 0; i < workers.length; i++)
       {
-        last = (++last) % workers.length;
+        int next = next();
         
-        if (workers[last] != null && workers[last].up())
-          return(workers[last]);          
+        if (workers[next] != null && workers[next].up())
+          return(workers[next]);          
       }
       
       Thread.sleep(250);
@@ -64,5 +64,12 @@ class LoadBalancer
   public void deregister(RESTClient client)
   {
     workers[client.id()-this.htsrvs] = null;
+  }
+  
+  
+  private synchronized int next()
+  {
+    last = (++last) % workers.length;
+    return(last);
   }
 }
