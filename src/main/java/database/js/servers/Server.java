@@ -191,6 +191,7 @@ public class Server extends Thread
   
   public void shutdown()
   {
+    Cluster.stop();
     this.shutdown = true;
     logger.info("Server "+id+" shutting down");
         
@@ -289,6 +290,9 @@ public class Server extends Thread
         {
           Cluster.setStatistics(this);
           this.wait(this.heartbeat);
+          
+          if (Cluster.stop(this))
+            stop = true;
         }
       }
       

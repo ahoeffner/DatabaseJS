@@ -49,7 +49,7 @@ public class Cluster
     
     Short[] servers = getServers(config);
     int processes = servers[0] + servers[1];
-    int size = processes * Statistics.reclen + Long.BYTES;
+    int size = 2 + Long.BYTES + processes * Statistics.reclen;
     
     Path path = fs.getPath(filename);
     FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);
@@ -121,9 +121,9 @@ public class Cluster
   }
   
   
-  public static long getStopTime()
+  public static boolean stop(Server server)
   {
-    return(cluster.getStopped());
+    return(cluster.getStopped() > server.started());
   }
   
   
