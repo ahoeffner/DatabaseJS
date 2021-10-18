@@ -57,10 +57,40 @@ public class Cluster
   }
   
   
+  private void setStopped()
+  {
+    byte cs = (byte) (shmmem.get(0) + 1);
+    long stop = System.currentTimeMillis();
+
+    shmmem.put(0,cs);
+    shmmem.putLong(1,stop);
+    shmmem.put(Long.BYTES+1,cs);
+  }
+  
+  
+  private long getStopped()
+  {
+    byte cs1 = 0;
+    byte cs2 = 1;
+    long time = 0;
+
+    for (int i = 0; cs1 != cs2 && i < 32768; i++)
+    {
+      cs2  = shmmem.get(Long.BYTES+1);
+      time = shmmem.getLong(1);
+      cs1  = shmmem.get(0);
+
+      if (cs1 != cs2) Thread.yield();
+    }
+    
+    return(time);
+  }
+  
+  
   private byte[] readdata(short id)
   {
     byte[] data = new byte[Statistics.reclen];
-    int offset = Long.BYTES + id * Statistics.reclen;
+    int offset = 2 + Long.BYTES + id * Statistics.reclen;
     this.shmmem.get(offset,data);
     return(data);
   }
@@ -68,7 +98,7 @@ public class Cluster
   
   private void writedata(short id, byte[] data)
   {
-    int offset = Long.BYTES + id * Statistics.reclen;
+    int offset = 2 + Long.BYTES + id * Statistics.reclen;
     this.shmmem.put(offset,data);
   }
 
@@ -82,6 +112,18 @@ public class Cluster
   private String getLockFileName()
   {
     return(Paths.ipcdir + File.separator + "cluster.dat");
+  }
+  
+  
+  public static void stop()
+  {
+    cluster.setStopped();    
+  }
+  
+  
+  public static long getStopTime()
+  {
+    return(cluster.getStopped());
   }
   
   

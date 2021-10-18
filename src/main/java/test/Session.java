@@ -34,7 +34,7 @@ public class Session
       ((SSLSocket) socket).startHandshake(); 
     }
     
-    socket.setSoTimeout(5000);
+    socket.setSoTimeout(15000);
   }
   
   
