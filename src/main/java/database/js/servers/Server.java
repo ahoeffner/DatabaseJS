@@ -92,7 +92,6 @@ public class Server extends Thread
     this.servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(id);
 
-    this.embedded = servers <= 0;
     this.heartbeat = config.getTopology().heartbeat();
     
     if (type == Process.Type.rest)
@@ -101,11 +100,13 @@ public class Server extends Thread
       this.plain = null;
       this.admin = null;
       this.loadblcr = null;
+      this.embedded = true;
       this.rest = new RESTServer(this);
     }
     else
     {
       this.rest = null;
+      this.embedded = servers <= 0;
       
       if (this.embedded) this.loadblcr = null;
       else this.loadblcr = new LoadBalancer(config);

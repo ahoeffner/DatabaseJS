@@ -6,13 +6,10 @@ import database.js.servers.rest.RESTClient;
 
 class LoadBalancer
 {
-  private int last = 0;
-  private int requests = 0;
-
+  private int last = -1;
   private final int htsrvs;
   private final int threads;
   private final int servers;
-  private final int persist;
   private final Config config;
   private final RESTClient[] workers;
   
@@ -26,13 +23,7 @@ class LoadBalancer
     short htsrvs = 1;
     if (config.getTopology().hotstandby()) htsrvs++;
     
-    int persist = threads/8;
-    if (persist < 1) persist = 1;
-    if (persist > 16) persist = 16;
-
     this.htsrvs = htsrvs;
-    this.persist = persist;
-    
     this.workers = new RESTClient[servers];
   }
 
@@ -45,13 +36,6 @@ class LoadBalancer
   
   public RESTClient worker() throws Exception
   {
-    if (++requests < persist)
-    {
-      if (workers[last] != null && workers[last].up())
-        return(workers[last]);
-    }
-    
-    requests = 0;
     int tries = 0;
     
     while(++tries < 32)

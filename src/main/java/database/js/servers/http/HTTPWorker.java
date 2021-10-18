@@ -16,19 +16,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Handlers;
 import database.js.handlers.Handler;
-import database.js.handlers.AdminHandler;
+import database.js.pools.ThreadPool;
 
 
 public class HTTPWorker implements Runnable
 {
   private final Logger logger;
   private final Handlers handlers;
+  private final ThreadPool workers;
   private final HTTPChannel channel;
   private final HTTPRequest request;
 
 
-  public HTTPWorker(HTTPRequest request) throws Exception
+  public HTTPWorker(ThreadPool workers, HTTPRequest request) throws Exception
   {
+    this.workers = workers;
     this.request = request;
     this.channel = request.channel();
     this.logger = channel.logger();
@@ -67,8 +69,8 @@ public class HTTPWorker implements Runnable
       Handler handler = null;
       boolean admin = channel.admin();
       
-      if (!admin) handler = handlers.getHandler(path,method);
-      else        handler = new AdminHandler(channel.config());
+      if (admin) handler = handlers.getAdminHandler();
+      else       handler = handlers.getHandler(path,method);
 
       HTTPResponse response = handler.handle(request);
       if (response != null) request.respond(response.page());
@@ -77,8 +79,8 @@ public class HTTPWorker implements Runnable
     }
     catch(Exception e)
     {
-      request.failed();
-      channel.workers().done();
+      this.workers.done();
+      this.channel.failed();
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }

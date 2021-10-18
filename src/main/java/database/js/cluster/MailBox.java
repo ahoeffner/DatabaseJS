@@ -61,9 +61,30 @@ public class MailBox
   }
   
   
+  public boolean fits(byte[] data)
+  {
+    return(data.length <= extsize);
+  }
+  
+  
+  public boolean write(int extend, byte[] data)
+  {
+    if (data.length > extsize)
+      return(false);
+    
+    synchronized(WLOCK)
+    {
+      shmmem.position(extend*extsize);
+      shmmem.put(data);
+    }
+
+    return(true);
+  }
+  
+  
   public int write(long id, byte[] data)
   {
-    if (Long.BYTES + Integer.BYTES + data.length > extsize)
+    if (data.length > extsize)
       return(-1);
     
     int start = (int) (id % extnds);
@@ -75,8 +96,6 @@ public class MailBox
         int extend = (start + i) % extnds;
         if (extmap.get(extend) == null)
         {
-          extmap.put(extend,id);
-          
           shmmem.position(extend*extsize);
           shmmem.put(data);
           

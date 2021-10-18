@@ -74,7 +74,9 @@ class RESTWriter extends Thread
         byte[] data = buffer.toByteArray();
         
         logger.finest(conn.parent()+" sending data "+data.length);
+
         writer.write(data);
+        writer.flush();
       }      
     }
     catch (Exception e)

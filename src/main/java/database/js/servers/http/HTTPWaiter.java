@@ -153,7 +153,7 @@ class HTTPWaiter extends Thread
               if (request == null) request = new HTTPRequest(this,client,key);
                             
               if (!request.add(buf)) incomplete.put(key,request);
-              else                   workers.submit(new HTTPWorker(request));
+              else                   workers.submit(new HTTPWorker(workers,request));
             }
           }
           else

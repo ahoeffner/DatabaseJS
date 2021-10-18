@@ -47,12 +47,6 @@ public class RESTServer implements RESTConnection
   private final Logger logger;
   private final MailBox mailbox;
   private final ThreadPool workers;
-  
-  
-  public static void main(String[] args) throws Exception
-  {
-    Server.main(new String[] {"3"});
-  }
 
   
   public RESTServer(Server server) throws Exception
@@ -75,7 +69,41 @@ public class RESTServer implements RESTConnection
   }
   
   
-  public void serve()
+  public void respond(RESTComm response)
+  {
+    if (response.extend >= 0)
+    {
+      byte[] data = response.data();
+      
+      if (mailbox.fits(data))
+      {
+        response.set(null);
+        mailbox.write(response.extend(),data);
+      }
+      else
+      {
+        long id = response.id();
+        response = new RESTComm(id,-1,data);
+      }
+    }
+    
+    writer.write(response);
+  }
+  
+  
+  public Server server()
+  {
+    return(server);
+  }
+  
+  
+  public Config config()
+  {
+    return(config);
+  }
+  
+  
+  private void serve()
   {
     int tries = 0;    
     
@@ -261,23 +289,20 @@ public class RESTServer implements RESTConnection
   }
 
 
-  private int incoming = 0;
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
     for(RESTComm http : calls)
     {
-      incoming++;
-      this.server.request();
       byte[] data = http.data();
       
-      if (http.extend >= 0) 
+      if (http.extend >= 0)
+      {
         data = mailbox.read(http.extend,http.size);
+        http.add(data);
+      }  
       
-      if (incoming % 100 == 0)
-        logger.fine("Received "+incoming);
-      
-      writer.write(http);      
+      workers.submit(new RESTWorker(this,workers,http));
     }
   }
 }

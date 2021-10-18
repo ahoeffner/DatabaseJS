@@ -32,7 +32,8 @@ class RESTReader extends Thread
   
   @Override
   public void run()
-  {    
+  {
+    int hsize = RESTComm.HEADER;
     Logger logger = conn.logger();
 
     try
@@ -42,7 +43,7 @@ class RESTReader extends Thread
       
       while(true)
       {
-        byte[] head = reader.read(16);
+        byte[] head = reader.read(hsize);
         RESTComm http = new RESTComm(head);
         logger.finest(conn.parent()+" received data");
         

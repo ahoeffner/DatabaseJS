@@ -51,7 +51,18 @@ public class HTTPRequest
   private long touched = System.currentTimeMillis();
 
 
-  HTTPRequest(HTTPWaiter waiter, HTTPChannel channel, SelectionKey key)
+  public HTTPRequest(Server server, byte[] data) throws Exception
+  {
+    this.key = null;
+    this.waiter = null;
+    this.channel = null;
+    this.server = server;
+    this.redirect = false;
+    this.add(data);
+  }
+
+
+  public HTTPRequest(HTTPWaiter waiter, HTTPChannel channel, SelectionKey key)
   {
     this.key = key;
     this.waiter = waiter;
@@ -113,11 +124,6 @@ public class HTTPRequest
   public boolean redirect()
   {
     return(redirect);
-  }
-  
-  public void failed()
-  {
-    channel.failed();
   }
 
   public void respond(byte[] data) throws Exception

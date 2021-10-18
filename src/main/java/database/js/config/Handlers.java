@@ -16,12 +16,19 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import database.js.handlers.Handler;
+import database.js.handlers.FileHandler;
+import database.js.handlers.RestHandler;
+import database.js.handlers.AdminHandler;
 
 
 public class Handlers
 {  
-  private final Config config;
-  private final ArrayList<Entry> entries = new ArrayList<Entry>();
+  private final Config config;  
+  private final ArrayList<HandlerClass> entries = new ArrayList<HandlerClass>();
+  
+  private RestHandler rest = null;
+  private FileHandler file = null;
+  private AdminHandler admin = null;
   
   
   Handlers(Config config)
@@ -30,22 +37,56 @@ public class Handlers
   }
   
   
-  void sort()
+  void finish() throws Exception
   {
     Collections.sort(this.entries);
+    
+    this.admin = new AdminHandler(config);
+    
+    for(HandlerClass hdl : this.entries)
+    {
+      switch(hdl.name())
+      {
+        case "database.js.handlers.FileHandler" : 
+          this.file = (FileHandler) hdl.handler;
+          break;
+
+        case "database.js.handlers.RestHandler" : 
+          this.rest = (RestHandler) hdl.handler;
+          break;
+      }
+    }
   }
     
   
   void add(String prefix, String methods, String clazz) throws Exception
   {
     if (!prefix.endsWith("/")) prefix += "/";
-    this.entries.add(new Entry(config,prefix,methods,clazz));
+    this.entries.add(new HandlerClass(config,prefix,methods,clazz));
+  }
+  
+  
+  public RestHandler getRESTHandler()
+  {
+    return(rest);
+  }
+  
+  
+  public FileHandler getFileHandler()
+  {
+    return(file);
+  }
+  
+  
+  public AdminHandler getAdminHandler()
+  {
+    return(admin);
   }
   
   
   public Handler getHandler(String path, String method)
   {
-    for(Entry entry : entries)
+    for(HandlerClass entry : entries)
     {
       if (path.startsWith(entry.prefix))
       {
@@ -58,18 +99,24 @@ public class Handlers
   }
   
   
-  private static class Entry implements Comparable<Entry>
+  private static class HandlerClass implements Comparable<HandlerClass>
   {
     public final String prefix;
     public final Handler handler;
     public final HashSet<String> methods = new HashSet<String>();
     
-    Entry(Config config, String prefix, String methods, String clazz) throws Exception
+    HandlerClass(Config config, String prefix, String methods, String clazz) throws Exception
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
       for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
       this.handler = (Handler) Class.forName(clazz).getDeclaredConstructor(Config.class).newInstance(config);
+    }
+    
+    
+    public String name()
+    {
+      return(handler.getClass().getName());
     }
     
     
@@ -81,7 +128,7 @@ public class Handlers
 
 
     @Override
-    public int compareTo(Entry another)
+    public int compareTo(HandlerClass another)
     {
       return(this.prefix.length() - another.prefix.length());
     }

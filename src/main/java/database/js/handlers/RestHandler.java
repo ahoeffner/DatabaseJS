@@ -32,9 +32,9 @@ public class RestHandler extends Handler
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
+    HTTPResponse response = null;
     Server server = request.server();
     Logger logger = getLogger(Type.rest);
-    HTTPResponse response = new HTTPResponse();
 
     server.request();
     logger.fine("REST request received <"+request.path()+"> embedded="+server.embedded());
@@ -45,14 +45,19 @@ public class RestHandler extends Handler
 
       if (client == null)
       {
+        response = new HTTPResponse();
         logger.warning("No RESTServer's connected");
         response.setBody("{\"status\": \"failed\"}");
         return(response);
       }
       
-      client.send(request.page());
-    }
+      byte[] data = client.send(request.page());
+      response = new HTTPResponse(data);
 
+      return(response);
+    }    
+
+    response = new HTTPResponse();
     response.setBody("{\"status\": \"ok\"}");
     return(response);
   }

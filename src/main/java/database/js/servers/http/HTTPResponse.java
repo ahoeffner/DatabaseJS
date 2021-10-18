@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 public class HTTPResponse
 {
   private byte[] body;
+  private byte[] page;
   private String header;
   private String response;
   private boolean finished;
@@ -38,6 +39,19 @@ public class HTTPResponse
     setHeader("Date",new Date());
     setHeader("Connection","Keep-Alive");
     setHeader("Keep-Alive","timeout=5, max=100");
+  }
+  
+  
+  public HTTPResponse(byte[] data)
+  {
+    finished = true;
+    this.page = data;
+    
+    int hlen = hlength(data);
+    this.header = new String(data,0,hlen);
+    
+    this.body = new byte[data.length-hlen];
+    System.arraycopy(data,hlen,body,0,body.length);
   }
   
   
@@ -169,13 +183,26 @@ public class HTTPResponse
   public byte[] page()
   {
     if (!finished) finish();
+    if (page != null) return(page);
     
     byte[] head = header().getBytes();
-    byte[] body = new byte[header.length()+this.body.length];
+    this.page = new byte[header.length()+this.body.length];
 
-    System.arraycopy(head,0,body,0,head.length);    
-    System.arraycopy(this.body,0,body,head.length,this.body.length);
+    System.arraycopy(head,0,page,0,head.length);    
+    System.arraycopy(this.body,0,page,head.length,this.body.length);
     
-    return(body);
+    return(page);
+  }
+
+
+  private int hlength(byte[] data)
+  {
+    for (int h = 0; h < data.length-3; h++)
+    {
+      if (data[h] == '\r' && data[h+1] == '\n' && data[h+2] == '\r' && data[h+3] == '\n')
+        return(h);
+    }
+    
+    return(data.length);
   }
 }

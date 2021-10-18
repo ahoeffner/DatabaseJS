@@ -105,7 +105,7 @@ public class HTTP
       this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
     
-    this.handlers.sort();
+    this.handlers.finish();
   }
 
 

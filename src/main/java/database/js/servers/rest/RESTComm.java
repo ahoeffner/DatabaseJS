@@ -24,6 +24,7 @@ class RESTComm
   byte[] data;
   byte[] request;
   
+  public final static int HEADER = 16;
   private final ByteBuffer buffer = ByteBuffer.allocate(16);
   
   
@@ -42,7 +43,7 @@ class RESTComm
     if (extend >= 0) request = header;
     else
     {
-      request = new byte[16 + data.length];
+      request = new byte[HEADER + data.length];
       System.arraycopy(header,0,request,0,header.length);
       System.arraycopy(data,0,request,header.length,data.length);
     }
@@ -51,7 +52,7 @@ class RESTComm
   
   RESTComm(byte[] data)
   {
-    buffer.put(data,0,16);
+    buffer.put(data);
     buffer.flip();
     
     this.id = buffer.getLong();
@@ -59,6 +60,12 @@ class RESTComm
     this.size = buffer.getInt();
     
     this.request = data;
+  }
+  
+  
+  long id()
+  {
+    return(id);
   }
   
   
@@ -72,6 +79,18 @@ class RESTComm
   void add(byte[] data)
   {
     this.data = data;
+  }
+  
+  
+  void set(byte[] data)
+  {
+    this.data = data;
+  }
+  
+  
+  int extend()
+  {
+    return(extend);
   }
   
   
