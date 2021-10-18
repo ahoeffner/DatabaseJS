@@ -24,7 +24,6 @@ public class HTTP
   private final int plain;
   private final int admin;
   private final String path;
-  private final String version;
   private final String virtstr;
   private final String virtendp;
   private final Handlers handlers;
@@ -48,13 +47,6 @@ public class HTTP
 
     this.path = apppath;
     
-    String version = "";
-    
-    if (!config.isNull("version"))
-      version = app.getString("version");
-    
-    this.version = version;
-
 
     JSONObject ports = config.getJSONObject("ports");
 
@@ -127,11 +119,6 @@ public class HTTP
   public String getAppPath()
   {
     return(path);
-  }
-
-  public String getAppVersion()
-  {
-    return(version);
   }
 
   public Handlers handlers()

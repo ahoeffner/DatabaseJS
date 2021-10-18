@@ -33,6 +33,8 @@ public class Session
       socket = ctx.getSocketFactory().createSocket(host,port);
       ((SSLSocket) socket).startHandshake(); 
     }
+    
+    socket.setSoTimeout(5000);
   }
   
   
@@ -57,8 +59,6 @@ public class Session
 
     String response = null;
     if (cl > 0) response = new String(reader.getContent(cl));
-    
-    System.out.println(response);
   }
   
   
