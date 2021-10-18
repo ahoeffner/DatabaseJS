@@ -100,7 +100,7 @@ public class PKIContext
         try
         {
           ctx.createSSLEngine();
-          break;
+          return(ctx);
         }
         catch (Exception e)
         {
