@@ -150,7 +150,7 @@ public class Cluster
     Config config = cluster.config;
     Logger logger = config.getLogger().logger;
     String cname = "database.js.servers.Server";
-    String match = ".*java?(\\.exe)?\\s+.*"+cname+"\\s"+cluster.inst+".*";
+    String match = ".*java?(\\.exe)?\\s+.*"+cname+"\\s"+cluster.inst+"\\s.*";
 
     ArrayList<ServerProcess> running = new ArrayList<ServerProcess>();
     
