@@ -98,7 +98,6 @@ public class MailBox
         {
           shmmem.position(extend*extsize);
           shmmem.put(data);
-          
           return(extend);
         }
       }
