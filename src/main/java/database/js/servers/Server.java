@@ -131,14 +131,13 @@ public class Server extends Thread
     if (this.rest != null) candidate = true;
     else if (embedded && !sowner) candidate = true;
     
-    logger.info("candidate: "+candidate);
-    
     if (candidate)
       powner = ProcessMonitor.aquireManagerLock();
     
     if (powner || ProcessMonitor.noManager())
       this.ensure();
     
+    logger.info("candidate: "+candidate+" sowner="+sowner+" powner="+powner); 
     logger.info("Instance startet"+System.lineSeparator());
   }
   
