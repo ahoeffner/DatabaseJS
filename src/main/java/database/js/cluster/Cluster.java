@@ -110,12 +110,6 @@ public class Cluster
   {
     return(Paths.ipcdir + File.separator + "cluster.dat");
   }
-
-
-  private String getLockFileName()
-  {
-    return(Paths.ipcdir + File.separator + "cluster.dat");
-  }
   
   
   public static void stop()

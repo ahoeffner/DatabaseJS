@@ -23,6 +23,7 @@ import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
+import database.js.cluster.ProcessMonitor;
 import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
@@ -57,6 +58,7 @@ public class Server extends Thread
   private final LoadBalancer loadblcr;
 
   private volatile boolean sowner = false;
+  private volatile boolean powner = false;
 
   
   public static void main(String[] args)
@@ -85,6 +87,7 @@ public class Server extends Thread
     this.started = System.currentTimeMillis();
     
     Cluster.init(config);
+    ProcessMonitor.init(config);
     
     if (Cluster.isRunning(id,pid))
     {
@@ -121,19 +124,22 @@ public class Server extends Thread
       this.startup();
     }
 
-    this.start();
+    this.start();    
     this.ensure();
+    
+    if (!sowner)
+      powner = ProcessMonitor.aquireManagerLock();
     
     logger.info("Instance startet"+System.lineSeparator());
   }
   
   
-  private void startup()
+  private boolean startup()
   {
     if (!open())
     {
       logger.info("Address already in use");
-      return;
+      return(false);
     }
     
     logger.info("Open http sockets");
@@ -143,6 +149,11 @@ public class Server extends Thread
     admin.start();
     
     this.sowner = true;
+    
+    if (!ProcessMonitor.aquireHTTPLock())
+      logger.severe("Could not obtain HTTPLock");
+    
+    return(true);
   }
   
   
@@ -167,6 +178,12 @@ public class Server extends Thread
   public boolean http()
   {
     return(sowner);
+  }
+  
+  
+  public boolean manager()
+  {
+    return(powner);
   }
   
   
