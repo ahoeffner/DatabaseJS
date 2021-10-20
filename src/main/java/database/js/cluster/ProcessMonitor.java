@@ -1,11 +1,13 @@
 package database.js.cluster;
 
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Paths;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import database.js.config.Config;
+import java.nio.channels.FileLock;
 import java.nio.channels.FileChannel;
 
 
@@ -15,6 +17,9 @@ public class ProcessMonitor
   private final Config config;
   private final FileChannel channel;
   private static ProcessMonitor mon = null;
+  
+  private FileLock mgr = null;
+  private FileLock http = null;
 
 
   ProcessMonitor(Config config) throws Exception
@@ -47,14 +52,65 @@ public class ProcessMonitor
   }
   
   
+  public static boolean noLocks()
+  {
+    try
+    {
+      FileLock test = mon.channel.tryLock(0,1,false);
+
+      if (test != null)
+      {
+        test.release();
+        return(true);
+      }
+      
+      return(false);
+    }
+    catch (Exception e)
+    {
+      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    return(true);
+  }
+  
+  
   public static boolean aquireHTTPLock()
   {
-    return(true);
+    try
+    {
+      mon.http = mon.channel.tryLock(0,1,false);
+
+      if (mon.http == null)
+        return(false);
+      
+      return(true);
+    }
+    catch (Exception e)
+    {
+      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    return(false);
   }
   
   
   public static boolean aquireManagerLock()
   {
-    return(true);
+    try
+    {
+      mon.mgr = mon.channel.tryLock(0,1,false);
+
+      if (mon.mgr == null)
+        return(false);
+      
+      return(true);
+    }
+    catch (Exception e)
+    {
+      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    return(false);
   }
 }

@@ -42,6 +42,7 @@ public class Statistics
   public static final int reclen = 7*Long.BYTES+2;
   
   
+  @SuppressWarnings("cast")
   public static void save(Server server)
   {
     try
@@ -58,9 +59,9 @@ public class Statistics
       stats.totmem = Runtime.getRuntime().maxMemory();
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-      
-      byte procmgr = 0;
+
       byte http = server.http() ? (byte) 1 : 0;
+      byte procmgr = server.manager() ? (byte) 1 : 0;
       
       data.putLong(stats.pid);
       data.putLong(stats.started);

@@ -124,11 +124,19 @@ public class Server extends Thread
       this.startup();
     }
 
-    this.start();    
-    this.ensure();
+    this.start();
     
-    if (!sowner)
+    boolean candidate = false;
+    
+    if (this.rest != null) candidate = true;
+    else if (embedded && !sowner) candidate = true;
+    
+    
+    if (candidate)
       powner = ProcessMonitor.aquireManagerLock();
+    
+    if (powner || ProcessMonitor.noLocks())
+      this.ensure();
     
     logger.info("Instance startet"+System.lineSeparator());
   }
