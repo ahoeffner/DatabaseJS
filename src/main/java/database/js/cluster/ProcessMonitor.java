@@ -20,6 +20,9 @@ public class ProcessMonitor
   
   private FileLock mgr = null;
   private FileLock http = null;
+  
+  private static final int MGR = 0;
+  private static final int HTTP = 1;
 
 
   ProcessMonitor(Config config) throws Exception
@@ -52,11 +55,11 @@ public class ProcessMonitor
   }
   
   
-  public static boolean noLocks()
+  public static boolean noManager()
   {
     try
     {
-      FileLock test = mon.channel.tryLock(0,1,false);
+      FileLock test = mon.channel.tryLock(MGR,1,false);
 
       if (test != null)
       {
@@ -79,7 +82,7 @@ public class ProcessMonitor
   {
     try
     {
-      mon.http = mon.channel.tryLock(0,1,false);
+      mon.http = mon.channel.tryLock(HTTP,1,false);
 
       if (mon.http == null)
         return(false);
@@ -99,7 +102,7 @@ public class ProcessMonitor
   {
     try
     {
-      mon.mgr = mon.channel.tryLock(0,1,false);
+      mon.mgr = mon.channel.tryLock(MGR,1,false);
 
       if (mon.mgr == null)
         return(false);
