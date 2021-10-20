@@ -137,7 +137,6 @@ public class Server extends Thread
     if (powner || ProcessMonitor.noManager())
       this.ensure();
     
-    logger.info("candidate: "+candidate+" sowner="+sowner+" powner="+powner); 
     logger.info("Instance startet"+System.lineSeparator());
   }
   
