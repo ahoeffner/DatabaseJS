@@ -136,10 +136,10 @@ public class ProcessMonitor
   }
   
   
-  private void onServerDown(ProcessWatch watcher)
+  private void onServerDown()
   {
-    if (server.id() == 1) server.sowner();
-    if (!server.http() && aquireManagerLock()) server.powner();
+    if (server.id() == 1) server.setHTTP();
+    if (!server.http() && aquireManagerLock()) server.setManager();
   }
   
   
@@ -189,6 +189,7 @@ public class ProcessMonitor
       }
       
       monitor.logger.warning(w+" process died");
+      monitor.onServerDown();
     }
   }  
 }

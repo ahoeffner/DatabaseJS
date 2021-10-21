@@ -213,14 +213,15 @@ public class Server extends Thread
   }
   
   
-  public void powner()
+  public void setManager()
   {
     ensure();
     this.powner = true;
+    ProcessMonitor.watchHTTP();
   }
   
   
-  public void sowner()
+  public void setHTTP()
   {
     this.startup();
   }
