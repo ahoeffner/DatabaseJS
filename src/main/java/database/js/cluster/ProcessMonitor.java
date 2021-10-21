@@ -7,12 +7,14 @@ import database.js.config.Paths;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import database.js.config.Config;
+import database.js.servers.Server;
 import java.nio.channels.FileLock;
 import java.nio.channels.FileChannel;
 
 
 public class ProcessMonitor
 {
+  private final Server server;
   private final Logger logger;
   private final Config config;
   private final FileChannel channel;
@@ -20,14 +22,16 @@ public class ProcessMonitor
   
   private FileLock mgr = null;
   private FileLock http = null;
+  private ProcessWatch monitor = null;
   
   private static final int MGR = 0;
   private static final int HTTP = 1;
 
 
-  ProcessMonitor(Config config) throws Exception
+  ProcessMonitor(Server server) throws Exception
   {
-    this.config = config;    
+    this.server = server;
+    this.config = server.config();    
     File lfile = new File(getFileName());
 
     if (!lfile.exists())
@@ -49,9 +53,9 @@ public class ProcessMonitor
   }
 
 
-  public static void init(Config config) throws Exception
+  public static void init(Server server) throws Exception
   {
-    mon = new ProcessMonitor(config);
+    mon = new ProcessMonitor(server);
   }
   
   
@@ -116,4 +120,75 @@ public class ProcessMonitor
 
     return(false);
   }
+  
+  
+  public static void watchHTTP()
+  {
+    ProcessWatch watcher = new ProcessWatch(mon,HTTP);
+    watcher.start();
+  }
+  
+  
+  public static void watchManager()
+  {
+    ProcessWatch watcher = new ProcessWatch(mon,MGR);
+    watcher.start();
+  }
+  
+  
+  private void onServerDown(ProcessWatch watcher)
+  {
+    if (server.id() == 1) server.sowner();
+    if (!server.http() && aquireManagerLock()) server.powner();
+  }
+  
+  
+  private static class ProcessWatch extends Thread
+  {
+    private final int lock;
+    private FileLock flock = null;
+    private final ProcessMonitor monitor;
+    
+
+    ProcessWatch(ProcessMonitor monitor, int lock)
+    {
+      this.lock = lock;
+      this.monitor = monitor;
+
+      this.setDaemon(true);
+      this.setName("ProcessMonitor");
+    }
+    
+    
+    @Override
+    public void run()
+    {
+      String w = lock == MGR ? "Manager" : "HTTP";
+      monitor.logger.info("Watching "+w+" process");
+
+      try
+      {
+        for (int i = 0; i < 64; i++)
+        {
+          long time = System.currentTimeMillis();
+          flock = mon.channel.lock(lock,1,false);
+          
+          if (flock != null)
+          {
+            flock.release();
+            
+            // If never obtained, try again
+            if (System.currentTimeMillis() - time < 5) sleep(64);
+            else break;
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        monitor.logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+      
+      monitor.logger.warning(w+" process died");
+    }
+  }  
 }

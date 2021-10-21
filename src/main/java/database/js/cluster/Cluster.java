@@ -58,7 +58,7 @@ public class Cluster
     FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);
     this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,size);
   }
-  
+
   
   private void setStopped()
   {
@@ -121,6 +121,12 @@ public class Cluster
   public static boolean stop(Server server)
   {
     return(cluster.getStopped() > server.started());
+  }
+  
+  
+  public static void init(Server server) throws Exception
+  {
+    init(server.config());
   }
   
   

@@ -86,8 +86,8 @@ public class Server extends Thread
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();
     
-    Cluster.init(config);
-    ProcessMonitor.init(config);
+    Cluster.init(this);
+    ProcessMonitor.init(this);
     
     if (Cluster.isRunning(id,pid))
     {
@@ -126,16 +126,17 @@ public class Server extends Thread
 
     this.start();
     
-    boolean candidate = false;
-    
-    if (this.rest != null) candidate = true;
-    else if (embedded && !sowner) candidate = true;
-    
-    if (candidate)
+    if (!sowner)
       powner = ProcessMonitor.aquireManagerLock();
     
     if (powner || ProcessMonitor.noManager())
       this.ensure();
+    
+    if (powner)
+      ProcessMonitor.watchHTTP();
+    
+    if (!powner && !sowner)
+      ProcessMonitor.watchManager();
     
     logger.info("Instance startet"+System.lineSeparator());
   }
@@ -209,6 +210,19 @@ public class Server extends Thread
   public Logger logger()
   {
     return(logger);
+  }
+  
+  
+  public void powner()
+  {
+    ensure();
+    this.powner = true;
+  }
+  
+  
+  public void sowner()
+  {
+    this.startup();
   }
   
   
