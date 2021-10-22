@@ -52,7 +52,7 @@ public class Cluster
     
     Short[] servers = getServers(config);
     int processes = servers[0] + servers[1];
-    int size = 2 + Long.BYTES + processes * Statistics.reclen;
+    int size = 2 + Long.BYTES + processes * (Statistics.reclen + 2);
     
     Path path = fs.getPath(filename);
     FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);
@@ -92,17 +92,32 @@ public class Cluster
   
   private byte[] readdata(short id)
   {
+    byte cs1 = 0;
+    byte cs2 = 1;
+
     byte[] data = new byte[Statistics.reclen];
-    int offset = 2 + Long.BYTES + id * Statistics.reclen;
-    this.shmmem.get(offset,data);
+    int offset = 2 + Long.BYTES + id * (Statistics.reclen + 2);
+    
+    for (int i = 0; cs1 != cs2 && i < 32768; i++)
+    {
+      cs1 = this.shmmem.get(offset);
+      this.shmmem.get(offset+1,data);
+      cs2 = this.shmmem.get(offset+1+Statistics.reclen);
+      
+      if (cs1 != cs2) Thread.yield();
+    }
+    
     return(data);
   }
   
   
   private void writedata(short id, byte[] data)
   {
-    int offset = 2 + Long.BYTES + id * Statistics.reclen;
-    this.shmmem.put(offset,data);
+    int offset = 2 + Long.BYTES + id * (Statistics.reclen + 2);
+    byte par = (byte) (this.shmmem.get(offset) + 1);
+    this.shmmem.put(offset,par);
+    this.shmmem.put(offset+1,data);
+    this.shmmem.put(offset+1+data.length,par);
   }
 
 

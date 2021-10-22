@@ -28,6 +28,7 @@ import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
+import database.js.cluster.Statistics;
 import database.js.servers.http.HTTPServerType;
 
 
@@ -156,10 +157,8 @@ public class Server extends Thread
     plain.start();
     admin.start();
     
-    this.sowner = true;
-    
-    if (!ProcessMonitor.aquireHTTPLock())
-      logger.severe("Could not obtain HTTPLock");
+    this.sowner = true;   
+    ProcessMonitor.aquireHTTPLock();
     
     return(true);
   }
@@ -195,6 +194,12 @@ public class Server extends Thread
   }
   
   
+  public boolean isHttpType()
+  {
+    return(this.rest == null);
+  }
+  
+  
   public boolean embedded()
   {
     return(embedded);
@@ -215,14 +220,18 @@ public class Server extends Thread
   
   public void setManager()
   {
-    ensure();
-    this.powner = true;
-    ProcessMonitor.watchHTTP();
+    if (ProcessMonitor.aquireManagerLock())
+    {
+      this.powner = true;
+      ProcessMonitor.watchHTTP();      
+    }
   }
   
   
   public void setHTTP()
   {
+    if (powner)
+      ProcessMonitor.releaseManagerLock();
     this.startup();
   }
   
@@ -301,7 +310,7 @@ public class Server extends Thread
   }
   
   
-  private void ensure()
+  public void ensure()
   {
     try 
     {
@@ -352,6 +361,20 @@ public class Server extends Thread
     
     ThreadPool.shutdown();
     logger.info("Server stopped");
+  }
+  
+  
+  private void checkCluster()
+  {
+    ArrayList<Statistics> stats = Cluster.getStatistics();
+    
+    for(Statistics stat : stats)
+    {
+      if (stat.id() == this.id)
+        continue;
+      
+      
+    }
   }
   
   

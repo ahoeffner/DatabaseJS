@@ -87,6 +87,7 @@ public class ProcessMonitor
     try
     {
       mon.http = mon.channel.tryLock(HTTP,1,false);
+      mon.logger.info("aquireHTTPLock "+mon.http);
 
       if (mon.http == null)
         return(false);
@@ -107,10 +108,27 @@ public class ProcessMonitor
     try
     {
       mon.mgr = mon.channel.tryLock(MGR,1,false);
+      mon.logger.info("aquireManagerLock "+mon.mgr);
 
       if (mon.mgr == null)
         return(false);
       
+      return(true);
+    }
+    catch (Exception e)
+    {
+      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    return(false);
+  }
+  
+  
+  public static boolean releaseManagerLock()
+  {
+    try
+    {
+      mon.mgr.release();
       return(true);
     }
     catch (Exception e)
@@ -136,16 +154,28 @@ public class ProcessMonitor
   }
   
   
-  private void onServerDown()
+  private void onServerDown(ProcessWatch watcher)
   {
-    if (server.id() == 1) server.setHTTP();
-    if (!server.http() && aquireManagerLock()) server.setManager();
+    mon.logger.info("Process "+watcher.type+" died. HTTP = "+server.isHttpType());
+    
+    if (watcher.lock == HTTP)
+    {
+      if (server.isHttpType())
+        server.setHTTP();        
+    }
+
+    if (watcher.lock == MGR && !server.http() && !server.manager()) 
+      server.setManager(); 
+    
+    if (server.manager())
+      server.ensure();
   }
   
   
   private static class ProcessWatch extends Thread
   {
     private final int lock;
+    private final String type;
     private FileLock flock = null;
     private final ProcessMonitor monitor;
     
@@ -154,7 +184,8 @@ public class ProcessMonitor
     {
       this.lock = lock;
       this.monitor = monitor;
-
+      this.type = lock == MGR ? "Manager" : "HTTP";
+      
       this.setDaemon(true);
       this.setName("ProcessMonitor");
     }
@@ -163,8 +194,7 @@ public class ProcessMonitor
     @Override
     public void run()
     {
-      String w = lock == MGR ? "Manager" : "HTTP";
-      monitor.logger.info("Watching "+w+" process");
+      monitor.logger.info("Watching "+type+" process");
 
       try
       {
@@ -188,8 +218,7 @@ public class ProcessMonitor
         monitor.logger.log(Level.SEVERE,e.getMessage(),e);
       }
       
-      monitor.logger.warning(w+" process died");
-      monitor.onServerDown();
+      monitor.onServerDown(this);
     }
   }  
 }
