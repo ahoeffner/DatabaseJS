@@ -59,6 +59,18 @@ public class ProcessMonitor
   }
   
   
+  public static boolean isHTTP()
+  {
+    return(mon.http != null);
+  }
+  
+  
+  public static boolean isManager()
+  {
+    return(mon.mgr != null);
+  }
+  
+  
   public static boolean noManager()
   {
     try

@@ -348,7 +348,9 @@ public class Server extends Thread
         while(!stop)
         {
           Cluster.setStatistics(this);
+          
           this.wait(this.heartbeat);
+          if (powner) checkCluster();
           
           if (Cluster.stop(this))
             stop = true;
@@ -366,6 +368,7 @@ public class Server extends Thread
   
   private void checkCluster()
   {
+    boolean ensure = false;
     ArrayList<Statistics> stats = Cluster.getStatistics();
     
     for(Statistics stat : stats)
@@ -373,8 +376,19 @@ public class Server extends Thread
       if (stat.id() == this.id)
         continue;
       
+      if (stat.procmgr())
+        logger.severe("Process "+stat.id()+" claims to be manager. Check = "+ProcessMonitor.isManager());
       
+      long alive = System.currentTimeMillis() - stat.updated();
+      if (1.0 * alive > 1.25 * this.heartbeat)
+      {
+        ensure = true;
+        logger.warning("Process "+stat.id()+" is dead");
+      }
     }
+    
+    if (ensure)
+      ensure();
   }
   
   
