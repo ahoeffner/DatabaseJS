@@ -356,8 +356,6 @@ public class Server extends Thread
             stop = true;
         }
       }
-      
-      sleep(100);
     }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     

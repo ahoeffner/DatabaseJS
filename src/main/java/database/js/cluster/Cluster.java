@@ -107,6 +107,7 @@ public class Cluster
       if (cs1 != cs2) Thread.yield();
     }
     
+    if (cs1 != cs2) logger.severe("cluster corruption, c1="+cs1+" c2="+cs2);
     return(data);
   }
   

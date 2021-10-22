@@ -90,8 +90,9 @@ public class Statistics
     
     try
     {
+      long time = System.currentTimeMillis();
       Short[] servers = Cluster.getServers(config);
-      HashSet<Short> running = Cluster.getRunningServers();
+      int heartbeat = config.getTopology().heartbeat();
       
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
@@ -116,7 +117,8 @@ public class Statistics
           stats.http = http == 1;
           stats.procmgr = procmgr == 1;
           
-          stats.online = running.contains(i);
+          double age = 1.0 * time - stats.updated();
+          stats.online = (age < 1.25 * heartbeat);
         }
         
         list.add(stats);
