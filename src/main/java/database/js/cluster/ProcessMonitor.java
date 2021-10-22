@@ -99,7 +99,6 @@ public class ProcessMonitor
     try
     {
       mon.http = mon.channel.tryLock(HTTP,1,false);
-      mon.logger.info("aquireHTTPLock "+mon.http);
 
       if (mon.http == null)
         return(false);
@@ -120,7 +119,6 @@ public class ProcessMonitor
     try
     {
       mon.mgr = mon.channel.tryLock(MGR,1,false);
-      mon.logger.info("aquireManagerLock "+mon.mgr);
 
       if (mon.mgr == null)
         return(false);
