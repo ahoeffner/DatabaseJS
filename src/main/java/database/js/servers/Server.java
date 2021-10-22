@@ -350,7 +350,7 @@ public class Server extends Thread
           Cluster.setStatistics(this);
           
           this.wait(this.heartbeat);
-          //if (powner) checkCluster();
+          if (powner) checkCluster();
           
           if (Cluster.stop(this))
             stop = true;
