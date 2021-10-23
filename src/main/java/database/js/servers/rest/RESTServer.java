@@ -158,7 +158,7 @@ public class RESTServer implements RESTConnection
       logger.severe("Unable to start RESTServer, bailing out");
       System.exit(-1);
     }
-
+    
     if (!connect(this.rchannel)) 
       return(false);
     
@@ -166,10 +166,23 @@ public class RESTServer implements RESTConnection
     // Make sure HTTPServer has not switched
     
     if (!connect(this.wchannel)) 
-      return(false);
+    {
+      try {this.rchannel.close();}
+      catch (Exception e) {;}
+      
+      return(false);      
+    }
     
     if (!Arrays.equals(readsig,this.httpid))
-      return(false);
+    {
+      try {this.rchannel.close();}
+      catch (Exception e) {;}
+      
+      try {this.wchannel.close();}
+      catch (Exception e) {;}
+      
+      return(false);      
+    }
     
     logger.info("Connected to HTTPServer");
     return(true);
@@ -181,6 +194,7 @@ public class RESTServer implements RESTConnection
     try
     {
       channel.configureBlocking(false);
+      channel.socket().setSoTimeout(15000);
       channel.connect(port);
 
       for (int i = 0; i < 8; i++)
@@ -213,6 +227,7 @@ public class RESTServer implements RESTConnection
         response.add(buf);
       }
 
+      channel.socket().setSoTimeout(0);
       String[] args = new String(response.getBody()).split(" ");
       
       short id = Short.parseShort(args[0]);
