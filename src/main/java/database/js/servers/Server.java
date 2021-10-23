@@ -124,30 +124,26 @@ public class Server extends Thread
 
     this.start();
     
-    if (type == Process.Type.rest)
+    if (this.isRestType())
       powner = ProcessMonitor.aquireManagerLock();
     
     if (powner || ProcessMonitor.noManager())
       this.ensure();
     
-    if (powner)
+    if (!sowner)
       ProcessMonitor.watchHTTP();
     
     if (!powner && !sowner)
       ProcessMonitor.watchManager();
     
+    Thread.sleep(50);
     logger.info("Instance startet"+System.lineSeparator());
   }
   
   
   private boolean startup()
   {
-    if (!open())
-    {
-      logger.info("Address already in use");
-      return(false);
-    }
-    
+    if (!open()) return(false);
     logger.info("Open http sockets");
 
     ssl.start();
@@ -197,6 +193,12 @@ public class Server extends Thread
   }
   
   
+  public boolean isRestType()
+  {
+    return(this.rest != null);
+  }
+  
+  
   public boolean embedded()
   {
     return(embedded);
@@ -227,6 +229,7 @@ public class Server extends Thread
   
   public void setHTTP()
   {
+    logger.info("HTTP fast failover");
     if (powner)
       ProcessMonitor.releaseManagerLock();
     this.startup();
