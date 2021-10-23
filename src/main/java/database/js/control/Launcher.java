@@ -92,7 +92,7 @@ public class Launcher implements ILauncher
 
   private static void usage()
   {
-    System.out.println("usage database.js start|stop|status|reset");
+    System.out.println("usage database.js start|stop|status");
     System.exit(-1);
   }
   
@@ -148,8 +148,7 @@ public class Launcher implements ILauncher
     String hpid = String.format("%8s"," pid ");
     String hhits = String.format("%12s","hits  ");
 
-    String hmgr = String.format("%5s"," http");
-    String hsec = String.format("%5s"," cmgr");
+    String htype = String.format("%-8s"," type");
 
     String hused = String.format("%-9s"," used");
     String halloc = String.format("%-9s"," alloc");
@@ -194,10 +193,10 @@ public class Launcher implements ILauncher
     // Processes
     
     System.out.println("Processes");
-    line = String.format("%82s"," ").replace(" ","-");
+    line = String.format("%77s"," ").replace(" ","-");
 
     System.out.println(line);
-    System.out.println("|"+hid+" |"+hpid+" |"+hmgr+" |"+hsec+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");    
+    System.out.println("|"+hid+" |"+hpid+" |"+htype+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");    
     System.out.println(line);
     
     for (Statistics stats : statistics)
@@ -207,9 +206,10 @@ public class Launcher implements ILauncher
       String id = String.format(" %2s ",stats.id());
       String pid = String.format("%8s ",stats.pid());
       String hits = String.format("%12s ",stats.requests());
-      
-      String http = stats.http() ? "  X   " : "      ";
-      String procmgr = stats.procmgr() ? "  X   " : "      ";
+            
+      String type = stats.http() ? "http" : "rest";
+      if (stats.httpmgr() || stats.restmgr()) type += "(+)";
+      type = String.format(" %-8s",type);
       
       int up = (int) ((stats.updated() - stats.started())/1000);
 
@@ -234,8 +234,7 @@ public class Launcher implements ILauncher
 
       System.out.print("|"+id+"");
       System.out.print("|"+pid+"");
-      System.out.print("|"+http+"");
-      System.out.print("|"+procmgr+"");
+      System.out.print("|"+type+"");
       System.out.print("|"+started+"");
       System.out.print("|"+uptime+"");
       System.out.print("|"+hits+"");

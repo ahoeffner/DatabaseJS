@@ -371,7 +371,7 @@ public class Server extends Thread
       long alive = System.currentTimeMillis() - stat.updated();
       
       if (1.0 * alive > 1.25 * this.heartbeat) ensure = true;
-      else if (stat.procmgr()) nomgr = false;
+      else if (stat.restmgr()) nomgr = false;
     }
     
     if (ensure && (powner || nomgr))

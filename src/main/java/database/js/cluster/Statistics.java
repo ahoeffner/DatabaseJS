@@ -25,10 +25,11 @@ public class Statistics
   private long pid;
   private short id;
   
+  private boolean http;
   private boolean online;
 
-  private boolean http;
-  private boolean procmgr;
+  private boolean httpmgr;
+  private boolean restmgr;
 
   private long updated;
   private long started;
@@ -39,7 +40,7 @@ public class Statistics
   
   private long requests;
   
-  public static final int reclen = 7*Long.BYTES+2;
+  public static final int reclen = 7*Long.BYTES+3;
   
   
   @SuppressWarnings("cast")
@@ -60,8 +61,9 @@ public class Statistics
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
 
-      byte http = server.http() ? (byte) 1 : 0;
-      byte procmgr = server.manager() ? (byte) 1 : 0;
+      byte httpmgr = server.http() ? (byte) 1 : 0;
+      byte restmgr = server.manager() ? (byte) 1 : 0;
+      byte srvtype = server.isHttpType() ? (byte) 1 : 0;
       
       data.putLong(stats.pid);
       data.putLong(stats.started);
@@ -71,8 +73,9 @@ public class Statistics
       data.putLong(stats.freemem);
       data.putLong(stats.requests);
       
-      data.put(http);
-      data.put(procmgr);
+      data.put(srvtype);
+      data.put(httpmgr);
+      data.put(restmgr);
       
       Cluster.write(server.id(),data.array());
     }
@@ -111,11 +114,13 @@ public class Statistics
           stats.freemem  = data.getLong();  
           stats.requests = data.getLong();  
           
-          byte http = data.get();
-          byte procmgr = data.get();
+          byte srvtype = data.get();
+          byte httpmgr = data.get();
+          byte restmgr = data.get();
           
-          stats.http = http == 1;
-          stats.procmgr = procmgr == 1;
+          stats.http = srvtype == 1;
+          stats.httpmgr = httpmgr == 1;
+          stats.restmgr = restmgr == 1;
           
           double age = 1.0 * time - stats.updated();
           stats.online = (age < 1.25 * heartbeat);
@@ -178,8 +183,13 @@ public class Statistics
     return(http);
   }
 
-  public boolean procmgr()
+  public boolean httpmgr()
   {
-    return(procmgr);
+    return(httpmgr);
+  }
+
+  public boolean restmgr()
+  {
+    return(restmgr);
   }
 }
