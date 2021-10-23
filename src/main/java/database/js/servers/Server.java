@@ -45,8 +45,6 @@ public class Server extends Thread
   private final boolean embedded;
 
   private long requests = 0;
-  private volatile boolean stop = false;
-  private volatile boolean shutdown = false;
   
   private final HTTPServer ssl;
   private final HTTPServer plain;
@@ -249,15 +247,9 @@ public class Server extends Thread
   
   public void shutdown()
   {
-    Cluster.stop();
-    this.shutdown = true;
-    logger.info("Server "+id+" shutting down");
-        
+    Cluster.stop();        
     synchronized(this)
-    {
-      stop = true;
-      this.notify();
-    }
+    {this.notify();}
   }
 
 
@@ -315,7 +307,7 @@ public class Server extends Thread
     {
       synchronized(this)
       {
-        if (!shutdown)
+        if (!Cluster.stop(this))
         {
           Process process = new Process(config);
           logger.fine("Checking all instances are up");
@@ -325,7 +317,7 @@ public class Server extends Thread
           
           for(ServerType server : servers)
           {
-            logger.info("Starting instance "+server.id);
+            logger.info("Process "+pid+" starting instance "+server.id);
             process.start(server.type,server.id);
           }
         }        
@@ -345,22 +337,21 @@ public class Server extends Thread
     {
       synchronized(this)
       {
-        while(!stop)
+        while(true)
         {
           Cluster.setStatistics(this);
           
-          this.wait(this.heartbeat);          
+          this.wait(this.heartbeat);
           this.checkCluster(this.powner);
           
-          if (Cluster.stop(this))
-            stop = true;
+          if (Cluster.stop(this)) break;
         }
       }
     }
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     
     ThreadPool.shutdown();
-    logger.info("Server stopped");
+    logger.info("Server "+id+" stopped");
   }
   
   
@@ -380,10 +371,7 @@ public class Server extends Thread
       else if (stat.procmgr()) nomgr = false;
     }
     
-    if (!powner && !nomgr)
-      ensure = false;
-    
-    if (ensure && !Cluster.stop(this))
+    if (ensure && (powner || nomgr))
       ensure();
   }
   
