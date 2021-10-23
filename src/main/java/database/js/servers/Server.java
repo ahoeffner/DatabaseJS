@@ -304,8 +304,12 @@ public class Server extends Thread
   }
   
   
+  private boolean first = true;
   public void ensure()
   {
+    if (!first) return;
+    first = false;
+    
     try 
     {
       synchronized(this)

@@ -55,7 +55,7 @@ public class Process
 
     if (type == Type.http) options = httpopts;
     else                   options = restopts;
-    
+
     String classpath = classpath(type != Type.http) + jars;
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
@@ -71,20 +71,20 @@ public class Process
 
     File dir = new File(path);
     String[] jars = dir.list();
-    
+
     for(String jar : jars)
     {
       if (jar.startsWith("database.js"))
         classpath = path + File.separator + jar;
     }
-    
+
     classpath += classpath("json");
     if (jdbc) classpath += classpath("json");
-    
+
     return(classpath);
   }
-  
-  
+
+
   private String classpath(String sub)
   {
     String classpath = "";
@@ -95,7 +95,7 @@ public class Process
 
     for(String jar : jars)
       classpath += psep + path + File.separator + jar;
-    
+
     return(classpath);
   }
 

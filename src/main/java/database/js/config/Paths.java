@@ -14,8 +14,7 @@ package database.js.config;
 
 import java.net.URL;
 import java.io.File;
-
-import java.net.URI;
+import java.nio.file.Path;
 
 
 public class Paths
@@ -66,13 +65,19 @@ public class Paths
     }
     
     String escape = "\\";
-    if (sep.equals("\\")) escape = "\\"; 
-    path = path.replaceAll("/",escape+sep);
+    if (sep.equals(escape))
+    {
+      // Windows
+      if (path.startsWith("/") && path.charAt(2) == ':')
+        path = path.substring(1);
+      
+      path = path.replaceAll("/",escape+sep);
+    }
     
     
     File cw = new File(".");
-    java.nio.file.Path abs = java.nio.file.Paths.get(path);
-    java.nio.file.Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
+    Path abs = java.nio.file.Paths.get(path);
+    Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
     path = base.relativize(abs).toString();    
 
     // Back until conf folder
