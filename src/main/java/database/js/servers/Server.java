@@ -14,6 +14,7 @@ package database.js.servers;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,19 +24,15 @@ import database.js.control.Process;
 import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
+import database.js.cluster.Statistics;
 import database.js.cluster.ProcessMonitor;
 import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
-import database.js.cluster.Statistics;
 import database.js.servers.http.HTTPServerType;
 
 
-/**
- *
- *
- */
 public class Server extends Thread
 {
   private final short id;
@@ -96,6 +93,8 @@ public class Server extends Thread
       System.exit(-1);
     }
     
+    Cluster.setStatistics(this);
+    
     this.servers = config.getTopology().servers();
     Process.Type type = Cluster.getType(id);
 
@@ -127,7 +126,7 @@ public class Server extends Thread
 
     this.start();
     
-    if (!sowner)
+    if (type == Process.Type.rest)
       powner = ProcessMonitor.aquireManagerLock();
     
     if (powner || ProcessMonitor.noManager())
@@ -322,6 +321,7 @@ public class Server extends Thread
           logger.fine("Checking all instances are up");
           
           ArrayList<ServerType> servers = Cluster.notRunning(this);
+          Collections.sort(servers);
           
           for(ServerType server : servers)
           {
@@ -349,8 +349,8 @@ public class Server extends Thread
         {
           Cluster.setStatistics(this);
           
-          this.wait(this.heartbeat);
-          if (powner) checkCluster();
+          this.wait(this.heartbeat);          
+          this.checkCluster(this.powner);
           
           if (Cluster.stop(this))
             stop = true;
@@ -364,26 +364,24 @@ public class Server extends Thread
   }
   
   
-  private void checkCluster()
+  private void checkCluster(boolean powner)
   {
+    boolean nomgr = true;
     boolean ensure = false;
+
     ArrayList<Statistics> stats = Cluster.getStatistics();
     
     for(Statistics stat : stats)
     {
-      if (stat.id() == this.id)
-        continue;
-      
-      if (stat.procmgr())
-        logger.severe("Process "+stat.id()+" claims to be manager. Check = "+ProcessMonitor.isManager());
-      
+      if (stat.id() == this.id) continue;
       long alive = System.currentTimeMillis() - stat.updated();
-      if (1.0 * alive > 1.25 * this.heartbeat)
-      {
-        ensure = true;
-        logger.warning("Process "+stat.id()+" is dead");
-      }
+      
+      if (1.0 * alive > 1.25 * this.heartbeat) ensure = true;
+      else if (stat.procmgr()) nomgr = false;
     }
+    
+    if (!powner && !nomgr)
+      ensure = false;
     
     if (ensure && !Cluster.stop(this))
       ensure();

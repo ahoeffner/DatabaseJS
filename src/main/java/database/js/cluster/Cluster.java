@@ -300,7 +300,7 @@ public class Cluster
   }
   
   
-  public static class ServerType
+  public static class ServerType  implements Comparable<ServerType>
   {
     public final short id;
     public final Process.Type type;
@@ -309,6 +309,12 @@ public class Cluster
     {
       this.id = id;
       this.type = type;
+    }
+
+    @Override
+    public int compareTo(ServerType another)
+    {
+      return(another.id - id);
     }
   }
   
