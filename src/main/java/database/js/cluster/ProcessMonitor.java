@@ -22,7 +22,6 @@ public class ProcessMonitor
   
   private FileLock mgr = null;
   private FileLock http = null;
-  private ProcessWatch monitor = null;
   
   private static final int MGR = 0;
   private static final int HTTP = 1;
@@ -166,7 +165,7 @@ public class ProcessMonitor
   
   private void onServerDown(ProcessWatch watcher)
   {
-    mon.logger.info("Process "+watcher.type+" died. HTTP = "+server.isHttpType());
+    mon.logger.fine("Process "+watcher.type+" died");
     
     if (watcher.lock == HTTP)
     {
@@ -204,7 +203,7 @@ public class ProcessMonitor
     @Override
     public void run()
     {
-      monitor.logger.info("Watching "+type+" process");
+      monitor.logger.fine("Watching "+type+" process");
 
       try
       {
@@ -225,7 +224,7 @@ public class ProcessMonitor
       }
       catch (Exception e)
       {
-        monitor.logger.log(Level.SEVERE,e.getMessage(),e);
+        monitor.logger.fine("FileLock : "+e.getMessage());
       }
       
       monitor.onServerDown(this);

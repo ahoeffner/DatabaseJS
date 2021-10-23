@@ -133,7 +133,7 @@ public class Server extends Thread
     if (!sowner)
       ProcessMonitor.watchHTTP();
     
-    if (!powner && !sowner)
+    if (!powner && !sowner && servers > 0)
       ProcessMonitor.watchManager();
     
     Thread.sleep(50);
