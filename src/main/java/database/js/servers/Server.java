@@ -305,7 +305,6 @@ public class Server extends Thread
   }
   
   
-  private boolean first = true;
   public void ensure()
   {
     try 
@@ -323,7 +322,7 @@ public class Server extends Thread
           for(ServerType server : servers)
           {
             logger.info("Process "+pid+" starting instance "+server.id);
-            if (first) process.start(server.type,server.id);
+            process.start(server.type,server.id);
           }
         }        
       }
@@ -332,8 +331,6 @@ public class Server extends Thread
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
-    
-    first = false;
   }
   
   
