@@ -93,7 +93,7 @@ public class SocketReader
 
     pos = 0;
     size = in.read(buffer);
-    
+
     if (size == -1)
       throw new Exception("Socket closed");
 

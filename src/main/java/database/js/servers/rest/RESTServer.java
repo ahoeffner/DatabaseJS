@@ -194,7 +194,7 @@ public class RESTServer implements RESTConnection
     try
     {
       channel.configureBlocking(false);
-      channel.socket().setSoTimeout(15000);
+      channel.socket().setSoTimeout(2000);
       channel.connect(port);
 
       for (int i = 0; i < 8; i++)

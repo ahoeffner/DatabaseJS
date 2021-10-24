@@ -40,6 +40,12 @@ public class HTTPServer extends Thread
   private final ThreadPool workers;
   private final HTTPServerType type;
   private final HTTPWaiterPool waiters;
+  
+  private int state = READY;
+  public final static int READY     = 0;
+  public final static int DISABLED  = 1; 
+  public final static int RUNNING   = 2; 
+  public final static int STOPPED   = 3; 
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -64,6 +70,12 @@ public class HTTPServer extends Thread
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(config.getTopology().workers());
     this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
+  }
+  
+  
+  public int state()
+  {
+    return(state);
   }
   
   
@@ -127,7 +139,10 @@ public class HTTPServer extends Thread
   public void run()
   {
     if (port <= 0)
+    {
+      state = DISABLED;      
       return;
+    }
 
     logger.info("Starting HTTPServer("+type+")");
 
@@ -138,6 +153,8 @@ public class HTTPServer extends Thread
       server.configureBlocking(false);
       server.bind(new InetSocketAddress(port));
       server.register(selector,SelectionKey.OP_ACCEPT);
+
+      state = RUNNING;      
 
       while(true)
       {
@@ -188,6 +205,7 @@ public class HTTPServer extends Thread
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
+    state = STOPPED;
     logger.info("HTTPServer("+type+") stopped");
   }
 }

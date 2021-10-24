@@ -12,7 +12,6 @@
 
 package database.js.cluster;
 
-import java.util.HashSet;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -24,7 +23,7 @@ public class Statistics
 {
   private long pid;
   private short id;
-  
+
   private boolean http;
   private boolean online;
 
@@ -33,16 +32,16 @@ public class Statistics
 
   private long updated;
   private long started;
-  
+
   private long totmem;
   private long usedmem;
   private long freemem;
-  
+
   private long requests;
-  
+
   public static final int reclen = 7*Long.BYTES+3;
-  
-  
+
+
   @SuppressWarnings("cast")
   public static void save(Server server)
   {
@@ -50,13 +49,13 @@ public class Statistics
     {
       Statistics stats = new Statistics();
       ByteBuffer data = ByteBuffer.allocate(reclen);
-      
+
       stats.id = server.id();
       stats.pid = server.pid();
       stats.started = server.started();
-      stats.requests = server.requests(); 
-      stats.updated = System.currentTimeMillis();      
-      
+      stats.requests = server.requests();
+      stats.updated = System.currentTimeMillis();
+
       stats.totmem = Runtime.getRuntime().maxMemory();
       stats.freemem = Runtime.getRuntime().freeMemory();
       stats.usedmem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
@@ -64,7 +63,7 @@ public class Statistics
       byte httpmgr = server.http() ? (byte) 1 : 0;
       byte restmgr = server.manager() ? (byte) 1 : 0;
       byte srvtype = server.isHttpType() ? (byte) 1 : 0;
-      
+
       data.putLong(stats.pid);
       data.putLong(stats.started);
       data.putLong(stats.updated);
@@ -72,11 +71,11 @@ public class Statistics
       data.putLong(stats.usedmem);
       data.putLong(stats.freemem);
       data.putLong(stats.requests);
-      
+
       data.put(srvtype);
       data.put(httpmgr);
       data.put(restmgr);
-      
+
       Cluster.write(server.id(),data.array());
     }
     catch (Exception e)
@@ -84,24 +83,24 @@ public class Statistics
       server.logger().log(Level.SEVERE,e.getMessage(),e);
     }
   }
-  
-  
+
+
   public static ArrayList<Statistics> get(Config config)
   {
     ArrayList<Statistics> list =
       new ArrayList<Statistics>();
-    
+
     try
     {
       long time = System.currentTimeMillis();
       Short[] servers = Cluster.getServers(config);
       int heartbeat = config.getTopology().heartbeat();
-      
+
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {
         Statistics stats = new Statistics();
         ByteBuffer data = ByteBuffer.wrap(Cluster.read(i));
-        
+
         stats.id = i;
 
         if (data.capacity() > 0)
@@ -110,22 +109,22 @@ public class Statistics
           stats.started  = data.getLong();
           stats.updated  = data.getLong();
           stats.totmem   = data.getLong();
-          stats.usedmem  = data.getLong();  
-          stats.freemem  = data.getLong();  
-          stats.requests = data.getLong();  
-          
+          stats.usedmem  = data.getLong();
+          stats.freemem  = data.getLong();
+          stats.requests = data.getLong();
+
           byte srvtype = data.get();
           byte httpmgr = data.get();
           byte restmgr = data.get();
-          
+
           stats.http = srvtype == 1;
           stats.httpmgr = httpmgr == 1;
           stats.restmgr = restmgr == 1;
-          
+
           double age = 1.0 * time - stats.updated();
           stats.online = (age < 1.25 * heartbeat);
         }
-        
+
         list.add(stats);
       }
     }

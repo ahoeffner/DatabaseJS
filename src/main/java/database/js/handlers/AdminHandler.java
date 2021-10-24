@@ -28,6 +28,8 @@ public class AdminHandler extends Handler
     
     if (request.path().equals("/connect"))
     {
+      request.unlist();
+
       String body = new String(request.body());
       response.setBody(server.id()+" "+server.started());
       
@@ -35,8 +37,6 @@ public class AdminHandler extends Handler
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
 
-      request.unlist();
-      
       RESTClient worker = server.worker(id);
       
       if (worker == null) logger.info("RESTServer connecting");

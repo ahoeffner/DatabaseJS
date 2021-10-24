@@ -33,9 +33,9 @@ public class Client
   {
     this.host = host;
     this.port = port;
-    
+
     if (!ssl) this.pki = null;
-    else this.pki = Config.PKIContext();    
+    else this.pki = Config.PKIContext();
   }
 
 
@@ -54,7 +54,7 @@ public class Client
     OutputStream out = socket.getOutputStream();
     SocketReader reader = new SocketReader(in);
 
-    out.write(request.getPage());
+    out.write(request.getPage());    
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
@@ -75,5 +75,7 @@ public class Client
   {
     if (pki == null) this.socket = new Socket(host,port);
     else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
+    this.socket.setSoTimeout(5000);
+    Thread.sleep(100);
   }
 }

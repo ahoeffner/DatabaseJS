@@ -192,17 +192,9 @@ public class HTTPChannel
 
   public void connect(String host, int port) throws Exception
   {
-    if (!ssl)
-    {
-      channel.connect(new InetSocketAddress(host,port));
-    }
-    else
-    {
-      channel.connect(new InetSocketAddress(host,port));
-      
-      while(!channel.finishConnect()) Thread.sleep(1);
-      this.accept();
-    }
+    channel.connect(new InetSocketAddress(host,port));
+    while(!channel.finishConnect()) Thread.sleep(1);
+    if (ssl) this.accept();
   }
   
   
