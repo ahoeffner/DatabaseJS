@@ -12,11 +12,15 @@
 
 package database.js.control;
 
+import java.util.logging.Logger;
+
+
 public interface ILauncher
 {
   void log(Exception e);
   void stop() throws Exception;
   void start() throws Exception;
   void status() throws Exception;
+  Logger logger() throws Exception;
   void setConfig() throws Exception;
 }

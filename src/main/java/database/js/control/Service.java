@@ -1,48 +1,75 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.control;
 
-import database.js.config.Config;
+import java.util.logging.Logger;
 
 
 public class Service extends Thread
 {
-  private final Config config;
+  private final Logger logger;
+  private final ILauncher launcher;
 
 
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
+    if (Launcher.version() < 13)
+    {
+      System.out.println("database.js requires java version > 13.0");
+      System.exit(-1);
+    }
+
     Service service = new Service();
   }
 
 
   public Service() throws Exception
   {
-    this.start();
-    this.config = new Config();
-    Launcher.main(new String[] {"-s","start"});
+    this.launcher = Launcher.create();
+    this.launcher.setConfig();
+
+    this.logger = launcher.logger();
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
+
+    this.start();
   }
-  
-  
+
+
   @Override
   public void run()
   {
-    try 
+    try
     {
+      logger.info("Starting database.js service");
+      launcher.start();
+
       synchronized(this) {this.wait();}
-      Launcher.main(new String[] {"-s","stop"});
+
+      logger.info("Stopping database.js service");
+      launcher.stop();
     }
     catch (Exception e) {;}
   }
-  
-  
+
+
   private static class ShutdownHook extends Thread
   {
     private final Service service;
-    
+
     ShutdownHook(Service service)
     {this.service = service;}
-    
+
     @Override
     public void run()
     {

@@ -47,6 +47,12 @@ public class Launcher implements ILauncher
     String cmd = null;
     boolean silent = false;
     ILauncher launcher = null;
+    
+    if (version() < 13)
+    {
+      System.out.println("database.js requires java version > 13.0");
+      System.exit(-1);
+    }
 
     switch(args.length)
     {
@@ -94,6 +100,20 @@ public class Launcher implements ILauncher
   {
     System.out.println("usage database.js start|stop|status");
     System.exit(-1);
+  }
+  
+  
+  public static int version()
+  {
+    String version = System.getProperty("java.version");
+    int mvers = Integer.parseInt(version.substring(0,version.indexOf('.')));
+    return(mvers);
+  }
+  
+  
+  public Logger logger()
+  {
+    return(logger);
   }
 
 
@@ -265,7 +285,7 @@ public class Launcher implements ILauncher
 
 
   @SuppressWarnings("unchecked")
-  private static ILauncher create() throws Exception
+  static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
 
