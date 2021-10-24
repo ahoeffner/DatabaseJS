@@ -76,6 +76,6 @@ public class Client
     if (pki == null) this.socket = new Socket(host,port);
     else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
     this.socket.setSoTimeout(5000);
-    Thread.sleep(100);
+    Thread.sleep(10);
   }
 }
