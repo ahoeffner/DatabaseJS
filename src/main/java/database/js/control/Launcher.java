@@ -127,16 +127,18 @@ public class Launcher implements ILauncher
 
   public void stop() throws Exception
   {
+    logger.fine("Sending shutdown");
+    
     int admin = config.getPorts()[2];
     Client client = new Client("localhost",admin,true);
 
-    logger.info("Connecting");
+    logger.fine("Connecting");
     client.connect();
 
-    logger.info("Sending message");
+    logger.fine("Sending message");
     client.send("shutdown");
 
-    logger.info("Message sent");
+    logger.fine("Message sent");
   }
 
 

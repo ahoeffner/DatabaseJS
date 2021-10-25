@@ -173,8 +173,10 @@ public class HTTPServer extends Thread
             if (key.isAcceptable())
             {
               SocketChannel channel = server.accept();
-              channel.configureBlocking(false);
+              logger.finest("Incoming request "+channel.getRemoteAddress());
 
+              channel.configureBlocking(false);
+              
               if (ssl)
               {
                 // Don't block while handshaking
