@@ -20,11 +20,19 @@ class HTTPBuffers
   private int asize = 0;
   private int psize = 0;
   private int size = 4*1024;
+  private boolean windows = false;
 
   ByteBuffer send;
   ByteBuffer data;
   ByteBuffer recv;
   ByteBuffer sslb;
+  
+  
+  public HTTPBuffers()
+  {
+    if (System.getProperty("os.name").toLowerCase().contains("windows"))
+      windows = true;
+  }
   
   
   public int size()
@@ -33,9 +41,10 @@ class HTTPBuffers
   }
 
 
-  public void nossl()
+  public void alloc()
   {
-    this.data = ByteBuffer.allocateDirect(size);
+    if (this.data != null && !windows) this.data.clear();
+    else this.data = ByteBuffer.allocateDirect(size);
   }
 
 
@@ -46,7 +55,7 @@ class HTTPBuffers
   }
 
 
-  public void init()
+  public void allocssl()
   {
     this.data = ByteBuffer.allocateDirect(asize);
     this.send = ByteBuffer.allocateDirect(psize);
@@ -54,9 +63,15 @@ class HTTPBuffers
   }
 
 
-  public void done()
+  public void donex()
   {
-   this.send = null;
-   this.sslb = recv;
+    this.data = null;
+  }
+
+
+  public void ssldone()
+  {
+    this.send = null;
+    this.sslb = recv;
   }
 }

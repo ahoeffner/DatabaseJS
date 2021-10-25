@@ -20,11 +20,15 @@ import database.js.config.Config;
 import database.js.client.HTTPRequest;
 import database.js.security.PKIContext;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocket;
+
 
 public class Client
 {
   private Socket socket;
   private final int port;
+  private final int psize;
   private final String host;
   private final PKIContext pki;
 
@@ -34,8 +38,17 @@ public class Client
     this.host = host;
     this.port = port;
 
-    if (!ssl) this.pki = null;
-    else this.pki = Config.PKIContext();
+    if (!ssl) 
+    {
+      this.pki = null;
+      this.psize = 4096;
+    }
+    else 
+    {
+      this.pki = Config.PKIContext();
+      SSLEngine engine = pki.getSSLContext().createSSLEngine();
+      this.psize = engine.getSession().getPacketBufferSize();
+    }
   }
 
 
@@ -74,8 +87,9 @@ public class Client
   public void connect() throws Exception
   {
     if (pki == null) this.socket = new Socket(host,port);
-    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
-    this.socket.setSoTimeout(5000);
-    Thread.sleep(10);
+    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);    
+    if (pki != null) ((SSLSocket) socket).startHandshake();    
+    this.socket.setSendBufferSize(psize);
+    this.socket.setSoTimeout(15000);
   }
 }

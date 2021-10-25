@@ -64,6 +64,7 @@ public class Session
   
   public void close() throws Exception
   {
+    socket.getOutputStream().flush();
     socket.close();
   }
 }
