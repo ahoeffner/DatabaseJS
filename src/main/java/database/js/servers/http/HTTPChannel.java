@@ -227,13 +227,23 @@ public class HTTPChannel
 
   private ByteBuffer readplain() throws Exception
   {
-    buffers.alloc();
+    try
+    {
+      buffers.alloc();
 
-    int read = channel.read(buffers.data);
-    if (read <= 0) return(null);
+      int read = channel.read(buffers.data);
+      if (read <= 0) return(null);
 
-    buffers.data.flip();
-    return(buffers.data);
+      buffers.data.flip();
+      return(buffers.data);
+    }
+    catch (Exception e)
+    {
+      String msg = e.getMessage();
+      if (msg == null) msg = "unknown";
+      if (!msg.equals("Connection reset")) throw e;
+      return(null);
+    }
   }
 
 
@@ -337,7 +347,7 @@ public class HTTPChannel
     catch (Exception e)
     {
       if (!(e instanceof ClosedChannelException))
-        logger.log(Level.SEVERE,e.getMessage(),e);
+        throw e;
     }
     
   }
