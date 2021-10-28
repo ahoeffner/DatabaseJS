@@ -15,9 +15,8 @@ package database.js.servers.http;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.pools.ThreadPool;
 import database.js.servers.Server;
-
+import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
