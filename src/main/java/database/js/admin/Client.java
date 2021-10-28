@@ -38,12 +38,12 @@ public class Client
     this.host = host;
     this.port = port;
 
-    if (!ssl) 
+    if (!ssl)
     {
       this.pki = null;
       this.psize = 4096;
     }
-    else 
+    else
     {
       this.pki = Config.PKIContext();
       SSLEngine engine = pki.getSSLContext().createSSLEngine();
@@ -67,7 +67,7 @@ public class Client
     OutputStream out = socket.getOutputStream();
     SocketReader reader = new SocketReader(in);
 
-    out.write(request.getPage());    
+    out.write(request.getPage());
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
@@ -87,8 +87,8 @@ public class Client
   public void connect() throws Exception
   {
     if (pki == null) this.socket = new Socket(host,port);
-    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);    
-    if (pki != null) ((SSLSocket) socket).startHandshake();    
+    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
+    if (pki != null) ((SSLSocket) socket).startHandshake();
     this.socket.setSendBufferSize(psize);
     this.socket.setSoTimeout(15000);
   }
