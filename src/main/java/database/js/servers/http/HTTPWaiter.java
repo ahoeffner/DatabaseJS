@@ -88,8 +88,6 @@ class HTTPWaiter extends Thread
     
     while(ready == 0)
     {
-      ready = selector.select();
-      
       synchronized(this)
       {
         for(HTTPChannel client : queue)
@@ -97,6 +95,8 @@ class HTTPWaiter extends Thread
 
         queue.clear();        
       }
+
+      ready = selector.select();
     }
   }
   
