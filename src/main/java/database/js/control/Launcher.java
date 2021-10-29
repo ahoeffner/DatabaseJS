@@ -115,6 +115,12 @@ public class Launcher implements ILauncher
   {
     return(logger);
   }
+  
+  
+  public String getControlOut() throws Exception
+  {
+    return(this.config.getLogger().getControlOut());
+  }
 
 
   public void setConfig() throws Exception
@@ -139,6 +145,13 @@ public class Launcher implements ILauncher
     client.send("shutdown");
 
     logger.fine("Message sent");
+  }
+  
+  
+  public void asyncStop() throws Exception
+  {
+    Process process = new Process(config);
+    process.stop();
   }
 
 

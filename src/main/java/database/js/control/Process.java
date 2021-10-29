@@ -64,6 +64,16 @@ public class Process
   }
 
 
+  public void stop()
+  {
+    String classpath = classpath(false);
+    String cmd = this.javaexe + " -cp " + classpath + " database.js.control.Launcher stop";
+
+    try {Runtime.getRuntime().exec(cmd);}
+    catch (Exception e) {logger.log(Level.SEVERE,null,e);}
+  }
+
+
   private String classpath(boolean jdbc)
   {
     String classpath = "";
@@ -79,7 +89,7 @@ public class Process
     }
 
     classpath += classpath("json");
-    if (jdbc) classpath += classpath("json");
+    if (jdbc) classpath += classpath("jdbc");
 
     return(classpath);
   }

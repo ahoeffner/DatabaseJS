@@ -12,7 +12,11 @@
 
 package database.js.control;
 
+import java.io.PrintStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.FileOutputStream;
+import java.io.BufferedOutputStream;
 
 
 public class Service extends Thread
@@ -38,11 +42,24 @@ public class Service extends Thread
   {
     this.launcher = Launcher.create();
     this.launcher.setConfig();
+    
+    PrintStream out = stdout();
+    this.setName("DatabaseJS Service");
+
+    System.setOut(out);
+    System.setErr(out);
 
     this.logger = launcher.logger();
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
 
     this.start();
+  }
+
+
+  private PrintStream stdout() throws Exception
+  {
+    String srvout = this.launcher.getControlOut();
+    return(new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)), true));
   }
 
 
@@ -57,9 +74,12 @@ public class Service extends Thread
       synchronized(this) {this.wait();}
 
       logger.info("Stopping database.js service");
-      launcher.stop();
+      launcher.asyncStop();
     }
-    catch (Exception e) {;}
+    catch (Throwable e) 
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
   }
 
 

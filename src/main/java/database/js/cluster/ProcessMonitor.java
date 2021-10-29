@@ -207,17 +207,16 @@ public class ProcessMonitor
 
       try
       {
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < 512; i++)
         {
           long time = System.currentTimeMillis();
           flock = mon.channel.lock(lock,1,false);
 
           if (flock != null)
           {
-            flock.release();
-
+            flock.release();            
             // If never obtained, try again
-            if (System.currentTimeMillis() - time < 5) sleep(32);
+            if (System.currentTimeMillis() - time < 256) sleep(32);
             else break;
           }
         }
@@ -227,6 +226,7 @@ public class ProcessMonitor
         monitor.logger.fine("FileLock : "+e.getMessage());
       }
 
+      monitor.logger.fine("Watcher could not obtain "+type+" lock");
       monitor.onServerDown(this);
     }
   }

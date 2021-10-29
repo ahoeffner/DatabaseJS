@@ -101,6 +101,20 @@ public class Logger
   }
   
   
+  public synchronized String getControlOut()
+  {
+    File ldir = new File(logdir);
+    if (!ldir.exists()) ldir.mkdir();
+
+    String instdir = logdir + File.separator;
+
+    ldir = new File(instdir);
+    if (!ldir.exists()) ldir.mkdir();
+
+    return(instdir+File.separator+"control.out");
+  }
+  
+  
   public synchronized void openControlLog() throws Exception
   {
     File ldir = new File(logdir);
