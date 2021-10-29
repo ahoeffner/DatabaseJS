@@ -60,7 +60,7 @@ public class Process
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
     try {Runtime.getRuntime().exec(cmd);}
-    catch (Exception e) {logger.log(Level.SEVERE,null,e);}
+    catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }
 
 
@@ -68,9 +68,11 @@ public class Process
   {
     String classpath = classpath(false);
     String cmd = this.javaexe + " -cp " + classpath + " database.js.control.Launcher stop";
+    
+    logger.info(cmd);
 
     try {Runtime.getRuntime().exec(cmd);}
-    catch (Exception e) {logger.log(Level.SEVERE,null,e);}
+    catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }
 
 

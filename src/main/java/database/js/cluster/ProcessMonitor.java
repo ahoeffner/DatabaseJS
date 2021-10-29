@@ -203,6 +203,7 @@ public class ProcessMonitor
     @Override
     public void run()
     {
+      boolean obtained = false;
       monitor.logger.fine("Watching "+type+" process");
 
       try
@@ -216,8 +217,12 @@ public class ProcessMonitor
           {
             flock.release();            
             // If never obtained, try again
-            if (System.currentTimeMillis() - time < 256) sleep(32);
-            else break;
+            if (!obtained && System.currentTimeMillis() - time < 256) sleep(32);
+            else
+            {
+              obtained = true;              
+              break;
+            }
           }
         }
       }
@@ -225,8 +230,10 @@ public class ProcessMonitor
       {
         monitor.logger.fine("FileLock : "+e.getMessage());
       }
+      
+      if (!obtained)
+        monitor.logger.warning("Unable to obtain "+type+" lock");
 
-      monitor.logger.fine("Watcher could not obtain "+type+" lock");
       monitor.onServerDown(this);
     }
   }
