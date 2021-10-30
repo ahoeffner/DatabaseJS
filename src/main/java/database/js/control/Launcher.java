@@ -72,7 +72,8 @@ public class Launcher implements ILauncher
 
     try
     {
-      launcher.setConfig();
+      launcher.setConfig();      
+      cmd = args[0].toLowerCase();
 
       switch(cmd)
       {
