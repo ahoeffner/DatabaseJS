@@ -45,7 +45,6 @@ public class Launcher implements ILauncher
   public static void main(String[] args) throws Exception
   {
     String cmd = null;
-    boolean silent = false;
     ILauncher launcher = null;
     
     if (version() < 13)
@@ -53,13 +52,9 @@ public class Launcher implements ILauncher
       System.out.println("database.js requires java version > 13.0");
       System.exit(-1);
     }
-
-    switch(args.length)
-    {
-      case 0: usage(); break;
-      case 1: cmd = args[0].toLowerCase(); break;
-      case 2: silent = true; cmd = args[1].toLowerCase(); break;
-    }
+    
+    if (args.length != 1)
+      usage();
 
     if (!testcp())
     {
@@ -115,12 +110,6 @@ public class Launcher implements ILauncher
   {
     return(logger);
   }
-  
-  
-  public String getControlOut() throws Exception
-  {
-    return(this.config.getLogger().getControlOut());
-  }
 
 
   public void setConfig() throws Exception
@@ -133,25 +122,9 @@ public class Launcher implements ILauncher
 
   public void stop() throws Exception
   {
-    logger.fine("Sending shutdown");
-    
-    int admin = config.getPorts()[2];
-    Client client = new Client("localhost",admin,true);
-
-    logger.fine("Connecting");
-    client.connect();
-
-    logger.fine("Sending message");
-    client.send("shutdown");
-
-    logger.fine("Message sent");
-  }
-  
-  
-  public void asyncStop() throws Exception
-  {
-    Process process = new Process(config);
-    process.stop();
+    logger.fine("Shutting down");
+    Cluster.init(config); Cluster.stop();
+    Thread.sleep((int) (1.25*config.getTopology().heartbeat()));
   }
 
 

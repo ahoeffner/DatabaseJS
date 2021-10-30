@@ -23,6 +23,4 @@ public interface ILauncher
   void status() throws Exception;
   Logger logger() throws Exception;
   void setConfig() throws Exception;
-  void asyncStop() throws Exception;
-  String getControlOut() throws Exception;
 }
