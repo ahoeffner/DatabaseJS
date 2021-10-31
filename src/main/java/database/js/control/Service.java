@@ -60,7 +60,7 @@ public class Service extends Thread
       synchronized(this) {this.wait();}
 
       logger.info("Stopping database.js service");
-      launcher.stop();
+      launcher.stop(null);
     }
     catch (Throwable e) 
     {

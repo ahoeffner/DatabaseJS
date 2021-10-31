@@ -45,6 +45,7 @@ public class Launcher implements ILauncher
   public static void main(String[] args) throws Exception
   {
     String cmd = null;
+    String url = null;
     ILauncher launcher = null;
     
     if (version() < 13)
@@ -53,7 +54,7 @@ public class Launcher implements ILauncher
       System.exit(-1);
     }
     
-    if (args.length != 1)
+    if (args.length < 1 || args.length > 2)
       usage();
 
     if (!testcp())
@@ -74,11 +75,12 @@ public class Launcher implements ILauncher
     {
       launcher.setConfig();      
       cmd = args[0].toLowerCase();
+      if (args.length > 1) url = args[1].toLowerCase();
 
       switch(cmd)
       {
-        case "stop": launcher.stop();  break;
         case "start": launcher.start();  break;
+        case "stop": launcher.stop(url);  break;
         case "status": launcher.status();  break;
 
         default: usage();
@@ -121,11 +123,39 @@ public class Launcher implements ILauncher
   }
 
 
-  public void stop() throws Exception
+  public void stop(String url) throws Exception
   {
-    logger.fine("Shutting down");
-    Cluster.init(config); Cluster.stop();
-    Thread.sleep((int) (1.25*config.getTopology().heartbeat()));
+    if (url == null)
+    {
+      logger.fine("Shutting down");
+      Cluster.init(config); Cluster.stop();
+      Thread.sleep((int) (1.25*config.getTopology().heartbeat()));
+    }
+    else
+    {
+      if (url.startsWith("http://"))
+        url = url.substring(7);
+
+      if (url.startsWith("https://"))
+        url = url.substring(8);
+      
+      int pos = url.indexOf(':') + 1;
+      int admin = config.getPorts()[2];
+      
+      if (pos > 1)
+      {
+        admin = Integer.parseInt(url.substring(pos));
+        url = url.substring(0,pos-1);
+      }
+
+      Client client = new Client(url,admin,true);
+
+      logger.fine("Connecting");
+      client.connect();
+
+      logger.fine("Sending message");
+      client.send("shutdown");
+    }
   }
 
 
