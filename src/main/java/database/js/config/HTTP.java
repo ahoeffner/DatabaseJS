@@ -24,13 +24,14 @@ public class HTTP
   private final int plain;
   private final int admin;
   private final String path;
+  private final String tmppath;
   private final String virtstr;
   private final String virtendp;
   private final Handlers handlers;
   private final boolean requiressl;
-  private final ArrayList<String> cache;
+  private final ArrayList<FilePattern> cache;
   private final ArrayList<String> corsdomains;
-  private final ArrayList<Compression> compression;
+  private final ArrayList<FilePattern> compression;
   
   
   HTTP(Handlers handlers, JSONObject config) throws Exception
@@ -48,6 +49,8 @@ public class HTTP
     }
 
     this.path = apppath;
+    File tmp = new File(Paths.tmpdir);
+    this.tmppath = tmp.getCanonicalPath();
 
     JSONObject ports = config.getJSONObject("ports");
 
@@ -101,13 +104,21 @@ public class HTTP
     this.handlers.finish();
 
 
-    this.cache = new ArrayList<String>();
+    this.cache = new ArrayList<FilePattern>();
     JSONArray cache = config.getJSONArray("cache");
 
     for (int i = 0; i < cache.length(); i++)
-      this.cache.add(cache.getString(i));
+    {
+      JSONObject entry = cache.getJSONObject(i);
 
-    this.compression = new ArrayList<Compression>();
+      int size = entry.getInt("size");
+      String pattern = entry.getString("pattern");      
+      
+      this.cache.add(new FilePattern(pattern,size));
+    }
+    
+
+    this.compression = new ArrayList<FilePattern>();
     JSONArray compression = config.getJSONArray("compression");
     
     for (int i = 0; i < compression.length(); i++)
@@ -117,7 +128,7 @@ public class HTTP
       int size = entry.getInt("size");
       String pattern = entry.getString("pattern");
       
-      this.compression.add(new Compression(pattern,size));
+      this.compression.add(new FilePattern(pattern,size));
     }
   }
 
@@ -144,7 +155,7 @@ public class HTTP
 
   public String getTmpPath()
   {
-    return(Paths.tmpdir);
+    return(tmppath);
   }
 
   public Handlers handlers()
@@ -157,7 +168,7 @@ public class HTTP
     return(requiressl);
   }
 
-  public ArrayList<String> cache()
+  public ArrayList<FilePattern> cache()
   {
     return(cache);
   }
@@ -167,20 +178,24 @@ public class HTTP
     return(corsdomains);
   }
 
-  public ArrayList<Compression> compression()
+  public ArrayList<FilePattern> compression()
   {
     return(compression);
   }
   
   
-  public static class Compression
+  public static class FilePattern
   {
     public final int size;
     public final String pattern;
     
-    Compression(String pattern, int size)
+    FilePattern(String pattern, int size)
     {
       this.size = size;
+      
+      pattern = pattern.replace(".","\\.");
+      pattern = pattern.replace("*",".*");
+      
       this.pattern = pattern;
     }
   }
