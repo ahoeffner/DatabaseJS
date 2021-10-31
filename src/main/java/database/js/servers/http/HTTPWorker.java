@@ -77,7 +77,7 @@ public class HTTPWorker implements Runnable
       
       channel.workers().done();
     }
-    catch(Exception e)
+    catch(Throwable e)
     {
       this.workers.done();
       this.channel.failed();

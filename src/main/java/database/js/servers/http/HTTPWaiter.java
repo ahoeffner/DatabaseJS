@@ -149,11 +149,31 @@ class HTTPWaiter extends Thread
 
             if (read > 0)
             {
+              boolean done = false;
               HTTPRequest request = incomplete.remove(key);
               if (request == null) request = new HTTPRequest(this,client,key);
-                            
-              if (!request.add(buf)) incomplete.put(key,request);
-              else                   workers.submit(new HTTPWorker(workers,request));
+              
+              try
+              {
+                if (!request.add(buf)) incomplete.put(key,request);
+                else done = true;
+              }
+              catch (Exception e)
+              {
+                error(channel,400,false);
+                continue;
+              }     
+              
+              try
+              {
+                if (done) 
+                  workers.submit(new HTTPWorker(workers,request));
+              }
+              catch (Exception e)
+              {
+                error(channel,500,false);
+                continue;
+              }     
             }
           }
           else
@@ -186,7 +206,7 @@ class HTTPWaiter extends Thread
       {
         ByteBuffer buf = ByteBuffer.allocate(1024);
         SocketChannel rsp = (SocketChannel) key.channel();
-        buf.put(err400());
+        buf.put(err400(false));
         buf.position(0);
         rsp.write(buf);
         rsp.close();
@@ -196,13 +216,61 @@ class HTTPWaiter extends Thread
   }
 
 
-  private String EOL = "\r\n";
+  public static final String EOL = "\r\n";
+  
+  
+  public static void error(SocketChannel channel, int code, boolean rest)
+  {
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    
+    switch(code)
+    {
+      case 400: 
+        buf.put(err400(rest));
+        break;
+      
+      case 500: 
+        buf.put(err500(rest));
+        break;
+      
+      default: 
+        buf.put(err500(rest));
+        break;
+    }
 
-  private byte[] err400()
+    try
+    {
+      buf.position(0);
+      channel.write(buf);
+      channel.close();
+    }
+    catch (Exception e)
+    {
+      try {channel.close();} 
+      catch (Exception c) {;}
+    }
+  }
+
+
+  private static byte[] err400(boolean rest)
   {
     String msg = "<b>Bad Request</b>";
+    if (rest) msg = "{\"status\": \"failed\", \"message\": \"Bad Request\"}";
 
-    String page = "HTTP/1.1 200 Bad Request" + EOL +
+    String page = "HTTP/1.1 400 Bad Request" + EOL +
+                  "Content-Type: text/html" + EOL +
+                  "Content-Length: "+msg.length() + EOL + EOL + msg;
+
+    return(page.getBytes());
+  }
+
+
+  private static byte[] err500(boolean rest)
+  {
+    String msg = "<b>Internal Server Error</b>";
+    if (rest) msg = "{\"status\": \"failed\", \"message\": \"Internal Server Error\"}";
+
+    String page = "HTTP/1.1 500 Internal Server Error" + EOL +
                   "Content-Type: text/html" + EOL +
                   "Content-Length: "+msg.length() + EOL + EOL + msg;
 
