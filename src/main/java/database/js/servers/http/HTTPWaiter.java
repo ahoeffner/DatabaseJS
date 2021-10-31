@@ -160,6 +160,7 @@ class HTTPWaiter extends Thread
               }
               catch (Exception e)
               {
+                logger.log(Level.SEVERE,e.getMessage(),e);
                 error(channel,400,false);
                 continue;
               }     
@@ -171,6 +172,7 @@ class HTTPWaiter extends Thread
               }
               catch (Exception e)
               {
+                logger.log(Level.SEVERE,e.getMessage(),e);
                 error(channel,500,false);
                 continue;
               }     
