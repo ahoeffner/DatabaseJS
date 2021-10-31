@@ -15,13 +15,18 @@ package database.js.handlers;
 import database.js.config.Config;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.config.Handlers.HandlerProperties;
 
 
 public class FileHandler extends Handler
 {
-  public FileHandler(Config config) throws Exception
+  private final PathUtil path;
+  
+  
+  public FileHandler(Config config, HandlerProperties properties) throws Exception
   {
-    super(config);
+    super(config,properties);
+    this.path = new PathUtil(this);
   }
   
   
@@ -30,6 +35,7 @@ public class FileHandler extends Handler
   {
     request.server().request();
     HTTPResponse response = new HTTPResponse();
+    String path = this.path.getPath(request.path());
     
     response.setLastModified();
     response.setBody("Hello there");

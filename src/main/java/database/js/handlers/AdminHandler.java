@@ -6,13 +6,14 @@ import database.js.servers.Server;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.config.Handlers.HandlerProperties;
 
 
 public class AdminHandler extends Handler
 {
-  public AdminHandler(Config config) throws Exception
+  public AdminHandler(Config config, HandlerProperties properties) throws Exception
   {
-    super(config);
+    super(config,properties);
   }
   
   

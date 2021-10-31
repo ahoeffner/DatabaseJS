@@ -17,22 +17,31 @@ import database.js.config.Config;
 import database.js.control.Process.Type;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.config.Handlers.HandlerProperties;
 
 
 public abstract class Handler
 {
   private final Config config;
+  private final HandlerProperties properties;
   
   
-  public Handler(Config config) throws Exception
+  public Handler(Config config, HandlerProperties properties) throws Exception
   {
     this.config = config;
+    this.properties = properties;
   }
   
   
   public Config config()
   {
     return(config);
+  }
+  
+  
+  public HandlerProperties properties()
+  {
+    return(properties);
   }
   
   

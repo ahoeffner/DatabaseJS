@@ -28,7 +28,9 @@ public class HTTP
   private final String virtendp;
   private final Handlers handlers;
   private final boolean requiressl;
+  private final ArrayList<String> cache;
   private final ArrayList<String> corsdomains;
+  private final ArrayList<Compression> compression;
   
   
   HTTP(Handlers handlers, JSONObject config) throws Exception
@@ -46,7 +48,6 @@ public class HTTP
     }
 
     this.path = apppath;
-    
 
     JSONObject ports = config.getJSONObject("ports");
 
@@ -98,6 +99,26 @@ public class HTTP
     }
     
     this.handlers.finish();
+
+
+    this.cache = new ArrayList<String>();
+    JSONArray cache = config.getJSONArray("cache");
+
+    for (int i = 0; i < cache.length(); i++)
+      this.cache.add(cache.getString(i));
+
+    this.compression = new ArrayList<Compression>();
+    JSONArray compression = config.getJSONArray("compression");
+    
+    for (int i = 0; i < compression.length(); i++)
+    {
+      JSONObject entry = compression.getJSONObject(i);
+
+      int size = entry.getInt("size");
+      String pattern = entry.getString("pattern");
+      
+      this.compression.add(new Compression(pattern,size));
+    }
   }
 
 
@@ -121,6 +142,11 @@ public class HTTP
     return(path);
   }
 
+  public String getTmpPath()
+  {
+    return(Paths.tmpdir);
+  }
+
   public Handlers handlers()
   {
     return(handlers);
@@ -131,8 +157,31 @@ public class HTTP
     return(requiressl);
   }
 
+  public ArrayList<String> cache()
+  {
+    return(cache);
+  }
+
   public ArrayList<String> corsdomains()
   {
     return(corsdomains);
+  }
+
+  public ArrayList<Compression> compression()
+  {
+    return(compression);
+  }
+  
+  
+  public static class Compression
+  {
+    public final int size;
+    public final String pattern;
+    
+    Compression(String pattern, int size)
+    {
+      this.size = size;
+      this.pattern = pattern;
+    }
   }
 }

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import database.js.handlers.Handler;
+import java.lang.reflect.Constructor;
 import database.js.handlers.FileHandler;
 import database.js.handlers.RestHandler;
 import database.js.handlers.AdminHandler;
@@ -23,7 +24,7 @@ import database.js.handlers.AdminHandler;
 
 public class Handlers
 {  
-  private final Config config;  
+  private final Config config;
   private final ArrayList<HandlerClass> entries = new ArrayList<HandlerClass>();
   
   private RestHandler rest = null;
@@ -41,7 +42,7 @@ public class Handlers
   {
     Collections.sort(this.entries);
     
-    this.admin = new AdminHandler(config);
+    this.admin = new AdminHandler(config,null);
     
     for(HandlerClass hdl : this.entries)
     {
@@ -99,18 +100,49 @@ public class Handlers
   }
   
   
+  public static class HandlerProperties
+  {
+    private final String prefix;
+    private final HashSet<String> methods;
+    
+    
+    private HandlerProperties(String prefix, HashSet<String> methods)
+    {
+      this.prefix = prefix;
+      this.methods = methods;
+    }
+    
+    
+    public String prefix()
+    {
+      return(prefix);
+    }
+    
+    
+    public HashSet<String> methods()
+    {
+      return(methods);
+    }
+  }
+  
+  
   private static class HandlerClass implements Comparable<HandlerClass>
   {
     public final String prefix;
     public final Handler handler;
     public final HashSet<String> methods = new HashSet<String>();
     
+    
     HandlerClass(Config config, String prefix, String methods, String clazz) throws Exception
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
       for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
-      this.handler = (Handler) Class.forName(clazz).getDeclaredConstructor(Config.class).newInstance(config);
+      
+      HandlerProperties properties = new HandlerProperties(prefix,this.methods);
+      Constructor contructor = Class.forName(clazz).getDeclaredConstructor(Config.class,HandlerProperties.class);
+      
+      this.handler = (Handler) contructor.newInstance(config,properties);
     }
     
     

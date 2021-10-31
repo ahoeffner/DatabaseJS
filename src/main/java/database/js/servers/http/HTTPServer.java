@@ -23,6 +23,7 @@ import java.nio.channels.Selector;
 import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import database.js.handlers.file.Deployment;
 import java.nio.channels.ServerSocketChannel;
 
 
@@ -148,6 +149,7 @@ public class HTTPServer extends Thread
 
     try
     {
+      Deployment.init(config);
       ServerSocketChannel server = ServerSocketChannel.open();
 
       server.configureBlocking(false);

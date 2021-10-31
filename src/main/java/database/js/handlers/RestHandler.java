@@ -19,13 +19,14 @@ import database.js.control.Process.Type;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.config.Handlers.HandlerProperties;
 
 
 public class RestHandler extends Handler
 {
-  public RestHandler(Config config) throws Exception
+  public RestHandler(Config config, HandlerProperties properties) throws Exception
   {
-    super(config);
+    super(config,properties);
   }
   
   
