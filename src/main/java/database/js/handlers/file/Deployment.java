@@ -73,9 +73,6 @@ public class Deployment
   
   public StaticFile get(String path) throws Exception
   {
-    File home = new File(this.home);
-    long current = home.lastModified();
-    
     if (this.index == null)
     {
       synchronized(this)
@@ -84,43 +81,44 @@ public class Deployment
           this.wait();
       }
     }
-    
-    if (current != this.modified)
-    {
-      long newest = 0;
-      File deployed = new File(this.deploy);
-      File[] deployments = deployed.listFiles();
-      
-      for(File deployment : deployments)
-      {
-        String name = deployment.getName();
-        char fc = deployment.getName().charAt(0);
-        
-        if (fc >= '0' && fc <= '9')
-        {
-          long mod = 0;
-          
-          try {mod = Long.parseLong(name);} 
-          catch (Exception e) {;}
-          
-          if (mod > newest) newest = mod;
-        }
-      }
-      
-      if (newest > this.modified)
-      {
-        logger.info("New deployment detected");
 
-        synchronized(this) 
-        {
-          //reindex
-          //this.index = index;
-          this.modified = home.lastModified();
-        }
-      }
+    Date mod = new Date();
+    File home = new File(this.home);
+    mod.setTime(home.lastModified());
+    String deployment = this.deploy + sep + home.lastModified();
+    
+    File deploy = new File(deployment);
+
+    if (!deploy.exists())
+    {
+      refresh();      
     }
     
     return(this.index.get(path));
+  }
+  
+  
+  public void refresh()
+  {
+    long newest = 0;
+    File deployed = new File(this.deploy);
+    File[] deployments = deployed.listFiles();
+    
+    for(File deployment : deployments)
+    {
+      String name = deployment.getName();
+      char fc = deployment.getName().charAt(0);
+      
+      if (fc >= '0' && fc <= '9')
+      {
+        long mod = 0;
+        
+        try {mod = Long.parseLong(name);} 
+        catch (Exception e) {;}
+        
+        if (mod > newest) newest = mod;
+      }
+    }
   }
   
   
