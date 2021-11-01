@@ -97,7 +97,7 @@ public class Deployment
     String deployment = this.deploy + sep + latest;
     if (!(new File(deployment).exists())) return(false);
     
-    logger.info("indexing "+latest);
+    logger.info("Indexing website");
     HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
     
     index(index,modified,this.home,deployment);
@@ -163,7 +163,7 @@ public class Deployment
     
     if (!(new File(dep).exists())) 
     {
-      logger.info("deploying");
+      logger.info("Deploying website");
       deploy(index,modified,this.home,tmp);
 
       File deployed = new File(tmp);

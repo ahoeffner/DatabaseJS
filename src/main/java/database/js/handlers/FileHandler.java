@@ -16,6 +16,8 @@ import database.js.config.Config;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
+import database.js.handlers.file.Deployment;
+import database.js.handlers.file.Deployment.StaticFile;
 
 
 public class FileHandler extends Handler
@@ -36,6 +38,8 @@ public class FileHandler extends Handler
     request.server().request();
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
+
+    StaticFile file = Deployment.get().get(path);
     
     response.setLastModified();
     response.setBody("Hello there");

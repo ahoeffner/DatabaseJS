@@ -360,7 +360,9 @@ public class Server extends Thread
       {
         while(true)
         {
-          Deployment.get().index();
+          if (this.isHttpType())
+            Deployment.get().index();
+
           Cluster.setStatistics(this);
 
           this.wait(this.heartbeat);
