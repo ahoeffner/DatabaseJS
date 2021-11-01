@@ -149,7 +149,7 @@ public class HTTPServer extends Thread
 
     try
     {
-      Deployment.init(config);
+      Deployment.get().deploy();
       ServerSocketChannel server = ServerSocketChannel.open();
 
       server.configureBlocking(false);

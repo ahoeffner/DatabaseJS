@@ -53,10 +53,7 @@ public class Deployment
   public static synchronized void init(Config config) throws Exception
   {
     if (deployment == null) 
-    {
       deployment = new Deployment(config);
-      deployment.deploy();
-    }
   }
   
   
@@ -82,41 +79,72 @@ public class Deployment
       }
     }
 
-    Date mod = new Date();
-    File home = new File(this.home);
-    mod.setTime(home.lastModified());
-    String deployment = this.deploy + sep + home.lastModified();
+    File deploy = new File(this.deploy + sep + modified);
     
-    File deploy = new File(deployment);
-
-    if (!deploy.exists())
-    {
-      refresh();      
-    }
+    if (!deploy.exists() && !index())
+      deploy();      
     
     return(this.index.get(path));
   }
   
   
-  public void refresh()
+  public synchronized boolean index() throws Exception
   {
-    long newest = 0;
-    File deployed = new File(this.deploy);
-    File[] deployments = deployed.listFiles();
+    long latest = latest();
+    if (latest == modified) return(false);
+    String modified = format.format(latest);
     
-    for(File deployment : deployments)
+    String deployment = this.deploy + sep + latest;
+    if (!(new File(deployment).exists())) return(false);
+    
+    logger.info("indexing "+latest);
+    HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
+    
+    index(index,modified,this.home,deployment);
+    
+    this.index = index;
+    this.modified = latest;
+    synchronized(this) {this.notifyAll();}
+    
+    return(true);
+  }
+  
+  
+  private void index(HashMap<String,StaticFile> index, String modified, String fr, String to) throws Exception
+  {
+    File source = new File(fr);
+    String[] entries = source.list();
+    
+    for(String entry : entries)
     {
-      String name = deployment.getName();
-      char fc = deployment.getName().charAt(0);
+      String dfr = fr + sep + entry;
+      String dto = to + sep + entry;
       
-      if (fc >= '0' && fc <= '9')
+      File deploy = new File(dfr);
+      if (deploy.isDirectory())
       {
-        long mod = 0;
+        index(index,modified,dfr,dto);
+      }
+      else
+      {
+        boolean cache = false;
+        boolean compress = false;
+        long size = deploy.length();
+        dfr = dfr.substring(this.home.length());
         
-        try {mod = Long.parseLong(name);} 
-        catch (Exception e) {;}
+        for(FilePattern fpatrn : this.cache)
+        {
+          if (size <= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
+            cache = true;
+        }
         
-        if (mod > newest) newest = mod;
+        for(FilePattern fpatrn : this.compression)
+        {
+          if (size >= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
+            compress = true;
+        }
+        
+        index.put(dfr,new StaticFile(modified,deploy.getName(),dto,cache,compress));
       }
     }
   }
@@ -127,22 +155,24 @@ public class Deployment
     Date mod = new Date();
     File home = new File(this.home);
     mod.setTime(home.lastModified());
+    String modified = format.format(mod);      
+
     String dep = this.deploy + sep + home.lastModified();
     String tmp = this.deploy + sep + "d" + home.lastModified();
     HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
     
     if (!(new File(dep).exists())) 
     {
-      String modified = format.format(mod);      
+      logger.info("deploying");
       deploy(index,modified,this.home,tmp);
 
       File deployed = new File(tmp);
       deployed.renameTo(new File(dep));
+      
+      this.index = index;
+      this.modified = home.lastModified();
+      synchronized(this) {this.notifyAll();}
     }
-    
-    this.index = index;
-    this.modified = home.lastModified();
-    synchronized(this) {this.notifyAll();}
   }
   
   
@@ -150,9 +180,9 @@ public class Deployment
   {
     File source = new File(fr);
     File target = new File(to);
-    if (!target.exists()) target.mkdirs();
-    
+        
     String[] entries = source.list();
+    if (!target.exists()) target.mkdirs();
     
     for(String entry : entries)
     {
@@ -229,6 +259,33 @@ public class Deployment
     gout.close();
     out.close();
     in.close();
+  }
+  
+  
+  public long latest() throws Exception
+  {
+    long latest = 0;
+    
+    File deployed = new File(this.deploy);
+    File[] deployments = deployed.listFiles();
+    
+    for(File deployment : deployments)
+    {
+      String name = deployment.getName();
+      char fc = deployment.getName().charAt(0);
+      
+      if (fc >= '0' && fc <= '9')
+      {
+        long mod = 0;
+        
+        try {mod = Long.parseLong(name);} 
+        catch (Exception e) {;}
+        
+        if (mod > latest) latest = mod;
+      }
+    }
+    
+    return(latest);
   }
   
   

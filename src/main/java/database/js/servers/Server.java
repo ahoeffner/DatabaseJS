@@ -30,6 +30,7 @@ import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
 import database.js.cluster.Cluster.ServerType;
+import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPServerType;
 
 
@@ -110,6 +111,7 @@ public class Server extends Thread
     else
     {
       this.rest = null;
+      Deployment.init(config);
       this.embedded = servers <= 0;
 
       if (this.embedded) this.loadblcr = null;
@@ -358,6 +360,7 @@ public class Server extends Thread
       {
         while(true)
         {
+          Deployment.get().index();
           Cluster.setStatistics(this);
 
           this.wait(this.heartbeat);
