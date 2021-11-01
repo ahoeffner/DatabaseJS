@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.servers.rest.RESTClient;
+import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
@@ -55,6 +56,9 @@ public class AdminHandler extends Handler
         
     if (request.path().equals("/shutdown"))
       server.shutdown();      
+        
+    if (request.path().equals("/deploy"))
+      Deployment.get().deploy();
 
     return(response);
   }
