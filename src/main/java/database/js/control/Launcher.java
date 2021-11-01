@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import database.js.cluster.Cluster;
 import database.js.handlers.Handler;
 import database.js.cluster.Statistics;
+import database.js.handlers.file.Deployment;
 
 
 /**
@@ -79,9 +80,10 @@ public class Launcher implements ILauncher
 
       switch(cmd)
       {
-        case "start": launcher.start();  break;
-        case "stop": launcher.stop(url);  break;
-        case "status": launcher.status();  break;
+        case "start"  : launcher.start();       break;
+        case "stop"   : launcher.stop(url);     break;
+        case "status" : launcher.status();      break;
+        case "deploy" : launcher.deploy(url);   break;
 
         default: usage();
       }
@@ -96,7 +98,7 @@ public class Launcher implements ILauncher
 
   private static void usage()
   {
-    System.out.println("usage database.js start|stop|status");
+    System.out.println("usage database.js start|stop|deploy|status");
     System.exit(-1);
   }
   
@@ -172,6 +174,42 @@ public class Launcher implements ILauncher
 
     Process process = new Process(config);
     process.start(Process.Type.http,0);
+  }
+
+
+  public void deploy(String url) throws Exception
+  {
+    if (url == null)
+    {
+      logger.fine("Deploying");
+      Deployment.init(config);
+      Deployment.get().deploy();
+    }
+    else
+    {
+      if (url.startsWith("http://"))
+        url = url.substring(7);
+
+      if (url.startsWith("https://"))
+        url = url.substring(8);
+      
+      int pos = url.indexOf(':') + 1;
+      int admin = config.getPorts()[2];
+      
+      if (pos > 1)
+      {
+        admin = Integer.parseInt(url.substring(pos));
+        url = url.substring(0,pos-1);
+      }
+
+      Client client = new Client(url,admin,true);
+
+      logger.fine("Connecting");
+      client.connect();
+
+      logger.fine("Sending message");
+      client.send("deploy");
+    }
   }
 
 

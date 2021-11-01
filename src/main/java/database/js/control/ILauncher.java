@@ -23,4 +23,5 @@ public interface ILauncher
   Logger logger() throws Exception;
   void setConfig() throws Exception;
   void stop(String url) throws Exception;
+  void deploy(String url) throws Exception;
 }

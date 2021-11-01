@@ -163,7 +163,9 @@ public class Deployment
     
     if (!(new File(dep).exists())) 
     {
-      logger.info("Deploying website");
+      if (logger.getHandlers().length < 0)
+        logger.info("Deploying website");
+      
       deploy(index,modified,this.home,tmp);
 
       File deployed = new File(tmp);
