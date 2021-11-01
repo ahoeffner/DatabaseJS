@@ -27,6 +27,9 @@ import database.js.handlers.Handler;
 import database.js.cluster.Statistics;
 import database.js.handlers.file.Deployment;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 
 /**
  *
@@ -98,7 +101,7 @@ public class Launcher implements ILauncher
 
   private static void usage()
   {
-    System.out.println("usage database.js start|stop|deploy|status");
+    System.out.println("usage database.js start|stop|deploy|status [url]");
     System.exit(-1);
   }
   
@@ -215,8 +218,18 @@ public class Launcher implements ILauncher
 
   public void status() throws Exception
   {
+    System.out.println(getStatus(config));
+  }
+
+
+  public static String getStatus(Config config) throws Exception
+  {
     String line = null;
-    System.out.println();
+    
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    PrintStream out = new PrintStream(bout);
+    
+    out.println();
 
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     ArrayList<Statistics> statistics = Cluster.getStatistics(config);
@@ -236,12 +249,12 @@ public class Launcher implements ILauncher
 
     // Memory
 
-    System.out.println("Memory in MB");
+    out.println("Memory in MB");
     line = String.format("%40s"," ").replace(" ","-");
 
-    System.out.println(line);
-    System.out.println("|"+hid+" |"+htotal+" |"+halloc+" |"+hused+" |");
-    System.out.println(line);
+    out.println(line);
+    out.println("|"+hid+" |"+htotal+" |"+halloc+" |"+hused+" |");
+    out.println(line);
 
     for (Statistics stats : statistics)
     {
@@ -254,27 +267,27 @@ public class Launcher implements ILauncher
       String tm = String.format(" %9s ",stats.totmem()/(1024*1024));
       String um = String.format(" %8s ",stats.usedmem()/(1024*1024));
 
-      System.out.print("|"+id+"");
-      System.out.print("|"+tm+"");
-      System.out.print("|"+am+"");
-      System.out.print("|"+um+"");
+      out.print("|"+id+"");
+      out.print("|"+tm+"");
+      out.print("|"+am+"");
+      out.print("|"+um+"");
 
-      System.out.print("|");
-      System.out.print(System.lineSeparator());
+      out.print("|");
+      out.print(System.lineSeparator());
     }
 
-    System.out.println(line);
-    System.out.println();
+    out.println(line);
+    out.println();
 
 
     // Processes
 
-    System.out.println("Processes");
+    out.println("Processes");
     line = String.format("%77s"," ").replace(" ","-");
 
-    System.out.println(line);
-    System.out.println("|"+hid+" |"+hpid+" |"+htype+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");
-    System.out.println(line);
+    out.println(line);
+    out.println("|"+hid+" |"+hpid+" |"+htype+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");
+    out.println(line);
 
     for (Statistics stats : statistics)
     {
@@ -309,19 +322,22 @@ public class Launcher implements ILauncher
 
       String started = " "+format.format(new Date(stats.started()))+" ";
 
-      System.out.print("|"+id+"");
-      System.out.print("|"+pid+"");
-      System.out.print("|"+type+"");
-      System.out.print("|"+started+"");
-      System.out.print("|"+uptime+"");
-      System.out.print("|"+hits+"");
+      out.print("|"+id+"");
+      out.print("|"+pid+"");
+      out.print("|"+type+"");
+      out.print("|"+started+"");
+      out.print("|"+uptime+"");
+      out.print("|"+hits+"");
 
-      System.out.print("|");
-      System.out.print(System.lineSeparator());
+      out.print("|");
+      out.print(System.lineSeparator());
     }
 
-    System.out.println(line);
-    System.out.println();
+    out.println(line);
+    out.println();
+    
+    out.flush();
+    return(new String(bout.toByteArray()));
   }
 
 
