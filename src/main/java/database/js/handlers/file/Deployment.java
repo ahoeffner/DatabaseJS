@@ -290,10 +290,26 @@ public class Deployment
         if (mod > 0 && mod != this.modified)
         {
           File old = new File(this.deploy + sep + mod);
-          old.delete();
+          delete(old);
         }
       }
     }
+  }
+  
+  
+  private void delete(File file)
+  {
+    File[] entries = file.listFiles();
+    
+    for(File entry : entries)
+    {
+      if (entry.isDirectory())
+        delete(entry);
+
+      entry.delete();
+    }
+    
+    file.delete();
   }
   
   
