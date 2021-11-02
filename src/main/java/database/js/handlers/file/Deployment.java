@@ -245,7 +245,7 @@ public class Deployment
   
   public long latest() throws Exception
   {
-    long latest = 0;
+    long latest = modified;
     
     File deployed = new File(this.deploy);
     File[] deployments = deployed.listFiles();
