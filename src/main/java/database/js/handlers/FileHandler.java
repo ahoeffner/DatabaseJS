@@ -13,10 +13,10 @@
 package database.js.handlers;
 
 import database.js.config.Config;
+import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.handlers.file.Deployment;
 import database.js.handlers.file.Deployment.StaticFile;
 
 
@@ -41,7 +41,16 @@ public class FileHandler extends Handler
 
     StaticFile file = Deployment.get().get(path);
     
-    response.setLastModified();
+    if (file == null)
+    {
+      response.setResponse(403);
+      
+      response.setBody("<b>Page not found</b><br>"+
+                       "The requested URL \""+request.path()+"\" was not found on this server.");
+      return(response);
+    }
+    
+    response.setLastModified(Deployment.modified());
     response.setBody("Hello there");
     
     return(response);

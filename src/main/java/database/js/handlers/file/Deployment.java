@@ -70,9 +70,9 @@ public class Deployment
   }
 
 
-  public Date modified()
+  public static Date modified()
   {
-    return(moddate);
+    return(deployment.moddate);
   }
 
 
