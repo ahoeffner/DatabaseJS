@@ -14,7 +14,6 @@ package database.js.handlers.file;
 
 import java.io.File;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.io.Serializable;
 import java.io.FileInputStream;
@@ -25,6 +24,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.zip.GZIPOutputStream;
 import database.js.config.HTTP.FilePattern;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Deployment
@@ -41,7 +41,7 @@ public class Deployment
 
   private long modified = 0;
   private Date moddate = null;
-  private HashMap<String,StaticFile> index = null;
+  private ConcurrentHashMap<String,StaticFile> index = null;
 
   private static final String sep = File.separator;
 
@@ -94,6 +94,14 @@ public class Deployment
 
     return(this.index.get(path));
   }
+  
+  
+  public boolean isDirectory(String path)
+  {
+    if (!sep.equals("/")) path = path.replaceAll("/",sep);
+    File file = new File(this.deploy + sep + modified + path);
+    return(file.isDirectory());
+  }
 
 
   @SuppressWarnings("unchecked")
@@ -107,12 +115,14 @@ public class Deployment
     if (!(new File(deployment).exists())) return(false);
 
     logger.info("Indexing website");
-    HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
+    
+    ConcurrentHashMap<String,StaticFile> index = 
+      new ConcurrentHashMap<String,StaticFile>();
 
     FileInputStream fin = new FileInputStream(deployment + sep + ".index");
     ObjectInputStream oin = new ObjectInputStream(fin);
 
-    index = (HashMap<String,StaticFile>) oin.readObject();
+    index = (ConcurrentHashMap<String,StaticFile>) oin.readObject();
 
     this.index = index;
     this.modified = latest;
@@ -130,7 +140,9 @@ public class Deployment
 
     String dep = this.deploy + sep + home.lastModified();
     String tmp = this.deploy + sep + "d" + home.lastModified();
-    HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
+    
+    ConcurrentHashMap<String,StaticFile> index = 
+      new ConcurrentHashMap<String,StaticFile>();
 
     if (!(new File(dep).exists()))
     {
@@ -160,7 +172,7 @@ public class Deployment
   }
 
 
-  private void deploy(HashMap<String,StaticFile> index, String fr, String to, String dest) throws Exception
+  private void deploy(ConcurrentHashMap<String,StaticFile> index, String fr, String to, String dest) throws Exception
   {
     File source = new File(fr);
     File target = new File(to);
@@ -201,7 +213,8 @@ public class Deployment
         if (!compress) copy(deploy,dto);
         else           compress(deploy,dto);
 
-        index.put(dfr,new StaticFile(deploy.getName(),des,cache,compress));
+        String vpath = dfr.replaceAll("\\\\","/");
+        index.put(vpath,new StaticFile(vpath,des,cache,compress));
       }
     }
   }
@@ -333,14 +346,13 @@ public class Deployment
 
 
     StaticFile(String virpath, String actpath, boolean cache, boolean compressed)
-    {
+    {      
       this.cache = cache;
       this.virpath = virpath;
       this.actpath = actpath;
       this.compressed = compressed;
-      
       int pos = virpath.lastIndexOf('.');
-      
+            
       if (pos < 0) this.fileext = "";
       else if (compressed) this.fileext = "application/gzip";
       else this.fileext = virpath.substring(pos+1);
