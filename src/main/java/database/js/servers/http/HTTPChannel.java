@@ -35,7 +35,7 @@ public class HTTPChannel
   private final boolean ssl;
   private final boolean admin;
   private final boolean reqssl;
-  
+
   private final Server server;
   private final Config config;
   private final Logger logger;
@@ -54,13 +54,13 @@ public class HTTPChannel
     this.channel = channel;
     this.connected = false;
     this.config = server.config();
-    this.buffers = new HTTPBuffers();
     this.logger = config.getLogger().logger;
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
     {
       this.engine = null;
+      this.buffers = new HTTPBuffers();
       channel.socket().setSendBufferSize(buffers.size());
       channel.socket().setReceiveBufferSize(buffers.size());
     }
@@ -69,14 +69,14 @@ public class HTTPChannel
       PKIContext pki = config.getPKIContext();
       this.engine = pki.getSSLContext().createSSLEngine();
 
-      this.engine.setUseClientMode(true);      
-      this.buffers.setSize(appsize(),packsize());
+      this.engine.setUseClientMode(true);
+      this.buffers = new HTTPBuffers(appsize(),packsize());
 
       channel.socket().setSendBufferSize(packsize());
       channel.socket().setReceiveBufferSize(packsize());
     }
   }
-  
+
 
   public HTTPChannel(Server server, ThreadPool workers, SocketChannel channel, boolean ssl, boolean admin) throws Exception
   {
@@ -87,13 +87,13 @@ public class HTTPChannel
     this.channel = channel;
     this.connected = false;
     this.config = server.config();
-    this.buffers = new HTTPBuffers();
     this.logger = config.getLogger().logger;
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
     {
       this.engine = null;
+      this.buffers = new HTTPBuffers();
       channel.socket().setSendBufferSize(buffers.size());
       channel.socket().setReceiveBufferSize(buffers.size());
     }
@@ -104,8 +104,7 @@ public class HTTPChannel
 
       this.engine.setUseClientMode(false);
       this.engine.setNeedClientAuth(admin);
-      
-      this.buffers.setSize(appsize(),packsize());
+      this.buffers = new HTTPBuffers(appsize(),packsize());
 
       channel.socket().setSendBufferSize(packsize());
       channel.socket().setReceiveBufferSize(packsize());
@@ -130,51 +129,51 @@ public class HTTPChannel
     if (ssl || admin) return(false);
     else              return(reqssl);
   }
-  
-  
+
+
   public Socket socket()
   {
     return(channel.socket());
   }
-  
-  
+
+
   public Server server()
   {
     return(server);
   }
-  
-  
+
+
   public Config config()
   {
     return(config);
   }
-  
-  
+
+
   Logger logger()
   {
     return(logger);
   }
-  
-  
+
+
   ThreadPool workers()
   {
     return(workers);
   }
-  
-  
+
+
   SocketChannel channel()
   {
-    return(channel);  
+    return(channel);
   }
-  
-  
+
+
   void failed()
   {
     try {channel.close();}
     catch (Exception e) {;}
   }
-  
-  
+
+
   public boolean connected()
   {
     return(connected);
@@ -185,7 +184,7 @@ public class HTTPChannel
   {
     connect("localhost",port);
   }
-  
+
 
   public void connect(String host, int port) throws Exception
   {
@@ -193,14 +192,14 @@ public class HTTPChannel
     while(!channel.finishConnect()) Thread.sleep(1);
     if (ssl) this.accept();
   }
-  
-  
+
+
   public void close() throws Exception
   {
     this.channel.close();
   }
-  
-  
+
+
   public void configureBlocking(boolean block) throws Exception
   {
     this.channel.configureBlocking(block);
@@ -220,7 +219,7 @@ public class HTTPChannel
     {
       logger.log(Level.WARNING,e.getMessage(),e);
     }
-    
+
     return(buf);
   }
 
@@ -230,15 +229,20 @@ public class HTTPChannel
     try
     {
       buffers.alloc();
-
       int read = channel.read(buffers.data);
-      if (read <= 0) return(null);
+
+      if (read <= 0)
+      {
+        buffers.done();
+        return(null);
+      }
 
       buffers.data.flip();
-      return(buffers.data);
+      return(buffers.done());
     }
     catch (Exception e)
     {
+      buffers.done();
       String msg = e.getMessage();
       if (msg == null) msg = "unknown";
       if (!msg.equals("Connection reset")) throw e;
@@ -255,7 +259,12 @@ public class HTTPChannel
       buffers.sslb.clear();
 
       int read = channel.read(buffers.sslb);
-      if (read < 0) return(null);
+
+      if (read <= 0)
+      {
+        buffers.done();
+        return(null);
+      }
 
       buffers.sslb.flip();
       while(buffers.sslb.hasRemaining())
@@ -277,6 +286,7 @@ public class HTTPChannel
             break;
 
           case CLOSED:
+            buffers.done();
             return(null);
         }
       }
@@ -284,11 +294,12 @@ public class HTTPChannel
     catch (Exception e)
     {
       handle(e);
+      buffers.done();
       return(null);
     }
 
     buffers.data.flip();
-    return(buffers.data);
+    return(buffers.done());
   }
 
 
@@ -298,7 +309,7 @@ public class HTTPChannel
     byte[] data = new byte[read]; buf.get(data);
     write(data);
   }
-  
+
 
   public void write(byte[] data) throws Exception
   {
@@ -324,32 +335,19 @@ public class HTTPChannel
 
       if (ssl) writessl();
       else     writeplain();
-      
+
       wrote += chunk;
-      buffers.alloc();
+      buffers.alloc(true);
     }
+
+    buffers.done();
   }
 
 
   private void writeplain() throws Exception
   {
-    channel.write(buffers.data);
-    
-    try
-    {
-      while(buffers.data.hasRemaining())
-      {
-        Thread.sleep(1);
-        if (buffers.data.position() < buffers.data.limit())
-          channel.write(buffers.data);      
-      }
-    }
-    catch (Exception e)
-    {
-      if (!(e instanceof ClosedChannelException))
-        throw e;
-    }
-    
+    while(buffers.data.hasRemaining())
+      channel.write(buffers.data);
   }
 
 
@@ -375,6 +373,7 @@ public class HTTPChannel
           break;
 
         case BUFFER_UNDERFLOW:
+          buffers.done();
           throw new IllegalStateException("Unexpected behaivior");
       }
     }
@@ -403,7 +402,7 @@ public class HTTPChannel
     SSLEngineResult result = null;
     HandshakeStatus status = null;
 
-    buffers.allocssl();
+    buffers.handshake();
 
     try
     {
@@ -422,7 +421,7 @@ public class HTTPChannel
             {
               if (engine.isInboundDone() && engine.isOutboundDone())
               {
-                this.buffers.ssldone();
+                this.buffers.done();
                 this.connected = true;
                 return(this.connected);
               }
@@ -444,7 +443,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
-              this.buffers.ssldone();
+              this.buffers.done();
               engine.closeOutbound();
               this.connected = false;
               return(this.connected);
@@ -484,7 +483,7 @@ public class HTTPChannel
             catch (Exception e)
             {
               handle(e);
-              this.buffers.ssldone();
+              this.buffers.done();
               engine.closeOutbound();
               this.connected = false;
               return(this.connected);
@@ -558,7 +557,7 @@ public class HTTPChannel
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    this.buffers.ssldone();
+    this.buffers.done();
 
     if (result == null)
     {

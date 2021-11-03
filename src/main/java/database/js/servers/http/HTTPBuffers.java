@@ -17,21 +17,40 @@ import java.nio.ByteBuffer;
 
 class HTTPBuffers
 {
-  private int asize = 0;
-  private int psize = 0;
-  private int size = 4*1024;
-  private boolean windows = false;
-
   ByteBuffer send;
   ByteBuffer data;
   ByteBuffer recv;
   ByteBuffer sslb;
+
+  private final int size;
+  private final int asize;
+  private final int psize;
+  private final boolean ssl;
+
+  private static int SIZE = 4*1024;
+  
+  
+  public static void setSize(int size)
+  {
+    SIZE = size;
+  }
   
   
   public HTTPBuffers()
   {
-    if (System.getProperty("os.name").toLowerCase().contains("windows"))
-      windows = true;
+    this.asize = 0;
+    this.psize = 0;
+    this.size = SIZE;
+    this.ssl = false;
+  }
+  
+  
+  public HTTPBuffers(int asize, int psize)
+  {
+    this.ssl = true;
+    this.size = SIZE;
+    this.asize = asize;
+    this.psize = psize;
   }
   
   
@@ -39,23 +58,23 @@ class HTTPBuffers
   {
     return(size);
   }
+  
+  
+  public void alloc(boolean free)
+  {
+    if (free) done();
+    alloc();
+  }
 
 
   public void alloc()
   {
-    if (this.data != null && !windows) this.data.clear();
-    else this.data = ByteBuffer.allocateDirect(size);
+    this.data = ByteBuffer.allocateDirect(size);
+    if (ssl) this.sslb = ByteBuffer.allocateDirect(psize);
   }
 
 
-  public void setSize(int asize, int psize)
-  {
-    this.asize = asize;
-    this.psize = psize;
-  }
-
-
-  public void allocssl()
+  public void handshake()
   {
     this.data = ByteBuffer.allocateDirect(asize);
     this.send = ByteBuffer.allocateDirect(psize);
@@ -63,15 +82,15 @@ class HTTPBuffers
   }
 
 
-  public void donex()
+  public ByteBuffer done()
   {
+    ByteBuffer data = this.data;
+    
     this.data = null;
-  }
-
-
-  public void ssldone()
-  {
+    this.sslb = null;
     this.send = null;
-    this.sslb = recv;
+    this.recv = null;
+    
+    return(data);
   }
 }
