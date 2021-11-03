@@ -58,6 +58,7 @@ public class HTTPServer extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
+    HTTPBuffers.setSize(config.getHTTP().bufsize());
 
     switch(type)
     {

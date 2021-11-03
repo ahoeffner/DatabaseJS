@@ -24,6 +24,7 @@ public class HTTP
   private final int ssl;
   private final int plain;
   private final int admin;
+  private final int bsize;
   private final String path;
   private final String tmppath;
   private final String virtstr;
@@ -38,6 +39,8 @@ public class HTTP
   
   HTTP(Handlers handlers, JSONObject config) throws Exception
   {
+    this.bsize = config.getInt("buffer");
+    
     JSONObject app = config.getJSONObject("application");
     
     String apppath = null;
@@ -157,6 +160,11 @@ public class HTTP
   public int admin()
   {
     return(admin);
+  }
+
+  public int bufsize()
+  {
+    return(bsize);
   }
 
   public String getAppPath()
