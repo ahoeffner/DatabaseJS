@@ -44,8 +44,7 @@ public class FileHandler extends Handler
     if (file == null)
     {
       response.setResponse(403);
-      
-      response.setBody("<b>Page not found</b><br>"+
+      response.setBody("<b>Page not found</b><br><br>"+
                        "The requested URL \""+request.path()+"\" was not found on this server.");
       return(response);
     }
