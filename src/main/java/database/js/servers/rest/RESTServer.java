@@ -195,16 +195,8 @@ public class RESTServer implements RESTConnection
     {
       channel.configureBlocking(false);
       channel.socket().setSoTimeout(2000);
-      channel.connect(port);
 
-/*
-      for (int i = 0; i < 8; i++)
-      {
-        Thread.sleep(25);
-        channel.socket().getOutputStream().flush();
-        //Make absolute sure response is flushed
-      }
-*/      
+      channel.connect(port);
       channel.configureBlocking(true);
 
       HTTPRequest request = new HTTPRequest("localhost","/connect");      
