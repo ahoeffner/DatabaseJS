@@ -137,7 +137,7 @@ public class Deployment
       if (logger.getHandlers().length < 0)
         logger.info("Deploying website");
 
-      deploy(index,this.home,tmp);
+      deploy(index,this.home,tmp,dep);
 
       File deployed = new File(tmp);
       deployed.renameTo(new File(dep));
@@ -160,7 +160,7 @@ public class Deployment
   }
 
 
-  private void deploy(HashMap<String,StaticFile> index, String fr, String to) throws Exception
+  private void deploy(HashMap<String,StaticFile> index, String fr, String to, String dest) throws Exception
   {
     File source = new File(fr);
     File target = new File(to);
@@ -172,11 +172,12 @@ public class Deployment
     {
       String dfr = fr + sep + entry;
       String dto = to + sep + entry;
+      String des = dest + sep + entry;
 
       File deploy = new File(dfr);
       if (deploy.isDirectory())
       {
-        deploy(index,dfr,dto);
+        deploy(index,dfr,dto,des);
       }
       else
       {
@@ -200,7 +201,7 @@ public class Deployment
         if (!compress) copy(deploy,dto);
         else           compress(deploy,dto);
 
-        index.put(dfr,new StaticFile(deploy.getName(),dto,cache,compress));
+        index.put(dfr,new StaticFile(deploy.getName(),des,cache,compress));
       }
     }
   }
@@ -334,6 +335,21 @@ public class Deployment
       this.virpath = virpath;
       this.actpath = actpath;
       this.compressed = compressed;
+    }
+    
+    
+    public byte[] get() throws Exception
+    {
+      File file = new File(actpath);
+      if (!file.exists()) throw new Exception("File "+actpath+" not found");
+      
+      byte[] content = new byte[(int) file.length()];
+      FileInputStream in = new FileInputStream(file);
+      
+      int read = in.read(content);
+      if (read != content.length) throw new Exception("Read "+actpath+" returned partial result");
+      
+      return(content);
     }
   }
 }

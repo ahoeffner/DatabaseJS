@@ -12,7 +12,10 @@
 
 package database.js.handlers;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.control.Process.Type;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
@@ -36,8 +39,10 @@ public class FileHandler extends Handler
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
     request.server().request();
+    Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
+
 
     StaticFile file = Deployment.get().get(path);
     
@@ -49,8 +54,23 @@ public class FileHandler extends Handler
       return(response);
     }
     
+    byte[] content = null;
+    
+    try
+    {
+      content = file.get();
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+
+      response.setResponse(500);
+      response.setBody("<b>Internal Server Error</b>");
+      return(response);
+    }
+    
+    response.setBody(content);
     response.setLastModified(Deployment.modified());
-    response.setBody("Hello there");
     
     return(response);
   }
