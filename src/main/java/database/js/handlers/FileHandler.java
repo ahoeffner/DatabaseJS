@@ -49,6 +49,7 @@ public class FileHandler extends Handler
     if (file == null)
     {
       response.setResponse(403);
+      response.setContentType("text/html");
       response.setBody("<b>Page not found</b><br><br>"+
                        "The requested URL \""+request.path()+"\" was not found on this server.");
       return(response);
@@ -65,6 +66,7 @@ public class FileHandler extends Handler
       logger.log(Level.SEVERE,e.getMessage(),e);
 
       response.setResponse(500);
+      response.setContentType("text/html");
       response.setBody("<b>Internal Server Error</b>");
       return(response);
     }

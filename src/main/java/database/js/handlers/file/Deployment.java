@@ -353,13 +353,18 @@ public class Deployment
         return(content);
       
       File file = new File(actpath);
-      if (!file.exists()) throw new Exception("File "+actpath+" not found");
       
-      byte[] content = new byte[(int) file.length()];
+      if (!file.exists()) 
+        throw new Exception("File "+actpath+" not found");
+      
       FileInputStream in = new FileInputStream(file);
+      byte[] content = new byte[(int) file.length()];
       
       int read = in.read(content);
-      if (read != content.length) throw new Exception("Read "+actpath+" returned partial result");
+      in.close();
+      
+      if (read != content.length) 
+        throw new Exception("Read "+actpath+" returned partial result");
       
       if (cache) 
         this.content = content;
