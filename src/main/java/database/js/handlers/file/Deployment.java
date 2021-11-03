@@ -325,6 +325,8 @@ public class Deployment
 
     public final boolean cache;
     public final boolean compressed;
+    
+    private transient byte[] content = null;
 
     @SuppressWarnings("compatibility:-4436880408631246090")
     private static final long serialVersionUID = 5613263707445370115L;
@@ -340,12 +342,16 @@ public class Deployment
       int pos = virpath.lastIndexOf('.');
       
       if (pos < 0) this.fileext = "";
+      else if (compressed) this.fileext = "application/gzip";
       else this.fileext = virpath.substring(pos+1);
     }
     
     
     public byte[] get() throws Exception
     {
+      if (content != null)
+        return(content);
+      
       File file = new File(actpath);
       if (!file.exists()) throw new Exception("File "+actpath+" not found");
       
@@ -354,6 +360,9 @@ public class Deployment
       
       int read = in.read(content);
       if (read != content.length) throw new Exception("Read "+actpath+" returned partial result");
+      
+      if (cache) 
+        this.content = content;
       
       return(content);
     }

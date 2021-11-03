@@ -91,15 +91,12 @@ class HTTPWaiter extends Thread
       synchronized(this)
       {
         for(HTTPChannel client : queue)
-        {
-          ready++;
           client.channel().register(selector,SelectionKey.OP_READ,client);
-        }
 
         queue.clear();        
       }
 
-      ready += selector.select();
+      ready = selector.select();
     }
   }
   
