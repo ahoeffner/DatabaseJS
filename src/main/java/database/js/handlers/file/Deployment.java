@@ -319,13 +319,14 @@ public class Deployment
 
   public static class StaticFile implements Serializable
   {
+    public final String fileext;
     public final String virpath;
     public final String actpath;
 
     public final boolean cache;
     public final boolean compressed;
 
-    @SuppressWarnings("compatibility:3091933754958126888")
+    @SuppressWarnings("compatibility:-4436880408631246090")
     private static final long serialVersionUID = 5613263707445370115L;
 
 
@@ -335,6 +336,11 @@ public class Deployment
       this.virpath = virpath;
       this.actpath = actpath;
       this.compressed = compressed;
+      
+      int pos = virpath.lastIndexOf('.');
+      
+      if (pos < 0) this.fileext = "";
+      else this.fileext = virpath.substring(pos+1);
     }
     
     
@@ -350,6 +356,12 @@ public class Deployment
       if (read != content.length) throw new Exception("Read "+actpath+" returned partial result");
       
       return(content);
+    }
+    
+    
+    public String fileext()
+    {
+      return(fileext);
     }
   }
 }

@@ -16,6 +16,7 @@ import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class HTTP
@@ -32,6 +33,7 @@ public class HTTP
   private final ArrayList<FilePattern> cache;
   private final ArrayList<String> corsdomains;
   private final ArrayList<FilePattern> compression;
+  private final ConcurrentHashMap<String,String> mimetypes;
   
   
   HTTP(Handlers handlers, JSONObject config) throws Exception
@@ -130,6 +132,15 @@ public class HTTP
       
       this.compression.add(new FilePattern(pattern,size));
     }
+    
+    JSONArray mtypes = config.getJSONArray("mimetypes");
+    this.mimetypes = new ConcurrentHashMap<String,String>();
+    
+    for (int i = 0; i < mtypes.length(); i++)
+    {
+      JSONObject entry = mtypes.getJSONObject(i);
+      mimetypes.put(entry.getString("ext"),entry.getString("type"));
+    }    
   }
 
 
@@ -181,6 +192,11 @@ public class HTTP
   public ArrayList<FilePattern> compression()
   {
     return(compression);
+  }
+  
+  public ConcurrentHashMap<String,String> mimetypes()
+  {
+    return(mimetypes);
   }
   
   

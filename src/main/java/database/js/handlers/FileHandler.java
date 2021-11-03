@@ -69,7 +69,12 @@ public class FileHandler extends Handler
       return(response);
     }
     
+    String ext = file.fileext();
+    System.out.println("extension <"+ext+">");
+    String mimetype = config().getHTTP().mimetypes().get(ext);
+    
     response.setBody(content);
+    response.setContentType(mimetype);
     response.setLastModified(Deployment.modified());
     
     return(response);

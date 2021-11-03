@@ -23,6 +23,7 @@ public class HTTPResponse
   private byte[] page;
   private String header;
   private String response;
+  private String mimetype;
   private boolean finished;
 
   private final ArrayList<String> headers =
@@ -70,6 +71,12 @@ public class HTTPResponse
   public void setResponse(int code)
   {
     this.response = HTTPCodes.get(code);
+  }
+  
+  
+  public void setContentType(String mimetype)
+  {
+    this.mimetype = mimetype;
   }
   
   
@@ -172,7 +179,12 @@ public class HTTPResponse
     if (header != null)
       return(header);
     
+    if (mimetype == null)
+      mimetype = "text/plain";
+    
     header = response + EOL;
+
+    setHeader("Content-Type",mimetype);    
     for(String h : headers) header += h+EOL;
     
     header += EOL;
