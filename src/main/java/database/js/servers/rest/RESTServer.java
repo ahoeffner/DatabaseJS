@@ -115,6 +115,7 @@ public class RESTServer implements RESTConnection
       if (++tries > 256)
       {
         logger.severe("Unable to connect to HTTPServer, bailing out");
+        server.shutdown(false);
         System.exit(-1);
       }
       
@@ -194,10 +195,10 @@ public class RESTServer implements RESTConnection
     try
     {
       channel.configureBlocking(false);
-      channel.socket().setSoTimeout(2000);
 
       channel.connect(port);
       channel.configureBlocking(true);
+      channel.socket().setSoTimeout(2000);
 
       HTTPRequest request = new HTTPRequest("localhost","/connect");      
       request.setBody(server.id()+" "+server.started());

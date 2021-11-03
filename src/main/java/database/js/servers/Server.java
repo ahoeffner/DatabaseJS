@@ -158,10 +158,7 @@ public class Server extends Thread
     admin.start();
 
     while(admin.state() < HTTPServer.RUNNING)
-    {
-      logger.finest("HTTP Status "+admin.getState());
       try {sleep(1);} catch (Exception e) {;}
-    }
 
     if (admin.state() != HTTPServer.RUNNING)
     {
@@ -268,7 +265,13 @@ public class Server extends Thread
 
   public void shutdown()
   {
-    Cluster.stop();
+    shutdown(true);
+  }
+
+
+  public void shutdown(boolean all)
+  {
+    if (all) Cluster.stop();
     synchronized(this)
     {this.notify();}
   }

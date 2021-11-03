@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import java.io.FileOutputStream;
 import database.js.config.Config;
 import java.io.ObjectInputStream;
-import java.text.SimpleDateFormat;
 import java.io.ObjectOutputStream;
 import java.util.zip.GZIPOutputStream;
 import database.js.config.HTTP.FilePattern;
@@ -36,31 +35,30 @@ public class Deployment
   private final String deploy;
   private final Config config;
   private final Logger logger;
-  
+
   private final ArrayList<FilePattern> cache;
   private final ArrayList<FilePattern> compression;
-  
+
   private long modified = 0;
-  private String moddate = null;
+  private Date moddate = null;
   private HashMap<String,StaticFile> index = null;
-  
+
   private static final String sep = File.separator;
-  private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
-  
-  
+
+
   public static Deployment get()
   {
     return(deployment);
   }
-  
-  
+
+
   public static synchronized void init(Config config) throws Exception
   {
-    if (deployment == null) 
+    if (deployment == null)
       deployment = new Deployment(config);
   }
-  
-  
+
+
   public Deployment(Config config) throws Exception
   {
     this.config = config;
@@ -70,8 +68,14 @@ public class Deployment
     this.deploy = this.config.getHTTP().getTmpPath();
     this.compression = this.config.getHTTP().compression();
   }
-  
-  
+
+
+  public Date modified()
+  {
+    return(moddate);
+  }
+
+
   public StaticFile get(String path) throws Exception
   {
     if (this.index == null)
@@ -84,10 +88,10 @@ public class Deployment
     }
 
     File deploy = new File(this.deploy + sep + modified);
-    
+
     if (!deploy.exists() && !index())
-      deploy();      
-    
+      deploy();
+
     return(this.index.get(path));
   }
 
@@ -97,83 +101,82 @@ public class Deployment
   {
     long latest = latest();
     if (latest == modified) return(false);
-    String modified = format.format(latest);
-    
+
+    Date modified = new Date(latest);
     String deployment = this.deploy + sep + latest;
     if (!(new File(deployment).exists())) return(false);
-    
+
     logger.info("Indexing website");
     HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
 
     FileInputStream fin = new FileInputStream(deployment + sep + ".index");
     ObjectInputStream oin = new ObjectInputStream(fin);
-    
+
     index = (HashMap<String,StaticFile>) oin.readObject();
-    
+
     this.index = index;
     this.modified = latest;
     this.moddate = modified;
-    
+
     return(true);
   }
-  
-  
+
+
   public synchronized void deploy() throws Exception
   {
-    Date mod = new Date();
+    Date modified = new Date();
     File home = new File(this.home);
-    mod.setTime(home.lastModified());
-    String modified = format.format(mod);      
+    modified.setTime(home.lastModified());
 
     String dep = this.deploy + sep + home.lastModified();
     String tmp = this.deploy + sep + "d" + home.lastModified();
     HashMap<String,StaticFile> index = new HashMap<String,StaticFile>();
-    
-    if (!(new File(dep).exists())) 
+
+    if (!(new File(dep).exists()))
     {
       if (logger.getHandlers().length < 0)
         logger.info("Deploying website");
-      
-      deploy(index,modified,this.home,tmp);
+
+      deploy(index,this.home,tmp);
 
       File deployed = new File(tmp);
       deployed.renameTo(new File(dep));
-      
+
       FileOutputStream fout = new FileOutputStream(dep + sep +".index");
       ObjectOutputStream oout = new ObjectOutputStream(fout);
-      
+
       oout.writeObject(index);
-      
+
       oout.close();
       fout.close();
-      
+
       this.index = index;
       this.moddate = modified;
       this.modified = home.lastModified();
       synchronized(this) {this.notifyAll();}
-      
+
       this.cleanup();
     }
   }
-  
-  
-  private void deploy(HashMap<String,StaticFile> index, String modified, String fr, String to) throws Exception
+
+
+  private void deploy(HashMap<String,StaticFile> index, String fr, String to) throws Exception
   {
     File source = new File(fr);
     File target = new File(to);
-        
+
     String[] entries = source.list();
     if (!target.exists()) target.mkdirs();
-    
+
     for(String entry : entries)
     {
       String dfr = fr + sep + entry;
       String dto = to + sep + entry;
-      
+
       File deploy = new File(dfr);
       if (deploy.isDirectory())
       {
-        deploy(index,modified,dfr,dto);
+        deploy(index,dfr,dto);
       }
       else
       {
@@ -181,13 +184,13 @@ public class Deployment
         boolean compress = false;
         long size = deploy.length();
         dfr = dfr.substring(this.home.length());
-        
+
         for(FilePattern fpatrn : this.cache)
         {
           if (size <= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
             cache = true;
         }
-        
+
         for(FilePattern fpatrn : this.compression)
         {
           if (size >= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
@@ -196,13 +199,13 @@ public class Deployment
 
         if (!compress) copy(deploy,dto);
         else           compress(deploy,dto);
-        
+
         index.put(dfr,new StaticFile(deploy.getName(),dto,cache,compress));
       }
     }
   }
-  
-  
+
+
   public void copy(File ifile, String file) throws Exception
   {
     FileInputStream in = new FileInputStream(ifile);
@@ -220,8 +223,8 @@ public class Deployment
     out.close();
     in.close();
   }
-  
-  
+
+
   public void compress(File ifile, String file) throws Exception
   {
     FileInputStream in = new FileInputStream(ifile);
@@ -241,52 +244,52 @@ public class Deployment
     out.close();
     in.close();
   }
-  
-  
+
+
   public long latest() throws Exception
   {
     long latest = modified;
-    
+
     File deployed = new File(this.deploy);
     File[] deployments = deployed.listFiles();
-    
+
     for(File deployment : deployments)
     {
       String name = deployment.getName();
       char fc = deployment.getName().charAt(0);
-      
+
       if (fc >= '0' && fc <= '9')
       {
         long mod = 0;
-        
-        try {mod = Long.parseLong(name);} 
+
+        try {mod = Long.parseLong(name);}
         catch (Exception e) {;}
-        
+
         if (mod > latest) latest = mod;
       }
     }
-    
+
     return(latest);
   }
-  
-  
+
+
   private void cleanup()
   {
     File deployed = new File(this.deploy);
     File[] deployments = deployed.listFiles();
-    
+
     for(File deployment : deployments)
     {
       String name = deployment.getName();
       char fc = deployment.getName().charAt(0);
-      
+
       if (fc >= '0' && fc <= '9')
       {
         long mod = 0;
-        
-        try {mod = Long.parseLong(name);} 
+
+        try {mod = Long.parseLong(name);}
         catch (Exception e) {;}
-        
+
         if (mod > 0 && mod != this.modified)
         {
           File old = new File(this.deploy + sep + mod);
@@ -295,12 +298,12 @@ public class Deployment
       }
     }
   }
-  
-  
+
+
   private void delete(File file)
   {
     File[] entries = file.listFiles();
-    
+
     for(File entry : entries)
     {
       if (entry.isDirectory())
@@ -308,23 +311,23 @@ public class Deployment
 
       entry.delete();
     }
-    
+
     file.delete();
   }
-  
-  
-  public static class StaticFile implements Serializable  
+
+
+  public static class StaticFile implements Serializable
   {
     public final String virpath;
     public final String actpath;
-    
+
     public final boolean cache;
     public final boolean compressed;
-    
+
     @SuppressWarnings("compatibility:3091933754958126888")
     private static final long serialVersionUID = 5613263707445370115L;
 
-    
+
     StaticFile(String virpath, String actpath, boolean cache, boolean compressed)
     {
       this.cache = cache;

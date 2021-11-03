@@ -24,7 +24,6 @@ import database.js.pools.ThreadPool;
 import javax.net.ssl.SSLEngineResult;
 import java.nio.channels.SocketChannel;
 import database.js.security.PKIContext;
-import java.nio.channels.ClosedChannelException;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 
@@ -189,8 +188,13 @@ public class HTTPChannel
   public void connect(String host, int port) throws Exception
   {
     channel.connect(new InetSocketAddress(host,port));
-    while(!channel.finishConnect()) Thread.sleep(1);
-    if (ssl) this.accept();
+    while(!channel.finishConnect()) Thread.sleep(1);        
+    
+    if (ssl) 
+    {      
+      this.accept();
+      Thread.sleep(1);
+    }
   }
 
 
