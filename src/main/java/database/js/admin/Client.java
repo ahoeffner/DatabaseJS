@@ -68,6 +68,8 @@ public class Client
     SocketReader reader = new SocketReader(in);
 
     out.write(request.getPage());
+    out.flush();
+    
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;

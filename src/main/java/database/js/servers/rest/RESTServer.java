@@ -204,7 +204,10 @@ public class RESTServer implements RESTConnection
       request.setBody(server.id()+" "+server.started());
       
       logger.finest("Sending connect request to HTTPServer");
-      channel.write(request.getPage());   
+      channel.write(request.getPage());
+      channel.socket().getOutputStream().flush();
+      
+      
       HTTPResponse response = new HTTPResponse();
 
       logger.finest("Waiting for response from HTTPServer");

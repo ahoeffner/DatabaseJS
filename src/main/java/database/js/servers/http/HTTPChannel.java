@@ -24,6 +24,7 @@ import database.js.pools.ThreadPool;
 import javax.net.ssl.SSLEngineResult;
 import java.nio.channels.SocketChannel;
 import database.js.security.PKIContext;
+import java.nio.channels.ClosedChannelException;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 
@@ -241,6 +242,9 @@ public class HTTPChannel
         return(null);
       }
 
+      if (buffers.data == null)
+        return(buffers.done());
+      
       buffers.data.flip();
       return(buffers.done());
     }
@@ -319,6 +323,7 @@ public class HTTPChannel
   {
     int wrote = 0;
     buffers.alloc();
+    Socket socket = channel.socket();
     int max = buffers.data.capacity();
 
     int size = data.length;
@@ -339,7 +344,13 @@ public class HTTPChannel
 
       if (ssl) writessl();
       else     writeplain();
-
+      
+      if (!socket.isClosed())
+      {
+        try {socket.getOutputStream().flush();}
+        catch (Exception e) {;}
+      }
+      
       wrote += chunk;
       buffers.alloc(true);
     }
@@ -350,14 +361,29 @@ public class HTTPChannel
 
   private void writeplain() throws Exception
   {
-    while(buffers.data.hasRemaining())
-      channel.write(buffers.data);
+    try
+    {
+      int remain = buffers.data.remaining();
+      while(remain > 0) remain -= channel.write(buffers.data);
+    }
+    catch (Exception e)
+    {
+      if (e instanceof ClosedChannelException) 
+      {
+        logger.warning("Client closed connection");
+        return;        
+      }
+      
+      throw e;
+    }
   }
 
 
   private void writessl() throws Exception
   {
-    while(buffers.data.hasRemaining())
+    int remain = buffers.data.remaining();
+
+    while(remain > 0)
     {
       buffers.sslb.clear();
       SSLEngineResult result = engine.wrap(buffers.data,buffers.sslb);
@@ -368,7 +394,7 @@ public class HTTPChannel
           buffers.sslb.flip();
 
           while(buffers.sslb.hasRemaining())
-            channel.write(buffers.sslb);
+            remain -= channel.write(buffers.sslb);
 
           break;
 
