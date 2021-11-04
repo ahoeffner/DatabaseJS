@@ -211,20 +211,20 @@ public class Deployment
         long size = deploy.length();
         dfr = dfr.substring(this.home.length());
 
-        for(FilePattern fpatrn : this.cache)
-        {
-          if (size <= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
-            cache = true;
-        }
-
         for(FilePattern fpatrn : this.compression)
         {
           if (size >= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
             compress = true;
         }
 
-        if (!compress) copy(deploy,dto);
-        else           compress(deploy,dto);
+        if (!compress) size = copy(deploy,dto);
+        else           size = compress(deploy,dto);
+
+        for(FilePattern fpatrn : this.cache)
+        {
+          if (size <= fpatrn.size && deploy.getName().matches(fpatrn.pattern))
+            cache = true;
+        }
 
         String vpath = dfr.replaceAll("\\\\","/");
         index.put(vpath,new StaticFile(vpath,des,cache,compress));
@@ -233,7 +233,7 @@ public class Deployment
   }
 
 
-  public void copy(File ifile, String file) throws Exception
+  public int copy(File ifile, String file) throws Exception
   {
     FileInputStream in = new FileInputStream(ifile);
     FileOutputStream out = new FileOutputStream(file);
@@ -249,10 +249,12 @@ public class Deployment
 
     out.close();
     in.close();
+    
+    return((int) ifile.length());
   }
 
 
-  public void compress(File ifile, String file) throws Exception
+  public int compress(File ifile, String file) throws Exception
   {
     FileInputStream in = new FileInputStream(ifile);
     FileOutputStream out = new FileOutputStream(file);
@@ -270,6 +272,9 @@ public class Deployment
     gout.close();
     out.close();
     in.close();
+    
+    File cfile = new File(file);
+    return((int) cfile.length());
   }
 
 
