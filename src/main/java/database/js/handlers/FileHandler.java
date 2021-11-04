@@ -43,8 +43,9 @@ public class FileHandler extends Handler
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
 
-
     StaticFile file = Deployment.get().get(path);
+    String caching = request.getHeader("Cache-Control");
+    String encodings = request.getHeader("Accept-Encoding");
     
     if (file == null)
     {
@@ -54,12 +55,17 @@ public class FileHandler extends Handler
                        "The requested URL \""+request.path()+"\" was not found on this server.");
       return(response);
     }
-    
+
+    boolean gzip = false;    
     byte[] content = null;
+
+    if (file.compressed)
+      gzip = (encodings != null && encodings.contains("gzip"));
     
     try
     {
-      content = file.get();
+      content = file.get(gzip);
+      if (gzip) response.setHeader("Content-Encoding","gzip");      
     }
     catch (Exception e)
     {
@@ -72,7 +78,6 @@ public class FileHandler extends Handler
     }
     
     String ext = file.fileext();
-    System.out.println("extension <"+ext+">");
     String mimetype = config().getHTTP().mimetypes().get(ext);
     
     response.setBody(content);

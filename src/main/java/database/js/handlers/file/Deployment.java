@@ -22,6 +22,9 @@ import java.io.FileOutputStream;
 import database.js.config.Config;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.SimpleDateFormat;
+import java.io.ByteArrayInputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import database.js.config.HTTP.FilePattern;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,9 +44,11 @@ public class Deployment
 
   private long modified = 0;
   private Date moddate = null;
+  private String modstring = null;
   private ConcurrentHashMap<String,StaticFile> index = null;
 
   private static final String sep = File.separator;
+  private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
 
 
   public static Deployment get()
@@ -73,6 +78,12 @@ public class Deployment
   public static Date modified()
   {
     return(deployment.moddate);
+  }
+
+
+  public static String modstring()
+  {
+    return(deployment.modstring);
   }
 
 
@@ -127,6 +138,7 @@ public class Deployment
     this.index = index;
     this.modified = latest;
     this.moddate = modified;
+    this.modstring = format.format(modified);
 
     return(true);
   }
@@ -165,8 +177,9 @@ public class Deployment
       this.index = index;
       this.moddate = modified;
       this.modified = home.lastModified();
-      synchronized(this) {this.notifyAll();}
+      this.modstring = format.format(modified);
 
+      synchronized(this) {this.notifyAll();}
       this.cleanup();
     }
   }
@@ -354,31 +367,25 @@ public class Deployment
       int pos = virpath.lastIndexOf('.');
             
       if (pos < 0) this.fileext = "";
-      else if (compressed) this.fileext = "application/gzip";
       else this.fileext = virpath.substring(pos+1);
     }
     
     
-    public byte[] get() throws Exception
+    public byte[] get(boolean gzip) throws Exception
     {
-      if (content != null)
-        return(content);
+      boolean usecache = true;
+      if (compressed && !gzip) usecache = false;
+      if (usecache && content != null) return(content);
       
       File file = new File(actpath);
       
       if (!file.exists()) 
         throw new Exception("File "+actpath+" not found");
       
-      FileInputStream in = new FileInputStream(file);
-      byte[] content = new byte[(int) file.length()];
-      
-      int read = in.read(content);
-      in.close();
-      
-      if (read != content.length) 
-        throw new Exception("Read "+actpath+" returned partial result");
-      
-      if (cache) 
+      gzip = gzip && compressed;
+      byte[] content = read(file,gzip);
+
+      if (cache && usecache) 
         this.content = content;
       
       return(content);
@@ -388,6 +395,33 @@ public class Deployment
     public String fileext()
     {
       return(fileext);
+    }
+    
+    
+    private byte[] read(File file, boolean gzip) throws Exception
+    {
+      byte[] content = new byte[(int) file.length()];
+      FileInputStream in = new FileInputStream(file);
+      
+      int read = in.read(content);
+      in.close();
+      
+      if (read != content.length) 
+        throw new Exception("Read "+actpath+" returned partial result");
+      
+      if (compressed && !gzip)
+      {
+        // Decompress
+        ByteArrayInputStream bin = new ByteArrayInputStream(content);
+        
+        GZIPInputStream gzin = new GZIPInputStream(bin);
+        content = gzin.readAllBytes();
+        
+        bin.close();
+        gzin.close();
+      }
+      
+      return(content);
     }
   }
 }
