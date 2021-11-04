@@ -107,10 +107,10 @@ public class Deployment
   }
   
   
-  public boolean isDirectory(String path)
+  public static boolean isDirectory(String path)
   {
     if (!sep.equals("/")) path = path.replaceAll("/",sep);
-    File file = new File(this.deploy + sep + modified + path);
+    File file = new File(deployment.deploy + sep + deployment.modified + path);
     return(file.isDirectory());
   }
 
