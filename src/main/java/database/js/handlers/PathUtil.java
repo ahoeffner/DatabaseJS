@@ -30,6 +30,13 @@ public class PathUtil
   {
     String prefix = properties.prefix();
     String path = "/"+urlpath.substring(prefix.length());
+    
+    while(path.startsWith("//"))
+      path = path.substring(1);
+    
+    while(path.length() > 1 && path.endsWith("/")) 
+      path = path.substring(0,path.length()-2);
+    
     return(path);
   }
 }

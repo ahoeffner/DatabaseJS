@@ -49,6 +49,12 @@ public class FileHandler extends Handler
     
     if (file == null)
     {
+      if (Deployment.isDirectory(path))
+        file = Deployment.get().get(path+"/index.html");
+    }
+    
+    if (file == null)
+    {
       response.setResponse(403);
       response.setContentType("text/html");
       response.setBody("<b>Page not found</b><br><br>"+
