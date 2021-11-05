@@ -82,11 +82,11 @@ public class Logger
     
     File ldir = new File(logdir);
 
-    if (!ldir.exists())
-      throw new Exception(ldir+" does not exist");
-
-    if (!ldir.isDirectory())
+    if (ldir.exists() && !ldir.isDirectory())
       throw new Exception(ldir+" is not a directory");
+
+    if (!ldir.exists())
+      ldir.mkdirs();
   }
   
   
