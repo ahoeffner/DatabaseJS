@@ -44,7 +44,7 @@ public class Logger
   private final static int LOGSIZE = 10 * 1024 * 1024;
 
 
-  Logger(JSONObject config) throws Exception
+  Logger(JSONObject config, String inst) throws Exception
   {
     String lfsize = null;
     String path = Paths.apphome;
@@ -74,6 +74,10 @@ public class Logger
       logdir = path + File.separator + logdir;
       File logf = new File(logdir);
       logdir = logf.getCanonicalPath();
+    }
+    else
+    {
+      logdir = logdir + File.separator + inst;
     }
     
     File ldir = new File(logdir);

@@ -155,7 +155,7 @@ public class Config
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);
     
-    logger = new Logger(config);
+    logger = new Logger(config,inst);
     return(logger);
   }
   
