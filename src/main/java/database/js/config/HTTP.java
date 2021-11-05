@@ -27,7 +27,6 @@ public class HTTP
   private final int bsize;
   private final String path;
   private final String tmppath;
-  private final String virtstr;
   private final String virtendp;
   private final Handlers handlers;
   private final boolean requiressl;
@@ -39,8 +38,13 @@ public class HTTP
   
   HTTP(Handlers handlers, JSONObject config) throws Exception
   {
-    this.bsize = config.getInt("buffer");
-    
+    if (!config.has("buffers")) this.bsize = 4096;
+    else
+    {
+      JSONObject buffers = config.getJSONObject("buffers");    
+      this.bsize = buffers.getInt("size");
+    }
+          
     JSONObject app = config.getJSONObject("application");
     
     String apppath = null;
@@ -90,10 +94,13 @@ public class HTTP
       }
     }
     
-    JSONObject virtp = config.getJSONObject("virtual-path");
-    
-    this.virtstr = virtp.getString("strategi");
-    this.virtendp = virtp.getString("endpoint");
+
+    if (!config.has("virtual-path")) this.virtendp = null;
+    else
+    {
+      JSONObject virtp = config.getJSONObject("virtual-path");    
+      this.virtendp = virtp.getString("endpoint");      
+    }
 
 
     this.handlers = handlers;
@@ -165,6 +172,11 @@ public class HTTP
   public int bufsize()
   {
     return(bsize);
+  }
+
+  public String getVirtualEndpoint()
+  {
+    return(virtendp);
   }
 
   public String getAppPath()

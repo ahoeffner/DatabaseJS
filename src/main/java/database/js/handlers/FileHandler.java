@@ -44,13 +44,21 @@ public class FileHandler extends Handler
     String path = this.path.getPath(request.path());
 
     StaticFile file = Deployment.get().get(path);
+
     String caching = request.getHeader("Cache-Control");
     String encodings = request.getHeader("Accept-Encoding");
+    String modified = request.getHeader("If-Modified-Since");
     
     if (file == null)
     {
       if (Deployment.isDirectory(path))
         file = Deployment.get().get(path+"/index.html");
+    }
+    
+    if (file == null)
+    {
+      String vendp = config().getHTTP().getVirtualEndpoint();
+      if (vendp != null) file = Deployment.get().get(vendp);
     }
     
     if (file == null)
@@ -61,6 +69,25 @@ public class FileHandler extends Handler
                        "The requested URL \""+request.path()+"\" was not found on this server.");
       return(response);
     }
+    
+    boolean reload = true;
+    String changed = Deployment.modstring();
+    
+    if (modified != null && modified.equals(changed))
+    {
+      reload = false;
+      
+      if (caching != null && (caching.contains("max-age=0") || caching.contains("no-cache")))
+        reload = true;
+    }
+    
+    if (!reload)
+    {
+      // Send Not modified
+      response.setResponse(304);
+      return(response);
+    }
+
 
     boolean gzip = false;    
     byte[] content = null;
