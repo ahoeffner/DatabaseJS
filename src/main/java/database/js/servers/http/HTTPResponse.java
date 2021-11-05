@@ -58,6 +58,9 @@ public class HTTPResponse
 
   void finish()
   {
+    if (finished)
+      return;
+    
     finished = true;
 
     if (body == null)
