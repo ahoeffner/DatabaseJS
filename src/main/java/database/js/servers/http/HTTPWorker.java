@@ -71,6 +71,14 @@ public class HTTPWorker implements Runnable
       
       if (admin) handler = handlers.getAdminHandler();
       else       handler = handlers.getHandler(path,method);
+      
+      if (handler == null)
+      {
+        logger.warning("No appropiate handler mapped to path="+path+" method="+method);
+        this.workers.done();
+        this.channel.failed();
+        return;
+      }
 
       HTTPResponse response = handler.handle(request);
       if (response != null) request.respond(response.page());
