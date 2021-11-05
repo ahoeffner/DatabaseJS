@@ -78,7 +78,7 @@ public class Server extends Thread
     System.setErr(out);
 
     config.getLogger().open(id);
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
 
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();

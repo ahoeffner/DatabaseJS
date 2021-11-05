@@ -25,11 +25,10 @@ public class Logger
   public final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
   public final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
   public final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
-  public final java.util.logging.Logger logger = java.util.logging.Logger.getLogger("others");
-  public final java.util.logging.Logger control = java.util.logging.Logger.getLogger("control");
+  public final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
   public final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
 
-  private final String level;
+  private final String itlevel;
   private final String dblevel;
   private final String htlevel;
   private final String rtlevel;
@@ -50,10 +49,10 @@ public class Logger
     String lfsize = null;
     String path = Paths.apphome;
     
-    level = config.getString("others");
     htlevel = config.getString("http");
     rtlevel = config.getString("rest");
     dblevel = config.getString("database");
+    itlevel = config.getString("internal");
     
     if (config.has("files"))   count = config.getInt("files");
     if (config.has("size"))    lfsize = config.getString("size");
@@ -123,10 +122,10 @@ public class Logger
     FileHandler handler = new FileHandler(logdir+File.separator+ctrfile,size,count,true);
     handler.setFormatter(formatter);
 
-    control.setUseParentHandlers(false);
-    control.setLevel(Level.parse(level.toUpperCase()));
+    intern.setUseParentHandlers(false);
+    intern.setLevel(Level.parse(itlevel.toUpperCase()));
 
-    control.addHandler(handler);
+    intern.addHandler(handler);
   }
   
   
@@ -164,14 +163,14 @@ public class Logger
     rest.addHandler(handler);
 
     admin.setUseParentHandlers(false);
-    admin.setLevel(Level.parse(level.toUpperCase()));
+    admin.setLevel(Level.parse(itlevel.toUpperCase()));
 
     admin.addHandler(handler);
 
-    logger.setUseParentHandlers(false);
-    logger.setLevel(Level.parse(level.toUpperCase()));
+    intern.setUseParentHandlers(false);
+    intern.setLevel(Level.parse(itlevel.toUpperCase()));
 
-    logger.addHandler(handler);
+    intern.addHandler(handler);
 
     database.setUseParentHandlers(false);
     database.setLevel(Level.parse(dblevel.toUpperCase()));

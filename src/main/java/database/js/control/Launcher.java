@@ -124,7 +124,7 @@ public class Launcher implements ILauncher
   {
     this.config = new Config();
     config.getLogger().openControlLog();
-    this.logger = config.getLogger().control;
+    this.logger = config.getLogger().intern;
   }
 
 

@@ -32,7 +32,7 @@ public class MailBox
   public MailBox(Config config, short id) throws Exception
   {
     String filename = getFileName(id);
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
     FileSystem fs = FileSystems.getDefault();
     
     this.extmap = new HashMap<Integer,Long>();

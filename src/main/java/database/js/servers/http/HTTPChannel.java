@@ -54,7 +54,7 @@ public class HTTPChannel
     this.channel = channel;
     this.connected = false;
     this.config = server.config();
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
@@ -87,7 +87,7 @@ public class HTTPChannel
     this.channel = channel;
     this.connected = false;
     this.config = server.config();
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)

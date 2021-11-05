@@ -53,7 +53,7 @@ public abstract class Handler
       case rest: return(config.getLogger().rest);
     }
     
-    return(config.getLogger().logger);
+    return(config.getLogger().intern);
   }
   
   

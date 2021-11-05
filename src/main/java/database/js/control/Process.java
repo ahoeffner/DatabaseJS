@@ -37,7 +37,7 @@ public class Process
     this.config = config;
     this.instnm = config.instance();
     this.javaexe = config.getJava().exe();
-    this.logger = config.getLogger().control;
+    this.logger = config.getLogger().intern;
     this.httpopts = config.getJava().getHttpOptions();
     this.restopts = config.getJava().getRestOptions();
     this.httpjars = config.getJava().getHTTPClassPath();

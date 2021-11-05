@@ -49,7 +49,7 @@ public class Cluster
     this.inst = config.instance();
 
     String filename = getFileName();
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
     FileSystem fs = FileSystems.getDefault();
 
     Short[] servers = getServers(config);
@@ -198,7 +198,7 @@ public class Cluster
   private static ArrayList<ServerProcess> unix() throws Exception
   {
     Config config = cluster.config;
-    Logger logger = config.getLogger().logger;
+    Logger logger = config.getLogger().intern;
     String cname = "database.js.servers.Server";
     String match = ".*java?(\\.exe)?\\s+.*"+cname+"\\s"+cluster.inst+"\\s.*";
 

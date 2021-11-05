@@ -41,7 +41,7 @@ public class ProcessMonitor
       out.close();
     }
 
-    this.logger = config.getLogger().logger;
+    this.logger = config.getLogger().intern;
     this.channel = new RandomAccessFile(lfile,"rw").getChannel();
   }
 
