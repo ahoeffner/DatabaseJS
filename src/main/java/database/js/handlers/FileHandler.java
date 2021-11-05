@@ -127,10 +127,13 @@ public class FileHandler extends Handler
   {
     long time = System.nanoTime() - request.start();
 
-    if (logger.getLevel() == Level.INFO || logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+    if (logger.getLevel() == Level.INFO)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
     
+    if (logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+request.header()+"\n\n"+response.header()+"\n");
+    
     if (logger.getLevel() == Level.FINEST)
-      logger.finest(request.path()+" ["+time/1000000+"]ms\n"+new String(request.page())+"\n\n"+new String(response.page())+"\n");
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.page())+"\n\n"+new String(response.page()));
   }
 }

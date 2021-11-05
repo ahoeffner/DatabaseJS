@@ -59,6 +59,7 @@ public class HTTPRequest
     this.channel = null;
     this.server = server;
     this.redirect = false;
+
     this.add(data);
   }
 
@@ -96,6 +97,11 @@ public class HTTPRequest
   public String version()
   {
     return(version);
+  }
+
+  public String header()
+  {
+    return(new String(request,0,header));
   }
   
   public byte[] page()
@@ -218,7 +224,6 @@ public class HTTPRequest
 
   public boolean add(ByteBuffer buf) throws Exception
   {
-    time = System.nanoTime();
     int read = buf.remaining();
     byte[] data = new byte[read]; buf.get(data);
     return(add(data,0,data.length));
@@ -233,6 +238,7 @@ public class HTTPRequest
 
   public boolean add(byte[] data, int pos, int len) throws Exception
   {
+    time = System.nanoTime();
     int last = request.length;
     byte[] request = new byte[this.request.length+len];
 
