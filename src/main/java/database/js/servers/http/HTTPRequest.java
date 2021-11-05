@@ -21,6 +21,7 @@ import java.nio.channels.SelectionKey;
 
 public class HTTPRequest
 {
+  private long time = 0;
   private int header = -1;
   private int clength = -1;
 
@@ -75,6 +76,11 @@ public class HTTPRequest
   public Server server()
   {
     return(server);
+  }
+  
+  public long start()
+  {
+    return(time);
   }
 
   public String path()
@@ -212,6 +218,7 @@ public class HTTPRequest
 
   public boolean add(ByteBuffer buf) throws Exception
   {
+    time = System.nanoTime();
     int read = buf.remaining();
     byte[] data = new byte[read]; buf.get(data);
     return(add(data,0,data.length));

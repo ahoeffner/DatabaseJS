@@ -54,6 +54,9 @@ public class RestHandler extends Handler
       
       byte[] data = client.send(request.page());
       response = new HTTPResponse(data);
+      
+      long time = System.nanoTime() - request.start();
+      logger.info(request.path()+" ["+time/1000000+"] "+new String(request.body()));
 
       return(response);
     }    

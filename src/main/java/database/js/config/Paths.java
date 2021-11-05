@@ -62,6 +62,7 @@ public class Paths
     {
       path = path.substring(0,path.length()-cname.length());
       if (path.endsWith("/classes")) path = path.substring(0,path.length()-8);
+      if (path.endsWith("/target")) path = path.substring(0,path.length()-7);
     }
     
     String escape = "\\";
@@ -88,7 +89,17 @@ public class Paths
       
       File test = new File(conf);
       if (test.exists()) break;
-      path = path.substring(0,path.lastIndexOf(sep));
+
+      int pos = path.lastIndexOf(sep);
+
+      if (pos < 0)
+      {
+        path = base.toString();
+        path = path.substring(0,path.length()-2);
+        break;
+      }
+      
+      path = path.substring(0,pos);
     }
     
     return(path);

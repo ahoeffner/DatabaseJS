@@ -30,10 +30,10 @@ public class HTTPWorker implements Runnable
 
   public HTTPWorker(ThreadPool workers, HTTPRequest request) throws Exception
   {
-    this.workers = workers;
-    this.request = request;
-    this.channel = request.channel();
-    this.logger = channel.logger();
+    this.workers  = workers;
+    this.request  = request;
+    this.channel  = request.channel();
+    this.logger   = request.channel().logger();
     this.handlers = channel.config().getHTTP().handlers();
   }
 
