@@ -58,8 +58,10 @@ public class HTTPServer extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
+    
+    config.getPKIContext(); // Initialize ssl
     HTTPBuffers.setSize(config.getHTTP().bufsize());
-
+    
     switch(type)
     {
       case ssl    : this.port = config.getHTTP().ssl();   ssl = true;  admin = false; break;
