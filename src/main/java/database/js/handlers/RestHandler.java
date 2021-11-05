@@ -21,6 +21,8 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 
+import java.util.logging.Level;
+
 
 public class RestHandler extends Handler
 {
@@ -38,7 +40,7 @@ public class RestHandler extends Handler
     Logger logger = getLogger(Type.rest);
 
     server.request();
-    logger.fine("REST request received <"+request.path()+"> embedded="+server.embedded());
+    logger.fine("REST request received: "+request.path());
     
     if (!server.embedded())
     {
@@ -55,14 +57,26 @@ public class RestHandler extends Handler
       byte[] data = client.send(request.page());
       response = new HTTPResponse(data);
       
-      long time = System.nanoTime() - request.start();
-      logger.info(request.path()+" ["+time/1000000+"] "+new String(request.body()));
-
+      log(logger,request,response);
       return(response);
     }    
 
     response = new HTTPResponse();
     response.setBody("{\"status\": \"ok\"}");
+
+    log(logger,request,response);
     return(response);
+  }
+  
+  
+  private void log(Logger logger, HTTPRequest request, HTTPResponse response)
+  {
+    long time = System.nanoTime() - request.start();
+
+    if (logger.getLevel() == Level.INFO || logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
+    
+    if (logger.getLevel() == Level.FINEST)
+      logger.finest(request.path()+" ["+time/1000000+"]ms\n"+new String(request.page())+"\n\n"+new String(response.page())+"\n");
   }
 }

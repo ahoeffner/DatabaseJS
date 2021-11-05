@@ -170,7 +170,7 @@ public class RESTClient implements RESTConnection
   @Override
   public void received(ArrayList<RESTComm> calls)
   {
-    logger.fine("Client Received ("+calls.size()+") responses");
+    logger.fine("Client Received "+calls.size()+" response(s)");
     for(RESTComm call : calls) incoming.put(call.id,call);
     synchronized(this) {this.notifyAll();}
   }

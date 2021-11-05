@@ -85,6 +85,7 @@ public class FileHandler extends Handler
     {
       // Send Not modified
       response.setResponse(304);
+      log(logger,request,response);
       return(response);
     }
 
@@ -117,6 +118,19 @@ public class FileHandler extends Handler
     response.setContentType(mimetype);
     response.setLastModified(Deployment.modified());
     
+    log(logger,request,response);
     return(response);
+  }
+  
+  
+  private void log(Logger logger, HTTPRequest request, HTTPResponse response)
+  {
+    long time = System.nanoTime() - request.start();
+
+    if (logger.getLevel() == Level.INFO || logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
+    
+    if (logger.getLevel() == Level.FINEST)
+      logger.finest(request.path()+" ["+time/1000000+"]ms\n"+new String(request.page())+"\n\n"+new String(response.page())+"\n");
   }
 }

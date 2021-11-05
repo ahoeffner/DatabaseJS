@@ -73,7 +73,7 @@ class RESTWriter extends Thread
                 
         byte[] data = buffer.toByteArray();
         
-        logger.finest(conn.parent()+" sending data "+data.length);
+        logger.finest(conn.parent()+" sending "+data.length+" bytes");
 
         writer.write(data);
         writer.flush();
