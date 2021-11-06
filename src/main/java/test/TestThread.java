@@ -12,6 +12,7 @@ public class TestThread extends Thread
   private final int loops;
   private final String url;
   private final String payload;
+  private static final int cores = Runtime.getRuntime().availableProcessors();
   private static final TrustManager[] tmgrs = new TrustManager[] {new FakeTrustManager()};
   
   
@@ -21,7 +22,7 @@ public class TestThread extends Thread
     for (int i = 0; i < tests.length; i++) tests[i] = new TestThread(loops,url,payload);
     
     System.out.println();
-    System.out.println("Testing, threads: "+threads+" loops: "+loops+" "+url+" no delay, reconnect after 64 hits");
+    System.out.println("Testing, threads: "+threads+" loops: "+loops+" "+url+" 1 ms delay, reconnect after 64 hits");
     System.out.println();
 
     long avg = 0;
@@ -64,7 +65,7 @@ public class TestThread extends Thread
 
         try
         {
-          if (i > 0 && i % 64 == 0)
+          if (i > 0 && i % 8 == 0)
           {
             session.close();
             session = new Session(url.getHost(),url.getPort(),ssl);            
@@ -76,6 +77,7 @@ public class TestThread extends Thread
         {
           failed++;
           session.close();
+          System.out.println(e.getMessage());
           session = new Session(url.getHost(),url.getPort(),ssl);            
         }
         

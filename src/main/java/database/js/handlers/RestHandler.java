@@ -73,10 +73,10 @@ public class RestHandler extends Handler
   {
     long time = System.nanoTime() - request.start();
 
-    if (logger.getLevel() == Level.INFO)
+    if (logger.getLevel() == Level.FINE)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
     
-    if (logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+    if (logger.getLevel() == Level.FINER)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.body())+"\n\n"+new String(response.body())+"\n");
     
     if (logger.getLevel() == Level.FINEST)

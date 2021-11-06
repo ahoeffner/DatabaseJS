@@ -60,25 +60,31 @@ class HTTPBuffers
   }
   
   
-  public void alloc(boolean free)
+  public void alloc(boolean free) throws Exception
   {
     if (free) done();
     alloc();
   }
 
 
-  public void alloc()
+  public void alloc() throws Exception
   {
     this.data = ByteBuffer.allocateDirect(size);
     if (ssl) this.sslb = ByteBuffer.allocateDirect(psize);
+    
+    if (data == null || (ssl & sslb == null))
+      throw new Exception("Unable to allocate ByteBuffer");
   }
 
 
-  public void handshake()
+  public void handshake() throws Exception
   {
     this.data = ByteBuffer.allocateDirect(asize);
     this.send = ByteBuffer.allocateDirect(psize);
     this.recv = ByteBuffer.allocateDirect(psize);
+    
+    if (data == null || send == null || recv == null)
+      throw new Exception("Unable to allocate ByteBuffer");
   }
 
 

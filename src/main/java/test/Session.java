@@ -34,7 +34,8 @@ public class Session
       ((SSLSocket) socket).startHandshake(); 
     }
     
-    socket.setSoTimeout(15000);
+    socket.setSoTimeout(30000);
+    socket.getOutputStream().flush();
   }
   
   
@@ -48,6 +49,9 @@ public class Session
     SocketReader reader = new SocketReader(in);
 
     out.write(request.getPage());
+    out.flush();
+    
+    Thread.yield();
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
@@ -62,9 +66,9 @@ public class Session
   }
   
   
-  public void close() throws Exception
+  public void close()
   {
-    socket.getOutputStream().flush();
-    socket.close();
+    try {socket.close();}
+    catch (Exception e) {;}
   }
 }

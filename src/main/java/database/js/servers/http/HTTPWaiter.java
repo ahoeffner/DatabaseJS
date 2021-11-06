@@ -37,14 +37,14 @@ class HTTPWaiter extends Thread
   private final boolean embedded;
   private final Selector selector;
   private final ThreadPool workers;
-  
+
   private final ArrayList<HTTPChannel> queue =
     new ArrayList<HTTPChannel>();
-  
+
   private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
     new ConcurrentHashMap<SelectionKey,HTTPRequest>();
 
-    
+
   HTTPWaiter(Server server, int id, boolean embedded) throws Exception
   {
     this.id = id;
@@ -57,35 +57,35 @@ class HTTPWaiter extends Thread
     this.setDaemon(true);
     this.setName("HTTPWaiter("+id+")");
     this.workers = new ThreadPool(config.getTopology().workers());
-    
+
     this.start();
   }
-  
-  
+
+
   Server server()
   {
     return(server);
   }
-  
-  
+
+
   void unlist(SelectionKey key)
   {
     key.cancel();
   }
-  
-  
+
+
   void addClient(HTTPChannel client) throws Exception
   {
     synchronized(this)
     {queue.add(client);}
     selector.wakeup();
   }
-  
-  
+
+
   private void select() throws Exception
   {
     int ready = 0;
-    
+
     while(ready == 0)
     {
       synchronized(this)
@@ -93,14 +93,14 @@ class HTTPWaiter extends Thread
         for(HTTPChannel client : queue)
           client.channel().register(selector,SelectionKey.OP_READ,client);
 
-        queue.clear();        
+        queue.clear();
       }
 
       ready = selector.select();
     }
   }
-  
-  
+
+
   @Override
   public void run()
   {
@@ -111,8 +111,8 @@ class HTTPWaiter extends Thread
     {
       try
       {
-        select();      
-        
+        select();
+
         Set<SelectionKey> selected = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selected.iterator();
 
@@ -124,12 +124,12 @@ class HTTPWaiter extends Thread
           lmsg = System.currentTimeMillis();
           logger.info("clients="+selector.keys().size()+" threads="+workers.threads()+" queue="+workers.size());
         }
-        
+
         while(iterator.hasNext())
         {
           SelectionKey key = iterator.next();
           iterator.remove();
-          
+
           if (key.isReadable())
           {
             HTTPChannel client = (HTTPChannel) key.attachment();
@@ -140,8 +140,7 @@ class HTTPWaiter extends Thread
             if (buf == null)
             {
               key.cancel();
-              channel.close();
-              incomplete.remove(key);
+              channel.close();                
               continue;
             }
 
@@ -152,7 +151,7 @@ class HTTPWaiter extends Thread
               boolean done = false;
               HTTPRequest request = incomplete.remove(key);
               if (request == null) request = new HTTPRequest(this,client,key);
-              
+
               try
               {
                 if (!request.add(buf)) incomplete.put(key,request);
@@ -163,11 +162,11 @@ class HTTPWaiter extends Thread
                 logger.log(Level.SEVERE,e.getMessage(),e);
                 error(channel,400,false);
                 continue;
-              }     
-              
+              }
+
               try
               {
-                if (done) 
+                if (done)
                   workers.submit(new HTTPWorker(workers,request));
               }
               catch (Exception e)
@@ -175,12 +174,12 @@ class HTTPWaiter extends Thread
                 logger.log(Level.SEVERE,e.getMessage(),e);
                 error(channel,500,false);
                 continue;
-              }     
+              }
             }
           }
           else
           {
-            logger.warning("Key is not readable");          
+            logger.warning("Key is not readable");
           }
         }
       }
@@ -219,23 +218,23 @@ class HTTPWaiter extends Thread
 
 
   public static final String EOL = "\r\n";
-  
-  
+
+
   public static void error(SocketChannel channel, int code, boolean rest)
   {
     ByteBuffer buf = ByteBuffer.allocate(1024);
-    
+
     switch(code)
     {
-      case 400: 
+      case 400:
         buf.put(err400(rest));
         break;
-      
-      case 500: 
+
+      case 500:
         buf.put(err500(rest));
         break;
-      
-      default: 
+
+      default:
         buf.put(err500(rest));
         break;
     }
@@ -248,7 +247,7 @@ class HTTPWaiter extends Thread
     }
     catch (Exception e)
     {
-      try {channel.close();} 
+      try {channel.close();}
       catch (Exception c) {;}
     }
   }

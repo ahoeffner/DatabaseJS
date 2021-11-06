@@ -116,7 +116,7 @@ public class FileHandler extends Handler
     
     response.setBody(content);
     response.setContentType(mimetype);
-    response.setLastModified(Deployment.modified());
+    response.setLastModified(Deployment.modstring(),Deployment.modified());
     
     log(logger,request,response);
     return(response);
@@ -127,10 +127,10 @@ public class FileHandler extends Handler
   {
     long time = System.nanoTime() - request.start();
 
-    if (logger.getLevel() == Level.INFO)
+    if (logger.getLevel() == Level.FINE)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
     
-    if (logger.getLevel() == Level.FINE || logger.getLevel() == Level.FINER)
+    if (logger.getLevel() == Level.FINER)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+request.header()+"\n\n"+response.header()+"\n");
     
     if (logger.getLevel() == Level.FINEST)

@@ -101,6 +101,13 @@ public class HTTPResponse
   }
 
 
+  public void setLastModified(String formatted, Date date)
+  {
+    setHeader("Last-Modified",formatted);
+    setHeader("ETag",Long.toHexString(date.getTime()));
+  }
+
+
   public void setLastModified(long time)
   {
     Date date = new Date();

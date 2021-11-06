@@ -160,6 +160,9 @@ public class Launcher implements ILauncher
       logger.info("database.js instance "+config.instance()+" is already running");
       return;
     }
+    
+    int cores = Runtime.getRuntime().availableProcessors();
+    logger.info("Starting cores: "+cores+" admin-port: "+config.getHTTP().admin());
 
     Process process = new Process(config);
     process.start(Process.Type.http,0);
