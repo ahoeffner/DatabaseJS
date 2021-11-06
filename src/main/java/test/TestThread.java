@@ -9,6 +9,7 @@ public class TestThread extends Thread
   private long avg;
   private int failed;
   private long elapsed;
+  private final int ips;
   private final int loops;
   private final String url;
   private final String payload;
@@ -16,13 +17,13 @@ public class TestThread extends Thread
   private static final TrustManager[] tmgrs = new TrustManager[] {new FakeTrustManager()};
   
   
-  public static void start(String url, int threads, int loops, String payload) throws Exception
+  public static void start(String url, int ips, int threads, int loops, String payload) throws Exception
   {
     TestThread tests[] = new TestThread[threads];
-    for (int i = 0; i < tests.length; i++) tests[i] = new TestThread(loops,url,payload);
+    for (int i = 0; i < tests.length; i++) tests[i] = new TestThread(loops,ips,url,payload);
     
     System.out.println();
-    System.out.println("Testing, threads: "+threads+" loops: "+loops+" "+url+" 1 ms delay, reconnect after 64 hits");
+    System.out.println("Testing, threads: "+threads+" loops: "+loops+" "+url+" no delay, reconnect after "+ips+" hits");
     System.out.println();
 
     long avg = 0;
@@ -39,9 +40,10 @@ public class TestThread extends Thread
   }
   
   
-  private TestThread(int loops, String url, String payload)
+  private TestThread(int loops, int ips, String url, String payload)
   {
     this.url = url;
+    this.ips = ips;
     this.loops = loops;
     this.payload = payload;
   }
@@ -65,13 +67,14 @@ public class TestThread extends Thread
 
         try
         {
-          if (i > 0 && i % 8 == 0)
+          if (i > 0 && i % ips == 0)
           {
             session.close();
             session = new Session(url.getHost(),url.getPort(),ssl);            
           }
           
           session.invoke(path,payload);
+          Thread.yield();
         }
         catch (Exception e)
         {

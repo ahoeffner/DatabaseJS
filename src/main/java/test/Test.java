@@ -8,20 +8,21 @@ public class Test
 {
   public static void main(String[] args) throws Exception
   {
-    if (args.length < 3)
+    if (args.length < 4)
     {
-      System.out.println("loadtest url threads loops [payload-file]");
+      System.out.println("loadtest url ips threads loops [payload-file]");
       System.exit(-1);
     }
-    
+
     String url = args[0];
-    int loops = Integer.parseInt(args[2]);
-    int threads = Integer.parseInt(args[1]);
+    int ips = Integer.parseInt(args[1]);
+    int loops = Integer.parseInt(args[3]);
+    int threads = Integer.parseInt(args[2]);
     
     String payload = null;
-    if (args.length > 3)
+    if (args.length > 4)
     {
-      File file = new File(args[3]);
+      File file = new File(args[4]);
       byte[] buf = new byte[(int) file.length()];
 
       FileInputStream in = new FileInputStream(file);
@@ -31,6 +32,6 @@ public class Test
       payload = new String(buf,0,read);
     }
     
-    TestThread.start(url,threads,loops,payload);
+    TestThread.start(url,ips,threads,loops,payload);
   }
 }
