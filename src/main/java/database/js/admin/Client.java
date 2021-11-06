@@ -91,7 +91,9 @@ public class Client
     if (pki == null) this.socket = new Socket(host,port);
     else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
     if (pki != null) ((SSLSocket) socket).startHandshake();
-    this.socket.setSendBufferSize(psize);
+
     this.socket.setSoTimeout(15000);
+    this.socket.setSendBufferSize(psize);
+    this.socket.getOutputStream().flush();
   }
 }
