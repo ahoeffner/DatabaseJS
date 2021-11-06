@@ -410,7 +410,7 @@ public class HTTPChannel
   }
 
 
-  boolean accept()
+  boolean accept() throws Exception
   {
     if (ssl) return(sslaccept());
     else     return(plainaccept());
@@ -424,7 +424,7 @@ public class HTTPChannel
   }
 
 
-  private boolean sslaccept()
+  private boolean sslaccept() throws Exception
   {
     int read;
     boolean cont = true;

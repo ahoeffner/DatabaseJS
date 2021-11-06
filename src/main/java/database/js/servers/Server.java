@@ -367,6 +367,7 @@ public class Server extends Thread
             Deployment.get().index();
 
           Cluster.setStatistics(this);
+          System.out.println("Wait "+heartbeat);
 
           this.wait(this.heartbeat);
           this.checkCluster(this.powner);
