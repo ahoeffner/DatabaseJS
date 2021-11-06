@@ -12,13 +12,13 @@
 
 package database.js.control;
 
-import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 public class Service extends Thread
 {
+  private final int heartbeat;
   private final Logger logger;
   private final ILauncher launcher;
 
@@ -36,7 +36,9 @@ public class Service extends Thread
     this.launcher.setConfig();
     
     this.logger = launcher.logger();
-    this.setName("DatabaseJS Service");
+    this.heartbeat = launcher.heartbeat();
+
+    this.setName("DatabaseJS Service");    
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
 
     this.start();
@@ -46,15 +48,32 @@ public class Service extends Thread
   @Override
   public void run()
   {
+    long started = 0;
+    boolean stopped = false;
+
     try
     {
       logger.info("Starting database.js service");
       launcher.start();
+      
+      while(true)
+      {
+        synchronized(this) {this.wait(heartbeat);}
+        if (started == 0) started = System.currentTimeMillis();
+        
+        if (launcher.stopped(started))
+        {
+          stopped = true;
+          logger.info("database.js was stopped");
+          break;
+        }
+      }
 
-      synchronized(this) {this.wait();}
-
-      logger.info("Stopping database.js service");
-      launcher.stop(null);
+      if (!stopped)
+      {
+        logger.info("Stopping database.js service");
+        launcher.stop(null);
+      }
     }
     catch (Throwable e) 
     {

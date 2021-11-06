@@ -115,6 +115,24 @@ public class Launcher implements ILauncher
   }
 
 
+  public void start() throws Exception
+  {
+    Cluster.init(config);
+    config.getJava().exe();
+
+    if (Cluster.isRunning((short) 0))
+    {
+      logger.info("database.js instance "+config.instance()+" is already running");
+      return;
+    }
+    
+    int cores = Runtime.getRuntime().availableProcessors();
+
+    Process process = new Process(config);
+    process.start(Process.Type.http,0);
+  }
+
+
   public void stop(String url) throws Exception
   {
     if (url == null)
@@ -148,25 +166,6 @@ public class Launcher implements ILauncher
       logger.fine("Sending message");
       client.send("shutdown");
     }
-  }
-
-
-  public void start() throws Exception
-  {
-    Cluster.init(config);
-    config.getJava().exe();
-
-    if (Cluster.isRunning((short) 0))
-    {
-      logger.info("database.js instance "+config.instance()+" is already running");
-      return;
-    }
-    
-    int cores = Runtime.getRuntime().availableProcessors();
-    logger.info("Starting cores: "+cores+" admin-port: "+config.getHTTP().admin());
-
-    Process process = new Process(config);
-    process.start(Process.Type.http,0);
   }
 
 
@@ -362,6 +361,19 @@ public class Launcher implements ILauncher
     
     out.flush();
     return(new String(bout.toByteArray()));
+  }
+  
+  
+  public int heartbeat() throws Exception
+  {
+    return(config.getTopology().heartbeat());
+  }
+  
+  
+  public boolean stopped(long started) throws Exception
+  {
+    Cluster.init(config);
+    return(Cluster.stop(started));
   }
 
 

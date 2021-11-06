@@ -18,9 +18,14 @@ import java.util.logging.Logger;
 public interface ILauncher
 {
   void log(Exception e);
-  void start() throws Exception;
+  
   Logger logger() throws Exception;
+  int heartbeat() throws Exception;
+  
   void setConfig() throws Exception;
+  boolean stopped(long started) throws Exception;
+  
+  void start() throws Exception;
   void stop(String url) throws Exception;
   void status(String url) throws Exception;
   void deploy(String url) throws Exception;

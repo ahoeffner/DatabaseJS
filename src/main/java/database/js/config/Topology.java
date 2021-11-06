@@ -45,8 +45,8 @@ public class Topology
     
     if (waiters == 0) 
     {
-      waiters = (short) (cores/2);
-      if (waiters < 2) waiters = (short) cores;
+      waiters = (short) cores;
+      if (waiters < 4) waiters = (short) 4;
     }
       
     this.waiters = waiters;

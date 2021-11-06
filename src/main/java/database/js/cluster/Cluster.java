@@ -15,6 +15,7 @@ package database.js.cluster;
 import java.io.File;
 import java.util.List;
 import java.util.HashSet;
+import java.util.Optional;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -29,8 +30,6 @@ import database.js.control.Process;
 import java.util.stream.Collectors;
 import java.nio.channels.FileChannel;
 import static java.nio.file.StandardOpenOption.*;
-
-import java.util.Optional;
 
 
 public class Cluster
@@ -138,7 +137,13 @@ public class Cluster
 
   public static boolean stop(Server server)
   {
-    return(cluster.getStopped() > server.started());
+    return(stop(server.started()));
+  }
+
+
+  public static boolean stop(long started)
+  {
+    return(cluster.getStopped() > started);
   }
 
 
