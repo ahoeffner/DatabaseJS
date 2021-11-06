@@ -19,9 +19,9 @@ public interface ILauncher
 {
   void log(Exception e);
   void start() throws Exception;
-  void status() throws Exception;
   Logger logger() throws Exception;
   void setConfig() throws Exception;
   void stop(String url) throws Exception;
+  void status(String url) throws Exception;
   void deploy(String url) throws Exception;
 }

@@ -27,7 +27,7 @@ public class Topology
   private final int extnds;
   private final int extsize;
 
-  private static final int cores = Runtime.getRuntime().availableProcessors();
+  public static final int cores = Runtime.getRuntime().availableProcessors();
   
   
   Topology(JSONObject config) throws Exception

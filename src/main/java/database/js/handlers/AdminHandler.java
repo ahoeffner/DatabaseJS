@@ -3,6 +3,7 @@ package database.js.handlers;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.control.Launcher;
 import database.js.servers.rest.RESTClient;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
@@ -55,10 +56,16 @@ public class AdminHandler extends Handler
     }
         
     if (request.path().equals("/shutdown"))
-      server.shutdown();      
+      server.shutdown();    
         
     if (request.path().equals("/deploy"))
       Deployment.get().deploy();
+        
+    if (request.path().equals("/status"))
+    {
+      String status = Launcher.getStatus(config());
+      response.setBody(status);
+    }
 
     return(response);
   }

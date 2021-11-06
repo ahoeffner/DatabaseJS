@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import database.js.cluster.Cluster;
 import database.js.handlers.Handler;
 import database.js.cluster.Statistics;
+import database.js.config.Topology;
 import database.js.handlers.file.Deployment;
 
 import java.io.ByteArrayOutputStream;
@@ -79,7 +80,7 @@ public class Launcher implements ILauncher
       {
         case "start"  : launcher.start();       break;
         case "stop"   : launcher.stop(url);     break;
-        case "status" : launcher.status();      break;
+        case "status" : launcher.status(url);   break;
         case "deploy" : launcher.deploy(url);   break;
 
         default: usage();
@@ -205,9 +206,39 @@ public class Launcher implements ILauncher
   }
 
 
-  public void status() throws Exception
+  public void status(String url) throws Exception
   {
-    System.out.println(getStatus(config));
+    if (url == null)
+    {
+      System.out.println(getStatus(config));
+    }
+    else
+    {
+      if (url.startsWith("http://"))
+        url = url.substring(7);
+
+      if (url.startsWith("https://"))
+        url = url.substring(8);
+      
+      int pos = url.indexOf(':') + 1;
+      int admin = config.getPorts()[2];
+      
+      if (pos > 1)
+      {
+        admin = Integer.parseInt(url.substring(pos));
+        url = url.substring(0,pos-1);
+      }
+
+      Client client = new Client(url,admin,true);
+
+      logger.fine("Connecting");
+      client.connect();
+
+      logger.fine("Sending message");
+      byte[] response = client.send("status");
+      
+      System.out.println(new String(response));
+    }
   }
 
 
@@ -218,6 +249,10 @@ public class Launcher implements ILauncher
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(bout);
     
+    out.println();
+    
+    Topology topology = config.getTopology();
+    out.println("Cores: "+Topology.cores+", Waiters: "+topology.waiters()+", Workers: "+topology.workers());
     out.println();
 
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
