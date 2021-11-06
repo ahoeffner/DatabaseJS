@@ -25,13 +25,16 @@ public class HTTPResponse
   private String response;
   private String mimetype;
   private boolean finished;
+  
+  // Not threadsafe => allocate per response
+  private final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
+
 
   private final ArrayList<String> headers =
     new ArrayList<String>();
 
   private final static String EOL = "\r\n";
   private final static String server = "database.js";
-  private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
 
 
   public HTTPResponse()
