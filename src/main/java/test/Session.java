@@ -21,21 +21,32 @@ public class Session
   {
     this.host = host;
     this.port = port;
+    Socket socket = null;
     
-    if (!ssl)
+    try
     {
-      socket = new Socket(host,port);
+      if (!ssl)
+      {
+        socket = new Socket(host,port);
+      }
+      else
+      {
+        SSLContext ctx = SSLContext.getInstance("TLS");
+        ctx.init(null,new X509TrustManager[] {new FakeTrustManager()}, new java.security.SecureRandom());
+        socket = ctx.getSocketFactory().createSocket(host,port);
+        ((SSLSocket) socket).startHandshake(); 
+      }
+      
+      socket.setSoTimeout(30000);
+      socket.getOutputStream().flush();
     }
-    else
+    catch (Exception e)
     {
-      SSLContext ctx = SSLContext.getInstance("TLS");
-      ctx.init(null,new X509TrustManager[] {new FakeTrustManager()}, new java.security.SecureRandom());
-      socket = ctx.getSocketFactory().createSocket(host,port);
-      ((SSLSocket) socket).startHandshake(); 
+      e.printStackTrace();
+      System.exit(-1);
     }
     
-    socket.setSoTimeout(30000);
-    socket.getOutputStream().flush();
+    this.socket = socket;
   }
   
   

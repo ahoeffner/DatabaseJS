@@ -367,7 +367,6 @@ public class Server extends Thread
             Deployment.get().index();
 
           Cluster.setStatistics(this);
-          System.out.println("Wait "+heartbeat);
 
           this.wait(this.heartbeat);
           this.checkCluster(this.powner);
@@ -395,8 +394,6 @@ public class Server extends Thread
       if (stat.id() == this.id) continue;
       long alive = System.currentTimeMillis() - stat.updated();
       
-      System.out.println("Alive "+alive+" Heartbeat: "+heartbeat);
-
       if (1.0 * alive > 1.25 * this.heartbeat) ensure = true;
       else if (stat.restmgr()) nomgr = false;
     }
