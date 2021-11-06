@@ -52,12 +52,6 @@ public class Launcher implements ILauncher
     String url = null;
     ILauncher launcher = null;
     
-    if (version() < 13)
-    {
-      System.out.println("database.js requires java version > 13.0");
-      System.exit(-1);
-    }
-    
     if (args.length < 1 || args.length > 2)
       usage();
 
@@ -103,14 +97,6 @@ public class Launcher implements ILauncher
   {
     System.out.println("usage database.js start|stop|deploy|status [url]");
     System.exit(-1);
-  }
-  
-  
-  public static int version()
-  {
-    String version = System.getProperty("java.version");
-    int mvers = Integer.parseInt(version.substring(0,version.indexOf('.')));
-    return(mvers);
   }
   
   
