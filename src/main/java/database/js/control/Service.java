@@ -26,12 +26,6 @@ public class Service extends Thread
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
-    if (Launcher.version() < 13)
-    {
-      System.out.println("database.js requires java version > 13.0");
-      System.exit(-1);
-    }
-
     Service service = new Service();
   }
 
