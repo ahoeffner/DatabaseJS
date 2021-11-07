@@ -3,6 +3,7 @@ package code;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintStream;
 
@@ -27,6 +28,14 @@ public class Beautifier
   public Beautifier(String file)
   {
     this.file = file;
+  }
+  
+  
+  public void save(String code) throws Exception
+  {
+    FileOutputStream out = new FileOutputStream(file);
+    out.write(code.getBytes());
+    out.close();
   }
   
   
@@ -109,6 +118,7 @@ public class Beautifier
       out.println(trim(line));
     }
     
+    in.close();
     return(new String(bout.toByteArray()));
   }
   
