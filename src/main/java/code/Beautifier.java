@@ -16,22 +16,22 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Collections;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 
 
 public class Beautifier
 {
   private final String file;
-  private static int lines = 0;
-  private static int blanks = 0;
+  private static int lines = 0;   
+  private static int blanks = 0;   
 
 
+  @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
@@ -236,16 +236,18 @@ public class Beautifier
     @Override
     public synchronized void write(byte[] buf, int off, int len)
     {
-      for (int i = len-1; i >= 0; i--)
+      for (int i = len-2; i >= 0; i--)
       {
         if (buf[i+off] == ' ') len--;
         else break;
       }
       
+      buf[len-1] = '\n';
+      
       lines++;
       if (len == 1 && buf[0] == '\n') blanks++;
 
-      super.write(buf, off, len);
+      super.write(buf,off,len);
     }
   }
 }
