@@ -20,8 +20,7 @@ public class Beautifier
   {
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
     String code = beautifier.process();
-    
-    System.out.println(code);
+    beautifier.save(code);
   }
   
   
