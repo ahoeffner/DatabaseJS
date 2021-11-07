@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 
 
 public class Beautifier
@@ -149,7 +150,43 @@ public class Beautifier
     }
 
     in.close();
-    return(new String(bout.toByteArray()));
+    
+    FileInputStream oin = new FileInputStream(f);
+    byte[] borg = new byte[(int) f.length()];
+
+    int read = oin.read(borg);
+    
+    if (read != borg.length)
+      throw new Exception("Incomplete read "+file);
+    
+    
+    // Trailing blank lines
+    byte[] bnew = bout.toByteArray();
+    
+    int len = bnew.length;
+    for (int i = len-1; i >= 0; i--)
+    {
+      if (bnew[i] == '\n') len--;
+      else break;
+    }
+    
+    if (len != bnew.length)
+    {
+      byte[] btmp = new byte[len];
+      System.arraycopy(bnew,0,btmp,0,len);
+      bnew = btmp;
+    }
+
+    String org = new String(borg);
+    String mod = new String(bnew);
+    
+    if (org.equals(mod))
+    {
+      System.out.println("No changes "+file);
+      return(null);
+    }
+        
+    return(mod);
   }
 
 
