@@ -74,7 +74,9 @@ public class TestThread extends Thread
           }
           
           session.invoke(path,payload);
-          Thread.yield();
+          
+          for (int j = 0; j < cores; j++)
+            Thread.yield();
         }
         catch (Exception e)
         {
