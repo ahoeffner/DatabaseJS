@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.PrintStream;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Beautifier
 {
@@ -78,16 +80,33 @@ public class Beautifier
       
       if (imps.get(imps.size()-1).length() == 0)
         imps.remove(imps.size()-1);
-      
-      for(String i : imps)
-      {
-        System.out.println("<"+i+">");
-        if (i.length() == 0)
-          System.out.println(file+" has empty lines in import");
-      }
 
-      for(String i : imps)
-        out.println(i);
+      imps = sortimps(imps);    
+
+      for(String imp : imps)
+      {
+        out.println(imp);
+        if (imp.length() == 0)
+          System.out.println("Blank lines in import section "+file);
+      }
+    }
+
+    skip = true;
+    
+    while(skip) 
+    {
+      line = trim(in.readLine());
+      if (line.length() > 0) skip = false;
+    }
+
+    out.println();
+    out.println();
+    
+    while(true)
+    {
+      line = in.readLine();
+      if (line == null) break;
+      out.println(trim(line));
     }
     
     return(new String(bout.toByteArray()));
@@ -96,6 +115,7 @@ public class Beautifier
   
   private String trim(String str)
   {
+    if (str == null) return(null);
     byte[] bytes = str.getBytes();
 
     int len = bytes.length;    
@@ -106,10 +126,7 @@ public class Beautifier
     }
         
     if (len < bytes.length)
-    {
       str = new String(bytes,0,len);
-      System.out.println("<"+str+">");
-    }
     
     return(str);
   }
@@ -117,19 +134,41 @@ public class Beautifier
   
   private ArrayList<String> sortimps(ArrayList<String> imps)
   {
+    LengthSorter sorter = new LengthSorter();
     ArrayList<String> tmp = new ArrayList<String>();
     ArrayList<String> simps = new ArrayList<String>();
     
-    int pos = 0;
-    
-    while(pos < imps.size())
+    for (int i = 0; i < imps.size(); i++)
     {
-      for (int i = 0; i < imps.size(); i++)
+      String imp = imps.get(i);
+      
+      if (imp.length() > 0)
       {
-        ;
+        tmp.add(imp);
+      }
+      else
+      {
+        Collections.sort(tmp,sorter);
+        simps.addAll(tmp);
+        simps.add(imp);
+        tmp.clear();
       }
     }
+
+    Collections.sort(tmp,sorter);
+    simps.addAll(tmp);
+    tmp.clear();
     
     return(simps);
+  }
+  
+  
+  class LengthSorter implements Comparator<String>
+  {
+    @Override
+    public int compare(String s1, String s2)
+    {
+      return(s1.length()-s2.length());
+    }
   }
 }
