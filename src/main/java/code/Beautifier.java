@@ -37,7 +37,7 @@ public class Beautifier
     String code = beautifier.process();
     if (code != null) beautifier.save(code);
     
-    System.out.println("lines: "+lines+" blanks: "+blanks);
+    System.out.println("lines: "+lines+" blanks: "+blanks+" code: "+(lines-blanks));
   }
 
 
@@ -150,25 +150,6 @@ public class Beautifier
 
     in.close();
     return(new String(bout.toByteArray()));
-  }
-
-
-  private String trimx(String str)
-  {
-    if (str == null) return(null);
-    byte[] bytes = str.getBytes();
-
-    int len = bytes.length;
-    for (int i = len-1; i >= 0; i--)
-    {
-      if (bytes[i] == ' ') len--;
-      else break;
-    }
-
-    if (len < bytes.length)
-      str = new String(bytes,0,len);
-
-    return(str);
   }
 
 
