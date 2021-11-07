@@ -21,6 +21,7 @@ public class Beautifier
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
     String code = beautifier.process();
     beautifier.save(code);
+    System.out.println(code);
   }
   
   
@@ -100,6 +101,7 @@ public class Beautifier
     }
 
     skip = true;
+    String cdef = line;
     
     while(skip) 
     {
@@ -109,6 +111,7 @@ public class Beautifier
 
     out.println();
     out.println();
+    out.println(cdef);
     out.println(line);
     
     while(true)
