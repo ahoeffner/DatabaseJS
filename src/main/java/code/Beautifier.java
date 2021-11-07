@@ -20,7 +20,7 @@ public class Beautifier
   {
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
     String code = beautifier.process();
-    beautifier.save(code);
+    if (code != null) beautifier.save(code);
   }
 
 
@@ -48,26 +48,49 @@ public class Beautifier
 
     PrintStream out = new PrintStream(bout);
 
-    // Skip blanks before package
-    boolean skip = true;
+    // Skip blanks before open-source header
 
-    while(skip)
+    while(true)
     {
       line = trim(in.readLine());
-      if (line.length() > 0) skip = false;
+      if (line.length() > 0) break;
+    }
+    
+    if (!line.trim().startsWith("/*"))
+    {
+      System.out.println("No open-source header");
+      return(null);
+    }
+    
+    out.println(line);
+    
+    while(true)
+    {
+      line = trim(in.readLine());
+      out.println(line);
+      if (line.endsWith("*/")) break;
+    }
+    
+    out.println();
+
+    // Skip blanks before package
+
+    while(true)
+    {
+      line = trim(in.readLine());
+      if (line.length() > 0) break;
     }
 
     // package + blank
     out.println(trim(line));
     out.println();
 
-    skip = true;
     // Skip blanks before import
 
-    while(skip)
+    while(true)
     {
       line = trim(in.readLine());
-      if (line.length() > 0) skip = false;
+      if (line.length() > 0) break;
     }
 
     if (line.startsWith("import"))
