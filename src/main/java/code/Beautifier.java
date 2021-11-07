@@ -27,8 +27,8 @@ import java.io.ByteArrayOutputStream;
 public class Beautifier
 {
   private final String file;
-  private static int lines = 0;   
-  private static int blanks = 0;   
+  private static int lines = 0;
+  private static int blanks = 0;
 
 
   @SuppressWarnings("unused")
@@ -37,7 +37,7 @@ public class Beautifier
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
     String code = beautifier.process();
     if (code != null) beautifier.save(code);
-    
+
     System.out.println("lines: "+lines+" blanks: "+blanks+" code: "+(lines-blanks));
   }
 
@@ -150,26 +150,26 @@ public class Beautifier
     }
 
     in.close();
-    
+
     FileInputStream oin = new FileInputStream(f);
     byte[] borg = new byte[(int) f.length()];
 
     int read = oin.read(borg);
-    
+
     if (read != borg.length)
       throw new Exception("Incomplete read "+file);
-    
-    
+
+
     // Trailing blank lines
     byte[] bnew = bout.toByteArray();
-    
+
     int len = bnew.length;
     for (int i = len-1; i >= 0; i--)
     {
       if (bnew[i] == '\n') len--;
       else break;
     }
-    
+
     if (len != bnew.length)
     {
       byte[] btmp = new byte[len];
@@ -179,13 +179,13 @@ public class Beautifier
 
     String org = new String(borg);
     String mod = new String(bnew);
-    
+
     if (org.equals(mod))
     {
       System.out.println("No changes "+file);
       return(null);
     }
-        
+
     return(mod);
   }
 
@@ -229,8 +229,8 @@ public class Beautifier
       return(s1.length()-s2.length());
     }
   }
-  
-  
+
+
   private static class TrimmedOutputStream extends ByteArrayOutputStream
   {
     @Override
@@ -241,9 +241,9 @@ public class Beautifier
         if (buf[i+off] == ' ') len--;
         else break;
       }
-      
+
       buf[len-1] = '\n';
-      
+
       lines++;
       if (len == 1 && buf[0] == '\n') blanks++;
 
