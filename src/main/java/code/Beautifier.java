@@ -9,6 +9,7 @@
  * version 2 for more details (a copy is included in the LICENSE file that
  * accompanied this code).
  */
+
 package code;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 
 public class Beautifier
@@ -54,7 +56,7 @@ public class Beautifier
     String line = null;
     File f = new File(file);
 
-    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    TrimmedOutputStream bout = new TrimmedOutputStream();
     BufferedReader in = new BufferedReader(new FileReader(f));
 
     PrintStream out = new PrintStream(bout);
@@ -63,45 +65,44 @@ public class Beautifier
 
     while(true)
     {
-      line = trim(in.readLine());
-      if (line.length() > 0) break;
+      line = in.readLine();
+      if (line.trim().length() > 0) break;
     }
-    
+
     if (!line.trim().startsWith("/*"))
     {
       System.out.println("No open-source header "+file);
       return(null);
     }
-    
+
     out.println(line);
-    
+
     while(true)
     {
-      line = trim(in.readLine());
-      out.println(line);
-      if (line.endsWith("*/")) break;
+      line = in.readLine(); out.println(line);
+      if (line.trim().endsWith("*/")) break;
     }
-    
+
     out.println();
 
     // Skip blanks before package
 
     while(true)
     {
-      line = trim(in.readLine());
-      if (line.length() > 0) break;
+      line = in.readLine();
+      if (line.trim().length() > 0) break;
     }
 
     // package + blank
-    out.println(trim(line));
+    out.println(line);
     out.println();
 
     // Skip blanks before import
 
     while(true)
     {
-      line = trim(in.readLine());
-      if (line.length() > 0) break;
+      line = in.readLine();
+      if (line.trim().length() > 0) break;
     }
 
     if (line.startsWith("import"))
@@ -111,7 +112,7 @@ public class Beautifier
 
       while(true)
       {
-        line = trim(in.readLine());
+        line = in.readLine().trim();
 
         if (line.length() > 0 && !line.startsWith("import"))
           break;
@@ -140,7 +141,7 @@ public class Beautifier
     {
       line = in.readLine();
       if (line == null) break;
-      out.println(trim(line));
+      out.println(line);
     }
 
     in.close();
@@ -148,7 +149,7 @@ public class Beautifier
   }
 
 
-  private String trim(String str)
+  private String trimx(String str)
   {
     if (str == null) return(null);
     byte[] bytes = str.getBytes();
@@ -204,6 +205,24 @@ public class Beautifier
     public int compare(String s1, String s2)
     {
       return(s1.length()-s2.length());
+    }
+  }
+  
+  
+  private static class TrimmedOutputStream extends ByteArrayOutputStream
+  {
+    @Override
+    public void write(byte[] buf) throws IOException
+    {
+      int len = buf.length;
+      
+      for (int i = len-1; i >= 0; i--)
+      {
+        if (buf[i] == ' ') len--;
+        else break;
+      }
+
+      super.write(buf,0,len);
     }
   }
 }
