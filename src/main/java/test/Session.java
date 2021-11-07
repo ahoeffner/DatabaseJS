@@ -60,7 +60,9 @@ public class Session
     SocketReader reader = new SocketReader(in);
 
     out.write(request.getPage());
-    out.flush();
+    
+    for (int j = 0; j < 4; j++)
+      out.flush();
     
     Thread.yield();
     ArrayList<String> headers = reader.getHeader();

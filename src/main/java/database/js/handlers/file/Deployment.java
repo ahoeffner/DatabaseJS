@@ -370,9 +370,11 @@ public class Deployment
       this.actpath = actpath;
       this.compressed = compressed;
       int pos = virpath.lastIndexOf('.');
-            
+
       if (pos < 0) this.fileext = "";
       else this.fileext = virpath.substring(pos+1);
+      
+      System.out.println(virpath+" cache="+cache+" compression="+compressed);
     }
     
     
