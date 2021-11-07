@@ -16,17 +16,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 
 public class Beautifier
 {
   private final String file;
+  private static int lines = 0;
+  private static int blanks = 0;
 
 
   public static void main(String[] args) throws Exception
@@ -34,6 +36,8 @@ public class Beautifier
     Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
     String code = beautifier.process();
     if (code != null) beautifier.save(code);
+    
+    System.out.println("lines: "+lines+" blanks: "+blanks);
   }
 
 
@@ -212,17 +216,18 @@ public class Beautifier
   private static class TrimmedOutputStream extends ByteArrayOutputStream
   {
     @Override
-    public void write(byte[] buf) throws IOException
+    public synchronized void write(byte[] buf, int off, int len)
     {
-      int len = buf.length;
-      
       for (int i = len-1; i >= 0; i--)
       {
-        if (buf[i] == ' ') len--;
+        if (buf[i+off] == ' ') len--;
         else break;
       }
+      
+      lines++;
+      if (len == 1 && buf[0] == '\n') blanks++;
 
-      super.write(buf,0,len);
+      super.write(buf, off, len);
     }
   }
 }
