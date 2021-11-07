@@ -109,6 +109,7 @@ public class Beautifier
 
     out.println();
     out.println();
+    out.println(line);
     
     while(true)
     {
