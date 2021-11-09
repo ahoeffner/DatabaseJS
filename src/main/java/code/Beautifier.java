@@ -29,16 +29,32 @@ public class Beautifier
   private final String file;
   private static int lines = 0;
   private static int blanks = 0;
+  private static final String sep = File.separator;
 
 
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
-    Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
-    String code = beautifier.process();
-    if (code != null) beautifier.save(code);
-
+    String root = "/Users/alex/Repository/DatabaseJS/projects/database.js/src";
+    next(new File(root));
     System.out.println("lines: "+lines+" blanks: "+blanks+" code: "+(lines-blanks));
+  }
+  
+  
+  private static void next(File folder) throws Exception
+  {
+    File[] content = folder.listFiles();
+    
+    for(File file : content)
+    {
+      if (file.isDirectory()) next(file);
+      else
+      {
+        Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
+        String code = beautifier.process();
+        if (code != null) beautifier.save(code);
+      }
+    }
   }
 
 
@@ -181,10 +197,7 @@ public class Beautifier
     String mod = new String(bnew);
 
     if (org.equals(mod))
-    {
-      System.out.println("No changes "+file);
       return(null);
-    }
 
     return(mod);
   }
