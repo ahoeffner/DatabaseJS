@@ -39,12 +39,12 @@ public class Beautifier
     next(new File(root));
     System.out.println("lines: "+lines+" blanks: "+blanks+" code: "+(lines-blanks));
   }
-  
-  
+
+
   private static void next(File folder) throws Exception
   {
     File[] content = folder.listFiles();
-    
+
     for(File file : content)
     {
       if (file.isDirectory()) next(file);
