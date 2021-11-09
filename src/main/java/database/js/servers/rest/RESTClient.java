@@ -17,8 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.cluster.MailBox;
 import database.js.servers.Server;
+import database.js.cluster.MailBox;
 import database.js.servers.http.HTTPChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,11 +27,11 @@ public class RESTClient implements RESTConnection
 {
   private final short id;
   private final long started;
-  
+
   private HTTPChannel rchannel;
   private HTTPChannel wchannel;
   private volatile boolean up = false;
-  
+
   private final Config config;
   private final Logger logger;
   private final Server server;
@@ -46,7 +46,7 @@ public class RESTClient implements RESTConnection
   {
     this.id = id;
     this.started = started;
-    
+
     this.server = server;
     this.config = server.config();
     this.writer = new RESTWriter(this);
@@ -55,8 +55,8 @@ public class RESTClient implements RESTConnection
     this.logger = config.getLogger().rest;
     this.incoming = new ConcurrentHashMap<Long,RESTComm>();
   }
-  
-  
+
+
   public void init(HTTPChannel channel) throws Exception
   {
     for (int i = 0; i < 8; i++)
@@ -67,10 +67,10 @@ public class RESTClient implements RESTConnection
     }
 
     channel.configureBlocking(true);
-    
+
     if (this.wchannel == null) this.wchannel = channel;
     else                       this.rchannel = channel;
-    
+
     if (this.rchannel != null)
     {
       this.up = true;
@@ -79,16 +79,16 @@ public class RESTClient implements RESTConnection
       logger.info("External RESTEngine ready");
     }
   }
-  
-  
+
+
   public byte[] send(byte[] data) throws Exception
   {
     long id = thread();
     int extend = mailbox.write(id,data);
     writer.write(new RESTComm(id,extend,data));
-    
+
     RESTComm resp = null;
-    
+
     synchronized(this)
     {
       while(true)
@@ -97,37 +97,37 @@ public class RESTClient implements RESTConnection
 
         if (resp != null) break;
         if (!up) throw new Exception("Lost connection to RESTServer");
-        
+
         this.wait();
       }
     }
-    
+
     if (resp.extend() < 0) data = resp.data();
     else data = mailbox.read(extend,resp.size);
 
     if (extend >= 0) mailbox.clear(extend);
     return(data);
   }
-  
-  
+
+
   private long thread()
   {
     return(Thread.currentThread().getId());
   }
-  
-  
+
+
   public short id()
   {
     return(id);
   }
-  
-  
+
+
   public long started()
   {
     return(started);
   }
-  
-  
+
+
   public boolean up()
   {
     return(up);

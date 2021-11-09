@@ -22,27 +22,27 @@ import java.io.ByteArrayOutputStream;
 public class Formatter extends java.util.logging.Formatter
 {
   private final static String nl = System.lineSeparator();
-  private final static SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
-  
-      
+  private final static SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
   @Override
   public String format(LogRecord record)
   {
     String date = df.format(new Date());
-    
+
     String message = ": "+record.getMessage();
     String level = String.format("%-7s",record.getLevel().toString());
     String source = String.format("%-52s",record.getSourceClassName()+"."+record.getSourceMethodName());
-    
+
     StringBuffer entry = new StringBuffer();
     boolean exception = (record.getThrown() != null);
-    
+
     entry.append(date);
-    
+
     if (!exception)
     {
       entry.append(" "+level);
-      entry.append(" "+source);      
+      entry.append(" "+source);
     }
     else
     {
@@ -50,13 +50,13 @@ public class Formatter extends java.util.logging.Formatter
 
       StackTraceElement elem = elements[0];
       String pos = elem.getClassName()+"."+elem.getMethodName()+"("+elem.getFileName()+":"+elem.getLineNumber()+")";
-      
+
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       record.getThrown().printStackTrace(new PrintStream(out));
       message = " SEVERE :"+pos+nl+nl+new String(out.toByteArray());
     }
 
-    entry.append(message+nl);    
+    entry.append(message+nl);
     return(entry.toString());
   }
 }

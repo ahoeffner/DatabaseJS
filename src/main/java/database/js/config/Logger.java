@@ -33,12 +33,12 @@ public class Logger
   private final String htlevel;
   private final String rtlevel;
   private final Formatter formatter = new Formatter();
-  
+
   private int count = 2;
   private int size = LOGSIZE;
   private boolean open = false;
   private String logdir = "." + File.separator + "logs";
-      
+
   private static final String logfile = "server.log";
   private static final String ctrfile = "control.log";
   private final static int LOGSIZE = 10 * 1024 * 1024;
@@ -48,16 +48,16 @@ public class Logger
   {
     String lfsize = null;
     String path = Paths.apphome;
-    
+
     htlevel = config.getString("http");
     rtlevel = config.getString("rest");
     dblevel = config.getString("database");
     itlevel = config.getString("internal");
-    
+
     if (config.has("files"))   count = config.getInt("files");
     if (config.has("size"))    lfsize = config.getString("size");
     if (config.has("path"))    logdir = config.getString("path");
-    
+
     if (lfsize != null)
     {
       int mp = 1;
@@ -66,7 +66,7 @@ public class Logger
       if (lfsize.endsWith("MB")) mp = 1024*1024;
       if (lfsize.endsWith("GB")) mp = 1024*1024*1024;
       if (mp > 1) lfsize = lfsize.substring(0,lfsize.length()-2);
-      size = Integer.parseInt(lfsize.trim()) * mp;      
+      size = Integer.parseInt(lfsize.trim()) * mp;
     }
 
     if (logdir.startsWith("."))
@@ -79,7 +79,7 @@ public class Logger
     {
       logdir = logdir + File.separator + inst;
     }
-    
+
     File ldir = new File(logdir);
 
     if (ldir.exists() && !ldir.isDirectory())
@@ -88,8 +88,8 @@ public class Logger
     if (!ldir.exists())
       ldir.mkdirs();
   }
-  
-  
+
+
   public synchronized String getServerOut(int inst)
   {
     File ldir = new File(logdir);
@@ -102,8 +102,8 @@ public class Logger
 
     return(instdir+File.separator+"server.out");
   }
-  
-  
+
+
   public synchronized String getControlOut()
   {
     File ldir = new File(logdir);
@@ -116,8 +116,8 @@ public class Logger
 
     return(instdir+File.separator+"control.out");
   }
-  
-  
+
+
   public synchronized void openControlLog() throws Exception
   {
     File ldir = new File(logdir);
@@ -131,8 +131,8 @@ public class Logger
 
     intern.addHandler(handler);
   }
-  
-  
+
+
   public synchronized void open(int inst) throws Exception
   {
     if (open) return;
@@ -140,7 +140,7 @@ public class Logger
 
     File ldir = new File(instdir);
     if (!ldir.exists()) ldir.mkdir();
-    
+
     String lfile = instdir+File.separator+logfile;
 
     File check = new File(lfile+".0");

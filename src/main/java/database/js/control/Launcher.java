@@ -15,6 +15,7 @@ package database.js.control;
 import java.io.File;
 import java.util.Date;
 import java.util.ArrayList;
+import java.io.PrintStream;
 import org.json.JSONTokener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,13 +24,11 @@ import database.js.config.Paths;
 import database.js.config.Config;
 import java.text.SimpleDateFormat;
 import database.js.cluster.Cluster;
-import database.js.handlers.Handler;
-import database.js.cluster.Statistics;
 import database.js.config.Topology;
-import database.js.handlers.file.Deployment;
-
+import database.js.handlers.Handler;
 import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+import database.js.cluster.Statistics;
+import database.js.handlers.file.Deployment;
 
 
 /**
@@ -52,7 +51,7 @@ public class Launcher implements ILauncher
     String cmd = null;
     String url = null;
     ILauncher launcher = null;
-    
+
     if (args.length < 1 || args.length > 2)
       usage();
 
@@ -72,7 +71,7 @@ public class Launcher implements ILauncher
 
     try
     {
-      launcher.setConfig();      
+      launcher.setConfig();
       cmd = args[0].toLowerCase();
       if (args.length > 1) url = args[1].toLowerCase();
 
@@ -99,8 +98,8 @@ public class Launcher implements ILauncher
     System.out.println("usage database.js start|stop|deploy|status [url]");
     System.exit(-1);
   }
-  
-  
+
+
   public Logger logger()
   {
     return(logger);
@@ -125,7 +124,7 @@ public class Launcher implements ILauncher
       logger.info("database.js instance "+config.instance()+" is already running");
       return;
     }
-    
+
     int cores = Runtime.getRuntime().availableProcessors();
 
     Process process = new Process(config);
@@ -148,10 +147,10 @@ public class Launcher implements ILauncher
 
       if (url.startsWith("https://"))
         url = url.substring(8);
-      
+
       int pos = url.indexOf(':') + 1;
       int admin = config.getPorts()[2];
-      
+
       if (pos > 1)
       {
         admin = Integer.parseInt(url.substring(pos));
@@ -184,10 +183,10 @@ public class Launcher implements ILauncher
 
       if (url.startsWith("https://"))
         url = url.substring(8);
-      
+
       int pos = url.indexOf(':') + 1;
       int admin = config.getPorts()[2];
-      
+
       if (pos > 1)
       {
         admin = Integer.parseInt(url.substring(pos));
@@ -218,10 +217,10 @@ public class Launcher implements ILauncher
 
       if (url.startsWith("https://"))
         url = url.substring(8);
-      
+
       int pos = url.indexOf(':') + 1;
       int admin = config.getPorts()[2];
-      
+
       if (pos > 1)
       {
         admin = Integer.parseInt(url.substring(pos));
@@ -235,7 +234,7 @@ public class Launcher implements ILauncher
 
       logger.fine("Sending message");
       byte[] response = client.send("status");
-      
+
       System.out.println(new String(response));
     }
   }
@@ -244,12 +243,12 @@ public class Launcher implements ILauncher
   public static String getStatus(Config config) throws Exception
   {
     String line = null;
-    
+
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(bout);
-    
+
     out.println();
-    
+
     Topology topology = config.getTopology();
     out.println("Cores: "+Topology.cores+", Waiters: "+topology.waiters()+", Workers: "+topology.workers());
     out.println();
@@ -358,18 +357,18 @@ public class Launcher implements ILauncher
 
     out.println(line);
     out.println();
-    
+
     out.flush();
     return(new String(bout.toByteArray()));
   }
-  
-  
+
+
   public int heartbeat() throws Exception
   {
     return(config.getTopology().heartbeat());
   }
-  
-  
+
+
   public boolean stopped(long started) throws Exception
   {
     Cluster.init(config);

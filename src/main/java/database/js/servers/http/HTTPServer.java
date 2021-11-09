@@ -41,12 +41,12 @@ public class HTTPServer extends Thread
   private final ThreadPool workers;
   private final HTTPServerType type;
   private final HTTPWaiterPool waiters;
-  
+
   private int state = READY;
   public final static int READY     = 0;
-  public final static int DISABLED  = 1; 
-  public final static int RUNNING   = 2; 
-  public final static int STOPPED   = 3; 
+  public final static int DISABLED  = 1;
+  public final static int RUNNING   = 2;
+  public final static int STOPPED   = 3;
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -58,10 +58,10 @@ public class HTTPServer extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
-    
+
     config.getPKIContext(); // Initialize ssl
     HTTPBuffers.setSize(config.getHTTP().bufsize());
-    
+
     switch(type)
     {
       case ssl    : this.port = config.getHTTP().ssl();   ssl = true;  admin = false; break;
@@ -75,14 +75,14 @@ public class HTTPServer extends Thread
     this.workers = new ThreadPool(config.getTopology().workers());
     this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
   }
-  
-  
+
+
   public int state()
   {
     return(state);
   }
-  
-  
+
+
   public int port()
   {
     return(port);
@@ -123,9 +123,9 @@ public class HTTPServer extends Thread
   {
     return(workers);
   }
-  
 
-  // Assign a waiter for the client  
+
+  // Assign a waiter for the client
   void assign(HTTPChannel client)
   {
     try {waiters.getWaiter().addClient(client);}
@@ -144,7 +144,7 @@ public class HTTPServer extends Thread
   {
     if (port <= 0)
     {
-      state = DISABLED;      
+      state = DISABLED;
       return;
     }
 
@@ -159,7 +159,7 @@ public class HTTPServer extends Thread
       server.bind(new InetSocketAddress(port));
       server.register(selector,SelectionKey.OP_ACCEPT);
 
-      state = RUNNING;      
+      state = RUNNING;
 
       while(true)
       {
@@ -181,7 +181,7 @@ public class HTTPServer extends Thread
               logger.finest("Incoming request "+channel.getRemoteAddress());
 
               channel.configureBlocking(false);
-              
+
               if (ssl)
               {
                 // Don't block while handshaking

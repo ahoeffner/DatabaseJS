@@ -189,10 +189,10 @@ public class HTTPChannel
   public void connect(String host, int port) throws Exception
   {
     channel.connect(new InetSocketAddress(host,port));
-    while(!channel.finishConnect()) Thread.sleep(1);        
-    
-    if (ssl) 
-    {      
+    while(!channel.finishConnect()) Thread.sleep(1);
+
+    if (ssl)
+    {
       this.accept();
       Thread.sleep(1);
     }
@@ -244,7 +244,7 @@ public class HTTPChannel
 
       if (buffers.data == null)
         return(buffers.done());
-      
+
       buffers.data.flip();
       return(buffers.done());
     }
@@ -344,13 +344,13 @@ public class HTTPChannel
 
       if (ssl) writessl();
       else     writeplain();
-      
+
       if (!socket.isClosed())
       {
         try {socket.getOutputStream().flush();}
         catch (Exception e) {;}
       }
-      
+
       wrote += chunk;
       buffers.alloc(true);
     }
@@ -368,12 +368,12 @@ public class HTTPChannel
     }
     catch (Exception e)
     {
-      if (e instanceof ClosedChannelException) 
+      if (e instanceof ClosedChannelException)
       {
         logger.warning("Client closed connection");
-        return;        
+        return;
       }
-      
+
       throw e;
     }
   }

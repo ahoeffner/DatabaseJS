@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.servers.rest;
 
 import java.util.logging.Level;
@@ -16,8 +28,8 @@ public class RESTWorker implements Runnable
   private final RESTComm bridge;
   private final RESTServer rserver;
   private final ThreadPool workers;
-  
-  
+
+
   public RESTWorker(RESTServer rserver, ThreadPool workers, RESTComm bridge)
   {
     this.bridge = bridge;
@@ -35,21 +47,21 @@ public class RESTWorker implements Runnable
       Server srv = rserver.server();
       HTTPRequest request = new HTTPRequest(srv,bridge.data());
       Handlers handlers = rserver.config().getHTTP().handlers();
-      
+
       RestHandler handler = handlers.getRESTHandler();
-      
+
       HTTPResponse response = handler.handle(request);
       byte[] data = response.page();
-      
+
       if (data == null)
       {
         logger.severe("Received null respond from RestHandler");
         data = "{\"status\": \"failed\"}".getBytes();
       }
-      
+
       long id = bridge.id();
       int extend = bridge.extend();
-      
+
       RESTComm bridge = new RESTComm(id,extend,data);
       rserver.respond(bridge);
     }

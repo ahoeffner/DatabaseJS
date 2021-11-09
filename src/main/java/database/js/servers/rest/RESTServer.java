@@ -48,33 +48,33 @@ public class RESTServer implements RESTConnection
   private final MailBox mailbox;
   private final ThreadPool workers;
 
-  
+
   public RESTServer(Server server) throws Exception
   {
     this.server = server;
     this.config = server.config();
     this.logger = config.getLogger().rest;
     this.mailbox = new MailBox(config,server.id());
-    
+
     logger.info("RESTServer starting ...");
-    
+
     int http = 1;
     this.port = config.getHTTP().admin();
     if (config.getTopology().hotstandby()) http++;
 
     this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers());
-    
+
     serve();
   }
-  
-  
+
+
   public void respond(RESTComm response)
   {
     if (response.extend >= 0)
     {
       byte[] data = response.data();
-      
+
       if (mailbox.fits(data))
       {
         response.set(null);
@@ -86,30 +86,30 @@ public class RESTServer implements RESTConnection
         response = new RESTComm(id,-1,data);
       }
     }
-    
+
     writer.write(response);
   }
-  
-  
+
+
   public Server server()
   {
     return(server);
   }
-  
-  
+
+
   public Config config()
   {
     return(config);
   }
-  
-  
+
+
   private void serve()
   {
-    int tries = 0;    
-    
+    int tries = 0;
+
     if (reader == null) logger.info("RESTServer connecting ...");
     else                logger.info("RESTServer reconnecting ...");
-    
+
     while(!connect())
     {
       if (++tries > 256)
@@ -118,19 +118,19 @@ public class RESTServer implements RESTConnection
         server.shutdown(false);
         System.exit(-1);
       }
-      
+
       if (tries % 16 == 0)
         logger.info("Unable to connect to HTTPServer");
-      
+
       try {Thread.sleep(250);}
       catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
     }
-    
+
     try
     {
       reader = new RESTReader(this);
       writer = new RESTWriter(this);
-      
+
       reader.start();
       writer.start();
     }
@@ -141,16 +141,16 @@ public class RESTServer implements RESTConnection
       System.exit(-1);
     }
   }
-  
-  
+
+
   private boolean connect()
   {
     try
     {
-      SocketChannel rchannel = SocketChannel.open();    
+      SocketChannel rchannel = SocketChannel.open();
       this.rchannel = new HTTPChannel(server,rchannel,true);
 
-      SocketChannel wchannel = SocketChannel.open();    
+      SocketChannel wchannel = SocketChannel.open();
       this.wchannel = new HTTPChannel(server,wchannel,true);
     }
     catch (Exception e)
@@ -159,37 +159,37 @@ public class RESTServer implements RESTConnection
       logger.severe("Unable to start RESTServer, bailing out");
       System.exit(-1);
     }
-    
-    if (!connect(this.rchannel)) 
+
+    if (!connect(this.rchannel))
       return(false);
-    
+
     byte[] readsig = this.httpid;
     // Make sure HTTPServer has not switched
-    
-    if (!connect(this.wchannel)) 
+
+    if (!connect(this.wchannel))
     {
       try {this.rchannel.close();}
       catch (Exception e) {;}
-      
-      return(false);      
+
+      return(false);
     }
-    
+
     if (!Arrays.equals(readsig,this.httpid))
     {
       try {this.rchannel.close();}
       catch (Exception e) {;}
-      
+
       try {this.wchannel.close();}
       catch (Exception e) {;}
-      
-      return(false);      
+
+      return(false);
     }
-    
+
     logger.info("Connected to HTTPServer");
     return(true);
   }
-  
-  
+
+
   private boolean connect(HTTPChannel channel)
   {
     try
@@ -200,25 +200,25 @@ public class RESTServer implements RESTConnection
       channel.configureBlocking(true);
       channel.socket().setSoTimeout(2000);
 
-      HTTPRequest request = new HTTPRequest("localhost","/connect");      
+      HTTPRequest request = new HTTPRequest("localhost","/connect");
       request.setBody(server.id()+" "+server.started());
-      
+
       logger.finest("Sending connect request to HTTPServer");
       channel.write(request.getPage());
       channel.socket().getOutputStream().flush();
-      
-      
+
+
       HTTPResponse response = new HTTPResponse();
 
       logger.finest("Waiting for response from HTTPServer");
       while(!response.finished())
       {
         ByteBuffer buf = channel.read();
-        
-        if (buf == null) 
+
+        if (buf == null)
         {
           logger.warning("Missing reply from HTTPServer");
-          return(false);          
+          return(false);
         }
 
         response.add(buf);
@@ -226,15 +226,15 @@ public class RESTServer implements RESTConnection
 
       channel.socket().setSoTimeout(0);
       String[] args = new String(response.getBody()).split(" ");
-      
+
       short id = Short.parseShort(args[0]);
       long started = Long.parseLong(args[1]);
       byte[] signature = signature(id,started);
       if (this.httpid == null) this.httpid = signature;
-      
+
       if (!Arrays.equals(signature,this.httpid))
-          logger.info("HTTPServer restarted or switched"); 
-            
+          logger.info("HTTPServer restarted or switched");
+
       this.httpid = signature;
     }
     catch (Exception e)
@@ -249,11 +249,11 @@ public class RESTServer implements RESTConnection
       if (!skip) logger.log(Level.WARNING,e.getMessage(),e);
       return(false);
     }
-    
+
     return(true);
   }
-  
-  
+
+
   private byte[] signature(Short id, long started)
   {
     buffer.clear();
@@ -307,13 +307,13 @@ public class RESTServer implements RESTConnection
     for(RESTComm http : calls)
     {
       byte[] data = http.data();
-      
+
       if (http.extend >= 0)
       {
         data = mailbox.read(http.extend,http.size);
         http.add(data);
-      }  
-      
+      }
+
       workers.submit(new RESTWorker(this,workers,http));
     }
   }

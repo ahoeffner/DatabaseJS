@@ -12,7 +12,6 @@
 
 package database.js.security;
 
-
 import java.security.KeyStore;
 import java.io.FileInputStream;
 import javax.net.ssl.SSLContext;
@@ -94,7 +93,7 @@ public class PKIContext
     {
       ctx = SSLContext.getInstance("TLS");
       ctx.init(kmgrs,tmgrs,new java.security.SecureRandom());
-      
+
       for (int i = 0; i < 256; i++)
       {
         try
@@ -107,7 +106,7 @@ public class PKIContext
           Thread.sleep(1);
         }
       }
-      
+
       throw new Exception("Unable to initialize SSLContext");
     }
 

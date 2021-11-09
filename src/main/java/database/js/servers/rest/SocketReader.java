@@ -29,14 +29,14 @@ public class SocketReader
   {
     this.in = in;
   }
-  
-  
+
+
   public boolean empty()
   {
     return(pos >= size);
   }
-  
-  
+
+
   public long bytes()
   {
     return(total);
@@ -45,13 +45,13 @@ public class SocketReader
 
   public byte read() throws Exception
   {
-    if (this.pos < this.size) 
+    if (this.pos < this.size)
       return(this.buffer[pos++]);
 
     this.pos = 0;
     this.size = in.read(buffer);
     if (size > 0) this.total += this.size;
-    
+
     if (this.size == -1)
       throw new Exception("Socket closed");
 
@@ -69,27 +69,27 @@ public class SocketReader
     {
       if (available > 0)
       {
-        if (available > size - pos) 
+        if (available > size - pos)
           available = size - pos;
-                
-        System.arraycopy(this.buffer,this.pos,data,pos,available);        
-        
+
+        System.arraycopy(this.buffer,this.pos,data,pos,available);
+
         pos += available;
         this.pos += available;
       }
-      
+
       if (pos == size)
         break;
-      
+
       this.pos = 0;
       this.size = in.read(buffer);
       if (size > 0) this.total += this.size;
       available = this.size - this.pos;
-      
+
       if (this.size == -1)
-        throw new Exception("Socket closed");      
+        throw new Exception("Socket closed");
     }
-    
+
     return(data);
   }
 }

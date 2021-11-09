@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package test;
 
 import java.io.File;
@@ -18,7 +30,7 @@ public class Test
     int ips = Integer.parseInt(args[1]);
     int loops = Integer.parseInt(args[3]);
     int threads = Integer.parseInt(args[2]);
-    
+
     String payload = null;
     if (args.length > 4)
     {
@@ -28,10 +40,10 @@ public class Test
       FileInputStream in = new FileInputStream(file);
       int read = in.read(buf);
       in.close();
-      
+
       payload = new String(buf,0,read);
     }
-    
+
     TestThread.start(url,ips,threads,loops,payload);
   }
 }

@@ -105,8 +105,8 @@ public class Deployment
 
     return(this.index.get(path));
   }
-  
-  
+
+
   public static boolean isDirectory(String path)
   {
     if (!sep.equals("/")) path = path.replaceAll("/",sep);
@@ -126,8 +126,8 @@ public class Deployment
     if (!(new File(deployment).exists())) return(false);
 
     logger.info("Indexing website");
-    
-    ConcurrentHashMap<String,StaticFile> index = 
+
+    ConcurrentHashMap<String,StaticFile> index =
       new ConcurrentHashMap<String,StaticFile>();
 
     FileInputStream fin = new FileInputStream(deployment + sep + ".index");
@@ -152,8 +152,8 @@ public class Deployment
 
     String dep = this.deploy + sep + home.lastModified();
     String tmp = this.deploy + sep + "d" + home.lastModified();
-    
-    ConcurrentHashMap<String,StaticFile> index = 
+
+    ConcurrentHashMap<String,StaticFile> index =
       new ConcurrentHashMap<String,StaticFile>();
 
     if (!(new File(dep).exists()))
@@ -249,7 +249,7 @@ public class Deployment
 
     out.close();
     in.close();
-    
+
     return((int) ifile.length());
   }
 
@@ -272,7 +272,7 @@ public class Deployment
     gout.close();
     out.close();
     in.close();
-    
+
     File cfile = new File(file);
     return((int) cfile.length());
   }
@@ -356,7 +356,7 @@ public class Deployment
 
     public final boolean cache;
     public final boolean compressed;
-    
+
     private transient byte[] content = null;
 
     @SuppressWarnings("compatibility:-4436880408631246090")
@@ -364,7 +364,7 @@ public class Deployment
 
 
     StaticFile(String virpath, String actpath, boolean cache, boolean compressed)
-    {      
+    {
       this.cache = cache;
       this.virpath = virpath;
       this.actpath = actpath;
@@ -373,61 +373,61 @@ public class Deployment
 
       if (pos < 0) this.fileext = "";
       else this.fileext = virpath.substring(pos+1);
-      
+
       System.out.println(virpath+" cache="+cache+" compression="+compressed);
     }
-    
-    
+
+
     public byte[] get(boolean gzip) throws Exception
     {
       boolean usecache = true;
       if (compressed && !gzip) usecache = false;
       if (usecache && content != null) return(content);
-      
+
       File file = new File(actpath);
-      
-      if (!file.exists()) 
+
+      if (!file.exists())
         throw new Exception("File "+actpath+" not found");
-      
+
       gzip = gzip && compressed;
       byte[] content = read(file,gzip);
 
-      if (cache && usecache) 
+      if (cache && usecache)
         this.content = content;
-      
+
       return(content);
     }
-    
-    
+
+
     public String fileext()
     {
       return(fileext);
     }
-    
-    
+
+
     private byte[] read(File file, boolean gzip) throws Exception
     {
       byte[] content = new byte[(int) file.length()];
       FileInputStream in = new FileInputStream(file);
-      
+
       int read = in.read(content);
       in.close();
-      
-      if (read != content.length) 
+
+      if (read != content.length)
         throw new Exception("Read "+actpath+" returned partial result");
-      
+
       if (compressed && !gzip)
       {
         // Decompress
         ByteArrayInputStream bin = new ByteArrayInputStream(content);
-        
+
         GZIPInputStream gzin = new GZIPInputStream(bin);
         content = gzin.readAllBytes();
-        
+
         bin.close();
         gzin.close();
       }
-      
+
       return(content);
     }
   }

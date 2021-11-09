@@ -73,12 +73,12 @@ public class HTTPRequest
     this.redirect = channel.redirect();
   }
 
-  
+
   public Server server()
   {
     return(server);
   }
-  
+
   public long start()
   {
     return(time);
@@ -103,12 +103,12 @@ public class HTTPRequest
   {
     return(new String(request,0,header));
   }
-  
+
   public byte[] page()
   {
     return(request);
   }
-  
+
   public byte[] body()
   {
     if (body != null) return(body);
@@ -142,12 +142,12 @@ public class HTTPRequest
   {
     channel.write(data);
   }
-  
+
   public SelectionKey key()
   {
     return(key);
   }
-  
+
   public void unlist()
   {
     waiter.unlist(key);
@@ -182,10 +182,10 @@ public class HTTPRequest
     {
       int pos = lines[i].indexOf(':');
       if (pos <= 0) continue;
-      
+
       String key = lines[i].substring(0,pos).trim();
       String val = lines[i].substring(pos+1).trim();
-      
+
       this.headers.put(key,val);
     }
 
@@ -283,7 +283,7 @@ public class HTTPRequest
         else clength = Integer.parseInt(cl);
       }
     }
-    
+
     if (request.length > header + clength + 4)
       throw new Exception("Received multiple requests without client waiting for response");
 
@@ -306,7 +306,7 @@ public class HTTPRequest
 
         if (path.length() > 1 && path.endsWith("/"))
           path = path.substring(0,path.length()-1);
-        
+
         if (path.length() == 0)
           path = "/";
 
@@ -367,7 +367,7 @@ public class HTTPRequest
   /**
    *
    * Returns the length of the header (pos+1)
-   * 
+   *
    */
   void forward(int last)
   {
@@ -388,7 +388,7 @@ public class HTTPRequest
   /**
    *
    * Returns the length of the header (pos+1)
-   * 
+   *
    */
   void bckward(int last)
   {

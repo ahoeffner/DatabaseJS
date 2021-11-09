@@ -12,6 +12,8 @@
 
 package database.js.servers.http;
 
+
+
 public enum HTTPServerType
 {
   ssl,

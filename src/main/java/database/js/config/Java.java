@@ -23,22 +23,22 @@ public class Java
   private final String restopts;
   private final String httpjars;
   private final String restjars;
-  
-  
+
+
   Java(JSONObject config) throws Exception
   {
     String exe = null;
-    
-    if (!config.isNull("java")) 
+
+    if (!config.isNull("java"))
       exe = config.getString("java");
 
     if (exe == null) exe = current();
     if (Config.windows()) exe += ".exe";
-    
+
     this.exe = exe;
     this.httpopts = config.getString("http.opts");
     this.restopts = config.getString("rest.opts");
-    
+
     String httpjars = "";
     if (!config.isNull("http.jars"))
     {
@@ -46,12 +46,12 @@ public class Java
       httpjars = config.getString("http.jars");
       String[] jars = httpjars.split(", ;:");
 
-      for(String jar : jars) 
+      for(String jar : jars)
         path += File.pathSeparator+jar;
-      
+
       httpjars = path;
     }
-    
+
     String restjars = "";
     if (!config.isNull("http.jars"))
     {
@@ -59,17 +59,17 @@ public class Java
       restjars = config.getString("rest.jars");
       String[] jars = restjars.split(", ;:");
 
-      for(String jar : jars) 
+      for(String jar : jars)
         path += File.pathSeparator+jar;
-      
+
       restjars = path;
     }
-    
+
     this.httpjars = httpjars;
     this.restjars = restjars;
   }
-  
-  
+
+
   private String current()
   {
     String home = System.getProperties().getProperty("java.home");
@@ -82,12 +82,12 @@ public class Java
   {
     return(exe);
   }
-  
+
   public String getHTTPClassPath()
   {
     return(httpjars);
   }
-  
+
   public String getRESTClassPath()
   {
     return(restjars);

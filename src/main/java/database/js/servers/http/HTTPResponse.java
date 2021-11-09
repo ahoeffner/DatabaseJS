@@ -25,7 +25,7 @@ public class HTTPResponse
   private String response;
   private String mimetype;
   private boolean finished;
-  
+
   // Not threadsafe => allocate per response
   private final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
 
@@ -63,7 +63,7 @@ public class HTTPResponse
   {
     if (finished)
       return;
-    
+
     finished = true;
 
     if (body == null)

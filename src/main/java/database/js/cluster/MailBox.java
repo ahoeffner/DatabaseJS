@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.cluster;
 
 import java.io.File;
@@ -34,14 +46,14 @@ public class MailBox
     String filename = getFileName(id);
     this.logger = config.getLogger().intern;
     FileSystem fs = FileSystems.getDefault();
-    
+
     this.extmap = new HashMap<Integer,Long>();
     this.extnds = config.getTopology().extnds();
     this.extsize = config.getTopology().extsize();
 
     Path path = fs.getPath(filename);
     FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);
-    
+
     if (!System.getProperty("os.name").startsWith("Windows"))
     {
       try
@@ -51,27 +63,27 @@ public class MailBox
         perms.add(PosixFilePermission.OWNER_WRITE);
         Files.setPosixFilePermissions(path,perms);
       }
-      catch (Exception e) 
+      catch (Exception e)
       {
         logger.warning("Unable to set file permissions for mailbox");
       }
     }
-        
+
     this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,extnds*extsize);
   }
-  
-  
+
+
   public boolean fits(byte[] data)
   {
     return(data.length <= extsize);
   }
-  
-  
+
+
   public boolean write(int extend, byte[] data)
   {
     if (data.length > extsize)
       return(false);
-    
+
     synchronized(WLOCK)
     {
       shmmem.position(extend*extsize);
@@ -80,15 +92,15 @@ public class MailBox
 
     return(true);
   }
-  
-  
+
+
   public int write(long id, byte[] data)
   {
     if (data.length > extsize)
       return(-1);
-    
+
     int start = (int) (id % extnds);
-    
+
     synchronized(WLOCK)
     {
       for (int i = 0; i < extnds; i++)
@@ -102,12 +114,12 @@ public class MailBox
         }
       }
     }
-    
+
     logger.warning("No available extends in mailbox");
     return(-1);
   }
-  
-  
+
+
   public byte[] read(int extend, int size)
   {
     byte[] data = new byte[size];
@@ -121,8 +133,8 @@ public class MailBox
 
     return(data);
   }
-  
-  
+
+
   public void clear(int extend)
   {
     extmap.remove(extend);

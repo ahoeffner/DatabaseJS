@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package test;
 
 import java.net.Socket;
@@ -15,14 +27,14 @@ public class Session
   private final int port;
   private final String host;
   private final Socket socket;
-  
-  
+
+
   public Session(String host, int port, boolean ssl) throws Exception
   {
     this.host = host;
     this.port = port;
     Socket socket = null;
-    
+
     try
     {
       if (!ssl)
@@ -34,9 +46,9 @@ public class Session
         SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(null,new X509TrustManager[] {new FakeTrustManager()}, new java.security.SecureRandom());
         socket = ctx.getSocketFactory().createSocket(host,port);
-        ((SSLSocket) socket).startHandshake(); 
+        ((SSLSocket) socket).startHandshake();
       }
-      
+
       socket.setSoTimeout(30000);
       socket.getOutputStream().flush();
     }
@@ -45,11 +57,11 @@ public class Session
       e.printStackTrace();
       System.exit(-1);
     }
-    
+
     this.socket = socket;
   }
-  
-  
+
+
   public void invoke(String url, String message) throws Exception
   {
     HTTPRequest request = new HTTPRequest(host,url);
@@ -60,10 +72,10 @@ public class Session
     SocketReader reader = new SocketReader(in);
 
     out.write(request.getPage());
-    
+
     for (int j = 0; j < 4; j++)
       out.flush();
-    
+
     Thread.yield();
     ArrayList<String> headers = reader.getHeader();
 
@@ -77,8 +89,8 @@ public class Session
     String response = null;
     if (cl > 0) response = new String(reader.getContent(cl));
   }
-  
-  
+
+
   public void close()
   {
     try {socket.close();}

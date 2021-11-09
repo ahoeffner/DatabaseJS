@@ -28,14 +28,14 @@ class HTTPBuffers
   private final boolean ssl;
 
   private static int SIZE = 4*1024;
-  
-  
+
+
   public static void setSize(int size)
   {
     SIZE = size;
   }
-  
-  
+
+
   public HTTPBuffers()
   {
     this.asize = 0;
@@ -43,8 +43,8 @@ class HTTPBuffers
     this.size = SIZE;
     this.ssl = false;
   }
-  
-  
+
+
   public HTTPBuffers(int asize, int psize)
   {
     this.ssl = true;
@@ -52,14 +52,14 @@ class HTTPBuffers
     this.asize = asize;
     this.psize = psize;
   }
-  
-  
+
+
   public int size()
   {
     return(size);
   }
-  
-  
+
+
   public void alloc(boolean free) throws Exception
   {
     if (free) done();
@@ -71,7 +71,7 @@ class HTTPBuffers
   {
     this.data = ByteBuffer.allocateDirect(size);
     if (ssl) this.sslb = ByteBuffer.allocateDirect(psize);
-    
+
     if (data == null || (ssl & sslb == null))
       throw new Exception("Unable to allocate ByteBuffer");
   }
@@ -82,7 +82,7 @@ class HTTPBuffers
     this.data = ByteBuffer.allocateDirect(asize);
     this.send = ByteBuffer.allocateDirect(psize);
     this.recv = ByteBuffer.allocateDirect(psize);
-    
+
     if (data == null || send == null || recv == null)
       throw new Exception("Unable to allocate ByteBuffer");
   }
@@ -91,12 +91,12 @@ class HTTPBuffers
   public ByteBuffer done()
   {
     ByteBuffer data = this.data;
-    
+
     this.data = null;
     this.sslb = null;
     this.send = null;
     this.recv = null;
-    
+
     return(data);
   }
 }

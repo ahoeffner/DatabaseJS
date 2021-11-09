@@ -12,6 +12,7 @@
 
 package database.js.handlers;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
@@ -21,8 +22,6 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 
-import java.util.logging.Level;
-
 
 public class RestHandler extends Handler
 {
@@ -30,8 +29,8 @@ public class RestHandler extends Handler
   {
     super(config,properties);
   }
-  
-  
+
+
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
@@ -41,7 +40,7 @@ public class RestHandler extends Handler
 
     server.request();
     logger.fine("REST request received: "+request.path());
-    
+
     if (!server.embedded())
     {
       RESTClient client = server.worker();
@@ -53,13 +52,13 @@ public class RestHandler extends Handler
         response.setBody("{\"status\": \"failed\"}");
         return(response);
       }
-      
+
       byte[] data = client.send(request.page());
       response = new HTTPResponse(data);
-      
+
       log(logger,request,response);
       return(response);
-    }    
+    }
 
     response = new HTTPResponse();
     response.setBody("{\"status\": \"ok\"}");
@@ -67,18 +66,18 @@ public class RestHandler extends Handler
     log(logger,request,response);
     return(response);
   }
-  
-  
+
+
   private void log(Logger logger, HTTPRequest request, HTTPResponse response)
   {
     long time = System.nanoTime() - request.start();
 
     if (logger.getLevel() == Level.FINE)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
-    
+
     if (logger.getLevel() == Level.FINER)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.body())+"\n\n"+new String(response.body())+"\n");
-    
+
     if (logger.getLevel() == Level.FINEST)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.page())+"\n\n"+new String(response.page())+"\n");
   }

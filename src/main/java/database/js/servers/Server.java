@@ -29,8 +29,8 @@ import database.js.cluster.ProcessMonitor;
 import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
-import database.js.cluster.Cluster.ServerType;
 import database.js.handlers.file.Deployment;
+import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
 
 
@@ -393,7 +393,7 @@ public class Server extends Thread
     {
       if (stat.id() == this.id) continue;
       long alive = System.currentTimeMillis() - stat.updated();
-      
+
       if (1.0 * alive > 1.25 * this.heartbeat) ensure = true;
       else if (stat.restmgr()) nomgr = false;
     }

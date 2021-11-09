@@ -39,8 +39,8 @@ public class Paths
     tmpdir = apphome + File.separator + TMPDIR;
     confdir = apphome + File.separator + CONFDIR;
   }
-  
-  
+
+
   private static String findAppHome()
   {
     String sep = File.separator;
@@ -51,7 +51,7 @@ public class Paths
 
     URL url = obj.getClass().getResource(cname);
     String path = url.getPath();
-    
+
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("code-source"))
     {
       path = path.substring(5); // get rid of "file:"
@@ -64,29 +64,29 @@ public class Paths
       if (path.endsWith("/classes")) path = path.substring(0,path.length()-8);
       if (path.endsWith("/target")) path = path.substring(0,path.length()-7);
     }
-    
+
     String escape = "\\";
     if (sep.equals(escape))
     {
       // Windows
       if (path.startsWith("/") && path.charAt(2) == ':')
         path = path.substring(1);
-      
+
       path = path.replaceAll("/",escape+sep);
     }
-    
-    
+
+
     File cw = new File(".");
     Path abs = java.nio.file.Paths.get(path);
     Path base = java.nio.file.Paths.get(cw.getAbsolutePath());
-    path = base.relativize(abs).toString();    
+    path = base.relativize(abs).toString();
 
     // Back until conf folder
-    
+
     while(true)
     {
       String conf = path+sep+"conf";
-      
+
       File test = new File(conf);
       if (test.exists()) break;
 
@@ -98,10 +98,10 @@ public class Paths
         path = path.substring(0,path.length()-2);
         break;
       }
-      
+
       path = path.substring(0,pos);
     }
-    
+
     return(path);
   }
 }

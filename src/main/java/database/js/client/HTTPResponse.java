@@ -12,9 +12,8 @@
 
 package database.js.client;
 
-import java.nio.ByteBuffer;
-
 import java.util.HashMap;
+import java.nio.ByteBuffer;
 
 
 public class HTTPResponse
@@ -22,7 +21,7 @@ public class HTTPResponse
   private int code = -1;
   private int header = -1;
   private int clength = -1;
-  
+
   private byte[] body = null;
   private boolean finished = false;
   private byte[] response = new byte[0];
@@ -33,14 +32,14 @@ public class HTTPResponse
 
   private HashMap<String,String> cookies =
     new HashMap<String,String>();
-  
-  
+
+
   public boolean finished()
   {
     return (finished);
   }
-  
-  
+
+
   public byte[] getBody()
   {
     if (body != null) return(body);
@@ -54,22 +53,22 @@ public class HTTPResponse
 
     return(body);
   }
-  
-  
+
+
   public void add(ByteBuffer buf) throws Exception
   {
     int read = buf.remaining();
     byte[] data = new byte[read]; buf.get(data);
     add(data,0,data.length);
   }
-  
-  
+
+
   public void add(byte[] data) throws Exception
   {
     add(data,0,data.length);
   }
-  
-  
+
+
   public void add(byte[] data, int pos, int len) throws Exception
   {
     int last = response.length;
@@ -79,16 +78,16 @@ public class HTTPResponse
     System.arraycopy(this.response,0,response,0,last);
 
     this.response = response;
-    
+
     if (response.length < 16)
       return;
-    
+
     if (header < 0)
       forward(last);
-    
+
     if (header < 0)
       return;
-    
+
     if (code < 0)
       parse();
 
@@ -99,31 +98,31 @@ public class HTTPResponse
       if (cl == null) clength = 0;
       else clength = Integer.parseInt(cl);
     }
-    
+
     if (response.length > header + clength + 4)
       throw new Exception("Received multiple requests without client waiting for response");
-    
+
     finished = response.length == header + clength + 4;
   }
-  
-  
+
+
   void parse()
   {
     String header = new String(response,0,this.header);
 
     String[] lines = header.split(EOL);
     String[] resp = lines[0].split(" ");
-    
+
     this.code = Integer.parseInt(resp[1]);
-    
+
     for (int i = 1; i < lines.length; i++)
     {
       int pos = lines[i].indexOf(':');
       if (pos <= 0) continue;
-      
+
       String key = lines[i].substring(0,pos).trim();
       String val = lines[i].substring(pos+1).trim();
-      
+
       this.headers.put(key,val);
     }
 

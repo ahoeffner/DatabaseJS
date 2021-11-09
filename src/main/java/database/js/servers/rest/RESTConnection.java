@@ -12,10 +12,9 @@
 
 package database.js.servers.rest;
 
+import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 

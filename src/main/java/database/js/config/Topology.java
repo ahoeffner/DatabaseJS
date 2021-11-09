@@ -23,49 +23,49 @@ public class Topology
   private final short servers;
 
   private final int heartbeat;
-  
+
   private final int extnds;
   private final int extsize;
 
   public static final int cores = Runtime.getRuntime().availableProcessors();
-  
-  
+
+
   Topology(JSONObject config) throws Exception
   {
     if (!config.has("servers")) servers = 0;
     else servers = (short) config.getInt("servers");
-        
+
     short waiters = 0;
     short workers = 0;
 
     short multi = servers > 0 ? servers : 1;
-    
+
     if (!config.isNull("waiters"))
       waiters = (short) config.getInt("waiters");
-    
-    if (waiters == 0) 
+
+    if (waiters == 0)
     {
       waiters = (short) cores;
       if (waiters < 4) waiters = (short) 4;
     }
-      
+
     this.waiters = waiters;
-    
+
     if (!config.isNull("workers"))
       workers = (short) config.getInt("workers");
-    
+
     if (workers > 0) this.workers = workers;
     else             this.workers = (short) (multi * 8 * cores);
-    
+
     this.hot = config.getBoolean("hot-standby");
-    
+
     JSONObject ipc = config.getJSONObject("ipc");
-    
+
     this.extnds = this.workers * 2;
-    
+
     String extsz = ipc.get("extsize").toString();
     extsz = extsz.replaceAll(" ","").trim().toUpperCase();
-    
+
     int mfac = 1;
 
     if (extsz.endsWith("K"))
@@ -78,9 +78,9 @@ public class Topology
       mfac = 1024 * 1024;
       extsz = extsz.substring(0,extsz.length()-1);
     }
-    
+
     this.extsize = Integer.parseInt(extsz) * mfac;
-    
+
     this.heartbeat = ipc.getInt("heartbeat");
   }
 

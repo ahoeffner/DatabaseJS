@@ -34,22 +34,22 @@ public class HTTP
   private final ArrayList<String> corsdomains;
   private final ArrayList<FilePattern> compression;
   private final ConcurrentHashMap<String,String> mimetypes;
-  
-  
+
+
   HTTP(Handlers handlers, JSONObject config) throws Exception
   {
     if (!config.has("buffers")) this.bsize = 4096;
     else
     {
-      JSONObject buffers = config.getJSONObject("buffers");    
+      JSONObject buffers = config.getJSONObject("buffers");
       this.bsize = buffers.getInt("size");
     }
-          
+
     JSONObject app = config.getJSONObject("application");
-    
+
     String apppath = null;
     apppath = app.getString("path");
-    
+
     if (apppath.startsWith("."))
     {
       apppath = Paths.apphome + File.separator + apppath;
@@ -67,25 +67,25 @@ public class HTTP
     this.plain = ports.getInt("plain");
     this.admin = ports.getInt("admin");
 
-        
+
     boolean requiressl = false;
     JSONObject security = config.getJSONObject("security");
-    
+
     if (security.has("require.ssl")) requiressl = security.getBoolean("require.ssl");
     this.requiressl = requiressl;
 
     String elem = "Cors-Allow-Domains";
     this.corsdomains = new ArrayList<String>();
-    
+
     String corsdomains = null;
 
-    if (security.has(elem) && !security.isNull(elem)) 
+    if (security.has(elem) && !security.isNull(elem))
       corsdomains = security.getString(elem);
-        
-    if (corsdomains != null) 
+
+    if (corsdomains != null)
     {
       String[] domains = corsdomains.split("[ ,]+");
-      
+
       for (int i = 0; i < domains.length; i++)
       {
         domains[i] = domains[i].trim();
@@ -93,26 +93,26 @@ public class HTTP
         if (domains[i].length() > 0) this.corsdomains.add(domains[i]);
       }
     }
-    
+
 
     if (!config.has("virtual-path")) this.virtendp = null;
     else
     {
-      JSONObject virtp = config.getJSONObject("virtual-path");    
-      this.virtendp = virtp.getString("endpoint");      
+      JSONObject virtp = config.getJSONObject("virtual-path");
+      this.virtendp = virtp.getString("endpoint");
     }
 
 
     this.handlers = handlers;
 
     JSONArray hconfig = config.getJSONArray("handlers");
-    
+
     for (int i = 0; i < hconfig.length(); i++)
     {
       JSONObject entry = hconfig.getJSONObject(i);
       this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
     }
-    
+
     this.handlers.finish();
 
 
@@ -124,33 +124,33 @@ public class HTTP
       JSONObject entry = cache.getJSONObject(i);
 
       int size = entry.getInt("size");
-      String pattern = entry.getString("pattern");      
-      
+      String pattern = entry.getString("pattern");
+
       this.cache.add(new FilePattern(pattern,size));
     }
-    
+
 
     this.compression = new ArrayList<FilePattern>();
     JSONArray compression = config.getJSONArray("compression");
-    
+
     for (int i = 0; i < compression.length(); i++)
     {
       JSONObject entry = compression.getJSONObject(i);
 
       int size = entry.getInt("size");
       String pattern = entry.getString("pattern");
-      
+
       this.compression.add(new FilePattern(pattern,size));
     }
-    
+
     JSONArray mtypes = config.getJSONArray("mimetypes");
     this.mimetypes = new ConcurrentHashMap<String,String>();
-    
+
     for (int i = 0; i < mtypes.length(); i++)
     {
       JSONObject entry = mtypes.getJSONObject(i);
       mimetypes.put(entry.getString("ext"),entry.getString("type"));
-    }    
+    }
   }
 
 
@@ -213,25 +213,25 @@ public class HTTP
   {
     return(compression);
   }
-  
+
   public ConcurrentHashMap<String,String> mimetypes()
   {
     return(mimetypes);
   }
-  
-  
+
+
   public static class FilePattern
   {
     public final int size;
     public final String pattern;
-    
+
     FilePattern(String pattern, int size)
     {
       this.size = size;
-      
+
       pattern = pattern.replace(".","\\.");
       pattern = pattern.replace("*",".*");
-      
+
       this.pattern = pattern;
     }
   }

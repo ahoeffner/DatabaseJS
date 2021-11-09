@@ -53,7 +53,7 @@ class HTTPWaiter extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
-    
+
     this.setDaemon(true);
     this.setName("HTTPWaiter("+id+")");
     this.workers = new ThreadPool(config.getTopology().workers());
@@ -95,7 +95,7 @@ class HTTPWaiter extends Thread
         for(HTTPChannel client : queue)
         {
           add = true;
-          client.channel().register(selector,SelectionKey.OP_READ,client);          
+          client.channel().register(selector,SelectionKey.OP_READ,client);
         }
 
         queue.clear();
@@ -146,7 +146,7 @@ class HTTPWaiter extends Thread
             if (buf == null)
             {
               key.cancel();
-              channel.close();                
+              channel.close();
               continue;
             }
 

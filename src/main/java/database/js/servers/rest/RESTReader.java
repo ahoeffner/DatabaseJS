@@ -24,12 +24,12 @@ class RESTReader extends Thread
 
   RESTReader(RESTConnection conn) throws Exception
   {
-    this.conn = conn;    
+    this.conn = conn;
     this.setDaemon(true);
     this.setName("RESTReader");
   }
-  
-  
+
+
   @Override
   public void run()
   {
@@ -40,18 +40,18 @@ class RESTReader extends Thread
     {
       SocketReader reader = new SocketReader(conn.reader());
       ArrayList<RESTComm> incoming = new ArrayList<RESTComm>();
-      
+
       while(true)
       {
         byte[] head = reader.read(hsize);
         RESTComm http = new RESTComm(head);
         logger.finest(conn.parent()+" received data");
-        
+
         int need = http.need();
         if (need > 0) http.add(reader.read(need));
-        
+
         incoming.add(http);
-        
+
         if (reader.empty())
         {
           conn.received(incoming);

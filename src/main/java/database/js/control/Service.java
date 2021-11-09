@@ -34,11 +34,11 @@ public class Service extends Thread
   {
     this.launcher = Launcher.create();
     this.launcher.setConfig();
-    
+
     this.logger = launcher.logger();
     this.heartbeat = launcher.heartbeat();
 
-    this.setName("DatabaseJS Service");    
+    this.setName("DatabaseJS Service");
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
 
     this.start();
@@ -55,12 +55,12 @@ public class Service extends Thread
     {
       logger.info("Starting database.js service");
       launcher.start();
-      
+
       while(true)
       {
         synchronized(this) {this.wait(heartbeat);}
         if (started == 0) started = System.currentTimeMillis();
-        
+
         if (launcher.stopped(started))
         {
           stopped = true;
@@ -75,7 +75,7 @@ public class Service extends Thread
         launcher.stop(null);
       }
     }
-    catch (Throwable e) 
+    catch (Throwable e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
     }

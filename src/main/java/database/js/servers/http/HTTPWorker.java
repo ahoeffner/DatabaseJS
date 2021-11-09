@@ -46,7 +46,7 @@ public class HTTPWorker implements Runnable
       request.parse();
       String path = request.path();
       String method = request.method();
-            
+
       if (request.redirect())
       {
         int ssl = channel.config().getHTTP().ssl();
@@ -54,24 +54,24 @@ public class HTTPWorker implements Runnable
 
         String host = request.getHeader("Host");
         host = host.replace(plain+"",ssl+"");
-        
+
         HTTPResponse response = new HTTPResponse();
 
         response.setResponse(301);
         response.setHeader("Location","https://"+host);
 
-        request.respond(response.page());        
+        request.respond(response.page());
         channel.workers().done();
-        
+
         return;
       }
 
       Handler handler = null;
       boolean admin = channel.admin();
-      
+
       if (admin) handler = handlers.getAdminHandler();
       else       handler = handlers.getHandler(path,method);
-      
+
       if (handler == null)
       {
         logger.warning("No appropiate handler mapped to path="+path+" method="+method);
@@ -82,7 +82,7 @@ public class HTTPWorker implements Runnable
 
       HTTPResponse response = handler.handle(request);
       if (response != null) request.respond(response.page());
-      
+
       channel.workers().done();
     }
     catch(Throwable e)

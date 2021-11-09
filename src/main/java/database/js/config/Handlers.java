@@ -23,74 +23,74 @@ import database.js.handlers.AdminHandler;
 
 
 public class Handlers
-{  
+{
   private final Config config;
   private final ArrayList<HandlerClass> entries = new ArrayList<HandlerClass>();
-  
+
   private RestHandler rest = null;
   private FileHandler file = null;
   private AdminHandler admin = null;
-  
-  
+
+
   Handlers(Config config)
   {
     this.config = config;
   }
-  
-  
+
+
   void finish() throws Exception
   {
     Collections.sort(this.entries);
-    
+
     if (config.getClass().getClassLoader().getName() == null)
       return;
-    
+
     this.admin = new AdminHandler(config,null);
-    
+
     for(HandlerClass hdl : this.entries)
     {
       switch(hdl.name())
       {
-        case "database.js.handlers.FileHandler" : 
+        case "database.js.handlers.FileHandler" :
           this.file = (FileHandler) hdl.handler;
           break;
 
-        case "database.js.handlers.RestHandler" : 
+        case "database.js.handlers.RestHandler" :
           this.rest = (RestHandler) hdl.handler;
           break;
       }
     }
   }
-    
-  
+
+
   void add(String prefix, String methods, String clazz) throws Exception
-  {    
+  {
     if (config.getClass().getClassLoader().getName() != null)
     {
       if (!prefix.endsWith("/")) prefix += "/";
       this.entries.add(new HandlerClass(config,prefix,methods,clazz));
     }
   }
-  
-  
+
+
   public RestHandler getRESTHandler()
   {
     return(rest);
   }
-  
-  
+
+
   public FileHandler getFileHandler()
   {
     return(file);
   }
-  
-  
+
+
   public AdminHandler getAdminHandler()
   {
     return(admin);
   }
-  
-  
+
+
   public Handler getHandler(String path, String method)
   {
     for(HandlerClass entry : entries)
@@ -101,63 +101,63 @@ public class Handlers
           return(entry.handler);
       }
     }
-    
+
     return(null);
   }
-  
-  
+
+
   public static class HandlerProperties
   {
     private final String prefix;
     private final HashSet<String> methods;
-    
-    
+
+
     private HandlerProperties(String prefix, HashSet<String> methods)
     {
       this.prefix = prefix;
       this.methods = methods;
     }
-    
-    
+
+
     public String prefix()
     {
       return(prefix);
     }
-    
-    
+
+
     public HashSet<String> methods()
     {
       return(methods);
     }
   }
-  
-  
+
+
   private static class HandlerClass implements Comparable<HandlerClass>
   {
     public final String prefix;
     public final Handler handler;
     public final HashSet<String> methods = new HashSet<String>();
-    
-    
+
+
     HandlerClass(Config config, String prefix, String methods, String clazz) throws Exception
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
       for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
-      
+
       HandlerProperties properties = new HandlerProperties(prefix,this.methods);
       Constructor contructor = Class.forName(clazz).getDeclaredConstructor(Config.class,HandlerProperties.class);
 
       this.handler = (Handler) contructor.newInstance(config,properties);
     }
-    
-    
+
+
     public String name()
     {
       return(handler.getClass().getName());
     }
-    
-    
+
+
     @Override
     public String toString()
     {

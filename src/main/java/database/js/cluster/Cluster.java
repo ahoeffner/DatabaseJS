@@ -173,7 +173,7 @@ public class Cluster
     if (System.getProperty("os.name").toLowerCase().contains("windows")) return(windows());
     return(unix());
   }
-  
+
 
   private static ArrayList<ServerProcess> windows() throws Exception
   {
@@ -195,7 +195,7 @@ public class Cluster
         }
       }
     }
-    
+
     return(running);
   }
 

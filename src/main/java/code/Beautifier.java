@@ -50,7 +50,7 @@ public class Beautifier
       if (file.isDirectory()) next(file);
       else
       {
-        Beautifier beautifier = new Beautifier("/Users/alex/Repository/DatabaseJS/projects/database.js/src/main/java/code/Beautifier.java");
+        Beautifier beautifier = new Beautifier(file.getPath());
         String code = beautifier.process();
         if (code != null) beautifier.save(code);
       }

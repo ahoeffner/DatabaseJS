@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.pools;
 
 import java.util.concurrent.Executors;
@@ -28,7 +40,7 @@ public class ThreadPool
 
   public void done()
   {
-    synchronized(LOCK) 
+    synchronized(LOCK)
      {queue--;}
   }
 
@@ -41,7 +53,7 @@ public class ThreadPool
 
   public int size()
   {
-    synchronized(LOCK) 
+    synchronized(LOCK)
     {return(queue);}
   }
 
@@ -62,9 +74,9 @@ public class ThreadPool
 
   public void submit(Runnable task)
   {
-    synchronized(LOCK) 
+    synchronized(LOCK)
       {queue++;}
-    
+
     workers.submit(task);
   }
 }

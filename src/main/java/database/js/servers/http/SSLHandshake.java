@@ -51,9 +51,9 @@ class SSLHandshake extends Thread
       ThreadPool workers = httpserv.workers();
       HTTPChannel client = new HTTPChannel(server,workers,channel,true,admin);
 
-      if (client.accept()) 
+      if (client.accept())
         httpserv.assign(client);
-      
+
       httpserv.workers().done();
     }
     catch (Exception e)

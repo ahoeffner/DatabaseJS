@@ -24,27 +24,27 @@ public abstract class Handler
 {
   private final Config config;
   private final HandlerProperties properties;
-  
-  
+
+
   public Handler(Config config, HandlerProperties properties) throws Exception
   {
     this.config = config;
     this.properties = properties;
   }
-  
-  
+
+
   public Config config()
   {
     return(config);
   }
-  
-  
+
+
   public HandlerProperties properties()
   {
     return(properties);
   }
-  
-  
+
+
   public Logger getLogger(Type type) throws Exception
   {
     switch(type)
@@ -52,16 +52,16 @@ public abstract class Handler
       case http: return(config.getLogger().http);
       case rest: return(config.getLogger().rest);
     }
-    
+
     return(config.getLogger().intern);
   }
-  
-  
+
+
   public Logger getAdminLogger() throws Exception
   {
     return(config.getLogger().admin);
   }
-  
-  
+
+
   public abstract HTTPResponse handle(HTTPRequest request) throws Exception;
 }

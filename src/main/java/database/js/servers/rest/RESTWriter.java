@@ -25,59 +25,59 @@ class RESTWriter extends Thread
 
   private ArrayList<RESTComm> outgoing =
     new ArrayList<RESTComm>();
-  
-  
+
+
   RESTWriter(RESTConnection conn) throws Exception
   {
-    this.conn = conn;    
+    this.conn = conn;
     this.setDaemon(true);
     this.setName("RESTWriter");
   }
-  
-  
+
+
   void write(RESTComm call)
   {
-    synchronized (this) 
+    synchronized (this)
     {
       outgoing.add(call);
       this.notify();
     }
   }
-  
-  
+
+
   @Override
   public void run()
   {
     Logger logger = conn.logger();
     ArrayList<RESTComm> outgoing = null;
-    
+
     try
     {
       OutputStream writer = conn.writer();
-      
+
       while(true)
       {
         synchronized(this)
         {
           while(this.outgoing.size() == 0)
             this.wait();
-          
+
           outgoing = this.outgoing;
           this.outgoing = new ArrayList<RESTComm>();
         }
-        
+
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(4192);
-        
+
         for(RESTComm entry : outgoing)
           buffer.write(entry.page());
-                
+
         byte[] data = buffer.toByteArray();
-        
+
         logger.finest(conn.parent()+" sending "+data.length+" bytes");
 
         writer.write(data);
         writer.flush();
-      }      
+      }
     }
     catch (Exception e)
     {

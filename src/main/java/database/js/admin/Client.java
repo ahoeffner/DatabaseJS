@@ -16,12 +16,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocket;
 import database.js.config.Config;
 import database.js.client.HTTPRequest;
 import database.js.security.PKIContext;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSocket;
 
 
 public class Client
@@ -69,7 +68,7 @@ public class Client
 
     out.write(request.getPage());
     out.flush();
-    
+
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
