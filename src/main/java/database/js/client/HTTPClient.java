@@ -94,10 +94,7 @@ public class HTTPClient
       ((SSLSocket) socket).startHandshake();
     }
 
-    this.psize = this.socket.getSendBufferSize();
-
     this.socket.setSoTimeout(15000);
-    this.socket.setSendBufferSize(psize);
     this.socket.getOutputStream().flush();
   }
 }
