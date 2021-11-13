@@ -16,18 +16,18 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSocket;
 import database.js.config.Config;
 import database.js.client.HTTPRequest;
 import database.js.security.PKIContext;
+import database.js.client.SocketReader;
 
 
 public class Client
 {
+  private int psize;
   private Socket socket;
   private final int port;
-  private final int psize;
   private final String host;
   private final PKIContext pki;
 
@@ -37,17 +37,8 @@ public class Client
     this.host = host;
     this.port = port;
 
-    if (!ssl)
-    {
-      this.pki = null;
-      this.psize = 4096;
-    }
-    else
-    {
-      this.pki = Config.PKIContext();
-      SSLEngine engine = pki.getSSLContext().createSSLEngine();
-      this.psize = engine.getSession().getPacketBufferSize();
-    }
+    if (!ssl) this.pki = null;
+    else this.pki = Config.PKIContext();
   }
 
 
@@ -66,20 +57,42 @@ public class Client
     OutputStream out = socket.getOutputStream();
     SocketReader reader = new SocketReader(in);
 
-    out.write(request.getPage());
-    out.flush();
+    byte[] page = request.page();
+
+    int w = 0;
+    while(w < page.length)
+    {
+      int size = psize;
+
+      if (size > page.length - w)
+        size = page.length - w;
+
+      byte[] chunk = new byte[size];
+      System.arraycopy(page,w,chunk,0,size);
+
+      w += size;
+      out.write(chunk);
+      out.flush();
+    }
 
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
+    boolean chunked = false;
+
     for(String header : headers)
     {
       if (header.startsWith("Content-Length"))
         cl = Integer.parseInt(header.split(":")[1].trim());
+
+      if (header.startsWith("Transfer-Encoding") && header.contains("chunked"))
+        chunked = true;
     }
 
     byte[] response = null;
+
     if (cl > 0) response = reader.getContent(cl);
+    else if (chunked) response = reader.getChunkedContent();
 
     return(response);
   }
@@ -87,12 +100,17 @@ public class Client
 
   public void connect() throws Exception
   {
-    if (pki == null) this.socket = new Socket(host,port);
-    else this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
-    if (pki != null) ((SSLSocket) socket).startHandshake();
+    if (pki == null) 
+    {
+      this.socket = new Socket(host,port);
+    }
+    else 
+    {
+      this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
+      ((SSLSocket) socket).startHandshake();
+    }
 
     this.socket.setSoTimeout(15000);
-    this.socket.setSendBufferSize(psize);
     this.socket.getOutputStream().flush();
   }
 }

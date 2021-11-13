@@ -35,7 +35,7 @@ public class HTTPRequest
   }
 
 
-  public byte[] getPage()
+  public byte[] page()
   {
     String header = (body == null) ? "GET" : "POST";
     header += " "+path + " HTTP/1.0"+nl+"Host: "+host+nl;

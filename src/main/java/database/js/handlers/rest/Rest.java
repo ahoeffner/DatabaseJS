@@ -18,13 +18,13 @@ import java.util.logging.Logger;
 
 public class Rest
 {
-  private final String path; 
+  private final String path;
   private final String payload;
   private final String[] parts;
-  
+
   private final Logger logger;
   private static final TreeSet<String> commands = new TreeSet<String>();
-  
+
   static
   {
     commands.add("ping");
@@ -42,8 +42,8 @@ public class Rest
     commands.add("connect");
     commands.add("rollback");
   }
-  
-  
+
+
   public Rest(Logger logger, String path, String payload)
   {
     this.path = path;
@@ -51,8 +51,8 @@ public class Rest
     this.payload = payload;
     this.parts = path.split("/");
   }
-  
-  
+
+
   public String execute()
   {
     try
@@ -65,22 +65,22 @@ public class Rest
     }
     return(null);
   }
-  
-  
+
+
   private String exec(String cmd, String payload) throws Exception
   {
-    return(null);    
+    return(null);
   }
-  
-  
+
+
   private boolean isConnected()
   {
     if (parts.length < 2)
       return(false);
-    
+
     if (!commands.contains(parts[1].toLowerCase()))
       return(false);
-    
+
     return(true);
   }
 }

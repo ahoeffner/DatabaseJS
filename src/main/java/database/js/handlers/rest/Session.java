@@ -24,8 +24,8 @@ public class Session
   public Session()
   {
   }
-  
-  
+
+
   private synchronized String create()
   {
     String guid = null;

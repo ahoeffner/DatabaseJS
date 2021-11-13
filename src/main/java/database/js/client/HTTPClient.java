@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package test;
+package database.js.client;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -18,64 +18,32 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
-import database.js.client.SocketReader;
 
 
-public class Session
+public class HTTPClient
 {
+  private int psize;
+  private Socket socket;
   private final int port;
-  private final int psize;
   private final String host;
-  private final Socket socket;
+  private final SSLContext ctx;
 
 
-  public Session(String host, int port, boolean ssl) throws Exception
+  public HTTPClient(String host, int port, SSLContext ctx)
   {
+    this.ctx = ctx;
     this.host = host;
     this.port = port;
-    Socket socket = null;
-
-    try
-    {
-      if (!ssl)
-      {
-        socket = new Socket(host,port);
-      }
-      else
-      {
-        SSLContext ctx = SSLContext.getInstance("TLS");
-        ctx.init(null,new X509TrustManager[] {new FakeTrustManager()}, new java.security.SecureRandom());
-        socket = ctx.getSocketFactory().createSocket(host,port);
-        ((SSLSocket) socket).startHandshake();
-      }
-
-      socket.setSoTimeout(30000);
-      socket.getOutputStream().flush();
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-      System.exit(-1);
-    }
-
-    this.socket = socket;
-    this.psize = socket.getSendBufferSize();
   }
 
 
-  public void invoke(String url, String message) throws Exception
+  public byte[] send(byte[] page) throws Exception
   {
-    HTTPRequest request = new HTTPRequest(host,url);
-    request.setBody(message);
-
     InputStream in = socket.getInputStream();
     OutputStream out = socket.getOutputStream();
     SocketReader reader = new SocketReader(in);
 
     int w = 0;
-    byte[] page = request.page();
-
     while(w < page.length)
     {
       int size = psize;
@@ -94,20 +62,42 @@ public class Session
     ArrayList<String> headers = reader.getHeader();
 
     int cl = 0;
+    boolean chunked = false;
+
     for(String header : headers)
     {
       if (header.startsWith("Content-Length"))
         cl = Integer.parseInt(header.split(":")[1].trim());
+
+      if (header.startsWith("Transfer-Encoding") && header.contains("chunked"))
+        chunked = true;
     }
 
-    String response = null;
-    if (cl > 0) response = new String(reader.getContent(cl));
+    byte[] response = null;
+
+    if (cl > 0) response = reader.getContent(cl);
+    else if (chunked) response = reader.getChunkedContent();
+
+    return(response);
   }
 
 
-  public void close()
+  public void connect() throws Exception
   {
-    try {socket.close();}
-    catch (Exception e) {;}
+    if (ctx == null)
+    {
+      this.socket = new Socket(host,port);
+    }
+    else
+    {
+      this.socket = ctx.getSocketFactory().createSocket(host,port);
+      ((SSLSocket) socket).startHandshake();
+    }
+
+    this.psize = this.socket.getSendBufferSize();
+
+    this.socket.setSoTimeout(15000);
+    this.socket.setSendBufferSize(psize);
+    this.socket.getOutputStream().flush();
   }
 }

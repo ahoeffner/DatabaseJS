@@ -10,10 +10,11 @@
  * accompanied this code).
  */
 
-package database.js.admin;
+package database.js.client;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.io.ByteArrayOutputStream;
 
 
 public class SocketReader
@@ -96,6 +97,62 @@ public class SocketReader
     }
 
     return(body);
+  }
+
+
+  public byte[] getChunkedContent() throws Exception
+  {
+    int csize = 0;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    while(true)
+    {
+      byte[] bx = readline(true);
+      String hex = new String(bx);
+      csize = Integer.parseInt(hex,16);
+
+      if (csize == 0) break;
+
+      byte[] chunk = getContent(csize+2);
+      out.write(chunk,0,csize);
+    }
+
+    return(out.toByteArray());
+  }
+
+  public byte[] readline(boolean strip) throws Exception
+  {
+    int match = 0;
+    boolean use = false;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    while(match < 2)
+    {
+      byte b = read();
+
+      if (b == 13 && match == 0) use = true;
+      if (b == 10 && match == 1) use = true;
+
+      if (use) match++;
+      else
+      {
+        match = 0;
+        if (b == 10) match++;
+      }
+
+      out.write(b);
+    }
+
+    byte[] line = out.toByteArray();
+
+    if (strip)
+    {
+      byte[] stripped = new byte[line.length-2];
+      System.arraycopy(line,0,stripped,0,stripped.length);
+      line = stripped;
+    }
+
+    return(line);
   }
 
 

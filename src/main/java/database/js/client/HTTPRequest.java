@@ -12,6 +12,7 @@
 
 package database.js.client;
 
+import java.util.ArrayList;
 
 
 public class HTTPRequest
@@ -20,6 +21,10 @@ public class HTTPRequest
   private String method;
   private final String host;
   private final String path;
+
+  private ArrayList<String> headers =
+    new ArrayList<String>();
+
   private static final String EOL = "\r\n";
 
 
@@ -42,14 +47,36 @@ public class HTTPRequest
     this.body = body;
   }
 
-
   public void setMethod(String method)
   {
     this.method = method;
   }
 
+  public void setHeader(String header, String value)
+  {
+    headers.add(header+": "+value);
+  }
 
-  public byte[] getPage()
+
+  public void setCookie(String cookie, String value)
+  {
+    setCookie(cookie,value,null);
+  }
+
+
+  public void setCookie(String cookie, String value, String path)
+  {
+    if (path == null)
+      path = "/";
+
+    if (value == null)
+      value = "";
+
+    setHeader("Set-Cookie",cookie+"="+value+"; path="+path);
+  }
+
+
+  public byte[] page()
   {
     String header = method;
     if (header == null) header = (body == null) ? "GET" : "POST";
@@ -57,6 +84,9 @@ public class HTTPRequest
     header += " "+path + " HTTP/1.1"+EOL+"Host: "+host+EOL;
     byte[] body = this.body == null ? null : this.body.getBytes();
     if (body != null) header += "Content-Length: "+body.length+EOL;
+
+    for(String h : this.headers)
+      header += h + EOL;
 
     header += EOL;
     byte[] head = header.getBytes();
