@@ -192,7 +192,7 @@ public class HTTPServer extends Thread
               {
                 // Overkill to use threadpool
                 HTTPChannel client = new HTTPChannel(this.server,workers,channel,ssl,admin);
-                if (client.accept()) this.assign(client);                  
+                if (client.accept()) this.assign(client);
               }
             }
             else

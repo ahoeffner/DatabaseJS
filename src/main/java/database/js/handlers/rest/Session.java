@@ -17,12 +17,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Session
 {
+  private final String guid;
+
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
 
 
+  public static Session get(String guid)
+  {
+    return(sessions.get(guid));
+  }
+
+
   public Session()
   {
+    this.guid = create();
   }
 
 

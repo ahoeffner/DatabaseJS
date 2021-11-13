@@ -100,11 +100,11 @@ public class Client
 
   public void connect() throws Exception
   {
-    if (pki == null) 
+    if (pki == null)
     {
       this.socket = new Socket(host,port);
     }
-    else 
+    else
     {
       this.socket = pki.getSSLContext().getSocketFactory().createSocket(host,port);
       ((SSLSocket) socket).startHandshake();
