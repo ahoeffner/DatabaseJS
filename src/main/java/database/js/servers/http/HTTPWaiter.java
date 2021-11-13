@@ -101,8 +101,8 @@ class HTTPWaiter extends Thread
         queue.clear();
       }
 
-      if (!add) ready = selector.select();
-      else      ready = selector.selectNow();
+      if (add) Thread.yield();
+      ready = selector.select();
     }
   }
 
