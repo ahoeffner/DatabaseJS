@@ -64,11 +64,12 @@ public class RestHandler extends Handler
       log(logger,request,response);
       return(response);
     }
-
+    
     String payload = new String(request.body());
     String path = this.path.getPath(request.path());
+    boolean modify = request.method().equals("PATCH");
 
-    Rest rest = new Rest(logger,path,payload);
+    Rest rest = new Rest(logger,path,modify,payload);
     rest.execute();
 
     response = new HTTPResponse();

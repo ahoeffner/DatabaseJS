@@ -24,6 +24,7 @@ public class Rest
   private final String path;
   private final String payload;
   private final String[] parts;
+  private final boolean modify;
 
   private String err = null;
   private Session ses = null;
@@ -50,9 +51,10 @@ public class Rest
   }
 
 
-  public Rest(Logger logger, String path, String payload)
+  public Rest(Logger logger, String path, boolean modify, String payload)
   {
     this.path = path;
+    this.modify = modify;
     this.logger = logger;
     this.payload = payload;
     this.parts = path.split("/");
