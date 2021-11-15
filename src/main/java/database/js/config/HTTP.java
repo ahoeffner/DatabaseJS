@@ -25,6 +25,7 @@ public class HTTP
   private final int plain;
   private final int admin;
   private final int bsize;
+  private final int grace;
   private final String path;
   private final String tmppath;
   private final String virtendp;
@@ -42,10 +43,12 @@ public class HTTP
     else
     {
       JSONObject buffers = config.getJSONObject("buffers");
-      this.bsize = buffers.getInt("size");
+      this.bsize = buffers.getInt("network");
     }
 
     JSONObject app = config.getJSONObject("application");
+    
+    grace = app.getInt("grace.period");
 
     String apppath = null;
     apppath = app.getString("path");
@@ -123,7 +126,7 @@ public class HTTP
     {
       JSONObject entry = cache.getJSONObject(i);
 
-      int size = entry.getInt("size");
+      int size = entry.getInt("maxsize");
       String pattern = entry.getString("pattern");
 
       this.cache.add(new FilePattern(pattern,size));
@@ -137,7 +140,7 @@ public class HTTP
     {
       JSONObject entry = compression.getJSONObject(i);
 
-      int size = entry.getInt("size");
+      int size = entry.getInt("minsize");
       String pattern = entry.getString("pattern");
 
       this.compression.add(new FilePattern(pattern,size));
@@ -172,6 +175,11 @@ public class HTTP
   public int bufsize()
   {
     return(bsize);
+  }
+
+  public int graceperiod()
+  {
+    return(grace);
   }
 
   public String getVirtualEndpoint()

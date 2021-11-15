@@ -42,6 +42,7 @@ public class Deployment
   private final ArrayList<FilePattern> cache;
   private final ArrayList<FilePattern> compression;
 
+  private int grace = 0;
   private long modified = 0;
   private Date moddate = null;
   private String modstring = null;
@@ -69,6 +70,7 @@ public class Deployment
     this.config = config;
     this.logger = config.getLogger().http;
     this.cache = this.config.getHTTP().cache();
+    this.grace = config.getHTTP().graceperiod();
     this.home = this.config.getHTTP().getAppPath();
     this.deploy = this.config.getHTTP().getTmpPath();
     this.compression = this.config.getHTTP().compression();
@@ -143,6 +145,18 @@ public class Deployment
     return(true);
   }
 
+
+  public synchronized void redeploy() throws Exception
+  {
+    File home = new File(this.home);
+    
+    if (home.lastModified() > this.modified + grace*1000)
+    {
+      logger.info("Redeploying application");
+      deploy();      
+    }
+  }
+  
 
   public synchronized void deploy() throws Exception
   {
