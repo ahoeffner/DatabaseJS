@@ -172,7 +172,7 @@ public class Launcher implements ILauncher
   {
     if (url == null)
     {
-      logger.fine("Deploying");
+      logger.info("Deploying");
       Deployment.init(config);
       Deployment.get().deploy();
     }

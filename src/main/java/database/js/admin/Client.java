@@ -25,11 +25,11 @@ import database.js.client.SocketReader;
 
 public class Client
 {
-  private int psize;
   private Socket socket;
   private final int port;
   private final String host;
   private final PKIContext pki;
+  private static final int BUFSIZE = 4096;
 
 
   public Client(String host, int port, boolean ssl) throws Exception
@@ -62,7 +62,7 @@ public class Client
     int w = 0;
     while(w < page.length)
     {
-      int size = psize;
+      int size = BUFSIZE;
 
       if (size > page.length - w)
         size = page.length - w;

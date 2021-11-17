@@ -371,6 +371,9 @@ public class Server extends Thread
           this.wait(this.heartbeat);
           this.checkCluster(this.powner);
 
+          if (this.sowner)
+            Deployment.get().redeploy();
+
           if (Cluster.stop(this)) break;
         }
       }

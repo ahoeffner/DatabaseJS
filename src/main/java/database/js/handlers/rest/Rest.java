@@ -74,11 +74,8 @@ public class Rest
       JSONObject payload = parse();
       if (err != null) return(err);
 
-      if (hasSessionSpec())
-      {
-        getSession();
-        if (err != null) return(err);
-      }
+      if (hasSessionSpec() && !getSession())
+        return(err);
       
       String cmd = getCommand(ses != null);
       if (err != null) return(err);
@@ -88,12 +85,8 @@ public class Rest
       
       if (cmd.equals("script"))
         return(script(payload));
-
-      boolean savepoint = getSavepoint(payload);
-      if (err != null) return(err);
       
-      String result = exec(cmd,payload);
-      
+      String result = exec(cmd,payload);      
       return(result);
     }
     catch (Throwable e)
@@ -188,10 +181,17 @@ public class Rest
   }
 
 
-  private void getSession()
+  private boolean getSession()
   {
     this.ses = Session.get(parts[0]);
-    if (this.ses == null) error("Session '"+parts[0]+"' does not exist");
+    
+    if (this.ses == null) 
+    {
+      error("Session '"+parts[0]+"' does not exist");
+      return(false);
+    }
+    
+    return(true);
   }
 
 
@@ -215,5 +215,35 @@ public class Rest
   private static String quote(String str)
   {
     return("\""+str+"\"");
+  }
+  
+  
+  private static class SessionState
+  {
+    int shared = 0;
+    boolean exclusive = false;
+    
+    void lock(Session session, boolean exclusive) throws Exception
+    {
+      session.lock(exclusive);
+      if (!exclusive) shared++;
+      else this.exclusive = true;
+    }
+    
+    void release(Session session, boolean exclusive) throws Exception
+    {
+      if (!exclusive && shared < 1)
+        throw new Exception("Cannot release shared lock not obtained");
+
+      session.release(exclusive);
+      
+      if (!exclusive) shared--;
+      else this.exclusive = false;
+    }
+    
+    void releaseAll(Session session) throws Exception
+    {
+      session.releaseAll(exclusive,shared);
+    }
   }
 }

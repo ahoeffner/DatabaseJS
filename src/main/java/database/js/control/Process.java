@@ -56,6 +56,7 @@ public class Process
     if (type == Type.http) options = httpopts;
     else                   options = restopts;
 
+    logger.info("Starting "+type+" instance "+instnm+"["+inst+"]");
     String classpath = classpath(type != Type.http) + jars;
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
