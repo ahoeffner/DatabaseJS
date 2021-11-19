@@ -53,6 +53,13 @@ public class Config
   }
 
 
+  public static int HTTPBufsize() throws Exception
+  {
+    Config config = new Config();
+    return(config.getHTTP().bufsize());
+  }
+
+
   public static PKIContext PKIContext() throws Exception
   {
     FileInputStream in = new FileInputStream(securitypath());
@@ -163,7 +170,7 @@ public class Config
   public synchronized Database getDatabase() throws Exception
   {
     if (database != null) return(database);
-    FileInputStream in = new FileInputStream(javapath());
+    FileInputStream in = new FileInputStream(dbpath());
 
     JSONTokener tokener = new JSONTokener(in);
     JSONObject  config  = new JSONObject(tokener);

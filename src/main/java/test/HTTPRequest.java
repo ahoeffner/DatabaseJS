@@ -37,8 +37,11 @@ public class HTTPRequest
 
   public byte[] page()
   {
-    String header = (body == null) ? "GET" : "POST";
-    header += " "+path + " HTTP/1.0"+nl+"Host: "+host+nl;
+    String header = (body == null) ? "GET " : "POST ";
+
+    header += path + " HTTP/1.0"+nl;
+    header += "Host: "+host+nl;
+    header += "Connection: Keep-Alive" + nl;
 
     byte[] body = this.body == null ? null : this.body.getBytes();
     if (body != null) header += "Content-Length: "+body.length+nl;

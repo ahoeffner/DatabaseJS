@@ -22,6 +22,7 @@ import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
+import database.js.database.Database;
 
 
 public class RestHandler extends Handler
@@ -32,6 +33,8 @@ public class RestHandler extends Handler
   public RestHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
+
+    Database.init(config);
     this.path = new PathUtil(this);
   }
 
@@ -69,11 +72,11 @@ public class RestHandler extends Handler
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
 
-    Rest rest = new Rest(logger,path,modify,payload);
-    rest.execute();
+    Rest rest = new Rest(config(),path,modify,payload);
 
     response = new HTTPResponse();
-    response.setBody("{\"status\": \"ok\"}");
+    String xx = rest.execute();
+    response.setBody(xx);
 
     log(logger,request,response);
     return(response);

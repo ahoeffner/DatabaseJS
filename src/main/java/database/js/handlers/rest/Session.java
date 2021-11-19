@@ -12,13 +12,15 @@
 
 package database.js.handlers.rest;
 
+import database.js.database.Database;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Session
 {
   private final String guid;
-  
+  private final Database database;
+
   private int shared = 0;
   private long thread = 0;
   private boolean exclusive = false;
@@ -34,10 +36,11 @@ public class Session
   }
 
 
-  public Session(boolean tmp)
+  public Session(boolean tmp) throws Exception
   {
     if (tmp) this.guid = null;
-    else     this.guid = create();
+    else this.guid = create();
+    this.database = Database.getInstance();
   }
 
 
@@ -56,21 +59,28 @@ public class Session
   }
   
   
+  public Database database()
+  {
+    return(database);
+  }
+
+
   public void lock(boolean exclusive) throws Exception
   {
+    if (guid == null) return;
     long thread = Thread.currentThread().getId();
 
     synchronized(LOCK)
     {
       boolean owner = this.thread == thread;
-      
+
       while(!owner && this.exclusive)
-        LOCK.wait();      
+        LOCK.wait();
 
       if (exclusive)
       {
         while(!owner && this.shared > 0)
-          LOCK.wait();      
+          LOCK.wait();
 
         this.thread = thread;
         this.exclusive = true;
@@ -78,18 +88,36 @@ public class Session
       else
       {
         while(!owner && this.exclusive)
-          LOCK.wait();      
+          LOCK.wait();
 
         this.shared++;
       }
     }
   }
-  
-  
+
+
+  public void releaseAll(boolean exclusive, int shared) throws Exception
+  {
+    if (guid == null) return;
+    if (exclusive) release(true,0);
+    if (shared > 0) release(false,shared);
+  }
+
+
   public void release(boolean exclusive) throws Exception
   {
+    int shared = 0;
+    if (guid == null) return;
+    if (!exclusive) shared = 1;
+    this.release(exclusive,shared);
+  }
+
+
+  public void release(boolean exclusive, int shared) throws Exception
+  {
+    if (guid == null) return;
     long thread = Thread.currentThread().getId();
-    
+
     synchronized(LOCK)
     {
       if (exclusive && this.thread != thread)
@@ -98,14 +126,17 @@ public class Session
       if (exclusive && !this.exclusive)
         throw new Exception("Cannot release exclusive lock, when only shared obtained");
 
+      if (!exclusive && this.shared < shared)
+        throw new Exception("Cannot release "+shared+" shared lock(s) not obtained");
+
       if (exclusive)
       {
         this.thread = 0;
         exclusive = false;
       }
-      else 
+      else
       {
-        shared--;
+        this.shared -= shared;
       }
 
       LOCK.notifyAll();

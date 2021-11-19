@@ -47,7 +47,7 @@ public class HTTP
     }
 
     JSONObject app = config.getJSONObject("application");
-    
+
     grace = app.getInt("grace.period");
 
     String apppath = null;

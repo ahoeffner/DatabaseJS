@@ -27,15 +27,16 @@ public class Client
 {
   private Socket socket;
   private final int port;
+  private final int psize;
   private final String host;
   private final PKIContext pki;
-  private static final int BUFSIZE = 4096;
 
 
   public Client(String host, int port, boolean ssl) throws Exception
   {
     this.host = host;
     this.port = port;
+    this.psize = Config.HTTPBufsize();
 
     if (!ssl) this.pki = null;
     else this.pki = Config.PKIContext();
@@ -62,7 +63,7 @@ public class Client
     int w = 0;
     while(w < page.length)
     {
-      int size = BUFSIZE;
+      int size = psize;
 
       if (size > page.length - w)
         size = page.length - w;

@@ -149,21 +149,21 @@ public class Deployment
 
   public synchronized void redeploy() throws Exception
   {
-    sync();    
+    sync();
     File home = new File(this.home);
-    
+
     if (grace > 0 && home.lastModified() > this.modified + grace*1000)
     {
       logger.info("Redeploy");
-      deploy();      
+      deploy();
     }
   }
-  
+
 
   public synchronized void deploy() throws Exception
   {
     sync();
-    
+
     Date modified = new Date();
     File home = new File(this.home);
     modified.setTime(home.lastModified());
@@ -294,26 +294,26 @@ public class Deployment
     File cfile = new File(file);
     return((int) cfile.length());
   }
-  
-  
+
+
   public void sync()
   {
     long synched = System.currentTimeMillis();
     if (synched - this.synched < grace*1000) return;
-    
+
     this.synched = synched;
     File home = new File(this.home);
-    
+
     long mod = latest(home);
     home.setLastModified(mod);
   }
-  
-  
+
+
   private long latest(File folder)
   {
     long latest = folder.lastModified();
     File[] content = folder.listFiles();
-    
+
     for(File file : content)
     {
       long mod = file.lastModified();
@@ -325,7 +325,7 @@ public class Deployment
         if (mod > latest) latest = mod;
       }
     }
-    
+
     return(latest);
   }
 
