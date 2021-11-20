@@ -24,10 +24,14 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 
+import java.util.ArrayList;
+import java.util.TreeSet;
+
 
 public class RestHandler extends Handler
 {
   private final PathUtil path;
+  private final TreeSet<String> domains;
 
 
   public RestHandler(Config config, HandlerProperties properties) throws Exception
@@ -36,6 +40,7 @@ public class RestHandler extends Handler
 
     Database.init(config);
     this.path = new PathUtil(this);
+    this.domains = new TreeSet<String>();
   }
 
 
@@ -48,6 +53,17 @@ public class RestHandler extends Handler
 
     server.request();
     logger.fine("REST request received: "+request.path());
+    
+    if (request.getHeader("Host") == null)
+    {
+      response = new HTTPResponse();
+      
+      response.setResponse(400);
+      response.setContentType("text/html");
+      response.setBody("<b>Bad Request</b>");
+      
+      return(response);
+    }
 
     if (!server.embedded())
     {
@@ -56,8 +72,11 @@ public class RestHandler extends Handler
       if (client == null)
       {
         response = new HTTPResponse();
+        response.setContentType("application/json");
+
         logger.warning("No RESTServer's connected");
-        response.setBody("{\"status\": \"failed\"}");
+        response.setBody("{\"status\": \"failed\", \"message\": \"No RESTServer's connected\"}");
+
         return(response);
       }
 
@@ -71,16 +90,69 @@ public class RestHandler extends Handler
     String payload = new String(request.body());
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
+    
+    String origin = request.getHeader("Origin");
+    
+    if (origin == null)
+    {
+      response = new HTTPResponse();
+      response.setContentType("application/json");
+      
+      logger.warning("Null Cors Origin header detected. Request rejected");
+      response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
+      
+      return(response);      
+    }
+    
+    if (!allow(origin))
+    {
+      response = new HTTPResponse();
+      response.setContentType("application/json");
+      
+      logger.warning("Origin "+origin+" rejected by Cors");
+      response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
+      
+      return(response);      
+    }
 
     Rest rest = new Rest(config(),path,modify,payload);
 
     response = new HTTPResponse();
+    response.setContentType("application/json");
+
+    response.setHeader("Access-Control-Allow-Origin",origin);
+    response.setHeader("Access-Control-Allow-Headers",origin);
+    response.setHeader("Access-Control-Request-Method",origin);
+    response.setHeader("Access-Control-Request-Headers",origin);
+
     String xx = rest.execute();
     System.out.println(xx);
     response.setBody(xx);
 
     log(logger,request,response);
     return(response);
+  }
+  
+  
+  private boolean allow(String domain) throws Exception
+  {
+    if (this.domains.contains(domain)) return(true);
+    ArrayList<String> corsheaders = config().getHTTP().corsdomains();
+    
+    domain = "." + domain + ".";
+    for(String pattern : corsheaders)
+    {
+      pattern = pattern.replace(".","\\.");
+      pattern = pattern.replace("*",".*");
+
+      if (domain.matches(".*"+pattern+".*"))
+      {
+        this.domains.add(domain);
+        return(true);
+      }
+    }
+    
+    return(false);
   }
 
 

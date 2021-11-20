@@ -42,6 +42,14 @@ public class FileHandler extends Handler
     Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
+    
+    if (request.getHeader("Host") == null)
+    {
+      response.setResponse(400);
+      response.setContentType("text/html");
+      response.setBody("<b>Bad Request</b>");
+      return(response);
+    }
 
     StaticFile file = Deployment.get().get(path);
 

@@ -13,6 +13,7 @@
 package database.js.config;
 
 import java.io.File;
+import java.net.InetAddress;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class HTTP
   private final int admin;
   private final int bsize;
   private final int grace;
+  private final String host;
   private final String path;
   private final String tmppath;
   private final String virtendp;
@@ -39,6 +41,9 @@ public class HTTP
 
   HTTP(Handlers handlers, JSONObject config) throws Exception
   {
+    if (config.has("host")) this.host = config.getString("host");
+    else this.host = InetAddress.getLocalHost().getHostName();
+
     if (!config.has("buffers")) this.bsize = 4096;
     else
     {
@@ -92,7 +97,6 @@ public class HTTP
       for (int i = 0; i < domains.length; i++)
       {
         domains[i] = domains[i].trim();
-        if (!domains[i].equals("*")) domains[i] = "."+domains[i]+".";
         if (domains[i].length() > 0) this.corsdomains.add(domains[i]);
       }
     }
@@ -156,6 +160,12 @@ public class HTTP
     }
   }
 
+
+  public String host(boolean ssl)
+  {
+    int port = ssl ? this.ssl : this.plain;
+    return(host+":"+port);
+  }
 
   public int ssl()
   {
