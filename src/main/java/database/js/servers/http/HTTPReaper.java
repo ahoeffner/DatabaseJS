@@ -36,7 +36,7 @@ public class HTTPReaper extends Thread
   
   public static int KeepAlive()
   {
-    return(timeout);
+    return(timeout/1000);
   }
 
 

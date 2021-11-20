@@ -233,10 +233,8 @@ class HTTPWaiter extends Thread
       boolean remove = false;
       boolean connected = client.channel().isConnected() || client.channel().isOpen();
       
-      logger.info("Client now: "+now+" touched: "+client.touched()+" timeout: "+timeout+" "+(now - client.touched()));
-      
       if (!connected) remove = true;
-      if (now - client.touched() > timeout) remove = false;
+      if (now - client.touched() > timeout) remove = true;
       
       if (remove)
       {
