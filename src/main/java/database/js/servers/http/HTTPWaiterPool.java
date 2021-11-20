@@ -48,4 +48,10 @@ public class HTTPWaiterPool
       return(waiters[next]);
     }
   }
+  
+  
+  public HTTPWaiter[] getWaiters()
+  {
+    return(waiters);
+  }
 }

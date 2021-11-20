@@ -25,6 +25,8 @@ import java.nio.channels.Selector;
 import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -41,8 +43,8 @@ class HTTPWaiter extends Thread
   private final ArrayList<HTTPChannel> queue =
     new ArrayList<HTTPChannel>();
 
-  private final ArrayList<HTTPChannel> connected =
-    new ArrayList<HTTPChannel>();
+  private final HashSet<HTTPChannel> connected =
+    new HashSet<HTTPChannel>();
 
   private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
     new ConcurrentHashMap<SelectionKey,HTTPRequest>();
@@ -126,9 +128,6 @@ class HTTPWaiter extends Thread
         Set<SelectionKey> selected = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selected.iterator();
 
-        if (++requests % 1024 == 0 && incomplete.size() > 0)
-          cleanout();
-
         if (workers.full() && (System.currentTimeMillis() - lmsg) > 5000)
         {
           lmsg = System.currentTimeMillis();
@@ -201,7 +200,7 @@ class HTTPWaiter extends Thread
   }
 
 
-  private void cleanout()
+  void cleanout()
   {
     ArrayList<SelectionKey> cancelled = new ArrayList<SelectionKey>();
 
@@ -224,6 +223,9 @@ class HTTPWaiter extends Thread
       }
       catch (Exception e) {;}
     }
+    
+    HTTPChannel[] open = connected.toArray(new HTTPChannel[0]);
+    System.out.println("Connected "+open.length);
   }
 
 

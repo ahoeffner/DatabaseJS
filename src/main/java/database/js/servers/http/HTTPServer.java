@@ -74,6 +74,8 @@ public class HTTPServer extends Thread
     this.setName("HTTPServer("+type+")");
     this.workers = new ThreadPool(config.getTopology().workers());
     this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
+
+    HTTPReaper.start(logger,waiters,10);
   }
 
 
