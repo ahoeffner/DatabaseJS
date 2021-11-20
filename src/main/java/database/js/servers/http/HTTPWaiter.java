@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 class HTTPWaiter extends Thread
 {
   private final int id;
+  private final int timeout;
   private final Server server;
   private final Config config;
   private final Logger logger;
@@ -57,6 +58,7 @@ class HTTPWaiter extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
+    this.timeout = config.getHTTP().timeout();
 
     this.setDaemon(true);
     this.setName("HTTPWaiter("+id+")");
@@ -223,8 +225,31 @@ class HTTPWaiter extends Thread
       catch (Exception e) {;}
     }
 
+    long now = System.currentTimeMillis();
     HTTPChannel[] open = connected.toArray(new HTTPChannel[0]);
-    System.out.println("Connected "+open.length);
+    
+    for(HTTPChannel client : open)
+    {
+      boolean remove = false;
+      boolean connected = client.channel().isConnected() || client.channel().isOpen();
+      
+      logger.info("Client now: "+now+" touched: "+client.touched()+" timeout: "+timeout+" "+(now - client.touched()));
+      
+      if (!connected) remove = true;
+      if (now - client.touched() > timeout) remove = false;
+      
+      if (remove)
+      {
+        logger.info("Remove client");
+        this.connected.remove(client);
+        
+        if (connected)
+        {
+          try {client.channel().close();}
+          catch(Exception e) {;}
+        }
+      }
+    }
   }
 
 

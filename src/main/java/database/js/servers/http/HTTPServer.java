@@ -30,6 +30,7 @@ import java.nio.channels.ServerSocketChannel;
 public class HTTPServer extends Thread
 {
   private final int port;
+  private final int timeout;
   private final boolean ssl;
   private final Server server;
   private final Config config;
@@ -58,6 +59,7 @@ public class HTTPServer extends Thread
     this.config = server.config();
     this.selector = Selector.open();
     this.logger = config.getLogger().http;
+    this.timeout = config.getHTTP().timeout();
 
     config.getPKIContext(); // Initialize ssl
     HTTPBuffers.setSize(config.getHTTP().bufsize());
@@ -75,7 +77,7 @@ public class HTTPServer extends Thread
     this.workers = new ThreadPool(config.getTopology().workers());
     this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
 
-    HTTPReaper.start(logger,waiters,10);
+    HTTPReaper.start(logger,waiters,timeout);
   }
 
 

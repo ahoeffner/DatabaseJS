@@ -29,6 +29,7 @@ public class HTTP
   private final int grace;
   private final String host;
   private final String path;
+  private final int timeout;
   private final String tmppath;
   private final String virtendp;
   private final Handlers handlers;
@@ -40,9 +41,12 @@ public class HTTP
 
 
   HTTP(Handlers handlers, JSONObject config) throws Exception
-  {
-    if (config.has("host")) this.host = config.getString("host");
-    else this.host = InetAddress.getLocalHost().getHostName();
+  {    
+    String host = InetAddress.getLocalHost().getHostName();
+    if (config.has("Host") && !config.isNull("Host")) host = config.getString("Host");
+    
+    this.host = host;
+    this.timeout = config.getInt("KeepAlive") * 1000;
 
     if (!config.has("buffers")) this.bsize = 4096;
     else
@@ -164,6 +168,11 @@ public class HTTP
   public String host()
   {
     return(host);
+  }
+
+  public int timeout()
+  {
+    return(timeout);
   }
 
   public int ssl()

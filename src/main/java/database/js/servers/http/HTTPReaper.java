@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 public class HTTPReaper extends Thread
 {
-  private final int timeout;
+  private static int timeout;
   private final Logger logger;
   private final HTTPWaiterPool waiters;
   private static HTTPReaper reaper = null;
@@ -27,7 +27,16 @@ public class HTTPReaper extends Thread
   synchronized static void start(Logger logger, HTTPWaiterPool waiters, int timeout) throws Exception
   {
     if (reaper == null)
+    {
+      HTTPReaper.timeout = timeout; 
       reaper = new HTTPReaper(logger,waiters,timeout);
+    }
+  }
+  
+  
+  public static int KeepAlive()
+  {
+    return(timeout);
   }
 
 
@@ -35,7 +44,6 @@ public class HTTPReaper extends Thread
   {
     this.logger = logger;
     this.waiters = waiters;
-    this.timeout = timeout * 1000;
 
     this.setDaemon(true);
     this.setName("HTTPReaper");

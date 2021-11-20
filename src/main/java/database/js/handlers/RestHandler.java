@@ -120,10 +120,10 @@ public class RestHandler extends Handler
     response = new HTTPResponse();
     response.setContentType("application/json");
 
+    response.setHeader("Access-Control-Allow-Headers","*");
+    response.setHeader("Access-Control-Request-Method","*");
+    response.setHeader("Access-Control-Request-Headers","*");
     response.setHeader("Access-Control-Allow-Origin",origin);
-    response.setHeader("Access-Control-Allow-Headers",origin);
-    response.setHeader("Access-Control-Request-Method",origin);
-    response.setHeader("Access-Control-Request-Headers",origin);
 
     String xx = rest.execute();
     System.out.println(xx);

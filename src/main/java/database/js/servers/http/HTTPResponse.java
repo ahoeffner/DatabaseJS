@@ -42,7 +42,7 @@ public class HTTPResponse
     setHeader("server",server);
     setHeader("Date",new Date());
     setHeader("Connection","Keep-Alive");
-    setHeader("Keep-Alive","timeout=5");
+    setHeader("Keep-Alive","timeout="+HTTPReaper.KeepAlive());
   }
 
 
