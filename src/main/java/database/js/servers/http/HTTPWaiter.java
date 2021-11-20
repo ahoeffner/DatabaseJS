@@ -230,16 +230,13 @@ class HTTPWaiter extends Thread
     
     for(HTTPChannel client : open)
     {
-      boolean remove = false;
+      boolean timedout = now - client.touched() > timeout;
       boolean connected = client.channel().isConnected() || client.channel().isOpen();
-      
-      if (!connected) remove = true;
-      if (now - client.touched() > timeout) remove = true;
-      
-      if (remove)
+            
+      if (!connected || timedout)
       {
-        logger.info("Remove client");
         this.connected.remove(client);
+        if (timedout) logger.fine("Client KeepAlive timed out");
         
         if (connected)
         {
