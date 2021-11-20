@@ -30,6 +30,7 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 public class HTTPChannel
 {
+  private long touched;
   private boolean connected;
 
   private final boolean ssl;
@@ -55,6 +56,7 @@ public class HTTPChannel
     this.connected = false;
     this.config = server.config();
     this.logger = config.getLogger().intern;
+    this.touched = System.currentTimeMillis();
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
@@ -88,6 +90,7 @@ public class HTTPChannel
     this.connected = false;
     this.config = server.config();
     this.logger = config.getLogger().intern;
+    this.touched = System.currentTimeMillis();
     this.reqssl = config.getHTTP().requiressl();
 
     if (!ssl)
@@ -121,6 +124,12 @@ public class HTTPChannel
   boolean admin()
   {
     return(admin);
+  }
+  
+  
+  long touched()
+  {
+    return(touched);
   }
 
 
@@ -214,6 +223,7 @@ public class HTTPChannel
   public ByteBuffer read()
   {
     ByteBuffer buf = null;
+    touched = System.currentTimeMillis();
 
     try
     {

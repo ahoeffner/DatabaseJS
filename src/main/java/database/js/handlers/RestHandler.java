@@ -24,6 +24,8 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 
+import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 
@@ -134,20 +136,31 @@ public class RestHandler extends Handler
   }
   
   
-  private boolean allow(String domain) throws Exception
+  private boolean allow(String origin) throws Exception
   {
-    if (this.domains.contains(domain)) return(true);
+    if (this.domains.contains(origin)) return(true);
     ArrayList<String> corsheaders = config().getHTTP().corsdomains();
     
-    domain = "." + domain + ".";
+    URL url = new URL(origin);
+    
+    origin = url.getHost();    
+    String host = config().getHTTP().host();
+    
+    if (origin.equals(host))
+    {
+      this.domains.add(origin);
+      return(true);
+    }
+    
+    origin = "." + origin + ".";
     for(String pattern : corsheaders)
     {
       pattern = pattern.replace(".","\\.");
       pattern = pattern.replace("*",".*");
 
-      if (domain.matches(".*"+pattern+".*"))
+      if (origin.matches(".*"+pattern+".*"))
       {
-        this.domains.add(domain);
+        this.domains.add(origin);
         return(true);
       }
     }

@@ -41,6 +41,9 @@ class HTTPWaiter extends Thread
   private final ArrayList<HTTPChannel> queue =
     new ArrayList<HTTPChannel>();
 
+  private final ArrayList<HTTPChannel> connected =
+    new ArrayList<HTTPChannel>();
+
   private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
     new ConcurrentHashMap<SelectionKey,HTTPRequest>();
 
@@ -95,6 +98,7 @@ class HTTPWaiter extends Thread
         for(HTTPChannel client : queue)
         {
           add = true;
+          connected.add(client);
           client.channel().register(selector,SelectionKey.OP_READ,client);
         }
 

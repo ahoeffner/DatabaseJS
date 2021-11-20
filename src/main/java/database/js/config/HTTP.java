@@ -161,10 +161,9 @@ public class HTTP
   }
 
 
-  public String host(boolean ssl)
+  public String host()
   {
-    int port = ssl ? this.ssl : this.plain;
-    return(host+":"+port);
+    return(host);
   }
 
   public int ssl()
