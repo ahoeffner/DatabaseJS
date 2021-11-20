@@ -22,15 +22,15 @@ public class HTTPReaper extends Thread
   private final Logger logger;
   private final HTTPWaiterPool waiters;
   private static HTTPReaper reaper = null;
-  
-  
+
+
   synchronized static void start(Logger logger, HTTPWaiterPool waiters, int timeout) throws Exception
   {
     if (reaper == null)
       reaper = new HTTPReaper(logger,waiters,timeout);
   }
-  
-  
+
+
   private HTTPReaper(Logger logger, HTTPWaiterPool waiters, int timeout)
   {
     this.logger = logger;
@@ -39,11 +39,11 @@ public class HTTPReaper extends Thread
 
     this.setDaemon(true);
     this.setName("HTTPReaper");
-    
+
     this.start();
   }
-  
-  
+
+
   public void run()
   {
     HTTPWaiter[] waiters =
@@ -54,7 +54,7 @@ public class HTTPReaper extends Thread
       while(true)
       {
         sleep(timeout);
-        
+
         for(HTTPWaiter waiter : waiters)
           waiter.cleanout();
       }

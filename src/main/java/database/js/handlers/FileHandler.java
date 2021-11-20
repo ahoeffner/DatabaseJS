@@ -42,7 +42,7 @@ public class FileHandler extends Handler
     Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
-    
+
     if (request.getHeader("Host") == null)
     {
       response.setResponse(400);

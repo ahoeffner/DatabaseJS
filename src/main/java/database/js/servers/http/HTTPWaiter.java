@@ -14,6 +14,7 @@ package database.js.servers.http;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
@@ -25,8 +26,6 @@ import java.nio.channels.Selector;
 import database.js.pools.ThreadPool;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -223,7 +222,7 @@ class HTTPWaiter extends Thread
       }
       catch (Exception e) {;}
     }
-    
+
     HTTPChannel[] open = connected.toArray(new HTTPChannel[0]);
     System.out.println("Connected "+open.length);
   }

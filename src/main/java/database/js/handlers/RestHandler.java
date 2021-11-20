@@ -12,6 +12,9 @@
 
 package database.js.handlers;
 
+import java.net.URL;
+import java.util.TreeSet;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
@@ -23,11 +26,6 @@ import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-
-import java.net.URL;
-
-import java.util.ArrayList;
-import java.util.TreeSet;
 
 
 public class RestHandler extends Handler
@@ -55,15 +53,15 @@ public class RestHandler extends Handler
 
     server.request();
     logger.fine("REST request received: "+request.path());
-    
+
     if (request.getHeader("Host") == null)
     {
       response = new HTTPResponse();
-      
+
       response.setResponse(400);
       response.setContentType("text/html");
       response.setBody("<b>Bad Request</b>");
-      
+
       return(response);
     }
 
@@ -92,29 +90,29 @@ public class RestHandler extends Handler
     String payload = new String(request.body());
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
-    
+
     String origin = request.getHeader("Origin");
-    
+
     if (origin == null)
     {
       response = new HTTPResponse();
       response.setContentType("application/json");
-      
+
       logger.warning("Null Cors Origin header detected. Request rejected");
       response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
-      
-      return(response);      
+
+      return(response);
     }
-    
+
     if (!allow(origin))
     {
       response = new HTTPResponse();
       response.setContentType("application/json");
-      
+
       logger.warning("Origin "+origin+" rejected by Cors");
       response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
-      
-      return(response);      
+
+      return(response);
     }
 
     Rest rest = new Rest(config(),path,modify,payload);
@@ -134,24 +132,24 @@ public class RestHandler extends Handler
     log(logger,request,response);
     return(response);
   }
-  
-  
+
+
   private boolean allow(String origin) throws Exception
   {
     if (this.domains.contains(origin)) return(true);
     ArrayList<String> corsheaders = config().getHTTP().corsdomains();
-    
+
     URL url = new URL(origin);
-    
-    origin = url.getHost();    
+
+    origin = url.getHost();
     String host = config().getHTTP().host();
-    
+
     if (origin.equals(host))
     {
       this.domains.add(origin);
       return(true);
     }
-    
+
     origin = "." + origin + ".";
     for(String pattern : corsheaders)
     {
@@ -164,7 +162,7 @@ public class RestHandler extends Handler
         return(true);
       }
     }
-    
+
     return(false);
   }
 

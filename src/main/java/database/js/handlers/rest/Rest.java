@@ -119,10 +119,10 @@ public class Rest
   private String exec(String cmd, JSONObject payload)
   {
     String response = null;
-    
+
     switch(cmd)
     {
-      case "connect" : 
+      case "connect" :
         response = connect(payload); break;
     }
 
