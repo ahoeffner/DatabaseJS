@@ -16,13 +16,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.database.Database;
 import database.js.handlers.rest.Rest;
 import database.js.control.Process.Type;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.database.Database;
 
 
 public class RestHandler extends Handler
@@ -67,7 +67,7 @@ public class RestHandler extends Handler
       log(logger,request,response);
       return(response);
     }
-    
+
     String payload = new String(request.body());
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
@@ -76,6 +76,7 @@ public class RestHandler extends Handler
 
     response = new HTTPResponse();
     String xx = rest.execute();
+    System.out.println(xx);
     response.setBody(xx);
 
     log(logger,request,response);

@@ -12,12 +12,12 @@
 
 package database.js.handlers.rest;
 
-import database.js.config.Config;
 import java.util.TreeSet;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import database.js.config.Config;
 
 
 public class Rest
@@ -27,12 +27,12 @@ public class Rest
   private final String[] parts;
   private final boolean modify;
 
-  private String err = null;
-  private Session ses = null;
+  private String error = null;
+  private Session session = null;
 
   private final Config config;
   private final Logger logger;
-  
+
   private final SessionState state = new SessionState();
   private static final TreeSet<String> commands = new TreeSet<String>();
 
@@ -71,44 +71,35 @@ public class Rest
     if (parts.length == 0)
     {
       error("Invalid rest path");
-      System.out.println(err);
-      return(err);
+      return(error);
     }
 
     try
     {
-      System.out.println("I");
       JSONObject payload = parse();
-      if (err != null) return(err);
+      if (error != null) return(error);
 
-      System.out.println("II");
       if (hasSessionSpec() && !getSession())
-        return(err);
+        return(error);
 
-      System.out.println("III");
-      String cmd = getCommand(ses != null);
-      if (err != null) return(err);
+      String cmd = getCommand(session != null);
+      if (error != null) return(error);
 
-      System.out.println("IIII");
       if (cmd.equals("batch"))
         return(batch(payload));
 
-      System.out.println("IIIII");
       if (cmd.equals("script"))
         return(script(payload));
 
-      System.out.println("IIIIII");
       String result = exec(cmd,payload);
-      if (err != null) System.out.println(err);
-      if (err != null) return(err);
-      System.out.println(result);
+      if (error != null) return(error);
+
       return(result);
     }
     catch (Throwable e)
     {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-      error(e.getMessage());
-      return(err);
+      error(e);
+      return(error);
     }
   }
 
@@ -129,26 +120,52 @@ public class Rest
   {
     String response = null;
     
-    response = query(cmd,payload);
+    switch(cmd)
+    {
+      case "connect" : 
+        response = connect(payload); break;
+    }
 
-    if (err != null)
+    if (error != null)
     {
       state.releaseAll(this);
-      return(err);
+      return(error);
     }
 
     return(response);
   }
 
 
-  private String query(String cmd, JSONObject payload)
+  private String connect(JSONObject payload)
   {
-    if (ses == null)
+    ConnectionType type = null;
+
+    try
+    {
+      if (payload.has("username") && payload.has("password"))
+      {
+        type = ConnectionType.Database;
+        String usr = payload.getString("username");
+        String pwd = payload.getString("password");
+        return("{\"status\": \"ok\", \"usr\": \""+usr+"/"+pwd+"\"}");
+      }
+    }
+    catch (Throwable e)
+    {
+      error(e);
+    }
+    return("{\"status\": \"ok\"}");
+  }
+
+
+  private String query(JSONObject payload)
+  {
+    if (session == null)
     {
       error("Not connected");
-      return(null);      
+      return(null);
     }
-    
+
     return("{\"status\": \"ok\"}");
   }
 
@@ -166,9 +183,9 @@ public class Rest
       JSONTokener tokener = new JSONTokener(payload);
       return(new JSONObject(tokener));
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
-      error(e.getMessage());
+      error(e);
       return(null);
     }
   }
@@ -181,9 +198,9 @@ public class Rest
       if (payload.has("savepoint"))
         return(payload.getBoolean("savepoint"));
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
-      error(e.getMessage());
+      error(e);
     }
 
     return(false);
@@ -208,7 +225,6 @@ public class Rest
 
   private boolean hasSessionSpec()
   {
-    System.out.println("Parts <"+parts[0]+">"+parts.length);
     if (parts.length < 2)
       return(false);
 
@@ -221,9 +237,9 @@ public class Rest
 
   private boolean getSession()
   {
-    this.ses = Session.get(parts[0]);
+    this.session = Session.get(parts[0]);
 
-    if (this.ses == null)
+    if (this.session == null)
     {
       error("Session '"+parts[0]+"' does not exist");
       return(false);
@@ -233,13 +249,20 @@ public class Rest
   }
 
 
+  void error(Throwable e)
+  {
+    error(e.getMessage());
+    logger.log(Level.WARNING,e.getMessage(),e);
+  }
+
+
   void error(String message)
   {
     if (message == null)
       message = "An unexpected error has occured";
 
     message = escape(message);
-    this.err = "{\"status\": \"failed\", \"message\": \""+message+"\"}";
+    this.error = "{\"status\": \"failed\", \"message\": \""+message+"\"}";
   }
 
 
@@ -261,9 +284,10 @@ public class Rest
     int shared = 0;
     boolean exclusive = false;
 
+
     void lock(Rest rest, boolean exclusive)
     {
-      Session session = rest.ses;
+      Session session = rest.session;
 
       try
       {
@@ -271,43 +295,47 @@ public class Rest
         if (!exclusive) shared++;
         else this.exclusive = true;
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
-        rest.error(e.getMessage());
+        rest.error(e);
       }
     }
 
+
     void release(Rest rest, boolean exclusive)
     {
-      Session session = rest.ses;
+      Session session = rest.session;
 
       try
       {
         if (!exclusive && shared < 1)
-          throw new Exception("Cannot release shared lock not obtained");
+          throw new Throwable("Cannot release shared lock not obtained");
 
         session.release(exclusive);
 
         if (!exclusive) shared--;
         else this.exclusive = false;
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
-        rest.error(e.getMessage());
+        rest.error(e);
       }
     }
 
+
     void releaseAll(Rest rest)
     {
-      Session session = rest.ses;
+      Session session = rest.session;
+      if (session == null) return;
 
       try
       {
-        session.releaseAll(exclusive,shared);
+        if (exclusive || shared > 0)
+          session.releaseAll(exclusive,shared);
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
-        rest.error(e.getMessage());
+        rest.error(e);
       }
     }
   }

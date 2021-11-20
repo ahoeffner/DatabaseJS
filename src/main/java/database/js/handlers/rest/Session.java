@@ -57,8 +57,8 @@ public class Session
     sessions.put(guid,this);
     return(guid);
   }
-  
-  
+
+
   public Database database()
   {
     return(database);
