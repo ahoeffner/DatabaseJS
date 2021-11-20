@@ -35,7 +35,7 @@ public class HTTPReaper extends Thread
   {
     this.logger = logger;
     this.waiters = waiters;
-    this.timeout = timeout;
+    this.timeout = timeout * 1000;
 
     this.setDaemon(true);
     this.setName("HTTPReaper");
