@@ -26,6 +26,7 @@ import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
+import database.js.handlers.rest.Guid;
 
 
 public class RestHandler extends Handler
@@ -90,40 +91,46 @@ public class RestHandler extends Handler
     String payload = new String(request.body());
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
+    
+    response = new HTTPResponse();
 
-    String origin = request.getHeader("Origin");
-
-    if (origin == null)
+    String mode = request.getHeader("Sec-Fetch-Mode");    
+    if (mode != null && mode.equalsIgnoreCase("cors"))
     {
-      response = new HTTPResponse();
-      response.setContentType("application/json");
+      String origin = request.getHeader("Origin");
 
-      logger.warning("Null Cors Origin header detected. Request rejected");
-      response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
+      if (origin == null)
+      {
+        response.setContentType("application/json");
 
-      return(response);
-    }
+        logger.warning("Null Cors Origin header detected. Request rejected");
+        response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
 
-    if (!allow(origin))
-    {
-      response = new HTTPResponse();
-      response.setContentType("application/json");
+        return(response);
+      }
 
-      logger.warning("Origin "+origin+" rejected by Cors");
-      response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
+      if (!allow(origin))
+      {
+        response.setContentType("application/json");
 
-      return(response);
+        logger.warning("Origin "+origin+" rejected by Cors");
+        response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
+
+        return(response);
+      }
+
+      response.setHeader("Access-Control-Allow-Headers","*");
+      response.setHeader("Access-Control-Request-Method","*");
+      response.setHeader("Access-Control-Request-Headers","*");
+      response.setHeader("Access-Control-Allow-Origin",origin);
     }
 
     Rest rest = new Rest(config(),path,modify,payload);
-
-    response = new HTTPResponse();
     response.setContentType("application/json");
 
-    response.setHeader("Access-Control-Allow-Headers","*");
-    response.setHeader("Access-Control-Request-Method","*");
-    response.setHeader("Access-Control-Request-Headers","*");
-    response.setHeader("Access-Control-Allow-Origin",origin);
+    String session = request.getCookie("JSESSIONID");
+    if (session == null) session = new Guid().toString();
+    response.setCookie("JSESSIONID",session);
 
     String xx = rest.execute();
     System.out.println(xx);

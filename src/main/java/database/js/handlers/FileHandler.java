@@ -21,6 +21,7 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 import database.js.handlers.file.Deployment.StaticFile;
+import database.js.handlers.rest.Guid;
 
 
 public class FileHandler extends Handler
