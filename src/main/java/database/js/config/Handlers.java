@@ -143,7 +143,13 @@ public class Handlers
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
-      for(String m : meth) if (m.length() > 0) this.methods.add(m.toUpperCase());
+      for(String m : meth) 
+      {
+        m = m.trim();
+        
+        if (m.length() > 0) 
+          this.methods.add(m.toUpperCase());
+      }
 
       HandlerProperties properties = new HandlerProperties(prefix,this.methods);
       Constructor contructor = Class.forName(clazz).getDeclaredConstructor(Config.class,HandlerProperties.class);

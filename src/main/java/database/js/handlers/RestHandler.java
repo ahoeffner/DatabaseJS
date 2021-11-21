@@ -88,7 +88,6 @@ public class RestHandler extends Handler
       return(response);
     }
 
-    String payload = new String(request.body());
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
     
@@ -123,14 +122,23 @@ public class RestHandler extends Handler
       response.setHeader("Access-Control-Request-Method","*");
       response.setHeader("Access-Control-Request-Headers","*");
       response.setHeader("Access-Control-Allow-Origin",origin);
+      response.setHeader("Access-Control-Allow-Credentials","true");
     }
-
-    Rest rest = new Rest(config(),path,modify,payload);
-    response.setContentType("application/json");
 
     String session = request.getCookie("JSESSIONID");
     if (session == null) session = new Guid().toString();
     response.setCookie("JSESSIONID",session);
+    
+    if (request.body() == null && request.method().equals("OPTIONS"))
+      return(response);
+
+    byte[] body = request.body();
+    if (body == null) body = "{}".getBytes();
+
+    String payload = new String(body);
+
+    Rest rest = new Rest(config(),path,modify,payload);
+    response.setContentType("application/json");
 
     String xx = rest.execute();
     System.out.println(xx);
