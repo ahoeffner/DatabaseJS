@@ -39,4 +39,16 @@ public class PathUtil
 
     return(path);
   }
+  
+  
+  public boolean checkPath(String path)
+  {
+    String[] parts = path.split("/");
+    for(String part : parts)
+    {
+      if (path.trim().equals(("..")))
+        return(false);
+    }
+    return(true);
+  }
 }

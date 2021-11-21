@@ -43,6 +43,15 @@ public class FileHandler extends Handler
     Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
+    
+    if (!this.path.checkPath(path))
+    {
+      response.setResponse(400);
+      response.setContentType("text/html");
+      response.setBody("<b>Bad Request</b>");
+      logger.warning(path+" is not a valid path");
+      return(response);
+    }
 
     if (request.getHeader("Host") == null)
     {

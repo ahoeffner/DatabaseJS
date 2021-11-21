@@ -131,7 +131,7 @@ public class RestHandler extends Handler
     
     if (request.body() == null && request.method().equals("OPTIONS"))
       return(response);
-
+    
     byte[] body = request.body();
     if (body == null) body = "{}".getBytes();
 
