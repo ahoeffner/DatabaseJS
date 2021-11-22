@@ -22,6 +22,7 @@ import database.js.config.DatabaseType;
 public abstract class Database
 {
   private Connection conn;
+  private long touched = System.currentTimeMillis();
 
   private static Config config = null;
   private static DatabaseType dbtype = null;
@@ -45,6 +46,18 @@ public abstract class Database
 
   protected Database()
   {
+  }
+
+
+  public void touch()
+  {
+    touched = System.currentTimeMillis();
+  }
+
+
+  public long touched()
+  {
+    return(touched);
   }
 
 

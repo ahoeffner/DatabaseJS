@@ -24,15 +24,13 @@ public class Pool
   private final int max;
   private final String url;
   private final String token;
-  private final PoolType type;
   private final ArrayList<Connection> pool;
 
 
-  public Pool(PoolType type, String token, String url, int size)
+  public Pool(String token, String url, int size)
   {
     this.url = url;
     this.max = size;
-    this.type = type;
     this.token = token;
     this.pool = new ArrayList<Connection>();
   }

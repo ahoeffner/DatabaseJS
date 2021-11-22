@@ -12,14 +12,21 @@
 
 package database.js.handlers.rest;
 
+import database.js.database.Pool;
 import database.js.database.Database;
+import database.js.database.AuthMethod;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Session
 {
+  private final Pool pool;
   private final String guid;
+  private final String secret;
+  private final String username;
   private final Database database;
+  private final AuthMethod method;
+  private final boolean dedicated;
 
   private int shared = 0;
   private long thread = 0;
@@ -36,10 +43,14 @@ public class Session
   }
 
 
-  public Session(boolean tmp) throws Exception
+  public Session(AuthMethod method, Pool pool, boolean dedicated, String username, String secret) throws Exception
   {
-    if (tmp) this.guid = null;
-    else this.guid = create();
+    this.pool = pool;
+    this.guid = create();
+    this.method = method;
+    this.secret = secret;
+    this.username = username;
+    this.dedicated = dedicated;
     this.database = Database.getInstance();
   }
 
@@ -59,6 +70,12 @@ public class Session
   }
 
 
+  public String guid()
+  {
+    return(guid);
+  }
+
+
   public Database database()
   {
     return(database);
@@ -67,7 +84,6 @@ public class Session
 
   public void lock(boolean exclusive) throws Exception
   {
-    if (guid == null) return;
     long thread = Thread.currentThread().getId();
 
     synchronized(LOCK)
@@ -98,7 +114,6 @@ public class Session
 
   public void releaseAll(boolean exclusive, int shared) throws Exception
   {
-    if (guid == null) return;
     if (exclusive) release(true,0);
     if (shared > 0) release(false,shared);
   }
@@ -107,7 +122,6 @@ public class Session
   public void release(boolean exclusive) throws Exception
   {
     int shared = 0;
-    if (guid == null) return;
     if (!exclusive) shared = 1;
     this.release(exclusive,shared);
   }
@@ -115,7 +129,6 @@ public class Session
 
   public void release(boolean exclusive, int shared) throws Exception
   {
-    if (guid == null) return;
     long thread = Thread.currentThread().getId();
 
     synchronized(LOCK)

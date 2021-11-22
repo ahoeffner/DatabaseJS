@@ -15,7 +15,6 @@ package database.js.config;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
-import database.js.database.PoolType;
 import database.js.database.DatabaseUtils;
 
 
@@ -57,12 +56,11 @@ public class Database
            + type.substring(1).toLowerCase();
 
     int size = pconf.getInt("size");
-    PoolType ptype = PoolType.valueOf(type);
     String usr = pconf.getString("username");
     String pwd = pconf.getString("password");
     String secret = pconf.getString("auth.secret");
 
-    return(new Pool(ptype,secret,DatabaseUtils.bind(urlparts,usr,pwd),size));
+    return(new Pool(secret,DatabaseUtils.bind(urlparts,usr,pwd),size));
   }
 
 

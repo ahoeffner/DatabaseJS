@@ -18,7 +18,7 @@ import org.json.JSONTokener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.database.PoolType;
+import database.js.database.Pool;
 import database.js.database.AuthMethod;
 
 
@@ -140,7 +140,7 @@ public class Rest
 
   private String connect(JSONObject payload)
   {
-    PoolType pool = null;
+    Pool pool = null;
     String secret = null;
     String username = null;
     AuthMethod method = null;
@@ -175,24 +175,29 @@ public class Rest
         }
 
         method = AuthMethod.valueOf(meth);
+
+        if (method == AuthMethod.PoolToken)
+        {
+          if (anonymous) pool = config.getDatabase().proxy();
+          else           pool = config.getDatabase().anonymous();
+        }
+
+        if (error != null)
+          return(null);
+
+        if (!anonymous && username == null)
+          error("Username must be specified");
+
+        if (error != null)
+          return(null);
+
+        this.session = new Session(method,pool,dedicated,username,secret);
       }
     }
     catch (Throwable e)
     {
       error(e);
     }
-
-    if (error != null)
-      return(null);
-
-    if (!anonymous && username == null)
-      error("Username must be specified");
-
-    if (error != null)
-      return(null);
-
-    if (method == AuthMethod.PoolToken)
-      pool = anonymous ? PoolType.Anonymous : PoolType.Proxy;
 
     return("{\"status\": \"ok\"}");
   }
