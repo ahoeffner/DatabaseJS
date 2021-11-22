@@ -50,15 +50,7 @@ public abstract class Database
 
   public void connect(String username, String password) throws Exception
   {
-    String url = "";
-
-    for(String part : urlparts)
-    {
-      if (part.equals("[username]")) url += username;
-      else if (part.equals("[password]")) url += password;
-      else url += part;
-    }
-
+    String url = DatabaseUtils.bind(urlparts,username,password);
     this.conn = DriverManager.getConnection(url);
   }
 }

@@ -1,3 +1,15 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
 package database.js.database;
 
 import java.util.ArrayList;
@@ -30,5 +42,20 @@ public class DatabaseUtils
       connstr.add(url.substring(pos));
 
     return(connstr);
+  }
+
+
+  public static String bind(ArrayList<String> urlparts, String username, String password)
+  {
+    String url = "";
+
+    for(String part : urlparts)
+    {
+      if (part.equals("[username]")) url += username;
+      else if (part.equals("[password]")) url += password;
+      else url += part;
+    }
+
+    return(url);
   }
 }
