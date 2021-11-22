@@ -15,8 +15,6 @@ package database.js.database;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import database.js.config.Config;
 import database.js.config.DatabaseType;
 
@@ -27,20 +25,14 @@ public abstract class Database
 
   private static Config config = null;
   private static DatabaseType dbtype = null;
-  private static ArrayList<String> connstr = null;
-
-
-  public static void main(String[] args)
-  {
-    parse("jdbc:postgresql://localhost/test?user=[user]&password=[password]&ssl=true");
-  }
+  private static ArrayList<String> urlparts = null;
 
 
   public static void init(Config config) throws Exception
   {
     Database.config = config;
     Database.dbtype = config.getDatabase().type();
-    Database.connstr = parse(config.getDatabase().url());
+    Database.urlparts = config.getDatabase().urlparts();
   }
 
 
@@ -48,32 +40,6 @@ public abstract class Database
   public static Database getInstance() throws Exception
   {
     return((Database) dbtype.clazz.getConstructor().newInstance());
-  }
-
-
-  private static ArrayList<String> parse(String url)
-  {
-    ArrayList<String> connstr = new ArrayList<String>();
-    Pattern pattern = Pattern.compile("\\[(username|password)\\]");
-    Matcher matcher = pattern.matcher(url.toLowerCase());
-
-    int pos = 0;
-    while(matcher.find())
-    {
-      int e = matcher.end();
-      int b = matcher.start();
-
-      if (b > pos)
-        connstr.add(url.substring(pos,b));
-
-      connstr.add(url.substring(b,e).toLowerCase());
-      pos = e;
-    }
-
-    if (pos < url.length())
-      connstr.add(url.substring(pos));
-
-    return(connstr);
   }
 
 
@@ -86,7 +52,7 @@ public abstract class Database
   {
     String url = "";
 
-    for(String part : connstr)
+    for(String part : urlparts)
     {
       if (part.equals("[username]")) url += username;
       else if (part.equals("[password]")) url += password;

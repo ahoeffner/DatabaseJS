@@ -12,14 +12,17 @@
 
 package database.js.config;
 
+import java.util.ArrayList;
 import org.json.JSONObject;
+import database.js.database.DatabaseUtils;
 
 
 public class Database
 {
-  private final String connurl;
-  private final String teststmt;
+  private final String url;
+  private final String test;
   private final DatabaseType type;
+  private final ArrayList<String> urlparts;
 
 
   Database(JSONObject config) throws Exception
@@ -29,9 +32,10 @@ public class Database
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
+    this.url = config.getString("jdbc");
+    this.test = config.getString("test");
     this.type = DatabaseType.valueOf(type);
-    this.connurl = config.getString("jdbc");
-    this.teststmt = config.getString("test");
+    this.urlparts = DatabaseUtils.parse(url);
   }
 
 
@@ -42,11 +46,16 @@ public class Database
 
   public String url()
   {
-    return(connurl);
+    return(url);
   }
 
-  public String teststmt()
+  public ArrayList<String> urlparts()
   {
-    return(teststmt);
+    return(urlparts);
+  }
+
+  public String test()
+  {
+    return(test);
   }
 }
