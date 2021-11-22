@@ -55,12 +55,12 @@ public class Database
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
-    int size = pconf.getInt("size");
+    int size = pconf.getInt("pool");
     String usr = pconf.getString("username");
     String pwd = pconf.getString("password");
     String secret = pconf.getString("auth.secret");
 
-    return(new Pool(secret,DatabaseUtils.bind(urlparts,usr,pwd),size));
+    return(new Pool(secret,DatabaseUtils.bind(usr,pwd),size));
   }
 
 

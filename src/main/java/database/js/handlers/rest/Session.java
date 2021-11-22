@@ -12,9 +12,11 @@
 
 package database.js.handlers.rest;
 
+import java.sql.Connection;
 import database.js.database.Pool;
 import database.js.database.Database;
 import database.js.database.AuthMethod;
+import database.js.database.DatabaseUtils;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -32,6 +34,7 @@ public class Session
   private long thread = 0;
   private boolean exclusive = false;
   private final Object LOCK = new Object();
+  private long touched = System.currentTimeMillis();
 
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
@@ -51,22 +54,19 @@ public class Session
     this.secret = secret;
     this.username = username;
     this.dedicated = dedicated;
-    this.database = Database.getInstance();
+    this.database = DatabaseUtils.getInstance();
   }
 
 
-  private synchronized String create()
+  public void touch()
   {
-    String guid = null;
+    touched = System.currentTimeMillis();
+  }
 
-    while(guid == null)
-    {
-      guid = new Guid().toString();
-      if (sessions.get(guid) != null) guid = null;
-    }
 
-    sessions.put(guid,this);
-    return(guid);
+  public long touched()
+  {
+    return(touched);
   }
 
 
@@ -76,9 +76,44 @@ public class Session
   }
 
 
+  public boolean dedicated()
+  {
+    return(dedicated);
+  }
+
+
   public Database database()
   {
     return(database);
+  }
+
+
+  public boolean connected()
+  {
+    return(database.connected());
+  }
+
+
+  public void connect() throws Exception
+  {
+    Connection conn = null;
+
+    switch(method)
+    {
+      case OAuth :
+        break;
+
+      case Database :
+        conn = database.connect(username,secret);
+        break;
+
+      case PoolToken :
+        if (dedicated) conn = pool.connect(secret);
+        else           conn = pool.getConnection(secret);
+        break;
+    }
+
+    database.setConnection(conn);
   }
 
 
@@ -154,5 +189,20 @@ public class Session
 
       LOCK.notifyAll();
     }
+  }
+
+
+  private synchronized String create()
+  {
+    String guid = null;
+
+    while(guid == null)
+    {
+      guid = new Guid().toString();
+      if (sessions.get(guid) != null) guid = null;
+    }
+
+    sessions.put(guid,this);
+    return(guid);
   }
 }

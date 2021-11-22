@@ -15,10 +15,32 @@ package database.js.database;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import database.js.config.Config;
+import database.js.config.DatabaseType;
 
 
 public class DatabaseUtils
 {
+  private static Config config = null;
+  private static DatabaseType dbtype = null;
+  private static ArrayList<String> urlparts = null;
+
+
+  public static void init(Config config) throws Exception
+  {
+    DatabaseUtils.config = config;
+    DatabaseUtils.dbtype = config.getDatabase().type();
+    DatabaseUtils.urlparts = config.getDatabase().urlparts();
+  }
+
+
+  @SuppressWarnings("unchecked")
+  public static Database getInstance() throws Exception
+  {
+    return((Database) dbtype.clazz.getConstructor().newInstance());
+  }
+
+
   public static ArrayList<String> parse(String url)
   {
     ArrayList<String> connstr = new ArrayList<String>();
@@ -45,7 +67,7 @@ public class DatabaseUtils
   }
 
 
-  public static String bind(ArrayList<String> urlparts, String username, String password)
+  public static String bind(String username, String password)
   {
     String url = "";
 

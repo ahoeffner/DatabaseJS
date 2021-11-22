@@ -19,10 +19,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
-import database.js.database.Database;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
+import database.js.database.DatabaseUtils;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
@@ -39,7 +39,7 @@ public class RestHandler extends Handler
   {
     super(config,properties);
 
-    Database.init(config);
+    DatabaseUtils.init(config);
     this.path = new PathUtil(this);
     this.domains = new TreeSet<String>();
   }

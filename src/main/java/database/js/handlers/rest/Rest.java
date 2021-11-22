@@ -159,11 +159,11 @@ public class Rest
         anonymous = payload.getBoolean("anonymous");
 
       if (payload.has("auth.secret"))
-        secret = payload.getString("secret");
+        secret = payload.getString("auth.secret");
 
       if (payload.has("auth.method"))
       {
-        String meth = payload.getString("secret");
+        String meth = payload.getString("auth.method");
 
         switch(meth.toLowerCase())
         {
@@ -173,8 +173,6 @@ public class Rest
 
           default: error("Unknown authentication method "+meth);
         }
-
-        method = AuthMethod.valueOf(meth);
 
         if (method == AuthMethod.PoolToken)
         {

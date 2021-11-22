@@ -22,26 +22,6 @@ import database.js.config.DatabaseType;
 public abstract class Database
 {
   private Connection conn;
-  private long touched = System.currentTimeMillis();
-
-  private static Config config = null;
-  private static DatabaseType dbtype = null;
-  private static ArrayList<String> urlparts = null;
-
-
-  public static void init(Config config) throws Exception
-  {
-    Database.config = config;
-    Database.dbtype = config.getDatabase().type();
-    Database.urlparts = config.getDatabase().urlparts();
-  }
-
-
-  @SuppressWarnings("unchecked")
-  public static Database getInstance() throws Exception
-  {
-    return((Database) dbtype.clazz.getConstructor().newInstance());
-  }
 
 
   protected Database()
@@ -49,21 +29,35 @@ public abstract class Database
   }
 
 
-  public void touch()
+  public boolean connected()
   {
-    touched = System.currentTimeMillis();
+    return(conn != null);
   }
 
 
-  public long touched()
+  public boolean disconnect()
   {
-    return(touched);
+    boolean done = true;
+
+    try {conn.close();}
+    catch (Exception e)
+    {done = false;}
+
+    this.conn = null;
+    return(done);
   }
 
 
-  public void connect(String username, String password) throws Exception
+  public void setConnection(Connection conn)
   {
-    String url = DatabaseUtils.bind(urlparts,username,password);
-    this.conn = DriverManager.getConnection(url);
+    this.conn = conn;
+  }
+
+
+  public Connection connect(String username, String password) throws Exception
+  {
+    String url = DatabaseUtils.bind(username,password);
+    Connection conn = DriverManager.getConnection(url);
+    return(conn);
   }
 }
