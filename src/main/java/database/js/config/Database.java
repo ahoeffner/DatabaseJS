@@ -25,20 +25,17 @@ public class Database
   Database(JSONObject config) throws Exception
   {
     String type = config.getString("type");
-    type = Character.toUpperCase(type.charAt(0)) + type.substring(1);
+
+    type = Character.toUpperCase(type.charAt(0))
+           + type.substring(1).toLowerCase();
 
     this.type = DatabaseType.valueOf(type);
-    this.connurl = config.getString("url");
+    this.connurl = config.getString("jdbc");
     this.teststmt = config.getString("test");
   }
 
 
   public DatabaseType type()
-  {
-    return(type);
-  }
-
-  public DatabaseType database()
   {
     return(type);
   }

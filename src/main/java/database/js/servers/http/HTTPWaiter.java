@@ -227,17 +227,17 @@ class HTTPWaiter extends Thread
 
     long now = System.currentTimeMillis();
     HTTPChannel[] open = connected.toArray(new HTTPChannel[0]);
-    
+
     for(HTTPChannel client : open)
     {
       boolean timedout = now - client.touched() > timeout;
       boolean connected = client.channel().isConnected() || client.channel().isOpen();
-            
+
       if (!connected || timedout)
       {
         this.connected.remove(client);
         if (timedout) logger.fine("Client KeepAlive timed out");
-        
+
         if (connected)
         {
           try {client.channel().close();}

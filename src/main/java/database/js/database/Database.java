@@ -13,6 +13,8 @@
 package database.js.database;
 
 import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import database.js.config.Config;
@@ -21,6 +23,8 @@ import database.js.config.DatabaseType;
 
 public abstract class Database
 {
+  private Connection conn;
+
   private static Config config = null;
   private static DatabaseType dbtype = null;
   private static ArrayList<String> connstr = null;
@@ -50,7 +54,7 @@ public abstract class Database
   private static ArrayList<String> parse(String url)
   {
     ArrayList<String> connstr = new ArrayList<String>();
-    Pattern pattern = Pattern.compile("\\[(user|password)\\]");
+    Pattern pattern = Pattern.compile("\\[(username|password)\\]");
     Matcher matcher = pattern.matcher(url.toLowerCase());
 
     int pos = 0;
@@ -75,5 +79,20 @@ public abstract class Database
 
   protected Database()
   {
+  }
+
+
+  public void connect(String username, String password) throws Exception
+  {
+    String url = "";
+
+    for(String part : connstr)
+    {
+      if (part.equals("[username]")) url += username;
+      else if (part.equals("[password]")) url += password;
+      else url += part;
+    }
+
+    this.conn = DriverManager.getConnection(url);
   }
 }

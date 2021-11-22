@@ -143,11 +143,11 @@ public class Handlers
     {
       this.prefix = prefix;
       String meth[] = methods.split(",");
-      for(String m : meth) 
+      for(String m : meth)
       {
         m = m.trim();
-        
-        if (m.length() > 0) 
+
+        if (m.length() > 0)
           this.methods.add(m.toUpperCase());
       }
 

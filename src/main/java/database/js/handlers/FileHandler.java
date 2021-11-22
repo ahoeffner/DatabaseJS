@@ -15,13 +15,13 @@ package database.js.handlers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
 import database.js.handlers.file.Deployment.StaticFile;
-import database.js.handlers.rest.Guid;
 
 
 public class FileHandler extends Handler
@@ -43,7 +43,15 @@ public class FileHandler extends Handler
     Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
-    
+
+    if (path == null)
+    {
+      response.setResponse(404);
+      response.setContentType("text/html");
+      response.setBody("<b>Page not found</b>");
+      return(response);
+    }
+
     if (!this.path.checkPath(path))
     {
       response.setResponse(400);

@@ -10,14 +10,13 @@
  * accompanied this code).
  */
 
-package database.js.handlers.rest;
+package database.js.database;
 
 
 
-public enum ConnectionType
+public enum AuthMethod
 {
   OAuth,
-  Proxy,
   Database,
-  Anonymous
+  PoolToken
 }

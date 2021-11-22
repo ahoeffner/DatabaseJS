@@ -41,10 +41,10 @@ public class HTTP
 
 
   HTTP(Handlers handlers, JSONObject config) throws Exception
-  {    
+  {
     String host = InetAddress.getLocalHost().getHostName();
     if (config.has("Host") && !config.isNull("Host")) host = config.getString("Host");
-    
+
     this.host = host;
     this.timeout = config.getInt("KeepAlive") * 1000;
 

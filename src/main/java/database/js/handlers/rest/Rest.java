@@ -18,6 +18,8 @@ import org.json.JSONTokener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.database.PoolType;
+import database.js.database.AuthMethod;
 
 
 public class Rest
@@ -138,22 +140,60 @@ public class Rest
 
   private String connect(JSONObject payload)
   {
-    ConnectionType type = null;
+    PoolType pool = null;
+    String secret = null;
+    String username = null;
+    AuthMethod method = null;
+    boolean dedicated = false;
+    boolean anonymous = false;
 
     try
     {
-      if (payload.has("username") && payload.has("password"))
+      if (payload.has("username"))
+        username = payload.getString("username");
+
+      if (payload.has("dedicated"))
+        dedicated = payload.getBoolean("dedicated");
+
+      if (payload.has("anonymous"))
+        anonymous = payload.getBoolean("anonymous");
+
+      if (payload.has("auth.secret"))
+        secret = payload.getString("secret");
+
+      if (payload.has("auth.method"))
       {
-        type = ConnectionType.Database;
-        String usr = payload.getString("username");
-        String pwd = payload.getString("password");
-        return("{\"status\": \"ok\", \"usr\": \""+usr+"/"+pwd+"\"}");
+        String meth = payload.getString("secret");
+
+        switch(meth.toLowerCase())
+        {
+          case "oauth" : method = AuthMethod.OAuth; break;
+          case "database" : method = AuthMethod.Database; break;
+          case "pool-token" : method = AuthMethod.PoolToken; break;
+
+          default: error("Unknown authentication method "+meth);
+        }
+
+        method = AuthMethod.valueOf(meth);
       }
     }
     catch (Throwable e)
     {
       error(e);
     }
+
+    if (error != null)
+      return(null);
+
+    if (!anonymous && username == null)
+      error("Username must be specified");
+
+    if (error != null)
+      return(null);
+
+    if (method == AuthMethod.PoolToken)
+      pool = anonymous ? PoolType.Anonymous : PoolType.Proxy;
+
     return("{\"status\": \"ok\"}");
   }
 

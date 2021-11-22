@@ -28,12 +28,12 @@ public class HTTPReaper extends Thread
   {
     if (reaper == null)
     {
-      HTTPReaper.timeout = timeout; 
+      HTTPReaper.timeout = timeout;
       reaper = new HTTPReaper(logger,waiters,timeout);
     }
   }
-  
-  
+
+
   public static int KeepAlive()
   {
     return(timeout/1000);

@@ -18,8 +18,8 @@ import database.js.config.Handlers.HandlerProperties;
 public class PathUtil
 {
   private final HandlerProperties properties;
-  
-  
+
+
   public PathUtil(Handler handler) throws Exception
   {
     this.properties = handler.properties();
@@ -29,8 +29,10 @@ public class PathUtil
   public String getPath(String urlpath)
   {
     String prefix = properties.prefix();
+
+    if (prefix.length() > urlpath.length()) return(null);
     String path = "/"+urlpath.substring(prefix.length());
-    
+
     path = path.replaceAll("//","/");
 
     while(path.length() > 1 && path.endsWith("/"))
@@ -38,8 +40,8 @@ public class PathUtil
 
     return(path);
   }
-  
-  
+
+
   public boolean checkPath(String path)
   {
     String[] parts = path.split("/");

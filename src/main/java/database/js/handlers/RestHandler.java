@@ -21,12 +21,12 @@ import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.database.Database;
 import database.js.handlers.rest.Rest;
+import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.handlers.rest.Guid;
 
 
 public class RestHandler extends Handler
@@ -90,10 +90,18 @@ public class RestHandler extends Handler
 
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
-    
+
     response = new HTTPResponse();
 
-    String mode = request.getHeader("Sec-Fetch-Mode");    
+    if (path == null)
+    {
+      response.setResponse(404);
+      response.setContentType("text/html");
+      response.setBody("<b>Page not found</b>");
+      return(response);
+    }
+
+    String mode = request.getHeader("Sec-Fetch-Mode");
     if (mode != null && mode.equalsIgnoreCase("cors"))
     {
       String origin = request.getHeader("Origin");
@@ -128,10 +136,10 @@ public class RestHandler extends Handler
     String session = request.getCookie("JSESSIONID");
     if (session == null) session = new Guid().toString();
     response.setCookie("JSESSIONID",session);
-    
+
     if (request.body() == null && request.method().equals("OPTIONS"))
       return(response);
-    
+
     byte[] body = request.body();
     if (body == null) body = "{}".getBytes();
 
