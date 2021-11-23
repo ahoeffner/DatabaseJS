@@ -80,7 +80,7 @@ public class Rest
     {
       JSONObject payload = parse();
       if (payload == null) return(error);
-      
+
       String cmd = divert();
       if (cmd == null) return(error);
 
@@ -123,7 +123,7 @@ public class Rest
 
       case "select" :
         response = query(payload,batch); break;
-      
+
       default : error("Unknown command "+cmd);
     }
 
@@ -196,9 +196,9 @@ public class Rest
       error(e);
       return(error);
     }
-    
+
     JSONFormatter json = new JSONFormatter();
-    
+
     json.success(true);
     json.add("session",session.guid());
 
@@ -226,7 +226,7 @@ public class Rest
       error(e);
       return(error);
     }
-    
+
     JSONFormatter json = new JSONFormatter();
     json.success(true);
 
@@ -269,37 +269,37 @@ public class Rest
 
     return(false);
   }
-  
-  
+
+
   private String divert()
   {
     String cmd = null;
     boolean ses = false;
-    
-    parts[0] = parts[0].toLowerCase();    
+
+    parts[0] = parts[0].toLowerCase();
     if (commands.contains(parts[0])) cmd = parts[0];
-    
+
     if (cmd == null && parts.length > 1)
     {
       ses = true;
       this.session = Session.get(parts[0]);
 
-      parts[1] = parts[1].toLowerCase();    
-      if (commands.contains(parts[1])) cmd = parts[1];      
+      parts[1] = parts[1].toLowerCase();
+      if (commands.contains(parts[1])) cmd = parts[1];
     }
-    
+
     if (cmd == null)
     {
       error("Rest path "+path+" not mapped to any service");
       return(null);
     }
-    
+
     if (ses && session == null)
     {
       error("Session '"+parts[0]+"' does not exist");
       return(null);
     }
-    
+
     return(cmd);
   }
 
