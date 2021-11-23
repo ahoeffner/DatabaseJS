@@ -15,7 +15,6 @@ package database.js.handlers.rest;
 import java.util.TreeSet;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
@@ -54,6 +53,7 @@ public class Rest
     commands.add("commit");
     commands.add("connect");
     commands.add("rollback");
+    commands.add("disconnect");
   }
 
 
@@ -80,11 +80,8 @@ public class Rest
     {
       JSONObject payload = parse();
       if (payload == null) return(error);
-
-      if (hasSessionSpec() && !getSession())
-        return(error);
       
-      String cmd = getCommand(session != null);
+      String cmd = divert();
       if (cmd == null) return(error);
 
       if (cmd.equals("batch"))
@@ -272,48 +269,38 @@ public class Rest
 
     return(false);
   }
-
-
-  private String getCommand(boolean ses)
+  
+  
+  private String divert()
   {
-    String cmd = parts[0];
-    if (parts.length > 1) cmd = parts[1];
+    String cmd = null;
+    boolean ses = false;
     
-    cmd = cmd.toLowerCase();
-
-    if (!commands.contains(cmd))
+    parts[0] = parts[0].toLowerCase();    
+    if (commands.contains(parts[0])) cmd = parts[0];
+    
+    if (cmd == null && parts.length > 1)
     {
-      error("Unknown rest part '"+cmd+"'");
+      ses = true;
+      this.session = Session.get(parts[0]);
+
+      parts[1] = parts[1].toLowerCase();    
+      if (commands.contains(parts[1])) cmd = parts[1];      
+    }
+    
+    if (cmd == null)
+    {
+      error("Rest path "+path+" not mapped to any service");
       return(null);
     }
-
-    return(cmd);
-  }
-
-
-  private boolean hasSessionSpec()
-  {
-    if (parts.length < 2)
-      return(false);
-
-    if (!commands.contains(parts[1].toLowerCase()))
-      return(false);
-
-    return(true);
-  }
-
-
-  private boolean getSession()
-  {
-    this.session = Session.get(parts[0]);
-
-    if (this.session == null)
+    
+    if (ses && session == null)
     {
       error("Session '"+parts[0]+"' does not exist");
-      return(false);
+      return(null);
     }
-
-    return(true);
+    
+    return(cmd);
   }
 
 
