@@ -83,7 +83,7 @@ public class Rest
 
       if (hasSessionSpec() && !getSession())
         return(error);
-
+      
       String cmd = getCommand(session != null);
       if (cmd == null) return(error);
 
@@ -124,8 +124,10 @@ public class Rest
       case "connect" :
         response = connect(payload,batch); break;
 
-      case "query" :
+      case "select" :
         response = query(payload,batch); break;
+      
+      default : error("Unknown command "+cmd);
     }
 
     if (!batch || error != null)
@@ -197,8 +199,13 @@ public class Rest
       error(e);
       return(error);
     }
+    
+    JSONFormatter json = new JSONFormatter();
+    
+    json.success(true);
+    json.add("session",session.guid());
 
-    return("{\n\"status\": \"ok\",\n\"session\": \""+session.guid()+"\"\n}");
+    return(json.toString());
   }
 
 
@@ -207,7 +214,7 @@ public class Rest
     if (session == null)
     {
       error("Not connected");
-      return(null);
+      return(error);
     }
 
     try
@@ -222,8 +229,11 @@ public class Rest
       error(e);
       return(error);
     }
+    
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
 
-    return("{\"status\": \"ok\"}");
+    return(json.toString());
   }
 
 
@@ -267,7 +277,8 @@ public class Rest
   private String getCommand(boolean ses)
   {
     String cmd = parts[0];
-    if (ses) cmd = parts[1];
+    if (parts.length > 1) cmd = parts[1];
+    
     cmd = cmd.toLowerCase();
 
     if (!commands.contains(cmd))
@@ -308,31 +319,23 @@ public class Rest
 
   void error(Throwable e)
   {
-    error(e.getMessage());
-    logger.log(Level.WARNING,e.getMessage(),e);
+    JSONFormatter json = new JSONFormatter();
+
+    json.set(e);
+    json.success(false);
+
+    this.error = json.toString();
   }
 
 
   void error(String message)
   {
-    if (message == null)
-      message = "An unexpected error has occured";
+    JSONFormatter json = new JSONFormatter();
 
-    message = escape(message);
-    this.error = "{\"status\": \"failed\", \"message\": "+message+"}";
-  }
+    json.success(false);
+    json.add("message",message);
 
-
-  static String escape(String str)
-  {
-    str = JSONObject.quote(str);
-    return(str);
-  }
-
-
-  static String quote(String str)
-  {
-    return("\""+str+"\"");
+    this.error = json.toString();
   }
 
 

@@ -175,7 +175,8 @@ public class HTTPResponse
 
   public void setBody(String body)
   {
-    setBody(body.getBytes());
+    if (body != null)
+      setBody(body.getBytes());
   }
 
 

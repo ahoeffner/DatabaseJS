@@ -12,12 +12,13 @@
 
 package database.js.handlers.rest;
 
-import java.util.ArrayList;
 import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class Formatter
+public class JSONFormatter
 {
   private Content content = null;
   private final static Logger logger = Logger.getLogger("rest");
@@ -25,7 +26,7 @@ public class Formatter
 
   public static void main(String[] args)
   {
-    Formatter format = new Formatter();
+    JSONFormatter format = new JSONFormatter();
     String[] cols = {"col1","col2","col3"};
 
     format.add("message","everything is fine");
@@ -42,7 +43,7 @@ public class Formatter
 
     format.add("last",null);
 
-    format.status(true);
+    format.success(true);
     System.out.println(format);
 
 
@@ -50,11 +51,11 @@ public class Formatter
     System.out.println();
     System.out.println();
 
-    format = new Formatter();
+    format = new JSONFormatter();
 
     format.push("connect");
     format.add("session","w828e828e");
-    format.status(true);
+    format.success(true);
     format.pop();
 
     format.push("query");
@@ -62,26 +63,26 @@ public class Formatter
     format.add(cols,new String[] {"1","2","3"});
     format.add(cols,new String[] {"4","5","6"});
     format.pop();
-    format.status(true);
+    format.success(true);
     format.pop();
 
     System.out.println(format);
   }
 
 
-  public Formatter()
+  public JSONFormatter()
   {
     this(false);
   }
 
 
-  public Formatter(boolean array)
+  public JSONFormatter(boolean array)
   {
     content = new Content(array);
   }
 
 
-  public void status(boolean success)
+  public void success(boolean success)
   {
     content.status(success);
   }
@@ -108,6 +109,7 @@ public class Formatter
   public void set(Throwable err)
   {
     content.set(err);
+    logger.log(Level.WARNING,err.getMessage(),err);
   }
 
 

@@ -211,7 +211,7 @@ public class Session
 
     while(guid == null)
     {
-      guid = new Guid().toString();
+      guid = new Guid().toString().toLowerCase();
       if (sessions.get(guid) != null) guid = null;
     }
 
