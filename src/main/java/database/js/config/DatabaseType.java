@@ -13,7 +13,6 @@
 package database.js.config;
 
 
-
 public enum DatabaseType
 {
   Oracle("database.js.database.impl.Oracle"),

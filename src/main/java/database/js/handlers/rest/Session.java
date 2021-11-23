@@ -94,6 +94,12 @@ public class Session
   }
 
 
+  public void disconnect()
+  {
+    database.disconnect();
+  }
+
+
   public void ensure() throws Exception
   {
     if (!connected())

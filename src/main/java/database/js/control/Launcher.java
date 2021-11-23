@@ -27,8 +27,8 @@ import database.js.cluster.Cluster;
 import database.js.config.Topology;
 import database.js.handlers.Handler;
 import java.io.ByteArrayOutputStream;
-import database.js.cluster.Statistics;
 import database.js.database.Database;
+import database.js.cluster.Statistics;
 import database.js.handlers.file.Deployment;
 
 

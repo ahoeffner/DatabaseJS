@@ -57,7 +57,7 @@ public class Process
 
     if (type == Type.http) options = httpopts;
     else                   options = restopts;
-    
+
     boolean embedded = servers <= 0;
 
     logger.info("Starting "+type+" instance "+instnm+"["+inst+"]");

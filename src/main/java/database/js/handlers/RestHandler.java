@@ -38,6 +38,8 @@ public class RestHandler extends Handler
   public RestHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
+
+    config.loadDatabaseConfig();
     this.path = new PathUtil(this);
     this.domains = new TreeSet<String>();
   }

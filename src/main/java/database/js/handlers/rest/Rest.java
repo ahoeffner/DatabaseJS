@@ -79,13 +79,13 @@ public class Rest
     try
     {
       JSONObject payload = parse();
-      if (error != null) return(error);
+      if (payload == null) return(error);
 
       if (hasSessionSpec() && !getSession())
         return(error);
 
       String cmd = getCommand(session != null);
-      if (error != null) return(error);
+      if (cmd == null) return(error);
 
       if (cmd.equals("batch"))
         return(batch(payload));
@@ -93,10 +93,7 @@ public class Rest
       if (cmd.equals("script"))
         return(script(payload));
 
-      String result = exec(cmd,payload);
-      if (error != null) return(error);
-
-      return(result);
+      return(exec(cmd,payload,false));
     }
     catch (Throwable e)
     {
@@ -118,27 +115,27 @@ public class Rest
   }
 
 
-  private String exec(String cmd, JSONObject payload)
+  private String exec(String cmd, JSONObject payload, boolean batch)
   {
     String response = null;
 
     switch(cmd)
     {
       case "connect" :
-        response = connect(payload); break;
+        response = connect(payload,batch); break;
+
+      case "query" :
+        response = query(payload,batch); break;
     }
 
-    if (error != null)
-    {
+    if (!batch || error != null)
       state.releaseAll(this);
-      return(error);
-    }
 
     return(response);
   }
 
 
-  private String connect(JSONObject payload)
+  private String connect(JSONObject payload, boolean batch)
   {
     Pool pool = null;
     String secret = null;
@@ -181,16 +178,18 @@ public class Rest
         }
 
         if (error != null)
-          return(null);
+          return(error);
 
         if (!anonymous && username == null)
           error("Username must be specified");
 
         if (error != null)
-          return(null);
+          return(error);
 
         this.session = new Session(method,pool,dedicated,username,secret);
-        if (dedicated) this.session.connect();
+
+        if (dedicated || method == AuthMethod.Database) this.session.connect();
+        if (!dedicated && !batch && method == AuthMethod.Database) this.session.disconnect();
       }
     }
     catch (Throwable e)
@@ -199,16 +198,29 @@ public class Rest
       return(error);
     }
 
-    return("{\"status\": \"ok\"}");
+    return("{\n\"status\": \"ok\",\n\"session\": \""+session.guid()+"\"\n}");
   }
 
 
-  private String query(JSONObject payload)
+  private String query(JSONObject payload, boolean batch)
   {
     if (session == null)
     {
       error("Not connected");
       return(null);
+    }
+
+    try
+    {
+      session.ensure();
+
+      if (!session.dedicated() && !batch)
+        session.disconnect();
+    }
+    catch (Exception e)
+    {
+      error(e);
+      return(error);
     }
 
     return("{\"status\": \"ok\"}");

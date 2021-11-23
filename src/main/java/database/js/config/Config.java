@@ -167,6 +167,12 @@ public class Config
   }
 
 
+  public void loadDatabaseConfig() throws Exception
+  {
+    this.getDatabase();
+  }
+
+
   public synchronized Database getDatabase() throws Exception
   {
     if (database != null) return(database);
