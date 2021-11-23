@@ -13,7 +13,6 @@
 package database.js.database;
 
 
-
 public enum AuthMethod
 {
   OAuth,

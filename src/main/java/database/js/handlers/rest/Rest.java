@@ -190,11 +190,13 @@ public class Rest
           return(null);
 
         this.session = new Session(method,pool,dedicated,username,secret);
+        if (dedicated) this.session.connect();
       }
     }
     catch (Throwable e)
     {
       error(e);
+      return(error);
     }
 
     return("{\"status\": \"ok\"}");
@@ -305,7 +307,7 @@ public class Rest
       message = "An unexpected error has occured";
 
     message = escape(message);
-    this.error = "{\"status\": \"failed\", \"message\": \""+message+"\"}";
+    this.error = "{\"status\": \"failed\", \"message\": "+message+"}";
   }
 
 

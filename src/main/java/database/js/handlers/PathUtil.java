@@ -12,6 +12,7 @@
 
 package database.js.handlers;
 
+import java.io.File;
 import database.js.config.Handlers.HandlerProperties;
 
 
@@ -44,12 +45,18 @@ public class PathUtil
 
   public boolean checkPath(String path)
   {
-    String[] parts = path.split("/");
-    for(String part : parts)
+    try
     {
-      if (path.trim().equals(("..")))
-        return(false);
+      File p = new File("/mnt"+path);
+
+      if (p.getCanonicalPath().startsWith("/mnt"))
+        return(true);
+
+      return(false);
     }
-    return(true);
+    catch (Exception e)
+    {
+      return(false);
+    }
   }
 }

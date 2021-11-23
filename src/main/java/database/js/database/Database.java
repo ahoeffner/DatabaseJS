@@ -12,11 +12,8 @@
 
 package database.js.database;
 
-import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import database.js.config.Config;
-import database.js.config.DatabaseType;
 
 
 public abstract class Database

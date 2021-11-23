@@ -42,6 +42,9 @@ public class Database
     this.type = DatabaseType.valueOf(type);
     this.urlparts = DatabaseUtils.parse(url);
 
+    DatabaseUtils.setType(this.type);
+    DatabaseUtils.setUrlParts(urlparts);
+
     this.proxy = getPool("proxy",config);
     this.anonymous = getPool("anonymous",config);
   }

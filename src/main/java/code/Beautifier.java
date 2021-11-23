@@ -126,6 +126,7 @@ public class Beautifier
       if (line.trim().length() > 0) break;
     }
 
+    int imports = 0;
     if (line.startsWith("import"))
     {
       ArrayList<String> imps = new ArrayList<String>();
@@ -138,6 +139,7 @@ public class Beautifier
         if (line.length() > 0 && !line.startsWith("import"))
           break;
 
+        imports++;
         imps.add(line);
       }
 
@@ -154,7 +156,9 @@ public class Beautifier
       }
     }
 
-    out.println();
+    if (imports > 0)
+      out.println();
+
     out.println();
     out.println(line);
 

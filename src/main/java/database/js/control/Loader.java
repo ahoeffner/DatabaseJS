@@ -121,7 +121,12 @@ public class Loader extends ClassLoader
     }
 
     if (failed.size() > 0)
-      throw new Exception("Loading of "+jar+" failed");
+    {
+      for(Definition def : failed)
+        System.err.println("Could not load "+def.qname);
+      
+      throw new Exception("Loading of "+jar+" failed");      
+    }
   }
 
 

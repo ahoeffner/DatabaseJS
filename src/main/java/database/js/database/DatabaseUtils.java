@@ -15,22 +15,24 @@ package database.js.database;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import database.js.config.Config;
 import database.js.config.DatabaseType;
 
 
 public class DatabaseUtils
 {
-  private static Config config = null;
   private static DatabaseType dbtype = null;
   private static ArrayList<String> urlparts = null;
 
 
-  public static void init(Config config) throws Exception
+  public static void setType(DatabaseType dbtype)
   {
-    DatabaseUtils.config = config;
-    DatabaseUtils.dbtype = config.getDatabase().type();
-    DatabaseUtils.urlparts = config.getDatabase().urlparts();
+    DatabaseUtils.dbtype = dbtype;
+  }
+
+
+  public static void setUrlParts(ArrayList<String> urlparts)
+  {
+    DatabaseUtils.urlparts = urlparts;
   }
 
 

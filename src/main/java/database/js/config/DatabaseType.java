@@ -16,14 +16,18 @@ package database.js.config;
 
 public enum DatabaseType
 {
-  Oracle(null),
-  Postgres(null);
+  Oracle("database.js.database.impl.Oracle"),
+  Postgres("database.js.database.impl.Postgres"),
+  Generic("database.js.database.impl.Generic");
 
 
   public final Class clazz;
 
   private DatabaseType(String clazz)
   {
-    this.clazz = null;
+    Class cl = null;
+    try {cl = Class.forName(clazz);}
+    catch (Throwable e) {e.printStackTrace();}
+    this.clazz = cl;
   }
 }

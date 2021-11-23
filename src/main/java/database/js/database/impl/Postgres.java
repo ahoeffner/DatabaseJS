@@ -10,12 +10,11 @@
  * accompanied this code).
  */
 
-package database.js.servers.http;
+package database.js.database.impl;
+
+import database.js.database.Database;
 
 
-public enum HTTPServerType
+public class Postgres extends Database
 {
-  ssl,
-  plain,
-  admin
 }

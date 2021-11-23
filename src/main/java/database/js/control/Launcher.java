@@ -28,6 +28,7 @@ import database.js.config.Topology;
 import database.js.handlers.Handler;
 import java.io.ByteArrayOutputStream;
 import database.js.cluster.Statistics;
+import database.js.database.Database;
 import database.js.handlers.file.Deployment;
 
 
@@ -61,8 +62,8 @@ public class Launcher implements ILauncher
 
       if (launcher == null)
       {
-        start(args);
-        return;
+        System.err.println("Could not load app");
+        System.exit(-1);
       }
     }
 
@@ -124,8 +125,6 @@ public class Launcher implements ILauncher
       logger.info("database.js instance "+config.instance()+" is already running");
       return;
     }
-
-    int cores = Runtime.getRuntime().availableProcessors();
 
     Process process = new Process(config);
     process.start(Process.Type.http,0);
@@ -400,7 +399,7 @@ public class Launcher implements ILauncher
     try
     {
       String path = Paths.libdir+File.separator+"json";
-      Loader loader = new Loader(ILauncher.class, Handler.class, Paths.class);
+      Loader loader = new Loader(ILauncher.class, Handler.class, Database.class, Paths.class);
 
       File dir = new File(path);
       String[] jars = dir.list();
@@ -422,33 +421,8 @@ public class Launcher implements ILauncher
     }
     catch (Exception e)
     {
+      e.printStackTrace();
       return(null);
     }
-  }
-
-
-  public static void start(String[] args) throws Exception
-  {
-    String classpath = (String) System.getProperties().get("java.class.path");
-
-    String home = System.getProperties().getProperty("java.home");
-    String bindir = home + File.separator + "bin" + File.separator;
-
-    String exe = bindir + "java";
-    if (Config.windows()) exe += ".exe";
-
-    String path = Paths.libdir+File.separator+"json";
-
-    File dir = new File(path);
-    String[] jars = dir.list();
-
-    for(String jar : jars)
-      classpath += psep + path + File.separator + jar;
-
-    String argv = "";
-    for(String arg : args) argv += " "+arg;
-
-    String cmd = exe + " -cp " + classpath + " database.js.control.Launcher -s " + argv;
-    Runtime.getRuntime().exec(cmd);
   }
 }

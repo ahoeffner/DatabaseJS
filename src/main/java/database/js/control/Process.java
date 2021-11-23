@@ -21,6 +21,7 @@ import database.js.config.Config;
 
 public class Process
 {
+  private final int servers;
   private final String instnm;
   private final Config config;
   private final Logger logger;
@@ -38,6 +39,7 @@ public class Process
     this.instnm = config.instance();
     this.javaexe = config.getJava().exe();
     this.logger = config.getLogger().intern;
+    this.servers = config.getTopology().servers();
     this.httpopts = config.getJava().getHttpOptions();
     this.restopts = config.getJava().getRestOptions();
     this.httpjars = config.getJava().getHTTPClassPath();
@@ -55,11 +57,14 @@ public class Process
 
     if (type == Type.http) options = httpopts;
     else                   options = restopts;
+    
+    boolean embedded = servers <= 0;
 
     logger.info("Starting "+type+" instance "+instnm+"["+inst+"]");
-    String classpath = classpath(type != Type.http) + jars;
+    String classpath = classpath(type != Type.http || embedded) + jars;
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
+    logger.fine(cmd);
     try {Runtime.getRuntime().exec(cmd);}
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }

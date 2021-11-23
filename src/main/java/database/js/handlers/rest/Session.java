@@ -94,6 +94,13 @@ public class Session
   }
 
 
+  public void ensure() throws Exception
+  {
+    if (!connected())
+      connect();
+  }
+
+
   public void connect() throws Exception
   {
     Connection conn = null;
