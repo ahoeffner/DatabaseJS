@@ -22,7 +22,6 @@ import database.js.servers.Server;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
-import database.js.database.DatabaseUtils;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
@@ -145,9 +144,10 @@ public class RestHandler extends Handler
     byte[] body = request.body();
     if (body == null) body = "{}".getBytes();
 
+    String remote = request.remote();
     String payload = new String(body);
 
-    Rest rest = new Rest(config(),path,modify,payload);
+    Rest rest = new Rest(config(),path,modify,remote,payload);
     response.setContentType("application/json");
 
     String xx = rest.execute();

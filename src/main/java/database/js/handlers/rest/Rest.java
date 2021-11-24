@@ -23,6 +23,7 @@ import database.js.database.AuthMethod;
 
 public class Rest
 {
+  private final String host;
   private final String path;
   private final String payload;
   private final String[] parts;
@@ -57,8 +58,9 @@ public class Rest
   }
 
 
-  public Rest(Config config, String path, boolean modify, String payload) throws Exception
+  public Rest(Config config, String path, boolean modify, String host, String payload) throws Exception
   {
+    this.host     = host;
     this.path     = path;
     this.config   = config;
     this.modify   = modify;
