@@ -36,6 +36,9 @@ public class Config
   private Topology topology = null;
   private Database database = null;
 
+  private static final String path = 
+    System.getenv(("DATABASEJS.CONFIG"));;
+
   private static final String CONFDEF = "conf.json";
   private static final String JAVADEF = "java.json";
   private static final String HTTPDEF = "http.json";
@@ -214,7 +217,8 @@ public class Config
 
   private static String path()
   {
-    return(Paths.confdir + File.separator);
+    if (path != null) return(path + File.separator);
+    else              return(Paths.confdir + File.separator);
   }
 
 
