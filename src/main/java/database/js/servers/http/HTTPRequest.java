@@ -25,6 +25,7 @@ public class HTTPRequest
   private int header = -1;
   private int clength = -1;
 
+  private String host = null;
   private String path = null;
   private String method = null;
   private String version = null;
@@ -52,9 +53,10 @@ public class HTTPRequest
   private long touched = System.currentTimeMillis();
 
 
-  public HTTPRequest(Server server, byte[] data) throws Exception
+  public HTTPRequest(Server server, String host, byte[] data) throws Exception
   {
     this.key = null;
+    this.host = host;
     this.waiter = null;
     this.channel = null;
     this.server = server;
@@ -69,6 +71,7 @@ public class HTTPRequest
     this.key = key;
     this.waiter = waiter;
     this.channel = channel;
+    this.host = channel.remote();
     this.server = channel.server();
     this.redirect = channel.redirect();
   }
@@ -97,6 +100,11 @@ public class HTTPRequest
   public String version()
   {
     return(version);
+  }
+
+  public String remote()
+  {
+    return(host);
   }
 
   public String header()

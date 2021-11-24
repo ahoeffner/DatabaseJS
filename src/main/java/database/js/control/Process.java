@@ -60,11 +60,11 @@ public class Process
 
     boolean embedded = servers <= 0;
 
-    logger.info("Starting "+type+" instance "+instnm+"["+inst+"]");
+    logger.fine("Starting "+type+" instance "+instnm+"["+inst+"]");
     String classpath = classpath(type != Type.http || embedded) + jars;
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.js.servers.Server " + instnm + " " + inst;
 
-    logger.fine(cmd);
+    logger.finest(cmd);
     try {Runtime.getRuntime().exec(cmd);}
     catch (Exception e) {logger.log(Level.SEVERE,e.getMessage(),e);}
   }

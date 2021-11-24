@@ -73,7 +73,7 @@ public class RESTServer implements RESTConnection
   {
     if (response.extend >= 0)
     {
-      byte[] data = response.data();
+      byte[] data = response.page();
 
       if (mailbox.fits(data))
       {
@@ -83,7 +83,7 @@ public class RESTServer implements RESTConnection
       else
       {
         long id = response.id();
-        response = new RESTComm(id,-1,data);
+        response = new RESTComm(id,-1,response.host,data);
       }
     }
 
@@ -100,6 +100,14 @@ public class RESTServer implements RESTConnection
   public Config config()
   {
     return(config);
+  }
+
+
+  public boolean connected()
+  {
+    if (rchannel == null) return(false);
+    if (wchannel == null) return(false);
+    return(rchannel.connected());
   }
 
 
@@ -306,12 +314,12 @@ public class RESTServer implements RESTConnection
   {
     for(RESTComm http : calls)
     {
-      byte[] data = http.data();
+      byte[] page = http.page();
 
       if (http.extend >= 0)
       {
-        data = mailbox.read(http.extend,http.size);
-        http.add(data);
+        page = mailbox.read(http.extend,http.size);
+        http.add(page);
       }
 
       workers.submit(new RESTWorker(this,workers,http));

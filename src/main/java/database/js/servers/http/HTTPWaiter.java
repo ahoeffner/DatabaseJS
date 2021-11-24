@@ -117,7 +117,6 @@ class HTTPWaiter extends Thread
   @Override
   public void run()
   {
-    int requests = 0;
     long lmsg = System.currentTimeMillis();
 
     while(true)
@@ -233,7 +232,7 @@ class HTTPWaiter extends Thread
       boolean timedout = now - client.touched() > timeout;
       boolean connected = client.channel().isConnected() || client.channel().isOpen();
 
-      if (!connected || timedout)
+      if (!connected || (timedout && !client.stayalive()))
       {
         this.connected.remove(client);
         if (timedout) logger.fine("Client KeepAlive timed out");

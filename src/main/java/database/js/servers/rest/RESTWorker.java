@@ -45,9 +45,11 @@ public class RESTWorker implements Runnable
     try
     {
       Server srv = rserver.server();
-      HTTPRequest request = new HTTPRequest(srv,bridge.data());
-      Handlers handlers = rserver.config().getHTTP().handlers();
 
+      String host = new String(bridge.host);
+      HTTPRequest request = new HTTPRequest(srv,host,bridge.page());
+
+      Handlers handlers = rserver.config().getHTTP().handlers();
       RestHandler handler = handlers.getRESTHandler();
 
       HTTPResponse response = handler.handle(request);
@@ -62,7 +64,7 @@ public class RESTWorker implements Runnable
       long id = bridge.id();
       int extend = bridge.extend();
 
-      RESTComm bridge = new RESTComm(id,extend,data);
+      RESTComm bridge = new RESTComm(id,extend,host.getBytes(),data);
       rserver.respond(bridge);
     }
     catch (Exception e)

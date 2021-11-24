@@ -81,11 +81,11 @@ public class RESTClient implements RESTConnection
   }
 
 
-  public byte[] send(byte[] data) throws Exception
+  public byte[] send(String host, byte[] data) throws Exception
   {
     long id = thread();
     int extend = mailbox.write(id,data);
-    writer.write(new RESTComm(id,extend,data));
+    writer.write(new RESTComm(id,extend,host.getBytes(),data));
 
     RESTComm resp = null;
 
@@ -102,7 +102,7 @@ public class RESTClient implements RESTConnection
       }
     }
 
-    if (resp.extend() < 0) data = resp.data();
+    if (resp.extend() < 0) data = resp.page();
     else data = mailbox.read(extend,resp.size);
 
     if (extend >= 0) mailbox.clear(extend);
@@ -125,6 +125,14 @@ public class RESTClient implements RESTConnection
   public long started()
   {
     return(started);
+  }
+
+
+  public boolean connected()
+  {
+    if (rchannel == null) return(false);
+    if (wchannel == null) return(false);
+    return(rchannel.connected());
   }
 
 

@@ -44,6 +44,7 @@ public class AdminHandler extends Handler
     if (request.path().equals("/connect"))
     {
       request.unlist();
+      request.channel().stayalive(true);
 
       String body = new String(request.body());
       response.setBody(server.id()+" "+server.started());

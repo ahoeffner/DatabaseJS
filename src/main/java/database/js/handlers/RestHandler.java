@@ -81,10 +81,12 @@ public class RestHandler extends Handler
         return(response);
       }
 
-      byte[] data = client.send(request.page());
-      response = new HTTPResponse(data);
+      String host = request.remote();
+      byte[] data = client.send(host,request.page());
 
+      response = new HTTPResponse(data);
       log(logger,request,response);
+
       return(response);
     }
 

@@ -17,58 +17,82 @@ import java.nio.ByteBuffer;
 
 class RESTComm
 {
-  final long id;
-  final int size;
-  final int extend;
+  final long  id;
+  final int   size;
+  final short hsize;
+  final int   extend;
 
+  byte[] http;
   byte[] page;
-  byte[] data;
+  byte[] host;
   byte[] header;
 
-  public final static int HEADER = 16;
-  private final ByteBuffer buffer = ByteBuffer.allocate(16);
+  public final static int HEADER = 18;
+  private final ByteBuffer buffer = ByteBuffer.allocate(HEADER);
 
 
-  RESTComm(long id, int extend, byte[] data)
+  RESTComm(long id, int extend, byte[] host, byte[] page)
   {
     this.id = id;
-    this.data = data;
+    this.page = page;
     this.extend = extend;
-    this.size = data.length;
+    this.size = page.length;
+    this.hsize = (short) host.length;
 
     buffer.putLong(id);
     buffer.putInt(extend);
-    buffer.putInt(data.length);
+    buffer.putShort(hsize);
+    buffer.putInt(size);
 
     this.header = buffer.array();
 
-    if (extend >= 0) page = header;
+    if (extend >= 0)
+    {
+      http = new byte[HEADER + hsize];
+      System.arraycopy(header,0,http,0,HEADER);
+      System.arraycopy(host,0,http,HEADER,hsize);
+    }
     else
     {
-      page = new byte[HEADER + data.length];
-      System.arraycopy(header,0,page,0,header.length);
-      System.arraycopy(data,0,page,header.length,data.length);
+      http = new byte[HEADER + hsize + size];
+      System.arraycopy(header,0,http,0,HEADER);
+      System.arraycopy(host,0,http,HEADER,hsize);
+      System.arraycopy(page,0,http,HEADER+hsize,size);
     }
   }
 
 
-  RESTComm(byte[] data)
+  RESTComm(byte[] head)
   {
-    buffer.put(data);
+    buffer.put(head);
     buffer.flip();
 
-    this.id = buffer.getLong();
+    this.id     = buffer.getLong();
     this.extend = buffer.getInt();
-    this.size = buffer.getInt();
+    this.hsize  = buffer.getShort();
+    this.size   = buffer.getInt();
 
-    this.page = data;
-    this.header = data;
+    this.http = null;
+    this.page = null;
+    this.header = head;
   }
 
 
   long id()
   {
     return(id);
+  }
+
+
+  int hsize()
+  {
+    return(hsize);
+  }
+
+
+  void setHost(byte[] host)
+  {
+    this.host = host;
   }
 
 
@@ -81,13 +105,13 @@ class RESTComm
 
   void add(byte[] data)
   {
-    this.data = data;
+    this.page = data;
   }
 
 
   void set(byte[] data)
   {
-    this.data = data;
+    this.page = data;
   }
 
 
@@ -97,22 +121,39 @@ class RESTComm
   }
 
 
+  byte[] bytes()
+  {
+    if (http == null)
+    {
+      if (extend >= 0)
+      {
+        http = new byte[HEADER + hsize];
+        System.arraycopy(header,0,http,0,HEADER);
+        System.arraycopy(host,0,http,HEADER,hsize);
+      }
+      else
+      {
+        http = new byte[HEADER + hsize + size];
+        System.arraycopy(header,0,http,0,HEADER);
+        System.arraycopy(host,0,http,HEADER,hsize);
+        System.arraycopy(page,0,http,HEADER+hsize,size);
+      }
+    }
+
+    return(http);
+  }
+
+
   byte[] page()
   {
     return(page);
   }
 
 
-  byte[] data()
-  {
-    return(data);
-  }
-
-
   @Override
   public String toString()
   {
-    if (data == null) return("id="+id+" extend="+extend+" size="+size);
-    return("id="+id+" extend="+extend+" size="+size+System.lineSeparator()+"<"+new String(data)+">"+System.lineSeparator());
+    if (page == null) return("id="+id+" extend="+extend+" size="+size);
+    return("id="+id+" extend="+extend+" size="+size+System.lineSeparator()+"<"+new String(page)+">"+System.lineSeparator());
   }
 }

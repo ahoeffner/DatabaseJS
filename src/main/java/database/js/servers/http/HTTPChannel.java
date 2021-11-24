@@ -31,6 +31,7 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 public class HTTPChannel
 {
   private long touched;
+  private boolean stayalive;
   private boolean connected;
 
   private final boolean ssl;
@@ -54,6 +55,7 @@ public class HTTPChannel
     this.server = server;
     this.channel = channel;
     this.connected = false;
+    this.stayalive = false;
     this.config = server.config();
     this.logger = config.getLogger().intern;
     this.touched = System.currentTimeMillis();
@@ -88,6 +90,7 @@ public class HTTPChannel
     this.workers = workers;
     this.channel = channel;
     this.connected = false;
+    this.stayalive = false;
     this.config = server.config();
     this.logger = config.getLogger().intern;
     this.touched = System.currentTimeMillis();
@@ -158,6 +161,21 @@ public class HTTPChannel
   }
 
 
+  public String remote()
+  {
+    try
+    {
+      InetSocketAddress addr = (InetSocketAddress) channel.getRemoteAddress();
+      return(addr.getHostString());
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      return("unknown host");
+    }
+  }
+
+
   Logger logger()
   {
     return(logger);
@@ -186,6 +204,18 @@ public class HTTPChannel
   public boolean connected()
   {
     return(connected);
+  }
+
+
+  public boolean stayalive()
+  {
+    return(stayalive);
+  }
+
+
+  public void stayalive(boolean on)
+  {
+    stayalive = on;
   }
 
 

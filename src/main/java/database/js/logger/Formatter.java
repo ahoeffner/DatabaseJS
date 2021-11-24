@@ -49,11 +49,11 @@ public class Formatter extends java.util.logging.Formatter
       StackTraceElement[]  elements = record.getThrown().getStackTrace();
 
       StackTraceElement elem = elements[0];
-      String pos = elem.getClassName()+"."+elem.getMethodName()+"("+elem.getFileName()+":"+elem.getLineNumber()+")";
+      //String pos = elem.getClassName()+"."+elem.getMethodName()+"("+elem.getFileName()+":"+elem.getLineNumber()+")";
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       record.getThrown().printStackTrace(new PrintStream(out));
-      message = " SEVERE :"+pos+nl+nl+new String(out.toByteArray());
+      message = " SEVERE  "+source+":"+nl+nl+new String(out.toByteArray());
     }
 
     entry.append(message+nl);

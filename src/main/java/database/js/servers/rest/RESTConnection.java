@@ -23,6 +23,7 @@ interface RESTConnection
   void failed();
   Logger logger();
   String parent();
+  boolean connected();
   InputStream reader() throws Exception;
   OutputStream writer() throws Exception;
   void received(ArrayList<RESTComm> calls);
