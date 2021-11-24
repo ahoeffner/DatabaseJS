@@ -26,6 +26,8 @@ import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
+import java.nio.ByteBuffer;
+import java.util.Base64;
 
 
 public class RestHandler extends Handler
@@ -64,10 +66,14 @@ public class RestHandler extends Handler
 
       return(response);
     }
-
+    
     if (!server.embedded())
     {
-      RESTClient client = server.worker();
+      RESTClient client = null;      
+      short rsrv = this.getClient(request);
+      
+      if (rsrv < 0) client = server.worker();
+      else          client = server.worker(rsrv);
 
       if (client == null)
       {
@@ -89,10 +95,11 @@ public class RestHandler extends Handler
       return(response);
     }
 
+    response = new HTTPResponse();
+    this.setClient(request,response);
+
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
-
-    response = new HTTPResponse();
 
     if (path == null)
     {
@@ -136,6 +143,7 @@ public class RestHandler extends Handler
 
     String session = request.getCookie("JSESSIONID");
     if (session == null) session = new Guid().toString();
+    
     response.setCookie("JSESSIONID",session);
 
     if (request.body() == null && request.method().equals("OPTIONS"))
@@ -189,6 +197,60 @@ public class RestHandler extends Handler
     }
 
     return(false);
+  }
+  
+  
+  private short getClient(HTTPRequest request) throws Exception
+  {
+    Server server = request.server();
+    
+    long date = 0;
+    short rsrv = -1;    
+    String cinst = null;
+    String instance = config().instance();    
+    String cookie = request.getCookie("RESTSRVID");
+    
+    if (cookie == null) 
+      return(-1);
+
+    byte[] bytes = Base64.getDecoder().decode(cookie);
+    ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+
+    buffer.put(bytes);
+    buffer.flip();
+    
+    date = buffer.getLong();
+    rsrv = buffer.getShort();
+    
+    byte[] inst = new byte[bytes.length-10];
+
+    buffer.get(inst);    
+    cinst = new String(inst);
+    
+    if (date >= server.started() && cinst.equals(instance))
+      return(rsrv);
+
+    return(-1);
+  }
+  
+  
+  private void setClient(HTTPRequest request, HTTPResponse response) throws Exception
+  {
+    Server server = request.server();
+    if (!server.isRestType()) return;
+    
+    short rsrv = server.id();
+    long date = server.started();
+    byte[] instance = config().instance().getBytes();    
+    
+    ByteBuffer buffer = ByteBuffer.allocate(10+instance.length);
+    
+    buffer.putLong(date);
+    buffer.putShort(rsrv);
+    buffer.put(instance);
+    
+    byte[] cookie = Base64.getEncoder().encode(buffer.array());
+    response.setCookie("RESTSRVID",new String(cookie));      
   }
 
 

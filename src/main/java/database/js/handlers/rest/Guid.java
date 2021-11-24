@@ -34,7 +34,7 @@ public class Guid
     bi = new BigInteger(bytes);
     String p2 = Integer.toHexString(bi.intValue());
 
-    guid = (p1 + p2).toUpperCase();
+    guid = (p1 + p2);
   }
 
 

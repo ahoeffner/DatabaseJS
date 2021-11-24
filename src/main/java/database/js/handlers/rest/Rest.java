@@ -20,6 +20,8 @@ import database.js.config.Config;
 import database.js.database.Pool;
 import database.js.database.AuthMethod;
 
+import java.util.Base64;
+
 
 public class Rest
 {
@@ -55,6 +57,37 @@ public class Rest
     commands.add("connect");
     commands.add("rollback");
     commands.add("disconnect");
+  }
+  
+  
+  public static void main(String[] args)
+  {
+    String g = new Guid().toString();
+    System.out.println(g+" "+g.length());
+    System.out.println();
+    
+    String salt = "0:0:0:1";
+    String data = "ABC";
+    
+    byte[] bytes = data.getBytes();
+    String b64 = Base64.getEncoder().encodeToString(bytes);
+    
+    int blocks = bytes.length/3;    
+    int eblocks = blocks * 4/3;
+    
+    while(eblocks*6 < blocks*8)
+      eblocks++;
+    
+    int pad = eblocks*6 - blocks*8;
+    
+    
+    System.out.println("bytes: "+bytes.length+" blocks: "+blocks+" eblocks: "+eblocks+" pad: "+pad+" "+b64);
+    
+    //data = Rest.encode(data,salt);
+    //System.out.println(data);
+        
+    //data = Rest.decode(data,salt);
+    //System.out.println(data);
   }
 
 
@@ -200,9 +233,10 @@ public class Rest
     }
 
     JSONFormatter json = new JSONFormatter();
+    String sesid = encode(session.guid(),host);
 
     json.success(true);
-    json.add("session",session.guid());
+    json.add("session",sesid);
 
     return(json.toString());
   }
@@ -278,16 +312,18 @@ public class Rest
     String cmd = null;
     boolean ses = false;
 
-    parts[0] = parts[0].toLowerCase();
-    if (commands.contains(parts[0])) cmd = parts[0];
+    if (commands.contains(parts[0].toLowerCase())) 
+      cmd = parts[0].toLowerCase();
 
     if (cmd == null && parts.length > 1)
     {
       ses = true;
-      this.session = Session.get(parts[0]);
+      String sesid = decode(parts[0],host);
+      
+      this.session = Session.get(sesid);
 
-      parts[1] = parts[1].toLowerCase();
-      if (commands.contains(parts[1])) cmd = parts[1];
+      if (commands.contains(parts[1].toLowerCase())) 
+        cmd = parts[1].toLowerCase();
     }
 
     if (cmd == null)
@@ -304,9 +340,40 @@ public class Rest
 
     return(cmd);
   }
+  
+  
+  public static String encode(String data, String salt)
+  {
+    byte[] bdata = data.getBytes();
+    byte[] bsalt = salt.getBytes();
+    
+    for (int i = 0; i < bdata.length; i++)
+    {
+      byte s = bsalt[i % bsalt.length];
+      bdata[i] = (byte) (bdata[i] ^ s);
+    }
+    
+    bdata = Base64.getEncoder().encode(bdata);
+    return(new String(bdata));
+  }
+  
+  
+  public static String decode(String data, String salt)
+  {
+    byte[] bsalt = salt.getBytes();
+    byte[] bdata = Base64.getDecoder().decode(data);
+    
+    for (int i = 0; i < bdata.length; i++)
+    {
+      byte s = bsalt[i % bsalt.length];
+      bdata[i] = (byte) (bdata[i] ^ s);
+    }
+    
+    return(new String(bdata));
+  }
 
 
-  void error(Throwable e)
+  private void error(Throwable e)
   {
     JSONFormatter json = new JSONFormatter();
 
@@ -317,7 +384,7 @@ public class Rest
   }
 
 
-  void error(String message)
+  private void error(String message)
   {
     JSONFormatter json = new JSONFormatter();
 
