@@ -12,15 +12,18 @@
 
 package database.js.handlers.rest;
 
+import java.util.Base64;
 import java.util.TreeSet;
+import java.util.HashMap;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
+import database.js.database.BindValue;
+import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
-
-import java.util.Base64;
 
 
 public class Rest
@@ -38,6 +41,9 @@ public class Rest
   private final Logger logger;
 
   private final SessionState state = new SessionState();
+  private final HashMap<String,BindValue> bindvalues = new HashMap<String,BindValue>();
+
+
   private static final TreeSet<String> commands = new TreeSet<String>();
 
   static
@@ -57,37 +63,6 @@ public class Rest
     commands.add("connect");
     commands.add("rollback");
     commands.add("disconnect");
-  }
-  
-  
-  public static void main(String[] args)
-  {
-    String g = new Guid().toString();
-    System.out.println(g+" "+g.length());
-    System.out.println();
-    
-    String salt = "0:0:0:1";
-    String data = "ABC";
-    
-    byte[] bytes = data.getBytes();
-    String b64 = Base64.getEncoder().encodeToString(bytes);
-    
-    int blocks = bytes.length/3;    
-    int eblocks = blocks * 4/3;
-    
-    while(eblocks*6 < blocks*8)
-      eblocks++;
-    
-    int pad = eblocks*6 - blocks*8;
-    
-    
-    System.out.println("bytes: "+bytes.length+" blocks: "+blocks+" eblocks: "+eblocks+" pad: "+pad+" "+b64);
-    
-    //data = Rest.encode(data,salt);
-    //System.out.println(data);
-        
-    //data = Rest.decode(data,salt);
-    //System.out.println(data);
   }
 
 
@@ -157,7 +132,7 @@ public class Rest
         response = connect(payload,batch); break;
 
       case "select" :
-        response = query(payload,batch); break;
+        response = select(payload,batch); break;
 
       default : error("Unknown command "+cmd);
     }
@@ -242,7 +217,7 @@ public class Rest
   }
 
 
-  private String query(JSONObject payload, boolean batch)
+  private String select(JSONObject payload, boolean batch)
   {
     if (session == null)
     {
@@ -253,6 +228,11 @@ public class Rest
     try
     {
       session.ensure();
+
+      if (payload.has("bindvalues"))
+        this.getBindValues(payload.getJSONArray("bindvalues"));
+
+      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));
 
       if (!session.dedicated() && !batch)
         session.disconnect();
@@ -291,6 +271,21 @@ public class Rest
   }
 
 
+  private void getBindValues(JSONArray values)
+  {
+    for (int i = 0; i < values.length(); i++)
+    {
+      JSONObject bvalue = values.getJSONObject(i);
+
+      String name = bvalue.getString("name");
+      String type = bvalue.getString("type");
+      Object value = bvalue.get("value");
+
+      this.bindvalues.put(name,new BindValue(name,type,value));
+    }
+  }
+
+
   private boolean getSavepoint(JSONObject payload)
   {
     try
@@ -312,17 +307,17 @@ public class Rest
     String cmd = null;
     boolean ses = false;
 
-    if (commands.contains(parts[0].toLowerCase())) 
+    if (commands.contains(parts[0].toLowerCase()))
       cmd = parts[0].toLowerCase();
 
     if (cmd == null && parts.length > 1)
     {
       ses = true;
       String sesid = decode(parts[0],host);
-      
+
       this.session = Session.get(sesid);
 
-      if (commands.contains(parts[1].toLowerCase())) 
+      if (commands.contains(parts[1].toLowerCase()))
         cmd = parts[1].toLowerCase();
     }
 
@@ -340,35 +335,40 @@ public class Rest
 
     return(cmd);
   }
-  
-  
-  public static String encode(String data, String salt)
+
+
+  private static String encode(String data, String salt)
   {
     byte[] bdata = data.getBytes();
     byte[] bsalt = salt.getBytes();
-    
+
     for (int i = 0; i < bdata.length; i++)
     {
       byte s = bsalt[i % bsalt.length];
       bdata[i] = (byte) (bdata[i] ^ s);
     }
-    
+
     bdata = Base64.getEncoder().encode(bdata);
-    return(new String(bdata));
+
+    int len = bdata.length;
+    while(bdata[len-1] == '=') len--;
+
+    return(new String(bdata,0,len));
   }
-  
-  
-  public static String decode(String data, String salt)
+
+
+  private static String decode(String data, String salt)
   {
     byte[] bsalt = salt.getBytes();
+    while(data.length() % 4 != 0) data += "=";
     byte[] bdata = Base64.getDecoder().decode(data);
-    
+
     for (int i = 0; i < bdata.length; i++)
     {
       byte s = bsalt[i % bsalt.length];
       bdata[i] = (byte) (bdata[i] ^ s);
     }
-    
+
     return(new String(bdata));
   }
 
