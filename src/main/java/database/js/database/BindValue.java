@@ -1,52 +1,33 @@
-/*
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 3 only, as
- * published by the Free Software Foundation.
-
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- */
-
 package database.js.database;
-
 
 public class BindValue
 {
-  final int type;
-  final String name;
-  final Object value;
+  private final boolean out;
+  private final BindValueDef bindvalue;
 
-  public BindValue(String name, String type)
+  public BindValue(BindValueDef bindvalue, boolean out)
   {
-    this(name,type,null);
+    this.out = out;
+    this.bindvalue = bindvalue;
   }
 
-  public BindValue(String name, String type, Object value)
+  public boolean InOut()
   {
-    this.name = name;
-    this.value = value;
-    this.type = SQLTypes.getType(type);
+    return(out);
   }
 
-
-  public Copy copy(boolean out)
+  public String getName()
   {
-    return(new Copy(this,out));
+    return(bindvalue.name);
   }
 
-
-  public static class Copy
+  public int getType()
   {
-    final boolean out;
-    final BindValue bindvalue;
+    return(bindvalue.type);
+  }
 
-    private Copy(BindValue bindvalue, boolean out)
-    {
-      this.out = out;
-      this.bindvalue = bindvalue;
-    }
+  public Object getValue()
+  {
+    return(bindvalue.value);
   }
 }

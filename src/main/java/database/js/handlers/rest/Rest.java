@@ -21,9 +21,11 @@ import org.json.JSONTokener;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
-import database.js.database.BindValue;
+import database.js.database.BindValueDef;
 import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
+import java.util.ArrayList;
+import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class Rest
@@ -41,7 +43,7 @@ public class Rest
   private final Logger logger;
 
   private final SessionState state = new SessionState();
-  private final HashMap<String,BindValue> bindvalues = new HashMap<String,BindValue>();
+  private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
 
 
   private static final TreeSet<String> commands = new TreeSet<String>();
@@ -227,26 +229,64 @@ public class Rest
 
     try
     {
+      int rows = 0;
+      String name = null;
+      boolean compact = false;
+      boolean savepoint = false;
+      
       session.ensure();
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
+      
+      if (payload.has("options"))
+      {
+        JSONObject options = payload.getJSONObject("options");  
+        
+        if (options.has("rows")) rows = options.getInt("rows");
+        if (options.has("cursor")) name = options.getString("cursor");
+        if (options.has("compact")) compact = options.getBoolean("compact");
+        if (!batch && options.has("savepoint")) savepoint = options.getBoolean("savepoint");
+      }
 
-      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));
+      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));      
+      Cursor cursor = session.executeQuery(name,parser.sql(),parser.bindvalues());
+
+      String[] columns = session.getColumnNames(cursor);
+      ArrayList<Object[]> table = session.fetch(cursor,rows);
+      
+      JSONFormatter json = new JSONFormatter();
+      json.success(true);
+      
+      if (compact)
+      {
+        json.push("columns",SimpleArray);
+        json.add(columns);
+        json.pop();
+
+        json.push("rows",Matrix);
+        //json.add(row);
+        json.pop();
+      }
+      
+            
+      for(Object[] row : table)
+      {
+        for(Object col : row)
+          System.out.println(col+" ");
+      }
+      
 
       if (!session.dedicated() && !batch)
         session.disconnect();
+
+      return(json.toString());
     }
     catch (Exception e)
     {
       error(e);
       return(error);
     }
-
-    JSONFormatter json = new JSONFormatter();
-    json.success(true);
-
-    return(json.toString());
   }
 
 
@@ -281,7 +321,7 @@ public class Rest
       String type = bvalue.getString("type");
       Object value = bvalue.get("value");
 
-      this.bindvalues.put(name,new BindValue(name,type,value));
+      this.bindvalues.put(name,new BindValueDef(name,type,value));
     }
   }
 

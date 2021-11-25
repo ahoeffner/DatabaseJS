@@ -19,22 +19,34 @@ import java.util.ArrayList;
 public class SQLParser
 {
   private final String sql;
-  private final ArrayList<BindValue.Copy> bindings;
-  private final HashMap<String,BindValue> bindvalues;
+  private final ArrayList<BindValue> bindings;
+  private final HashMap<String,BindValueDef> bindvalues;
 
 
-  public SQLParser(HashMap<String,BindValue> bindvalues, String stmt)
+  public SQLParser(HashMap<String,BindValueDef> bindvalues, String stmt)
   {
     this(bindvalues,stmt,false);
   }
+  
+  
+  public String sql()
+  {
+    return(sql);
+  }
+  
+  
+  public ArrayList<BindValue> bindvalues()
+  {
+    return(bindings);
+  }
 
 
-  public SQLParser(HashMap<String,BindValue> bindvalues, String stmt, boolean procedure)
+  public SQLParser(HashMap<String,BindValueDef> bindvalues, String stmt, boolean procedure)
   {
     this.bindvalues = bindvalues;
     StringBuffer nsql = new StringBuffer();
     StringBuffer sql = new StringBuffer(stmt);
-    this.bindings = new ArrayList<BindValue.Copy>();
+    this.bindings = new ArrayList<BindValue>();
 
     for (int i = 0; i < sql.length(); i++)
     {
@@ -43,7 +55,7 @@ public class SQLParser
       if (c == ':' || c == '&')
       {
         int len = extract(sql,i);
-        BindValue bindv = validate(sql,i,len);
+        BindValueDef bindv = validate(sql,i,len);
 
         if (bindv != null)
         {
@@ -66,7 +78,7 @@ public class SQLParser
   }
 
 
-  private BindValue validate(StringBuffer sql, int pos, int len)
+  private BindValueDef validate(StringBuffer sql, int pos, int len)
   {
     if (len < 0) return(null);
     String name = sql.substring(pos+1,pos+1+len);
@@ -96,9 +108,12 @@ public class SQLParser
 
   private boolean wordCharacter(char c)
   {
+    if (c == '_') return(true);
+    
     if (c >= '0' && c <= '9') return(true);
     if (c >= 'a' && c <= 'z') return(true);
     if (c >= 'A' && c <= 'Z') return(true);
+    
     return(false);
   }
 }

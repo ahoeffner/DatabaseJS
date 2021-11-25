@@ -26,7 +26,10 @@ public class JSONFormatter
 
   public static void main(String[] args)
   {
-    JSONFormatter format = new JSONFormatter();
+    JSONFormatter format = null;
+    
+    /*
+    format = new JSONFormatter();
     String[] cols = {"col1","col2","col3"};
 
     format.add("message","everything is fine");
@@ -65,6 +68,17 @@ public class JSONFormatter
     format.pop();
     format.success(true);
     format.pop();
+    
+
+    System.out.println(format);
+*/
+    
+    format = new JSONFormatter();
+    format.success(true);
+    format.push("columns",Type.SimpleArray);
+    format.add(new String[] {"col1","col2"});
+    format.pop();
+    format.add("message","fine");
 
     System.out.println(format);
   }
@@ -72,13 +86,13 @@ public class JSONFormatter
 
   public JSONFormatter()
   {
-    this(false);
+    this(Type.Object);
   }
 
 
-  public JSONFormatter(boolean array)
+  public JSONFormatter(Type type)
   {
-    content = new Content(array);
+    content = new Content(type);
   }
 
 
@@ -96,13 +110,13 @@ public class JSONFormatter
 
   public void push(String name)
   {
-    content = content.push(name,false);
+    content = content.push(name,Type.Object);
   }
 
 
-  public void push(String name, boolean array)
+  public void push(String name, Type type)
   {
-    content = content.push(name,array);
+    content = content.push(name,type);
   }
 
 
@@ -113,13 +127,19 @@ public class JSONFormatter
   }
 
 
-  public void add(String name, String value)
+  public void add(Object[] values)
+  {
+    content.add(values);
+  }
+
+
+  public void add(String name, Object value)
   {
     content.add(name,value);
   }
 
 
-  public void add(String[] name, String[] value)
+  public void add(String[] name, Object[] value)
   {
     content.add(name,value);
   }
@@ -139,8 +159,8 @@ public class JSONFormatter
 
   private static class Content
   {
+    private final Type type;
     private final String name;
-    private final boolean array;
     private final Content parent;
 
     private final static String nl =
@@ -149,21 +169,26 @@ public class JSONFormatter
     private final ArrayList<Object> content =
       new ArrayList<Object>();
 
-    Content(boolean array)
+    Content()
     {
-      this(null,null,array);
+      this(null,Type.Object,null);
     }
 
-    Content(Content parent, String name, boolean array)
+    Content(Type type)
+    {
+      this(null,type,null);
+    }
+
+    private Content(Content parent, Type type, String name)
     {
       this.name = name;
-      this.array = array;
+      this.type = type;
       this.parent = parent;
     }
 
-    Content push(String name, boolean array)
+    Content push(String name, Type type)
     {
-      Content next = new Content(this,name,array);
+      Content next = new Content(this,type,name);
       content.add(next);
       return(next);
     }
@@ -175,14 +200,19 @@ public class JSONFormatter
       content.add(0,new String[] {name,value});
     }
 
-    void add(String name, String value)
+    void add(Object[] array)
     {
-      content.add(new String[] {name,value});
+      content.add(array);
     }
 
-    void add(String[] name, String[] value)
+    void add(String name, Object value)
     {
-      content.add(new String[][] {name,value});
+      content.add(new Object[] {name,value});
+    }
+
+    void add(String[] name, Object[] value)
+    {
+      content.add(new Object[][] {name,value});
     }
 
     void set(Throwable err)
@@ -192,17 +222,17 @@ public class JSONFormatter
       add("message",message);
     }
 
-    String escape(String str)
+    String escape(Object str)
     {
       if (str == null)
         return("null");
 
-      str = JSONObject.quote(str);
-      return(str);
+      str = JSONObject.quote(str.toString());
+      return(str.toString());
     }
 
 
-    String quote(String str)
+    String quote(Object str)
     {
       return("\""+str+"\"");
     }
@@ -216,8 +246,14 @@ public class JSONFormatter
 
     private String persist(Content node, int level)
     {
-      if (node.array)
-        return(persistArray(node,level));
+      if (node.type == Type.Matrix)
+        return(persistMatrix(node,level));    
+
+      if (node.type == Type.SimpleArray)
+        return(persistSimpleArray(node,level));        
+
+      if (node.type == Type.ObjectArray)
+        return(persistObjectArray(node,level));    
 
       String lev = "";
       if (level > 0) lev = String.format("%"+(2*level)+"s"," ");
@@ -248,7 +284,7 @@ public class JSONFormatter
         }
         else
         {
-          String[] nvp = (String[]) elem;
+          Object[] nvp = (Object[]) elem;
           str += newl + ind + quote(nvp[0])+": "+escape(nvp[1])+comm;
         }
       }
@@ -258,7 +294,7 @@ public class JSONFormatter
     }
 
 
-    String persistArray(Content node, int level)
+    String persistObjectArray(Content node, int level)
     {
       String lev = "";
       if (level > 0) lev = String.format("%"+(2*level)+"s"," ");
@@ -314,5 +350,72 @@ public class JSONFormatter
       str += nl + lev + "]";
       return(str);
     }
+
+
+    String persistSimpleArray(Content node, int level)
+    {
+      String lev = "";
+      if (level > 0) lev = String.format("%"+(2*level)+"s"," ");
+
+      String str = lev + "[";
+
+      Object elem = node.content.get(0);
+      Object[] values = (String[]) elem;
+
+      for (int j = 0; j < values.length; j++)
+      {
+        String next = "";
+        if (j < values.length - 1) next = ",";
+
+        Object value = values[j];
+        str += escape(value)+next;
+      }
+
+      str += "]";
+      return(str);
+    }
+
+
+    String persistMatrix(Content node, int level)
+    {
+      String lev = "";
+      if (level > 0) lev = String.format("%"+(2*level)+"s"," ");
+
+      String ind = lev + "  ";
+      String str = nl + lev + "[";
+
+      int elements = node.content.size();
+
+      for (int i = 0; i < elements; i++)
+      {
+        String comm = "";
+        if (i < elements - 1) comm = ",";
+        
+        str += nl + ind + "[";
+
+        Object[] values = (Object[]) node.content.get(i);
+        
+        for (int j = 0; j < values.length; j++)
+        {
+          String next = "";
+          if (j < values.length-1) next = ",";
+          str += escape(values[j])+next;          
+        }
+        
+        str += "]" + comm;
+      }
+
+      str += nl + lev + "]";
+      return(str);
+    }
+  }
+  
+  
+  public static enum Type
+  {
+    Object,
+    Matrix,
+    ObjectArray,
+    SimpleArray,
   }
 }

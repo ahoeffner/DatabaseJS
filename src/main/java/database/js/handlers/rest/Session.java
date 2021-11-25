@@ -16,7 +16,13 @@ import java.sql.Connection;
 import database.js.database.Pool;
 import database.js.database.Database;
 import database.js.database.AuthMethod;
+import database.js.database.BindValue;
 import database.js.database.DatabaseUtils;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -35,6 +41,9 @@ public class Session
   private boolean exclusive = false;
   private final Object LOCK = new Object();
   private long touched = System.currentTimeMillis();
+
+  private final ConcurrentHashMap<String,Cursor> cursors =
+    new ConcurrentHashMap<String,Cursor>();
 
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
@@ -127,6 +136,60 @@ public class Session
     }
 
     database.setConnection(conn);
+  }
+  
+  
+  public Cursor executeQuery(String name, String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    PreparedStatement stmt = database.prepare(sql,bindvalues);
+    ResultSet         rset = database.executeQuery(stmt);
+    
+    Cursor cursor = new Cursor(name,stmt,rset);
+    if (name != null) cursors.put(name,cursor);
+    
+    return(cursor);
+  }
+  
+  
+  public String[] getColumnNames(Cursor cursor) throws Exception
+  {
+    return(database.getColumNames(cursor.rset));
+  }
+  
+  
+  public ArrayList<Object[]> fetch(Cursor cursor, int rows) throws Exception
+  {
+    ArrayList<Object[]> table = new ArrayList<Object[]>();
+    
+    for (int i = 0; (rows <= 0 || i < rows) && cursor.rset.next(); i++)
+      table.add(database.fetch(cursor.rset));
+    
+    if (rows <= 0 || table.size() < rows)
+      close(cursor);
+    
+    return(table);
+  }
+  
+  
+  public void close(String name)
+  {
+    close(cursors.get(name));
+  }
+  
+  
+  public void close(Cursor cursor)
+  {
+    if (cursor == null) 
+      return;
+    
+    try {cursor.rset.close();}
+    catch (Exception e) {;}
+
+    try {cursor.stmt.close();}
+    catch (Exception e) {;}
+    
+    if (cursor.name != null)
+      cursors.remove(cursor.name);
   }
 
 

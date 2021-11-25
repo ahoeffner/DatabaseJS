@@ -1,0 +1,39 @@
+/*
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 3 only, as
+ * published by the Free Software Foundation.
+
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ */
+
+package database.js.database;
+
+
+public class BindValueDef
+{
+  final int type;
+  final String name;
+  final Object value;
+
+  public BindValueDef(String name, String type)
+  {
+    this(name,type,null);
+  }
+
+  public BindValueDef(String name, String type, Object value)
+  {
+    this.name = name;
+    this.value = value;
+    this.type = SQLTypes.getType(type);
+  }
+
+
+  public BindValue copy(boolean out)
+  {
+    return(new BindValue(this,out));
+  }
+}
