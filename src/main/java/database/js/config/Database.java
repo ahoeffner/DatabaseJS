@@ -17,8 +17,7 @@ import org.json.JSONObject;
 import database.js.database.Pool;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
-
-import java.io.File;
+import database.js.handlers.rest.Rest;
 
 
 public class Database
@@ -52,13 +51,14 @@ public class Database
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
 
-    this.repo = config.getString("repository") + File.separator;
+    this.repo = config.getString("repository");
 
     this.savepoints = new NameValuePair[2];
     JSONObject savep = config.getJSONObject("savepoint.defaults");
     
     this.savepoints[0] = new NameValuePair<Boolean>("post",savep.getBoolean("post"));
     this.savepoints[1] = new NameValuePair<Boolean>("patch",savep.getBoolean("patch"));
+    Rest.setDefaultSavepoint(this.savepoints[0].getValue(),this.savepoints[1].getValue());
 
     this.proxy = getPool("proxy",config);
     this.anonymous = getPool("anonymous",config);
@@ -118,7 +118,7 @@ public class Database
   }
   
   
-  boolean savepoint(String type)
+  public boolean savepoint(String type)
   {
     for(NameValuePair<Boolean> sp : this.savepoints)
     {

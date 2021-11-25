@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
+import java.sql.Savepoint;
 
 
 public abstract class Database
@@ -60,6 +61,19 @@ public abstract class Database
     String url = DatabaseUtils.bind(username,password);
     Connection conn = DriverManager.getConnection(url);
     return(conn);
+  }
+  
+  
+  public Savepoint setSavePoint() throws Exception
+  {
+    return(conn.setSavepoint());
+  }
+  
+  
+  public void releaseSavePoint(Savepoint savepoint, boolean rollback) throws Exception
+  {
+    if (rollback) conn.rollback(savepoint);
+    else  conn.releaseSavepoint(savepoint);
   }
 
 

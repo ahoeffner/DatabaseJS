@@ -26,6 +26,7 @@ import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
+import java.sql.Savepoint;
 
 
 public class Rest
@@ -38,13 +39,22 @@ public class Rest
 
   private String error = null;
   private Session session = null;
+  private Savepoint savepoint = null;
 
   private final Config config;
   private final Logger logger;
 
   private final SessionState state = new SessionState();
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
+  
+  private static boolean sppost = true;
+  private static boolean sppatch = true;
 
+  public static void setDefaultSavepoint(boolean sppost, boolean sppatch)
+  {
+    Rest.sppost = sppost;
+    Rest.sppatch = sppatch;
+  }
 
   private static final TreeSet<String> commands = new TreeSet<String>();
 
@@ -141,7 +151,9 @@ public class Rest
     }
 
     if (!batch)
-      state.releaseAll(this);
+    {
+      state.releaseAll(this);      
+    }
 
     return(response);
   }
@@ -236,7 +248,8 @@ public class Rest
       if (payload.has("options"))
       {
         JSONObject options = payload.getJSONObject("options");
-
+        
+        savepoint = getSavepoint(options,false);
         if (options.has("rows")) rows = options.getInt("rows");
         if (options.has("cursor")) name = options.getString("cursor");
         if (options.has("compact")) compact = options.getBoolean("compact");
@@ -246,9 +259,26 @@ public class Rest
       SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));
 
       session.closeCursor(name);
-      if (!batch) state.lock(this,savepoint);
+      
+      if (!batch && savepoint)
+      {
+        state.lock(this,true);
+        this.savepoint = session.setSavePoint();
+      }
+      
+      state.lock(this,false);
       Cursor cursor = session.executeQuery(name,parser.sql(),parser.bindvalues());
-      if (!batch) state.release(this,savepoint);
+      state.release(this,false);
+      
+      if (!batch && savepoint)
+      {
+        if (!session.releaseSavePoint(this.savepoint))
+        {
+          this.savepoint = null;
+          session.closeCursor(cursor);          
+          throw new Exception("Could not release savepoint");
+        }
+      }
 
       cursor.rows = rows;
       cursor.compact = compact;
@@ -288,6 +318,11 @@ public class Rest
     }
     catch (Throwable e)
     {
+      session.releaseSavePoint(this.savepoint,true);
+
+      this.savepoint = null;
+      state.releaseAll(this);
+
       return(error(e));
     }
   }
@@ -410,19 +445,24 @@ public class Rest
   }
 
 
-  private boolean getSavepoint(JSONObject payload)
+  private boolean getSavepoint(JSONObject payload, boolean modify)
   {
+    boolean defaults = modify ? sppatch : sppost;
+
     try
     {
-      if (payload.has("savepoint"))
-        return(payload.getBoolean("savepoint"));
+      boolean savepoint = defaults;
+      
+      if (payload != null && payload.has("savepoint"))
+        savepoint = payload.getBoolean("savepoint");
+      
+      return(savepoint);
     }
     catch (Throwable e)
     {
       error(e);
+      return(defaults);
     }
-
-    return(false);
   }
 
 

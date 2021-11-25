@@ -21,7 +21,12 @@ import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
+
+import java.sql.Savepoint;
+
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Session
@@ -45,6 +50,8 @@ public class Session
 
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
+
+  private final static Logger logger = Logger.getLogger("rest");
 
 
   public static Session get(String guid)
@@ -134,6 +141,42 @@ public class Session
     }
 
     database.setConnection(conn);
+  }
+  
+  
+  public Savepoint setSavePoint() throws Exception
+  {
+    return(database.setSavePoint());
+  }
+  
+  
+  public boolean releaseSavePoint(Savepoint savepoint)
+  {
+    return(releaseSavePoint(savepoint,false));
+  }
+  
+  
+  public boolean releaseSavePoint(Savepoint savepoint, boolean rollback)
+  {
+    try
+    {
+      if (savepoint != null)
+        database.releaseSavePoint(savepoint,rollback);
+    }
+    catch (Throwable e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+      
+      if (!rollback)
+      {
+        try {database.releaseSavePoint(savepoint,true);}
+        catch (Throwable rb) {;}
+      }
+      
+      return(false);
+    }
+    
+    return(true);
   }
 
 
