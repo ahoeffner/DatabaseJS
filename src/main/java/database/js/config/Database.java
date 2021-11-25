@@ -16,20 +16,27 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
 import database.js.database.DatabaseUtils;
+import database.js.database.NameValuePair;
+
+import java.io.File;
 
 
 public class Database
 {
   private final String url;
   private final String test;
+  private final String repo;
 
   private final Pool proxy;
   private final Pool anonymous;
 
   private final DatabaseType type;
   private final ArrayList<String> urlparts;
+  
+  private final NameValuePair<Boolean>[] savepoints;
 
 
+  @SuppressWarnings("unchecked")
   Database(JSONObject config) throws Exception
   {
     String type = config.getString("type");
@@ -44,6 +51,14 @@ public class Database
 
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
+
+    this.repo = config.getString("repository") + File.separator;
+
+    this.savepoints = new NameValuePair[2];
+    JSONObject savep = config.getJSONObject("savepoint.defaults");
+    
+    this.savepoints[0] = new NameValuePair<Boolean>("post",savep.getBoolean("post"));
+    this.savepoints[1] = new NameValuePair<Boolean>("patch",savep.getBoolean("patch"));
 
     this.proxy = getPool("proxy",config);
     this.anonymous = getPool("anonymous",config);
@@ -87,6 +102,11 @@ public class Database
     return(test);
   }
 
+  public String repository()
+  {
+    return(repo);
+  }
+
   public Pool proxy()
   {
     return(proxy);
@@ -95,5 +115,16 @@ public class Database
   public Pool anonymous()
   {
     return(anonymous);
+  }
+  
+  
+  boolean savepoint(String type)
+  {
+    for(NameValuePair<Boolean> sp : this.savepoints)
+    {
+      if (sp.getName().equals(type))
+        return(sp.getValue());      
+    }
+    return(false);
   }
 }

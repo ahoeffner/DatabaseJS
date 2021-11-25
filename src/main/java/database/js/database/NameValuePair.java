@@ -13,13 +13,13 @@
 package database.js.database;
 
 
-public class NameValuePair
+public class NameValuePair<T>
 {
+  private final T value;
   private final String name;
-  private final Object value;
 
 
-  public NameValuePair(String name, Object value)
+  public NameValuePair(String name, T value)
   {
     this.name = name;
     this.value = value;
@@ -30,7 +30,7 @@ public class NameValuePair
     return(name);
   }
 
-  public Object getValue()
+  public T getValue()
   {
     return(value);
   }
