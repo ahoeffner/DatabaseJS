@@ -265,17 +265,9 @@ public class Rest
         json.pop();
 
         json.push("rows",Matrix);
-        //json.add(row);
+        json.add(table);
         json.pop();
-      }
-      
-            
-      for(Object[] row : table)
-      {
-        for(Object col : row)
-          System.out.println(col+" ");
-      }
-      
+      }      
 
       if (!session.dedicated() && !batch)
         session.disconnect();

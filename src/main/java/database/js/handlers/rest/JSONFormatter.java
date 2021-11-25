@@ -73,10 +73,23 @@ public class JSONFormatter
     System.out.println(format);
 */
     
+    String[][] rows = new String[][]
+    {
+      {"1","2","3"},
+      {"4","5","6"},
+    };
+    
+    ArrayList<Object[]> list = new ArrayList<Object[]>();
+    list.add(new Object[] {"1","2","3"});
+    list.add(new Object[] {"4","5","6"});
+    
     format = new JSONFormatter();
     format.success(true);
     format.push("columns",Type.SimpleArray);
     format.add(new String[] {"col1","col2"});
+    format.pop();
+    format.push("columns",Type.Matrix);
+    format.add(list);
     format.pop();
     format.add("message","fine");
 
@@ -130,6 +143,13 @@ public class JSONFormatter
   public void add(Object[] values)
   {
     content.add(values);
+  }
+
+
+  @SuppressWarnings("unchecked")
+  public void add(ArrayList<Object[]> list)
+  {
+    content.add(list.toArray(new Object[0][]));
   }
 
 
@@ -325,10 +345,10 @@ public class JSONFormatter
         }
         else
         {
-          String[][] row = (String[][]) elem;
+          Object[][] row = (String[][]) elem;
 
-          String[] names = row[0];
-          String[] values = row[1];
+          Object[] names = row[0];
+          Object[] values = row[1];
 
           str += newl + ind + "{";
 
@@ -337,8 +357,8 @@ public class JSONFormatter
             String next = "";
             if (j < names.length - 1) next = ",";
 
-            String name = names[j];
-            String value = values[j];
+            Object name = names[j];
+            Object value = values[j];
 
             str += quote(name)+": "+escape(value)+next;
           }
@@ -384,22 +404,21 @@ public class JSONFormatter
       String ind = lev + "  ";
       String str = nl + lev + "[";
 
-      int elements = node.content.size();
+      Object[][] rows = (Object[][]) node.content.get(0);
 
-      for (int i = 0; i < elements; i++)
+      for (int i = 0; i < rows.length; i++)
       {
         String comm = "";
-        if (i < elements - 1) comm = ",";
+        if (i < rows.length - 1) comm = ",";
         
         str += nl + ind + "[";
 
-        Object[] values = (Object[]) node.content.get(i);
-        
-        for (int j = 0; j < values.length; j++)
+        Object[] cols = rows[i];
+        for (int j = 0; j < cols.length; j++)
         {
           String next = "";
-          if (j < values.length-1) next = ",";
-          str += escape(values[j])+next;          
+          if (j < cols.length-1) next = ",";
+          str += escape(cols[j])+next;          
         }
         
         str += "]" + comm;
