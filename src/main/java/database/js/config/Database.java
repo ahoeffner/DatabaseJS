@@ -15,7 +15,6 @@ package database.js.config;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
-import database.js.handlers.rest.Rest;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 
@@ -58,7 +57,6 @@ public class Database
 
     this.savepoints[0] = new NameValuePair<Boolean>("post",savep.getBoolean("post"));
     this.savepoints[1] = new NameValuePair<Boolean>("patch",savep.getBoolean("patch"));
-    Rest.setDefaultSavepoint(this.savepoints[0].getValue(),this.savepoints[1].getValue());
 
     this.proxy = getPool("proxy",config);
     this.anonymous = getPool("anonymous",config);

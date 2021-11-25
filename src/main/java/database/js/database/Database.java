@@ -12,14 +12,14 @@
 
 package database.js.database;
 
-import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.Savepoint;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.sql.DriverManager;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-import java.sql.Savepoint;
 
 
 public abstract class Database
@@ -63,14 +63,14 @@ public abstract class Database
     Connection conn = DriverManager.getConnection(url);
     return(conn);
   }
-  
-  
+
+
   public Savepoint setSavePoint() throws Exception
   {
     return(conn.setSavepoint());
   }
-  
-  
+
+
   public void releaseSavePoint(Savepoint savepoint, boolean rollback) throws Exception
   {
     if (rollback) conn.rollback(savepoint);
@@ -99,15 +99,15 @@ public abstract class Database
     for (int i = 0; i < bindvalues.size(); i++)
     {
       BindValue b = bindvalues.get(i);
-      
-      if (b.InOut()) 
+
+      if (b.InOut())
       {
         stmt.registerOutParameter(i+1,b.getType());
         stmt.setObject(i+1,b.getValue());
       }
       else
       {
-        stmt.setObject(i+1,b.getValue(),b.getType());        
+        stmt.setObject(i+1,b.getValue(),b.getType());
       }
     }
 

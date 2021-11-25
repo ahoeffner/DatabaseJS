@@ -16,6 +16,7 @@ import java.util.Base64;
 import java.util.TreeSet;
 import java.util.HashMap;
 import org.json.JSONArray;
+import java.sql.Savepoint;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import org.json.JSONTokener;
@@ -26,16 +27,18 @@ import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
-import java.sql.Savepoint;
 
 
 public class Rest
 {
   private final String host;
   private final String path;
+  private final String repo;
   private final String payload;
   private final String[] parts;
   private final boolean modify;
+  private final boolean sppost;
+  private final boolean sppatch;
 
   private String error = null;
   private Session session = null;
@@ -46,15 +49,6 @@ public class Rest
 
   private final SessionState state = new SessionState();
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
-  
-  private static boolean sppost = true;
-  private static boolean sppatch = true;
-
-  public static void setDefaultSavepoint(boolean sppost, boolean sppatch)
-  {
-    Rest.sppost = sppost;
-    Rest.sppatch = sppatch;
-  }
 
   private static final TreeSet<String> commands = new TreeSet<String>();
 
@@ -83,6 +77,9 @@ public class Rest
     this.payload  = payload;
     this.logger   = config.getLogger().rest;
     this.parts    = path.substring(1).split("/");
+    this.repo     = config.getDatabase().repository();
+    this.sppost   = config.getDatabase().savepoint("sppost");
+    this.sppatch  = config.getDatabase().savepoint("sppatch");
   }
 
 
@@ -155,7 +152,7 @@ public class Rest
 
     if (!batch)
     {
-      state.releaseAll(this);      
+      state.releaseAll(this);
     }
 
     return(response);
@@ -250,7 +247,7 @@ public class Rest
 
       if (payload.has("options"))
       {
-        JSONObject options = payload.getJSONObject("options");        
+        JSONObject options = payload.getJSONObject("options");
         if (options.has("rows")) rows = options.getInt("rows");
         if (options.has("cursor")) name = options.getString("cursor");
         if (options.has("compact")) compact = options.getBoolean("compact");
@@ -260,23 +257,23 @@ public class Rest
       SQLParser parser = new SQLParser(bindvalues,getStatement(payload));
 
       session.closeCursor(name);
-      
+
       if (!batch && savepoint)
       {
         state.lock(this,true);
         this.savepoint = session.setSavePoint();
       }
-      
+
       state.lock(this,false);
       Cursor cursor = session.executeQuery(name,parser.sql(),parser.bindvalues());
       state.release(this,false);
-      
+
       if (!batch && savepoint)
       {
         if (!session.releaseSavePoint(this.savepoint))
         {
           this.savepoint = null;
-          session.closeCursor(cursor);          
+          session.closeCursor(cursor);
           throw new Exception("Could not release savepoint");
         }
       }
@@ -345,11 +342,11 @@ public class Rest
         state.lock(this,true);
         this.savepoint = session.setSavePoint();
       }
-      
+
       state.lock(this,false);
       int rows = session.executeUpdate(parser.sql(),parser.bindvalues());
       state.release(this,false);
-      
+
       if (!batch && savepoint)
       {
         if (!session.releaseSavePoint(this.savepoint))
@@ -358,7 +355,7 @@ public class Rest
           throw new Exception("Could not release savepoint");
         }
       }
-      
+
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
@@ -438,7 +435,7 @@ public class Rest
   private String peek(JSONObject payload)
   {
     String sql = getStatement(payload);
-    
+
     if (sql.length() > 6)
     {
       String cmd = sql.substring(0,7).toLowerCase();
@@ -452,18 +449,18 @@ public class Rest
 
     return("call");
   }
-  
-  
+
+
   private String getStatement(JSONObject payload)
   {
     if (payload.has("sql"))
       return(payload.getString("sql"));
-    
+
     if (payload.has("file"))
     {
-      
+
     }
-    
+
     return(null);
   }
 
@@ -511,10 +508,10 @@ public class Rest
     try
     {
       boolean savepoint = defaults;
-      
+
       if (payload != null && payload.has("savepoint"))
         savepoint = payload.getBoolean("savepoint");
-      
+
       return(savepoint);
     }
     catch (Throwable e)
