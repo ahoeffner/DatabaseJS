@@ -40,12 +40,12 @@ public class Rest
   private final boolean sppost;
   private final boolean sppatch;
 
+  private final Config config;
+  private final Logger logger;
+
   private String error = null;
   private Session session = null;
   private Savepoint savepoint = null;
-
-  private final Config config;
-  private final Logger logger;
 
   private final SessionState state = new SessionState();
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
