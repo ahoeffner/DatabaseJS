@@ -96,6 +96,9 @@ public class Beautifier
       return(null);
     }
 
+    lines -= 10;
+    // Skip open-source header
+
     out.println(line);
 
     while(true)

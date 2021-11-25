@@ -17,14 +17,14 @@ import java.util.TreeSet;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
 import org.json.JSONTokener;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
-import database.js.database.BindValueDef;
 import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
-import java.util.ArrayList;
+import database.js.database.BindValueDef;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
@@ -51,16 +51,12 @@ public class Rest
   static
   {
     commands.add("ping");
-    commands.add("lock");
     commands.add("call");
     commands.add("batch");
     commands.add("fetch");
     commands.add("script");
     commands.add("status");
-    commands.add("select");
-    commands.add("insert");
-    commands.add("update");
-    commands.add("delete");
+    commands.add("execute");
     commands.add("commit");
     commands.add("connect");
     commands.add("rollback");
@@ -106,8 +102,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      error(e);
-      return(error);
+      return(error(e));
     }
   }
 
@@ -128,6 +123,9 @@ public class Rest
   {
     String response = null;
 
+    if (cmd.equals("execute"))
+      cmd = peek(payload);
+
     switch(cmd)
     {
       case "connect" :
@@ -136,10 +134,13 @@ public class Rest
       case "select" :
         response = select(payload,batch); break;
 
+      case "fetch" :
+        response = fetch(payload,batch); break;
+
       default : error("Unknown command "+cmd);
     }
 
-    if (!batch || error != null)
+    if (!batch)
       state.releaseAll(this);
 
     return(response);
@@ -192,10 +193,7 @@ public class Rest
           return(error);
 
         if (!anonymous && username == null)
-          error("Username must be specified");
-
-        if (error != null)
-          return(error);
+          return(error("Username must be specified"));
 
         this.session = new Session(method,pool,dedicated,username,secret);
 
@@ -205,8 +203,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      error(e);
-      return(error);
+      return(error(e));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -222,10 +219,7 @@ public class Rest
   private String select(JSONObject payload, boolean batch)
   {
     if (session == null)
-    {
-      error("Not connected");
-      return(error);
-    }
+      return(error("Not connected"));
 
     try
     {
@@ -233,31 +227,40 @@ public class Rest
       String name = null;
       boolean compact = false;
       boolean savepoint = false;
-      
+
       session.ensure();
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
-      
+
       if (payload.has("options"))
       {
-        JSONObject options = payload.getJSONObject("options");  
-        
+        JSONObject options = payload.getJSONObject("options");
+
         if (options.has("rows")) rows = options.getInt("rows");
         if (options.has("cursor")) name = options.getString("cursor");
         if (options.has("compact")) compact = options.getBoolean("compact");
         if (!batch && options.has("savepoint")) savepoint = options.getBoolean("savepoint");
       }
 
-      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));      
+      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));
+
+      session.closeCursor(name);
+      if (!batch) state.lock(this,savepoint);
       Cursor cursor = session.executeQuery(name,parser.sql(),parser.bindvalues());
+      if (!batch) state.release(this,savepoint);
+
+      cursor.rows = rows;
+      cursor.compact = compact;
 
       String[] columns = session.getColumnNames(cursor);
-      ArrayList<Object[]> table = session.fetch(cursor,rows);
-      
+      ArrayList<Object[]> table = session.fetch(cursor);
+
       JSONFormatter json = new JSONFormatter();
+
       json.success(true);
-      
+      json.add("more",!cursor.closed);
+
       if (compact)
       {
         json.push("columns",SimpleArray);
@@ -275,16 +278,99 @@ public class Rest
         json.pop();
       }
 
+      if (cursor.name == null)
+        session.closeCursor(cursor);
+
       if (!session.dedicated() && !batch)
         session.disconnect();
 
       return(json.toString());
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
-      error(e);
-      return(error);
+      return(error(e));
     }
+  }
+
+
+  private String fetch(JSONObject payload, boolean batch)
+  {
+    if (session == null)
+      return(error("Not connected"));
+
+    try
+    {
+      boolean close = false;
+      JSONFormatter json = new JSONFormatter();
+      String name = payload.getString("cursor");
+
+      Cursor cursor = session.getCursor(name);
+      if (payload.has("close")) close = payload.getBoolean("close");
+
+      if (cursor == null)
+        return(error("Cursor \'"+name+"\' does not exist"));
+
+      if (close)
+      {
+        session.closeCursor(name);
+        json.success(true);
+        json.add("closed",true);
+        return(json.toString());
+      }
+
+      String[] columns = session.getColumnNames(cursor);
+      ArrayList<Object[]> table = session.fetch(cursor);
+
+      json.success(true);
+      json.add("more",!cursor.closed);
+
+      if (cursor.compact)
+      {
+        json.push("columns",SimpleArray);
+        json.add(columns);
+        json.pop();
+
+        json.push("rows",Matrix);
+        json.add(table);
+        json.pop();
+      }
+      else
+      {
+        json.push("rows",ObjectArray);
+        for(Object[] row : table) json.add(columns,row);
+        json.pop();
+      }
+
+      return(json.toString());
+    }
+    catch (Throwable e)
+    {
+      return(error(e));
+    }
+  }
+
+  private String peek(JSONObject payload)
+  {
+    if (payload.has("file"))
+      return("file");
+
+    if (payload.has("sql"))
+    {
+      String sql = payload.getString("sql");
+
+      if (sql.length() > 6)
+      {
+        String cmd = sql.substring(0,7).toLowerCase();
+        System.out.println("sql: <"+cmd+">");
+
+        if (cmd.equals("select ")) return("select");
+        if (cmd.equals("insert ")) return("update");
+        if (cmd.equals("update ")) return("update");
+        if (cmd.equals("delete ")) return("update");
+      }
+    }
+
+    return("call");
   }
 
 
@@ -411,7 +497,7 @@ public class Rest
   }
 
 
-  private void error(Throwable e)
+  private String error(Throwable e)
   {
     JSONFormatter json = new JSONFormatter();
 
@@ -419,10 +505,11 @@ public class Rest
     json.success(false);
 
     this.error = json.toString();
+    return(this.error);
   }
 
 
-  private void error(String message)
+  private String error(String message)
   {
     JSONFormatter json = new JSONFormatter();
 
@@ -430,6 +517,7 @@ public class Rest
     json.add("message",message);
 
     this.error = json.toString();
+    return(this.error);
   }
 
 

@@ -12,16 +12,12 @@
 
 package database.js.database;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-
-import java.sql.PreparedStatement;
-
 import java.sql.ResultSet;
-
-import java.sql.ResultSetMetaData;
-
+import java.sql.Connection;
 import java.util.ArrayList;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
 
 
 public abstract class Database
@@ -65,12 +61,12 @@ public abstract class Database
     Connection conn = DriverManager.getConnection(url);
     return(conn);
   }
-  
-  
+
+
   public PreparedStatement prepare(String sql, ArrayList<BindValue> bindvalues) throws Exception
   {
     PreparedStatement stmt = conn.prepareStatement(sql);
-    
+
     for (int i = 0; i < bindvalues.size(); i++)
     {
       BindValue b = bindvalues.get(i);
@@ -79,14 +75,14 @@ public abstract class Database
 
     return(stmt);
   }
-  
-  
+
+
   public ResultSet executeQuery(PreparedStatement stmt) throws Exception
   {
     return(stmt.executeQuery());
   }
-  
-  
+
+
   public String[] getColumNames(ResultSet rset) throws Exception
   {
     ResultSetMetaData meta = rset.getMetaData();
@@ -97,8 +93,8 @@ public abstract class Database
 
     return(columns);
   }
-  
-  
+
+
   public Object[] fetch(ResultSet rset) throws Exception
   {
     ResultSetMetaData meta = rset.getMetaData();

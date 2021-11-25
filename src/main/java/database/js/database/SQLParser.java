@@ -27,14 +27,14 @@ public class SQLParser
   {
     this(bindvalues,stmt,false);
   }
-  
-  
+
+
   public String sql()
   {
     return(sql);
   }
-  
-  
+
+
   public ArrayList<BindValue> bindvalues()
   {
     return(bindings);
@@ -109,11 +109,11 @@ public class SQLParser
   private boolean wordCharacter(char c)
   {
     if (c == '_') return(true);
-    
+
     if (c >= '0' && c <= '9') return(true);
     if (c >= 'a' && c <= 'z') return(true);
     if (c >= 'A' && c <= 'Z') return(true);
-    
+
     return(false);
   }
 }

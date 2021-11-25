@@ -12,16 +12,21 @@
 
 package database.js.handlers.rest;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.PreparedStatement;
+
 
 public class Cursor
 {
   final String name;
   final ResultSet rset;
   final PreparedStatement stmt;
-  
-  
+
+  int rows = 0;
+  boolean closed = false;
+  boolean compact = false;
+
+
   public Cursor(String name, PreparedStatement stmt, ResultSet rset)
   {
     this.name = name;

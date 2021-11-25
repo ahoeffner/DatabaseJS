@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class JSONFormatter
@@ -27,76 +28,16 @@ public class JSONFormatter
   public static void main(String[] args)
   {
     JSONFormatter format = null;
-    
-    /*
-    format = new JSONFormatter();
-    String[] cols = {"col1","col2","col3"};
 
-    format.add("message","everything is fine");
-
-    format.push("employee");
-    format.add("first_name","Alex");
-    format.add("last_name","Høffner");
-    format.pop();
-
-    format.push("rows",true);
-    format.add(cols,new String[] {"1","2","3"});
-    format.add(cols,new String[] {"4","5","6"});
-    format.pop();
-
-    format.add("last",null);
-
-    format.success(true);
-    System.out.println(format);
-
-
-
-    System.out.println();
-    System.out.println();
+    String[] columns = new String[] {"col1","col2"};
+    Object[] values = new Object[] {1,"2"};
 
     format = new JSONFormatter();
-
-    format.push("connect");
-    format.add("session","w828e828e");
     format.success(true);
-    format.pop();
-
-    format.push("query");
-    format.push("rows",true);
-    format.add(cols,new String[] {"1","2","3"});
-    format.add(cols,new String[] {"4","5","6"});
-    format.pop();
-    format.success(true);
-    format.pop();
-    
+    format.push("rows",ObjectArray);
+    format.add(columns,values);
 
     System.out.println(format);
-    
-    String[][] rows = new String[][]
-    {
-      {"1","2","3"},
-      {"4","5","6"},
-    };
-    
-    ArrayList<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] {"1","2","3"});
-    list.add(new Object[] {"4","5","6"});
-    
-    format = new JSONFormatter();
-    format.success(true);
-    format.push("columns",Type.SimpleArray);
-    format.add(new String[] {"col1","col2"});
-    format.pop();
-    format.push("columns",Type.Matrix);
-    format.add(list);
-    format.pop();
-    format.add("message","fine");
-
-    System.out.println(format);
-    */
-
-    format = new JSONFormatter();
-    String[] columns;
   }
 
 
@@ -192,11 +133,6 @@ public class JSONFormatter
     private final ArrayList<Object> content =
       new ArrayList<Object>();
 
-    Content()
-    {
-      this(null,Type.Object,null);
-    }
-
     Content(Type type)
     {
       this(null,type,null);
@@ -218,9 +154,8 @@ public class JSONFormatter
 
     void status(boolean success)
     {
-      String name = "status";
-      String value = success ? "ok" : "failed";
-      content.add(0,new String[] {name,value});
+      String name = "success";
+      content.add(0,new Object[] {name,success});
     }
 
     void add(Object[] array)
@@ -245,21 +180,6 @@ public class JSONFormatter
       add("message",message);
     }
 
-    String escape(Object str)
-    {
-      if (str == null)
-        return("null");
-
-      str = JSONObject.quote(str.toString());
-      return(str.toString());
-    }
-
-
-    String quote(Object str)
-    {
-      return("\""+str+"\"");
-    }
-
 
     String persist()
     {
@@ -270,13 +190,13 @@ public class JSONFormatter
     private String persist(Content node, int level)
     {
       if (node.type == Type.Matrix)
-        return(persistMatrix(node,level));    
+        return(persistMatrix(node,level));
 
       if (node.type == Type.SimpleArray)
-        return(persistSimpleArray(node,level));        
+        return(persistSimpleArray(node,level));
 
       if (node.type == Type.ObjectArray)
-        return(persistObjectArray(node,level));    
+        return(persistObjectArray(node,level));
 
       String lev = "";
       if (level > 0) lev = String.format("%"+(2*level)+"s"," ");
@@ -348,7 +268,7 @@ public class JSONFormatter
         }
         else
         {
-          Object[][] row = (String[][]) elem;
+          Object[][] row = (Object[][]) elem;
 
           Object[] names = row[0];
           Object[] values = row[1];
@@ -413,7 +333,7 @@ public class JSONFormatter
       {
         String comm = "";
         if (i < rows.length - 1) comm = ",";
-        
+
         str += nl + ind + "[";
 
         Object[] cols = rows[i];
@@ -421,18 +341,36 @@ public class JSONFormatter
         {
           String next = "";
           if (j < cols.length-1) next = ",";
-          str += escape(cols[j])+next;          
+          str += escape(cols[j])+next;
         }
-        
+
         str += "]" + comm;
       }
 
       str += nl + lev + "]";
       return(str);
     }
-  }
-  
-  
+
+    String escape(Object value)
+    {
+      if (value == null)
+        return("null");
+
+      if (value instanceof Boolean)
+        return(value.toString());
+
+      value = JSONObject.quote(value.toString());
+      return(value.toString());
+    }
+
+
+    String quote(Object str)
+    {
+      return("\""+str+"\"");
+    }
+ }
+
+
   public static enum Type
   {
     Object,

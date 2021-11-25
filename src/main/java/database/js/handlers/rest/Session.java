@@ -12,17 +12,15 @@
 
 package database.js.handlers.rest;
 
-import java.sql.Connection;
-import database.js.database.Pool;
-import database.js.database.Database;
-import database.js.database.AuthMethod;
-import database.js.database.BindValue;
-import database.js.database.DatabaseUtils;
-
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
+import java.sql.Connection;
 import java.util.ArrayList;
+import database.js.database.Pool;
+import java.sql.PreparedStatement;
+import database.js.database.Database;
+import database.js.database.BindValue;
+import database.js.database.AuthMethod;
+import database.js.database.DatabaseUtils;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -137,59 +135,70 @@ public class Session
 
     database.setConnection(conn);
   }
-  
-  
+
+
   public Cursor executeQuery(String name, String sql, ArrayList<BindValue> bindvalues) throws Exception
   {
     PreparedStatement stmt = database.prepare(sql,bindvalues);
     ResultSet         rset = database.executeQuery(stmt);
-    
+
     Cursor cursor = new Cursor(name,stmt,rset);
     if (name != null) cursors.put(name,cursor);
-    
+
     return(cursor);
   }
-  
-  
+
+
   public String[] getColumnNames(Cursor cursor) throws Exception
   {
     return(database.getColumNames(cursor.rset));
   }
-  
-  
-  public ArrayList<Object[]> fetch(Cursor cursor, int rows) throws Exception
+
+
+  public ArrayList<Object[]> fetch(Cursor cursor) throws Exception
   {
     ArrayList<Object[]> table = new ArrayList<Object[]>();
-    
-    for (int i = 0; (rows <= 0 || i < rows) && cursor.rset.next(); i++)
+
+    for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
       table.add(database.fetch(cursor.rset));
-    
-    if (rows <= 0 || table.size() < rows)
-      close(cursor);
-    
+
+    if (cursor.rows <= 0 || table.size() < cursor.rows)
+      closeCursor(cursor);
+
     return(table);
   }
-  
-  
-  public void close(String name)
+
+
+  public Cursor getCursor(String name)
   {
-    close(cursors.get(name));
+    return(cursors.get(name));
   }
-  
-  
-  public void close(Cursor cursor)
+
+
+  public void closeCursor(String name)
   {
-    if (cursor == null) 
+    if (name == null)
       return;
-    
+
+    closeCursor(cursors.get(name));
+  }
+
+
+  public void closeCursor(Cursor cursor)
+  {
+    if (cursor == null)
+      return;
+
     try {cursor.rset.close();}
     catch (Exception e) {;}
 
     try {cursor.stmt.close();}
     catch (Exception e) {;}
-    
+
     if (cursor.name != null)
       cursors.remove(cursor.name);
+
+    cursor.closed = true;
   }
 
 
