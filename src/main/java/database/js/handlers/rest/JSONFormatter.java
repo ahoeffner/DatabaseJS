@@ -71,7 +71,6 @@ public class JSONFormatter
     
 
     System.out.println(format);
-*/
     
     String[][] rows = new String[][]
     {
@@ -94,6 +93,10 @@ public class JSONFormatter
     format.add("message","fine");
 
     System.out.println(format);
+    */
+
+    format = new JSONFormatter();
+    String[] columns;
   }
 
 

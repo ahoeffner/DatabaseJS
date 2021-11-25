@@ -267,7 +267,13 @@ public class Rest
         json.push("rows",Matrix);
         json.add(table);
         json.pop();
-      }      
+      }
+      else
+      {
+        json.push("rows",ObjectArray);
+        for(Object[] row : table) json.add(columns,row);
+        json.pop();
+      }
 
       if (!session.dedicated() && !batch)
         session.disconnect();
