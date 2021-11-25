@@ -141,11 +141,14 @@ public class Rest
       case "connect" :
         response = connect(payload,batch); break;
 
+      case "update" :
+        response = update(payload,batch); break;
+
       case "select" :
         response = select(payload,batch); break;
 
       case "fetch" :
-        response = fetch(payload,batch); break;
+        response = fetch(payload); break;
 
       default : error("Unknown command "+cmd);
     }
@@ -238,7 +241,7 @@ public class Rest
       int rows = 0;
       String name = null;
       boolean compact = false;
-      boolean savepoint = false;
+      boolean savepoint = getSavepoint(payload,false);
 
       session.ensure();
 
@@ -247,16 +250,14 @@ public class Rest
 
       if (payload.has("options"))
       {
-        JSONObject options = payload.getJSONObject("options");
-        
-        savepoint = getSavepoint(options,false);
+        JSONObject options = payload.getJSONObject("options");        
         if (options.has("rows")) rows = options.getInt("rows");
         if (options.has("cursor")) name = options.getString("cursor");
         if (options.has("compact")) compact = options.getBoolean("compact");
         if (!batch && options.has("savepoint")) savepoint = options.getBoolean("savepoint");
       }
 
-      SQLParser parser = new SQLParser(bindvalues,payload.getString("sql"));
+      SQLParser parser = new SQLParser(bindvalues,getStatement(payload));
 
       session.closeCursor(name);
       
@@ -328,7 +329,56 @@ public class Rest
   }
 
 
-  private String fetch(JSONObject payload, boolean batch)
+  private String update(JSONObject payload, boolean batch)
+  {
+    if (session == null)
+      return(error("Not connected"));
+
+    try
+    {
+      boolean savepoint = getSavepoint(payload,true);
+
+      SQLParser parser = new SQLParser(bindvalues,getStatement(payload));
+
+      if (!batch && savepoint)
+      {
+        state.lock(this,true);
+        this.savepoint = session.setSavePoint();
+      }
+      
+      state.lock(this,false);
+      int rows = session.executeUpdate(parser.sql(),parser.bindvalues());
+      state.release(this,false);
+      
+      if (!batch && savepoint)
+      {
+        if (!session.releaseSavePoint(this.savepoint))
+        {
+          this.savepoint = null;
+          throw new Exception("Could not release savepoint");
+        }
+      }
+      
+      JSONFormatter json = new JSONFormatter();
+
+      json.success(true);
+      json.add("rows",rows);
+
+      return(json.toString());
+    }
+    catch (Throwable e)
+    {
+      session.releaseSavePoint(this.savepoint,true);
+
+      this.savepoint = null;
+      state.releaseAll(this);
+
+      return(error(e));
+    }
+  }
+
+
+  private String fetch(JSONObject payload)
   {
     if (session == null)
       return(error("Not connected"));
@@ -384,28 +434,37 @@ public class Rest
     }
   }
 
+
   private String peek(JSONObject payload)
   {
-    if (payload.has("file"))
-      return("file");
-
-    if (payload.has("sql"))
+    String sql = getStatement(payload);
+    
+    if (sql.length() > 6)
     {
-      String sql = payload.getString("sql");
+      String cmd = sql.substring(0,7).toLowerCase();
+      System.out.println("sql: <"+cmd+">");
 
-      if (sql.length() > 6)
-      {
-        String cmd = sql.substring(0,7).toLowerCase();
-        System.out.println("sql: <"+cmd+">");
-
-        if (cmd.equals("select ")) return("select");
-        if (cmd.equals("insert ")) return("update");
-        if (cmd.equals("update ")) return("update");
-        if (cmd.equals("delete ")) return("update");
-      }
+      if (cmd.equals("select ")) return("select");
+      if (cmd.equals("insert ")) return("update");
+      if (cmd.equals("update ")) return("update");
+      if (cmd.equals("delete ")) return("update");
     }
 
     return("call");
+  }
+  
+  
+  private String getStatement(JSONObject payload)
+  {
+    if (payload.has("sql"))
+      return(payload.getString("sql"));
+    
+    if (payload.has("file"))
+    {
+      
+    }
+    
+    return(null);
   }
 
 

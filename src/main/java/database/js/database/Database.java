@@ -12,6 +12,7 @@
 
 package database.js.database;
 
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -91,9 +92,38 @@ public abstract class Database
   }
 
 
+  public CallableStatement prepareCall(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    CallableStatement stmt = conn.prepareCall(sql);
+
+    for (int i = 0; i < bindvalues.size(); i++)
+    {
+      BindValue b = bindvalues.get(i);
+      
+      if (b.InOut()) 
+      {
+        stmt.registerOutParameter(i+1,b.getType());
+        stmt.setObject(i+1,b.getValue());
+      }
+      else
+      {
+        stmt.setObject(i+1,b.getValue(),b.getType());        
+      }
+    }
+
+    return(stmt);
+  }
+
+
   public ResultSet executeQuery(PreparedStatement stmt) throws Exception
   {
     return(stmt.executeQuery());
+  }
+
+
+  public int executeUpdate(PreparedStatement stmt) throws Exception
+  {
+    return(stmt.executeUpdate());
   }
 
 

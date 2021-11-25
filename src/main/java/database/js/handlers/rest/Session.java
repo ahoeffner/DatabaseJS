@@ -13,20 +13,18 @@
 package database.js.handlers.rest;
 
 import java.sql.ResultSet;
+import java.sql.Savepoint;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import database.js.database.Pool;
 import java.sql.PreparedStatement;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
-
-import java.sql.Savepoint;
-
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class Session
@@ -142,20 +140,20 @@ public class Session
 
     database.setConnection(conn);
   }
-  
-  
+
+
   public Savepoint setSavePoint() throws Exception
   {
     return(database.setSavePoint());
   }
-  
-  
+
+
   public boolean releaseSavePoint(Savepoint savepoint)
   {
     return(releaseSavePoint(savepoint,false));
   }
-  
-  
+
+
   public boolean releaseSavePoint(Savepoint savepoint, boolean rollback)
   {
     try
@@ -166,17 +164,24 @@ public class Session
     catch (Throwable e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
-      
+
       if (!rollback)
       {
         try {database.releaseSavePoint(savepoint,true);}
         catch (Throwable rb) {;}
       }
-      
+
       return(false);
     }
-    
+
     return(true);
+  }
+
+
+  public int executeUpdate(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    PreparedStatement stmt = database.prepare(sql,bindvalues);
+    return(database.executeUpdate(stmt));
   }
 
 

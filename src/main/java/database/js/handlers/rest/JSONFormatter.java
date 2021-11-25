@@ -359,6 +359,15 @@ public class JSONFormatter
       if (value instanceof Boolean)
         return(value.toString());
 
+      if (value instanceof Integer)
+        return(value.toString());
+
+      if (value instanceof Float)
+        return(value.toString());
+
+      if (value instanceof Double)
+        return(value.toString());
+
       value = JSONObject.quote(value.toString());
       return(value.toString());
     }

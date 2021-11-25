@@ -15,9 +15,9 @@ package database.js.config;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
+import database.js.handlers.rest.Rest;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
-import database.js.handlers.rest.Rest;
 
 
 public class Database
@@ -31,7 +31,7 @@ public class Database
 
   private final DatabaseType type;
   private final ArrayList<String> urlparts;
-  
+
   private final NameValuePair<Boolean>[] savepoints;
 
 
@@ -55,7 +55,7 @@ public class Database
 
     this.savepoints = new NameValuePair[2];
     JSONObject savep = config.getJSONObject("savepoint.defaults");
-    
+
     this.savepoints[0] = new NameValuePair<Boolean>("post",savep.getBoolean("post"));
     this.savepoints[1] = new NameValuePair<Boolean>("patch",savep.getBoolean("patch"));
     Rest.setDefaultSavepoint(this.savepoints[0].getValue(),this.savepoints[1].getValue());
@@ -116,14 +116,14 @@ public class Database
   {
     return(anonymous);
   }
-  
-  
+
+
   public boolean savepoint(String type)
   {
     for(NameValuePair<Boolean> sp : this.savepoints)
     {
       if (sp.getName().equals(type))
-        return(sp.getValue());      
+        return(sp.getValue());
     }
     return(false);
   }
