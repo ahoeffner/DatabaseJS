@@ -213,7 +213,7 @@ public class Session
     
     if (cursor.dateconversion != null)
     {
-      if (cursor.dateconversion.equals("%T")) timeconv = true;
+      if (cursor.dateconversion.equals("UTC")) timeconv = true;
       else format = new SimpleDateFormat(cursor.dateconversion);
     }    
 
