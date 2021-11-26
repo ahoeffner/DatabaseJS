@@ -29,6 +29,11 @@ public class BindValue
     return(out);
   }
 
+  public boolean OutOnly()
+  {
+    return(bindvalue.outval);
+  }
+
   public String getName()
   {
     return(bindvalue.name);

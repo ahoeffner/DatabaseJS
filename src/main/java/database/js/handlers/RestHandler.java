@@ -12,6 +12,8 @@
 
 package database.js.handlers;
 
+import database.js.handlers.file.PathUtil;
+
 import java.net.URL;
 import java.util.Base64;
 import java.util.TreeSet;

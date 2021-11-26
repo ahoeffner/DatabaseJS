@@ -27,6 +27,9 @@ import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Rest
@@ -48,7 +51,12 @@ public class Rest
   private Savepoint savepoint = null;
 
   private final SessionState state = new SessionState();
+
+  private static final ConcurrentHashMap<String,String> sqlfiles =
+    new ConcurrentHashMap<String,String>();
+
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
+
 
   private static final TreeSet<String> commands = new TreeSet<String>();
 
@@ -132,6 +140,9 @@ public class Rest
 
     if (cmd.equals("execute"))
       cmd = peek(payload);
+    
+    if (error != null)
+      return(error);
 
     switch(cmd)
     {
@@ -254,7 +265,12 @@ public class Rest
         if (!batch && options.has("savepoint")) savepoint = options.getBoolean("savepoint");
       }
 
-      SQLParser parser = new SQLParser(bindvalues,getStatement(payload));
+      String sql = getStatement(payload);
+      
+      if (error != null) 
+        return(error);
+      
+      SQLParser parser = new SQLParser(bindvalues,sql);
 
       session.closeCursor(name);
 
@@ -335,7 +351,12 @@ public class Rest
     {
       boolean savepoint = getSavepoint(payload,true);
 
-      SQLParser parser = new SQLParser(bindvalues,getStatement(payload));
+      String sql = getStatement(payload);
+      
+      if (error != null) 
+        return(error);
+      
+      SQLParser parser = new SQLParser(bindvalues,sql);
 
       if (!batch && savepoint)
       {
@@ -435,6 +456,9 @@ public class Rest
   private String peek(JSONObject payload)
   {
     String sql = getStatement(payload);
+    
+    if (error != null)
+      return(error);
 
     if (sql.length() > 6)
     {
@@ -453,15 +477,43 @@ public class Rest
 
   private String getStatement(JSONObject payload)
   {
-    if (payload.has("sql"))
-      return(payload.getString("sql"));
-
-    if (payload.has("file"))
+    String file = "@" + File.separator;
+    String sql = payload.getString("sql");
+    
+    if (sql.startsWith(file))
     {
+      String fname = repo + sql.substring(file.length());
 
+      sql = sqlfiles.get(fname);
+      if (sql != null) return(sql);
+
+      File f = new File(fname);
+      
+      try
+      {
+        String path = f.getCanonicalPath();
+        
+        if (!path.startsWith(repo+File.separator))
+          return(error("Illegal path '"+path+"'. File must be located in repository"));
+
+        byte[] content = new byte[(int) f.length()];
+        FileInputStream in = new FileInputStream(f);
+        int read = in.read(content);
+        in.close();
+        
+        if (read != content.length) 
+          return(error("Could not read '"+f.getCanonicalPath()+"'"));
+        
+        sql = new String(content);
+        sqlfiles.put(fname,sql);
+      }
+      catch (Exception e)
+      {
+        return(error(e));
+      }
     }
-
-    return(null);
+    
+    return(sql);
   }
 
 
@@ -492,11 +544,16 @@ public class Rest
     {
       JSONObject bvalue = values.getJSONObject(i);
 
+      Object value = null;
+      boolean outval = false;
+      
       String name = bvalue.getString("name");
       String type = bvalue.getString("type");
-      Object value = bvalue.get("value");
+      
+      if (!bvalue.has("value")) outval = true;
+      else value = bvalue.get("value");
 
-      this.bindvalues.put(name,new BindValueDef(name,type,value));
+      this.bindvalues.put(name,new BindValueDef(name,type,outval,value));
     }
   }
 

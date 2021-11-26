@@ -18,16 +18,13 @@ public class BindValueDef
   final int type;
   final String name;
   final Object value;
+  final boolean outval;
 
-  public BindValueDef(String name, String type)
-  {
-    this(name,type,null);
-  }
-
-  public BindValueDef(String name, String type, Object value)
+  public BindValueDef(String name, String type, boolean outval, Object value)
   {
     this.name = name;
     this.value = value;
+    this.outval = outval;
     this.type = SQLTypes.getType(type);
   }
 

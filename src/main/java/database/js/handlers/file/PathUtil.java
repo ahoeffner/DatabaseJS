@@ -10,7 +10,9 @@
  * accompanied this code).
  */
 
-package database.js.handlers;
+package database.js.handlers.file;
+
+import database.js.handlers.Handler;
 
 import java.io.File;
 import database.js.config.Handlers.HandlerProperties;

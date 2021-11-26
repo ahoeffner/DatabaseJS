@@ -18,6 +18,8 @@ import database.js.database.Pool;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 
+import java.io.File;
+
 
 public class Database
 {
@@ -49,8 +51,17 @@ public class Database
 
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
+    
+    String repo = config.getString("repository");
+    
+    if (repo.startsWith("." + File.separator))
+    {
+      repo = Paths.apphome + File.separator + repo;
+      File appf = new File(repo);
+      repo = appf.getCanonicalPath();
+    }
 
-    this.repo = config.getString("repository");
+    this.repo = repo;
 
     this.savepoints = new NameValuePair[2];
     JSONObject savep = config.getJSONObject("savepoint.defaults");

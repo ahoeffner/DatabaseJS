@@ -19,6 +19,7 @@ import java.util.ArrayList;
 public class SQLParser
 {
   private final String sql;
+  private final boolean func;
   private final ArrayList<BindValue> bindings;
   private final HashMap<String,BindValueDef> bindvalues;
 
@@ -43,10 +44,21 @@ public class SQLParser
 
   public SQLParser(HashMap<String,BindValueDef> bindvalues, String stmt, boolean procedure)
   {
+    stmt = stmt.trim();
     this.bindvalues = bindvalues;
     StringBuffer nsql = new StringBuffer();
-    StringBuffer sql = new StringBuffer(stmt);
     this.bindings = new ArrayList<BindValue>();
+    
+    if (!procedure) func = false;
+    else   func = function(stmt);
+    
+    if (func && !stmt.startsWith("&"))
+    {
+      if (!stmt.startsWith(":")) stmt = "&" + stmt;
+      else                       stmt = "&" + stmt.substring(1);
+    }
+
+    StringBuffer sql = new StringBuffer(stmt);
 
     for (int i = 0; i < sql.length(); i++)
     {
@@ -73,8 +85,30 @@ public class SQLParser
         nsql.append(c);
       }
     }
+    
+    if (procedure)
+    {
+      String proc = nsql.toString();
+      if (!func) this.sql = "call "+proc;
+      else this.sql = "{" + proc.replace("=","= call ") + "}";
+    }
+    else
+    {
+      this.sql = nsql.toString();      
+    }
+  }
+  
+  
+  private boolean function(String stmt)
+  {
+    int eq = stmt.indexOf('=');
+    if (eq < 0) return(false);
 
-    this.sql = nsql.toString();
+    int br = stmt.indexOf('(');
+    if (br < 0) br = stmt.length();
+    
+    if (br < eq) return(false);
+    return(true);
   }
 
 

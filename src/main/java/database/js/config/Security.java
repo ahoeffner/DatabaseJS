@@ -36,7 +36,7 @@ public class Security
     passwd = identsec.getString("password");
     String alias = identsec.getString("alias");
 
-    if (file.startsWith("."))
+    if (file.startsWith("."+File.separator))
       file = Paths.apphome + File.separator + file;
 
     identity = new Keystore(file,type,alias,passwd);
@@ -47,7 +47,7 @@ public class Security
     file = trustsec.getString("keystore");
     passwd = trustsec.getString("password");
 
-    if (file.startsWith("."))
+    if (file.startsWith("."+File.separator))
       file = Paths.apphome + File.separator + file;
 
     trust = new Keystore(file,type,null,passwd);

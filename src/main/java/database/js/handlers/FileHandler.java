@@ -12,6 +12,8 @@
 
 package database.js.handlers;
 
+import database.js.handlers.file.PathUtil;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;

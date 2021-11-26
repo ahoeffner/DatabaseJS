@@ -103,7 +103,7 @@ public abstract class Database
       if (b.InOut())
       {
         stmt.registerOutParameter(i+1,b.getType());
-        stmt.setObject(i+1,b.getValue());
+        if (!b.OutOnly()) stmt.setObject(i+1,b.getValue());
       }
       else
       {

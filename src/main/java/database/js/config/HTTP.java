@@ -62,7 +62,7 @@ public class HTTP
     String apppath = null;
     apppath = app.getString("path");
 
-    if (apppath.startsWith("."))
+    if (apppath.startsWith("." + File.separator))
     {
       apppath = Paths.apphome + File.separator + apppath;
       File appf = new File(apppath);
