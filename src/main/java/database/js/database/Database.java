@@ -134,28 +134,29 @@ public abstract class Database
   {
     boolean conv = timeconv || formatter != null;
 
-    ArrayList<NameValuePair<Object>> values = 
+    ArrayList<NameValuePair<Object>> values =
       new ArrayList<NameValuePair<Object>>();
-    
+
     stmt.executeUpdate();
-    
-    int pos = 1;
-    for(BindValue b : bindvalues)
+
+    for (int i = 0; i < bindvalues.size(); i++)
     {
+      BindValue b = bindvalues.get(i);
+
       if (b.InOut())
       {
-        Object value = stmt.getObject(pos++);
-        
+        Object value = stmt.getObject(i+1);
+
         if (conv && DateUtils.isDate(value))
         {
           if (timeconv) value = DateUtils.getTime(value);
           else value = DateUtils.format(formatter,value);
         }
-          
+
         values.add(new NameValuePair<Object>(b.getName(),value));
       }
     }
-    
+
     return(values);
   }
 

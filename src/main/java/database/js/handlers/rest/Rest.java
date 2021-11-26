@@ -29,7 +29,6 @@ import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
 import database.js.database.NameValuePair;
-
 import java.util.concurrent.ConcurrentHashMap;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
 
@@ -159,6 +158,9 @@ public class Rest
 
       case "fetch" :
         response = fetch(payload); break;
+
+      case "call" :
+        response = call(payload,batch); break;
 
       default : return(error("Unknown command "+cmd));
     }
@@ -410,7 +412,7 @@ public class Rest
       String dateconv = null;
       boolean savepoint = getSavepoint(payload,true);
 
-      if (payload.has("dateconversion")) 
+      if (payload.has("dateconversion"))
         dateconv = payload.getString("dateconversion");
 
       if (payload.has("bindvalues"))
@@ -445,7 +447,7 @@ public class Rest
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
-      
+
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
 
