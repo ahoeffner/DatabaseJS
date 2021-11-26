@@ -12,13 +12,11 @@
 
 package database.js.handlers;
 
-import database.js.handlers.file.PathUtil;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
+import database.js.handlers.file.PathUtil;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;

@@ -12,9 +12,8 @@
 
 package database.js.handlers.file;
 
-import database.js.handlers.Handler;
-
 import java.io.File;
+import database.js.handlers.Handler;
 import database.js.config.Handlers.HandlerProperties;
 
 

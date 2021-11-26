@@ -34,6 +34,7 @@ class RESTComm
   RESTComm(long id, int extend, byte[] host, byte[] page)
   {
     this.id = id;
+    this.host = host;
     this.page = page;
     this.extend = extend;
     this.size = page.length;

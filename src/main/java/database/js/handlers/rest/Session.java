@@ -24,6 +24,9 @@ import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
+
+import java.text.SimpleDateFormat;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -205,10 +208,19 @@ public class Session
 
   public ArrayList<Object[]> fetch(Cursor cursor) throws Exception
   {
+    boolean timeconv = false;
+    SimpleDateFormat format = null;
+    
+    if (cursor.dateconversion != null)
+    {
+      if (cursor.dateconversion.equals("%T")) timeconv = true;
+      else format = new SimpleDateFormat(cursor.dateconversion);
+    }    
+
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
     for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
-      table.add(database.fetch(cursor.rset));
+      table.add(database.fetch(cursor.rset,timeconv,format));
 
     if (cursor.rows <= 0 || table.size() < cursor.rows)
       closeCursor(cursor);

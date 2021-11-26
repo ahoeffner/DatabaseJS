@@ -12,13 +12,12 @@
 
 package database.js.config;
 
+import java.io.File;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
-
-import java.io.File;
 
 
 public class Database
@@ -51,9 +50,9 @@ public class Database
 
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
-    
+
     String repo = config.getString("repository");
-    
+
     if (repo.startsWith("." + File.separator))
     {
       repo = Paths.apphome + File.separator + repo;

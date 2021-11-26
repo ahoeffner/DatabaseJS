@@ -12,6 +12,7 @@
 
 package database.js.handlers.rest;
 
+import java.io.File;
 import java.util.Base64;
 import java.util.TreeSet;
 import java.util.HashMap;
@@ -20,16 +21,15 @@ import java.sql.Savepoint;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import org.json.JSONTokener;
+import java.io.FileInputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
 import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
-import static database.js.handlers.rest.JSONFormatter.Type.*;
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.concurrent.ConcurrentHashMap;
+import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class Rest
@@ -140,7 +140,7 @@ public class Rest
 
     if (cmd.equals("execute"))
       cmd = peek(payload);
-    
+
     if (error != null)
       return(error);
 
@@ -158,7 +158,7 @@ public class Rest
       case "fetch" :
         response = fetch(payload); break;
 
-      default : error("Unknown command "+cmd);
+      default : return(error("Unknown command "+cmd));
     }
 
     if (!batch)
@@ -248,6 +248,7 @@ public class Rest
     {
       int rows = 0;
       String name = null;
+      String dateconv = null;
       boolean compact = false;
       boolean savepoint = getSavepoint(payload,false);
 
@@ -256,20 +257,17 @@ public class Rest
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
 
-      if (payload.has("options"))
-      {
-        JSONObject options = payload.getJSONObject("options");
-        if (options.has("rows")) rows = options.getInt("rows");
-        if (options.has("cursor")) name = options.getString("cursor");
-        if (options.has("compact")) compact = options.getBoolean("compact");
-        if (!batch && options.has("savepoint")) savepoint = options.getBoolean("savepoint");
-      }
+      if (payload.has("rows")) rows = payload.getInt("rows");
+      if (payload.has("cursor")) name = payload.getString("cursor");
+      if (payload.has("compact")) compact = payload.getBoolean("compact");
+      if (payload.has("dateconversion")) dateconv = payload.getString("dateconversion");
+      if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
 
       String sql = getStatement(payload);
-      
-      if (error != null) 
+
+      if (error != null)
         return(error);
-      
+
       SQLParser parser = new SQLParser(bindvalues,sql);
 
       session.closeCursor(name);
@@ -296,6 +294,7 @@ public class Rest
 
       cursor.rows = rows;
       cursor.compact = compact;
+      cursor.dateconversion = dateconv;
 
       String[] columns = session.getColumnNames(cursor);
       ArrayList<Object[]> table = session.fetch(cursor);
@@ -352,10 +351,10 @@ public class Rest
       boolean savepoint = getSavepoint(payload,true);
 
       String sql = getStatement(payload);
-      
-      if (error != null) 
+
+      if (error != null)
         return(error);
-      
+
       SQLParser parser = new SQLParser(bindvalues,sql);
 
       if (!batch && savepoint)
@@ -456,14 +455,13 @@ public class Rest
   private String peek(JSONObject payload)
   {
     String sql = getStatement(payload);
-    
+
     if (error != null)
       return(error);
 
     if (sql.length() > 6)
     {
       String cmd = sql.substring(0,7).toLowerCase();
-      System.out.println("sql: <"+cmd+">");
 
       if (cmd.equals("select ")) return("select");
       if (cmd.equals("insert ")) return("update");
@@ -477,22 +475,24 @@ public class Rest
 
   private String getStatement(JSONObject payload)
   {
-    String file = "@" + File.separator;
+    String file = "@";
     String sql = payload.getString("sql");
-    
+
     if (sql.startsWith(file))
     {
-      String fname = repo + sql.substring(file.length());
+      String fname = sql.substring(file.length());
+      if (!fname.startsWith(File.separator)) fname = File.separator + fname;
 
+      fname = repo + fname;
       sql = sqlfiles.get(fname);
       if (sql != null) return(sql);
 
       File f = new File(fname);
-      
+
       try
       {
         String path = f.getCanonicalPath();
-        
+
         if (!path.startsWith(repo+File.separator))
           return(error("Illegal path '"+path+"'. File must be located in repository"));
 
@@ -500,10 +500,10 @@ public class Rest
         FileInputStream in = new FileInputStream(f);
         int read = in.read(content);
         in.close();
-        
-        if (read != content.length) 
+
+        if (read != content.length)
           return(error("Could not read '"+f.getCanonicalPath()+"'"));
-        
+
         sql = new String(content);
         sqlfiles.put(fname,sql);
       }
@@ -512,7 +512,7 @@ public class Rest
         return(error(e));
       }
     }
-    
+
     return(sql);
   }
 
@@ -546,10 +546,10 @@ public class Rest
 
       Object value = null;
       boolean outval = false;
-      
+
       String name = bvalue.getString("name");
       String type = bvalue.getString("type");
-      
+
       if (!bvalue.has("value")) outval = true;
       else value = bvalue.get("value");
 

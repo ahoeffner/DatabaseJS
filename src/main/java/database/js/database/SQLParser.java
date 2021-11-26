@@ -48,10 +48,10 @@ public class SQLParser
     this.bindvalues = bindvalues;
     StringBuffer nsql = new StringBuffer();
     this.bindings = new ArrayList<BindValue>();
-    
+
     if (!procedure) func = false;
     else   func = function(stmt);
-    
+
     if (func && !stmt.startsWith("&"))
     {
       if (!stmt.startsWith(":")) stmt = "&" + stmt;
@@ -85,7 +85,7 @@ public class SQLParser
         nsql.append(c);
       }
     }
-    
+
     if (procedure)
     {
       String proc = nsql.toString();
@@ -94,11 +94,11 @@ public class SQLParser
     }
     else
     {
-      this.sql = nsql.toString();      
+      this.sql = nsql.toString();
     }
   }
-  
-  
+
+
   private boolean function(String stmt)
   {
     int eq = stmt.indexOf('=');
@@ -106,7 +106,7 @@ public class SQLParser
 
     int br = stmt.indexOf('(');
     if (br < 0) br = stmt.length();
-    
+
     if (br < eq) return(false);
     return(true);
   }

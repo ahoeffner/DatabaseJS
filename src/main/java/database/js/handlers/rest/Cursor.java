@@ -25,6 +25,7 @@ public class Cursor
   int rows = 0;
   boolean closed = false;
   boolean compact = false;
+  String dateconversion = null;
 
 
   public Cursor(String name, PreparedStatement stmt, ResultSet rset)

@@ -12,8 +12,6 @@
 
 package database.js.handlers;
 
-import database.js.handlers.file.PathUtil;
-
 import java.net.URL;
 import java.util.Base64;
 import java.util.TreeSet;
@@ -26,6 +24,7 @@ import database.js.servers.Server;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
+import database.js.handlers.file.PathUtil;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
@@ -211,7 +210,7 @@ public class RestHandler extends Handler
     String cinst = null;
     String instance = config().instance();
     String cookie = request.getCookie("RESTSRVID");
-
+    
     if (cookie == null)
       return(-1);
 

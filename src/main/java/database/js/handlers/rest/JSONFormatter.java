@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 
 public class JSONFormatter
@@ -355,8 +357,11 @@ public class JSONFormatter
     {
       if (value == null)
         return("null");
-
+      
       if (value instanceof Boolean)
+        return(value.toString());
+
+      if (value instanceof Long)
         return(value.toString());
 
       if (value instanceof Integer)
@@ -366,6 +371,12 @@ public class JSONFormatter
         return(value.toString());
 
       if (value instanceof Double)
+        return(value.toString());
+
+      if (value instanceof BigInteger)
+        return(value.toString());
+
+      if (value instanceof BigDecimal)
         return(value.toString());
 
       value = JSONObject.quote(value.toString());
