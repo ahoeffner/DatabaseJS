@@ -210,18 +210,18 @@ public class Session
   public ArrayList<Object[]> fetch(Cursor cursor) throws Exception
   {
     boolean timeconv = false;
-    DateTimeFormatter format = null;
+    DateTimeFormatter formatter = null;
 
     if (cursor.dateconversion != null)
     {
       if (cursor.dateconversion.equals("UTC")) timeconv = true;
-      else format = DateTimeFormatter.ofPattern(cursor.dateconversion);
+      else formatter = DateTimeFormatter.ofPattern(cursor.dateconversion);
     }
 
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
     for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
-      table.add(database.fetch(cursor.rset,timeconv,format));
+      table.add(database.fetch(cursor.rset,timeconv,formatter));
 
     if (cursor.rows <= 0 || table.size() < cursor.rows)
       closeCursor(cursor);

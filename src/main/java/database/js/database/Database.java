@@ -21,12 +21,13 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.time.format.DateTimeFormatter;
+import database.js.handlers.rest.DateUtils;
 
 
 public abstract class Database
 {
   private Connection conn;
-
+  
 
   public Database()
   {
@@ -151,16 +152,10 @@ public abstract class Database
     {
       values[i] = rset.getObject(i+1);
 
-      if (conv && (values[i] instanceof java.sql.Date || values[i] instanceof java.util.Date))
+      if (conv && DateUtils.isDate(values[i]))
       {
-        if (values[i] instanceof java.sql.Date)
-        {
-          values[i] = ((java.sql.Date) values[i]).getTime();
-          values[i] = new java.util.Date((Long) values[i]);
-        }
-
-        if (timeconv) values[i] = ((java.util.Date) values[i]).getTime();
-        else          values[i] = formatter.format(((java.util.Date) values[i]).toInstant());
+        if (timeconv) values[i] = DateUtils.getTime(values[i]);
+        else values[i] = DateUtils.format(formatter,values[i]);
       }
     }
 
