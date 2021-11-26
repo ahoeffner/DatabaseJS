@@ -20,7 +20,6 @@ import java.sql.DriverManager;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-
 import java.text.SimpleDateFormat;
 
 
@@ -63,6 +62,7 @@ public abstract class Database
   {
     String url = DatabaseUtils.bind(username,password);
     Connection conn = DriverManager.getConnection(url);
+    conn.setAutoCommit(false);
     return(conn);
   }
 
@@ -144,20 +144,20 @@ public abstract class Database
   public Object[] fetch(ResultSet rset, boolean timeconv, SimpleDateFormat format) throws Exception
   {
     boolean conv = timeconv || format != null;
-    
+
     ResultSetMetaData meta = rset.getMetaData();
     Object[] values = new Object[meta.getColumnCount()];
 
     for (int i = 0; i < values.length; i++)
     {
       values[i] = rset.getObject(i+1);
-      
+
       if (conv && (values[i] instanceof java.sql.Date || values[i] instanceof java.util.Date))
       {
         if (values[i] instanceof java.sql.Date)
         {
           values[i] = ((java.sql.Date) values[i]).getTime();
-          values[i] = new java.util.Date((Long) values[i]);                  
+          values[i] = new java.util.Date((Long) values[i]);
         }
 
         if (timeconv) values[i] = ((java.util.Date) values[i]).getTime();

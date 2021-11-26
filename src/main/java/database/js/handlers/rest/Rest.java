@@ -350,6 +350,9 @@ public class Rest
     {
       boolean savepoint = getSavepoint(payload,true);
 
+      if (payload.has("bindvalues"))
+        this.getBindValues(payload.getJSONArray("bindvalues"));
+
       String sql = getStatement(payload);
 
       if (error != null)

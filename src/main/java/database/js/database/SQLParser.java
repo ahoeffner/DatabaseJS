@@ -22,7 +22,7 @@ public class SQLParser
   private final boolean func;
   private final ArrayList<BindValue> bindings;
   private final HashMap<String,BindValueDef> bindvalues;
-
+  
 
   public SQLParser(HashMap<String,BindValueDef> bindvalues, String stmt)
   {

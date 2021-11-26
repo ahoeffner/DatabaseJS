@@ -14,11 +14,11 @@ package database.js.handlers.rest;
 
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 
 public class JSONFormatter
@@ -357,7 +357,7 @@ public class JSONFormatter
     {
       if (value == null)
         return("null");
-      
+
       if (value instanceof Boolean)
         return(value.toString());
 

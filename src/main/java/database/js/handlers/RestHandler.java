@@ -210,7 +210,7 @@ public class RestHandler extends Handler
     String cinst = null;
     String instance = config().instance();
     String cookie = request.getCookie("RESTSRVID");
-    
+
     if (cookie == null)
       return(-1);
 

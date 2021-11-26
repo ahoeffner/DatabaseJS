@@ -20,13 +20,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.database.Pool;
 import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
-
-import java.text.SimpleDateFormat;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -210,12 +208,12 @@ public class Session
   {
     boolean timeconv = false;
     SimpleDateFormat format = null;
-    
+
     if (cursor.dateconversion != null)
     {
       if (cursor.dateconversion.equals("UTC")) timeconv = true;
       else format = new SimpleDateFormat(cursor.dateconversion);
-    }    
+    }
 
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
