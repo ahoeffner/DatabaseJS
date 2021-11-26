@@ -27,7 +27,7 @@ import database.js.handlers.rest.DateUtils;
 public abstract class Database
 {
   private Connection conn;
-  
+
 
   public Database()
   {

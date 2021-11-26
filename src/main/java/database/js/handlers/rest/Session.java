@@ -20,14 +20,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.database.Pool;
 import java.sql.PreparedStatement;
-import java.text.SimpleDateFormat;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
-
 import java.time.format.DateTimeFormatter;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 

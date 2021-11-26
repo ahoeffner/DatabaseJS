@@ -48,15 +48,15 @@ public class BindValue
   {
     return(bindvalue.value);
   }
-  
-  
+
+
   @Override
   public String toString()
   {
     String inout = "in";
     if (bindvalue.outval) inout = "out";
     else if (out)         inout = "inout";
-    
+
     return(bindvalue.name+" "+bindvalue.type+" "+bindvalue.value+" ("+inout+")");
   }
 }
