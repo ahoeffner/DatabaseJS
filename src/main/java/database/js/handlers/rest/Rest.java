@@ -28,6 +28,8 @@ import database.js.database.Pool;
 import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
+import database.js.database.NameValuePair;
+
 import java.util.concurrent.ConcurrentHashMap;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
 
@@ -383,6 +385,69 @@ public class Rest
 
       json.success(true);
       json.add("rows",rows);
+
+      return(json.toString());
+    }
+    catch (Throwable e)
+    {
+      session.releaseSavePoint(this.savepoint,true);
+
+      this.savepoint = null;
+      state.releaseAll(this);
+
+      return(error(e));
+    }
+  }
+
+
+  private String call(JSONObject payload, boolean batch)
+  {
+    if (session == null)
+      return(error("Not connected"));
+
+    try
+    {
+      String dateconv = null;
+      boolean savepoint = getSavepoint(payload,true);
+
+      if (payload.has("dateconversion")) 
+        dateconv = payload.getString("dateconversion");
+
+      if (payload.has("bindvalues"))
+        this.getBindValues(payload.getJSONArray("bindvalues"));
+
+      String sql = getStatement(payload);
+
+      if (error != null)
+        return(error);
+
+      SQLParser parser = new SQLParser(bindvalues,sql,true);
+
+      if (!batch && savepoint)
+      {
+        state.lock(this,true);
+        this.savepoint = session.setSavePoint();
+      }
+
+      state.lock(this,false);
+      ArrayList<NameValuePair<Object>> values = session.executeCall(parser.sql(),parser.bindvalues(),dateconv);
+      state.release(this,false);
+
+      if (!batch && savepoint)
+      {
+        if (!session.releaseSavePoint(this.savepoint))
+        {
+          this.savepoint = null;
+          throw new Exception("Could not release savepoint");
+        }
+      }
+
+      JSONFormatter json = new JSONFormatter();
+
+      json.success(true);
+      
+      for(NameValuePair<Object> nvp : values)
+        json.add(nvp.getName(),nvp.getValue());
 
       return(json.toString());
     }

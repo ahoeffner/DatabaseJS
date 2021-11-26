@@ -24,6 +24,10 @@ import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
+import database.js.database.NameValuePair;
+
+import java.sql.CallableStatement;
+
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -195,6 +199,22 @@ public class Session
     if (name != null) cursors.put(name,cursor);
 
     return(cursor);
+  }
+
+
+  public ArrayList<NameValuePair<Object>> executeCall(String sql, ArrayList<BindValue> bindvalues, String format) throws Exception
+  {
+    boolean timeconv = false;
+    DateTimeFormatter formatter = null;
+
+    if (format != null)
+    {
+      if (format.equals("UTC")) timeconv = true;
+      else formatter = DateTimeFormatter.ofPattern(format);
+    }
+
+    CallableStatement stmt = database.prepareCall(sql,bindvalues);
+    return(database.execute(stmt,bindvalues, timeconv, formatter));
   }
 
 

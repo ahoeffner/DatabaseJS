@@ -130,6 +130,36 @@ public abstract class Database
   }
 
 
+  public ArrayList<NameValuePair<Object>> execute(CallableStatement stmt, ArrayList<BindValue> bindvalues, boolean timeconv, DateTimeFormatter formatter) throws Exception
+  {
+    boolean conv = timeconv || formatter != null;
+
+    ArrayList<NameValuePair<Object>> values = 
+      new ArrayList<NameValuePair<Object>>();
+    
+    stmt.executeUpdate();
+    
+    int pos = 1;
+    for(BindValue b : bindvalues)
+    {
+      if (b.InOut())
+      {
+        Object value = stmt.getObject(pos++);
+        
+        if (conv && DateUtils.isDate(value))
+        {
+          if (timeconv) value = DateUtils.getTime(value);
+          else value = DateUtils.format(formatter,value);
+        }
+          
+        values.add(new NameValuePair<Object>(b.getName(),value));
+      }
+    }
+    
+    return(values);
+  }
+
+
   public String[] getColumNames(ResultSet rset) throws Exception
   {
     ResultSetMetaData meta = rset.getMetaData();
