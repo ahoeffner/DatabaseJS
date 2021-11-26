@@ -20,7 +20,7 @@ import java.sql.DriverManager;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
 
 public abstract class Database
@@ -141,10 +141,9 @@ public abstract class Database
   }
 
 
-  public Object[] fetch(ResultSet rset, boolean timeconv, SimpleDateFormat format) throws Exception
+  public Object[] fetch(ResultSet rset, boolean timeconv, DateTimeFormatter formatter) throws Exception
   {
-    boolean conv = timeconv || format != null;
-
+    boolean conv = timeconv || formatter != null;
     ResultSetMetaData meta = rset.getMetaData();
     Object[] values = new Object[meta.getColumnCount()];
 
@@ -161,7 +160,7 @@ public abstract class Database
         }
 
         if (timeconv) values[i] = ((java.util.Date) values[i]).getTime();
-        else          values[i] = format.format((java.util.Date) values[i]);
+        else          values[i] = formatter.format(((java.util.Date) values[i]).toInstant());
       }
     }
 

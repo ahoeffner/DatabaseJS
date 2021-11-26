@@ -25,6 +25,9 @@ import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
+
+import java.time.format.DateTimeFormatter;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -207,12 +210,12 @@ public class Session
   public ArrayList<Object[]> fetch(Cursor cursor) throws Exception
   {
     boolean timeconv = false;
-    SimpleDateFormat format = null;
+    DateTimeFormatter format = null;
 
     if (cursor.dateconversion != null)
     {
       if (cursor.dateconversion.equals("UTC")) timeconv = true;
-      else format = new SimpleDateFormat(cursor.dateconversion);
+      else format = DateTimeFormatter.ofPattern(cursor.dateconversion);
     }
 
     ArrayList<Object[]> table = new ArrayList<Object[]>();
