@@ -164,6 +164,9 @@ public class Rest
       case "call" :
         response = call(payload,batch); break;
 
+      case "disconnect" :
+        response = disconnect(); break;
+
       default : return(error("Unknown command "+cmd));
     }
 
@@ -241,6 +244,30 @@ public class Rest
 
     json.success(true);
     json.add("session",sesid);
+
+    return(json.toString());
+  }
+
+
+  private String disconnect()
+  {
+    if (session == null)
+      return(error("not connected"));
+
+    try
+    {
+      session.disconnect();
+    }
+    catch (Throwable e)
+    {
+      return(error(e));
+    }
+
+    JSONFormatter json = new JSONFormatter();
+    String sesid = encode(session.guid(),host);
+
+    json.success(true);
+    json.add("disconnected",sesid);
 
     return(json.toString());
   }

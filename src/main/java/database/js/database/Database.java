@@ -34,22 +34,35 @@ public abstract class Database
   }
 
 
+  public Connection connection()
+  {
+    return(conn);
+  }
+
+
   public boolean connected()
   {
     return(conn != null);
   }
 
 
-  public boolean disconnect()
+  public void disconnect() throws Exception
   {
-    boolean done = true;
-
     try {conn.close();}
-    catch (Exception e)
-    {done = false;}
+    catch (Exception e) {;}
+    finally {this.conn = null;}
+  }
 
-    this.conn = null;
-    return(done);
+
+  public void commit() throws Exception
+  {
+    conn.commit();
+  }
+
+
+  public void rollback() throws Exception
+  {
+    conn.rollback();
   }
 
 

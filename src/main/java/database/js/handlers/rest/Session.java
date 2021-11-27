@@ -109,9 +109,11 @@ public class Session
   }
 
 
-  public void disconnect()
+  public void disconnect() throws Exception
   {
-    database.disconnect();
+    database.rollback();
+    if (pool == null) database.disconnect();
+    else pool.release(database.connection());
   }
 
 
