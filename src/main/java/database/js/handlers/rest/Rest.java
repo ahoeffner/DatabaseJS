@@ -295,7 +295,7 @@ public class Rest
     {
       int rows = 0;
       int skip = 0;
-      String name = null;
+      String curname = null;
       boolean compact = this.compact;
       String dateform = this.dateform;
       boolean savepoint = getSavepoint(payload,false);
@@ -307,20 +307,25 @@ public class Rest
 
       if (payload.has("rows")) rows = payload.getInt("rows");
       if (payload.has("skip")) skip = payload.getInt("skip");
-      if (payload.has("cursor")) name = payload.getString("cursor");
+      
+      if (payload.has("dateformat")) 
+      {
+        if (payload.isNull("dateformat")) dateform = null;
+        else   dateform = payload.getString("dateformat");
+      }
+            
       if (payload.has("compact")) compact = payload.getBoolean("compact");
-      if (payload.has("dateformat")) dateform = payload.getString("dateformat");
       if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
+      if (session.dedicated() && payload.has("cursor")) curname = payload.getString("cursor");
 
       String sql = getStatement(payload);
-      if (!session.dedicated()) name = null;
 
       if (error != null)
         return(error);
 
       SQLParser parser = new SQLParser(bindvalues,sql);
 
-      session.closeCursor(name);
+      session.closeCursor(curname);
 
       if (!batch && savepoint)
       {
@@ -329,7 +334,7 @@ public class Rest
       }
 
       state.lock(this,false);
-      Cursor cursor = session.executeQuery(name,parser.sql(),parser.bindvalues());
+      Cursor cursor = session.executeQuery(curname,parser.sql(),parser.bindvalues());
       state.release(this,false);
 
       if (!batch && savepoint)
