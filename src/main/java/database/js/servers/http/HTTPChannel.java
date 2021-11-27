@@ -32,6 +32,7 @@ public class HTTPChannel
 {
   private long touched;
   private boolean stayalive;
+  private boolean permanent;
   private boolean connected;
 
   private final boolean ssl;
@@ -207,6 +208,13 @@ public class HTTPChannel
   }
 
 
+  public void permanent()
+  {
+    permanent = true;
+    stayalive = true;
+  }
+
+
   public boolean stayalive()
   {
     return(stayalive);
@@ -215,6 +223,9 @@ public class HTTPChannel
 
   public void stayalive(boolean on)
   {
+    if (permanent && !on)
+      return;
+    
     stayalive = on;
   }
 

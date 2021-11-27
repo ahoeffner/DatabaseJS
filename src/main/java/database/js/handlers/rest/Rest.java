@@ -118,6 +118,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      session.assertOpen();
       return(error(e));
     }
   }
@@ -170,6 +171,7 @@ public class Rest
       state.releaseAll(this);
     }
 
+    session.assertOpen();
     return(response);
   }
 
@@ -251,6 +253,7 @@ public class Rest
     try
     {
       int rows = 0;
+      int skip = 0;
       String name = null;
       String dateconv = null;
       boolean compact = false;
@@ -262,12 +265,14 @@ public class Rest
         this.getBindValues(payload.getJSONArray("bindvalues"));
 
       if (payload.has("rows")) rows = payload.getInt("rows");
+      if (payload.has("skip")) skip = payload.getInt("skip");
       if (payload.has("cursor")) name = payload.getString("cursor");
       if (payload.has("compact")) compact = payload.getBoolean("compact");
       if (payload.has("dateconversion")) dateconv = payload.getString("dateconversion");
       if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
 
       String sql = getStatement(payload);
+      if (!session.dedicated()) name = null;
 
       if (error != null)
         return(error);
@@ -301,7 +306,7 @@ public class Rest
       cursor.dateconversion = dateconv;
 
       String[] columns = session.getColumnNames(cursor);
-      ArrayList<Object[]> table = session.fetch(cursor);
+      ArrayList<Object[]> table = session.fetch(cursor,skip);
 
       JSONFormatter json = new JSONFormatter();
 
@@ -491,7 +496,7 @@ public class Rest
       }
 
       String[] columns = session.getColumnNames(cursor);
-      ArrayList<Object[]> table = session.fetch(cursor);
+      ArrayList<Object[]> table = session.fetch(cursor,0);
 
       json.success(true);
       json.add("more",!cursor.closed);
@@ -759,6 +764,8 @@ public class Rest
         session.lock(exclusive);
         if (!exclusive) shared++;
         else this.exclusive = true;
+
+        System.out.println("Rest lock exclusive="+this.exclusive+" shared="+shared);
       }
       catch (Throwable e)
       {
@@ -780,6 +787,8 @@ public class Rest
 
         if (!exclusive) shared--;
         else this.exclusive = false;
+
+        System.out.println("Rest release exclusive="+this.exclusive+" shared="+shared);
       }
       catch (Throwable e)
       {
@@ -790,12 +799,12 @@ public class Rest
 
     void releaseAll(Rest rest)
     {
-      // Remember KeepAlive on channel while in call
       Session session = rest.session;
       if (session == null) return;
 
       try
       {
+        System.out.println("Rest releaseAll exclusive="+exclusive+" shared="+shared);
         if (exclusive || shared > 0)
           session.releaseAll(exclusive,shared);
 

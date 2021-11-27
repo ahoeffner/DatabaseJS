@@ -223,7 +223,7 @@ public class Session
   }
 
 
-  public ArrayList<Object[]> fetch(Cursor cursor) throws Exception
+  public ArrayList<Object[]> fetch(Cursor cursor, int skip) throws Exception
   {
     boolean timeconv = false;
     DateTimeFormatter formatter = null;
@@ -236,6 +236,9 @@ public class Session
 
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
+    for (int i = 0; i < skip && cursor.rset.next(); i++)
+      database.fetch(cursor.rset,timeconv,formatter);
+    
     for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
       table.add(database.fetch(cursor.rset,timeconv,formatter));
 
@@ -286,6 +289,8 @@ public class Session
     synchronized(LOCK)
     {
       boolean owner = this.thread == thread;
+      
+      System.out.println("Session lock, lockthread="+this.thread+", thread="+thread+" exclusive="+exclusive);
 
       while(!owner && this.exclusive)
         LOCK.wait();
@@ -306,6 +311,13 @@ public class Session
         this.shared++;
       }
     }
+  }
+  
+  
+  public void assertOpen()
+  {
+    if (thread != 0 || exclusive || shared > 0)
+      System.out.println("******************** Locked ******************** thread="+thread+" exclusive="+exclusive+" shared="+shared);
   }
 
 
@@ -342,7 +354,7 @@ public class Session
       if (exclusive)
       {
         this.thread = 0;
-        exclusive = false;
+        this.exclusive = false;
       }
       else
       {
