@@ -325,13 +325,6 @@ public class Session
   }
 
 
-  public void assertOpen()
-  {
-    if (thread != 0 || exclusive || shared > 0)
-      System.out.println("******************** Locked ******************** thread="+thread+" exclusive="+exclusive+" shared="+shared);
-  }
-
-
   public void releaseAll(boolean exclusive, int shared) throws Exception
   {
     if (exclusive) release(true,0);

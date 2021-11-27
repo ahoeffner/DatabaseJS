@@ -133,7 +133,6 @@ public class Rest
     }
     catch (Throwable e)
     {
-      session.assertOpen();
       return(error(e));
     }
   }
@@ -189,7 +188,6 @@ public class Rest
       state.releaseAll(this);
     }
 
-    session.assertOpen();
     return(response);
   }
 
