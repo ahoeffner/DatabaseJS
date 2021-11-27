@@ -232,12 +232,10 @@ public class Rest
 
         if (method == AuthMethod.OAuth)
         {
-          try {username = OAuth.getUserName(secret);}
-          catch (Exception e)
-          {
-            error(e);
+          username = OAuth.getUserName(secret);
+
+          if (username == null)
             return(error("OAuth authentication failed"));
-          }
         }
 
         if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)
