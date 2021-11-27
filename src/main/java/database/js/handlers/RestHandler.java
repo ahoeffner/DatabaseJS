@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.security.OAuth;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.control.Process.Type;
@@ -41,6 +42,7 @@ public class RestHandler extends Handler
   {
     super(config,properties);
 
+    OAuth.init(config);
     config.loadDatabaseConfig();
     this.path = new PathUtil(this);
     this.domains = new TreeSet<String>();

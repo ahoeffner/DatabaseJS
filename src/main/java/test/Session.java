@@ -20,6 +20,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 import database.js.client.SocketReader;
+import database.js.security.FakeTrustManager;
 
 
 public class Session

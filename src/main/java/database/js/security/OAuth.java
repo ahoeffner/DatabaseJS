@@ -13,14 +13,13 @@
 package database.js.security;
 
 import java.net.URL;
-import java.util.Map;
-import java.util.List;
-import java.io.InputStream;
+import java.util.ArrayList;
 import javax.net.ssl.SSLContext;
-import java.net.HttpURLConnection;
+import database.js.config.Config;
+import javax.net.ssl.TrustManager;
 import database.js.client.HTTPClient;
-import java.io.ByteArrayOutputStream;
 import database.js.client.HTTPRequest;
+import database.js.database.NameValuePair;
 
 
 public class OAuth
@@ -28,81 +27,57 @@ public class OAuth
   private final int port;
   private final String host;
   private final String path;
-  private final String auth;
+  private final SSLContext ctx;
+  private final ArrayList<NameValuePair<Object>> headers;
 
+  private static OAuth instance = null;
 
-  @SuppressWarnings("unused")
-  public static void main(String[] args) throws Exception
+  public static synchronized void init(Config config) throws Exception
   {
-    OAuth auth = new OAuth("https://oauth2.googleapis.com:443/token","4/0AX4XfWhWiLRCFJrxiDKjQh3aWdv29fiFuk-UBvS6byAmfcjIQ4Fv7N_UeHzIBKHGRtx1vw");
-
-    //auth.getTestToken();
-    auth.verify("ya29.a0ARrdaM83y9p5sgxgVbYbJhHDW4aNZhv42HXLE4LQxznTm9NAbMpILnuRUY-4C4cuL3fdqqG2MYCvHmlMCqHReQBbxI6LhYdYJ1gvyxcIWGsm-NXVVLHlYz51bnqxPir9figDj5rpyLY5CJW_s3LNZaBJLW_b");
+    if (instance == null)
+      instance = new OAuth(config);
   }
 
 
-  public OAuth(String oaurl, String auth) throws Exception
+  public static String getUserName(String token) throws Exception
   {
-    URL url = new URL(oaurl);
+    return(instance.verify(token));
+  }
 
-    this.auth = auth;
+
+  private OAuth(Config config) throws Exception
+  {
+    String endp = config.getSecurity().oauthurl();
+    this.headers = config.getSecurity().oaheaders();
+
+    ctx = SSLContext.getInstance("TLS");
+    FakeTrustManager tmgr = new FakeTrustManager();
+    ctx.init(null,new TrustManager[] {tmgr},new java.security.SecureRandom());
+
+    URL url = new URL(endp);
+
     this.host = url.getHost();
     this.port = url.getPort();
     this.path = url.getPath();
   }
 
 
-  public String verify(String token) throws Exception
+  private String verify(String token) throws Exception
   {
-    SSLContext ctx = SSLContext.getDefault();
     HTTPClient client = new HTTPClient(host,port,ctx);
     HTTPRequest request = new HTTPRequest(host,path,token);
-    if (auth != null) request.setHeader("Authorization",auth);
+
+    for(NameValuePair<Object> header : headers)
+      request.setHeader(header.getName(),header.getValue().toString());
 
     client.connect();
     byte[] bytes = client.send(request.page());
 
     String response = new String(bytes);
     System.out.println(response);
-    return(response);
-  }
 
+    String user = "????";
 
-  private String getTestToken() throws Exception
-  {
-    String code = "code=4/0AX4XfWgD7jrRm3wHZOeqyPU7WbCjOHehYhn6wdW6Wuk6BbOVaqRO4jBSp7gVZP6mRjTisQ&scope=https://www.googleapis.com/auth/cloud-platform";
-
-    URL url = new URL("https://oauth2.googleapis.com/token");
-
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestProperty("user-agent","google-oauth-playground");
-    conn.setRequestProperty("content-type","application/x-www-form-urlencoded");
-    conn.setRequestProperty("Authorization","\"4/0AX4XfWhWiLRCFJrxiDKjQh3aWdv29fiFuk-UBvS6byAmfcjIQ4Fv7N_UeHzIBKHGRtx1vw\"");
-
-    conn.setDoOutput(true);
-    conn.getOutputStream().write(code.getBytes());
-
-    byte[] bytes = new byte[4196];
-    InputStream in = conn.getInputStream();
-
-    for(Map.Entry<String,List<String>> header : conn.getHeaderFields().entrySet())
-    {
-      System.out.print(header.getKey());
-      for(String val : header.getValue()) System.out.print(" "+val);
-      System.out.println();
-    }
-
-    int read = 0;
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-    while(read >= 0)
-    {
-      read = in.read(bytes);
-      if (read > 0) out.write(bytes,0,read);
-    }
-
-    String response = new String(out.toByteArray());
-    System.out.println(response);
-    return(response);
+    return(user);
   }
 }

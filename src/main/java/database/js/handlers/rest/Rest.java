@@ -307,13 +307,13 @@ public class Rest
 
       if (payload.has("rows")) rows = payload.getInt("rows");
       if (payload.has("skip")) skip = payload.getInt("skip");
-      
-      if (payload.has("dateformat")) 
+
+      if (payload.has("dateformat"))
       {
         if (payload.isNull("dateformat")) dateform = null;
         else   dateform = payload.getString("dateformat");
       }
-            
+
       if (payload.has("compact")) compact = payload.getBoolean("compact");
       if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
       if (session.dedicated() && payload.has("cursor")) curname = payload.getString("cursor");

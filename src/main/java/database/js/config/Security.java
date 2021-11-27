@@ -13,14 +13,19 @@
 package database.js.config;
 
 import java.io.File;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
 import database.js.security.Keystore;
+import database.js.database.NameValuePair;
 
 
 public class Security
 {
+  private final String oaurl;
   private final Keystore trust;
   private final Keystore identity;
+  private final ArrayList<NameValuePair<Object>> headers;
 
 
   Security(JSONObject config) throws Exception
@@ -51,6 +56,22 @@ public class Security
       file = Paths.apphome + File.separator + file;
 
     trust = new Keystore(file,type,null,passwd);
+
+    JSONObject oauth = config.getJSONObject("oauth2");
+
+    this.oaurl = oauth.getString("url");
+    this.headers = new ArrayList<NameValuePair<Object>>();
+
+    JSONArray headers = oauth.getJSONArray("headers");
+
+    for (int i = 0; i < headers.length(); i++)
+    {
+      JSONObject header = headers.getJSONObject(i);
+      String name = JSONObject.getNames(header)[0];
+
+      Object value = header.get(name);
+      this.headers.add(new NameValuePair<Object>(name,value));
+    }
   }
 
 
@@ -62,5 +83,15 @@ public class Security
   public Keystore getIdentity()
   {
     return(identity);
+  }
+
+  public String oauthurl()
+  {
+    return(oaurl);
+  }
+
+  public ArrayList<NameValuePair<Object>> oaheaders()
+  {
+    return(headers);
   }
 }

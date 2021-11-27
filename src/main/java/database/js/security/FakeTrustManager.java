@@ -10,7 +10,7 @@
  * accompanied this code).
  */
 
-package test;
+package database.js.security;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
