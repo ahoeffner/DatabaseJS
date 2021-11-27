@@ -63,6 +63,7 @@ public class HTTPWorker implements Runnable
         response.setHeader("Location","https://"+host);
 
         request.respond(response.page());
+        this.channel.stayalive(false);
         channel.workers().done();
 
         return;
@@ -77,8 +78,11 @@ public class HTTPWorker implements Runnable
       if (handler == null)
       {
         logger.warning("No appropiate handler mapped to path="+path+" method="+method);
+        
         this.workers.done();
         this.channel.failed();
+        this.channel.stayalive(false);
+        
         return;
       }
 
