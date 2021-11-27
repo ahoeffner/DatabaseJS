@@ -78,11 +78,11 @@ public class HTTPWorker implements Runnable
       if (handler == null)
       {
         logger.warning("No appropiate handler mapped to path="+path+" method="+method);
-        
+
         this.workers.done();
         this.channel.failed();
         this.channel.stayalive(false);
-        
+
         return;
       }
 

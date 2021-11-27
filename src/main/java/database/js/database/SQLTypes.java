@@ -50,7 +50,6 @@ public class SQLTypes
   }
 
 
-
   public static Integer getType(String type)
   {
     Integer sqlt = type == null ? null : types.get(type.toUpperCase());
@@ -64,4 +63,11 @@ public class SQLTypes
     return(sqlt);
   }
 
+  public static boolean isDate(int type)
+  {
+    if (type == Types.DATE || type == Types.TIMESTAMP)
+      return(true);
+
+    return(false);
+  }
 }

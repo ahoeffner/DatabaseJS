@@ -44,7 +44,10 @@ public class Pool
         throw new Exception("Invalid connect token");
     }
 
-    return(DriverManager.getConnection(url));
+    Connection conn = DriverManager.getConnection(url);
+    conn.setAutoCommit(false);
+
+    return(conn);
   }
 
 

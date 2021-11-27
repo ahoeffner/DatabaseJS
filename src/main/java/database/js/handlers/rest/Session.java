@@ -201,19 +201,19 @@ public class Session
   }
 
 
-  public ArrayList<NameValuePair<Object>> executeCall(String sql, ArrayList<BindValue> bindvalues, String format) throws Exception
+  public ArrayList<NameValuePair<Object>> executeCall(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
     boolean timeconv = false;
     DateTimeFormatter formatter = null;
 
-    if (format != null)
+    if (dateform != null)
     {
-      if (format.equals("UTC")) timeconv = true;
-      else formatter = DateTimeFormatter.ofPattern(format);
+      if (dateform.equals("UTC")) timeconv = true;
+      else formatter = DateTimeFormatter.ofPattern(dateform);
     }
 
     CallableStatement stmt = database.prepareCall(sql,bindvalues);
-    return(database.execute(stmt,bindvalues, timeconv, formatter));
+    return(database.execute(stmt,bindvalues,timeconv,formatter));
   }
 
 
@@ -228,17 +228,17 @@ public class Session
     boolean timeconv = false;
     DateTimeFormatter formatter = null;
 
-    if (cursor.dateconversion != null)
+    if (cursor.dateformat != null)
     {
-      if (cursor.dateconversion.equals("UTC")) timeconv = true;
-      else formatter = DateTimeFormatter.ofPattern(cursor.dateconversion);
+      if (cursor.dateformat.equals("UTC")) timeconv = true;
+      else formatter = DateTimeFormatter.ofPattern(cursor.dateformat);
     }
 
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
     for (int i = 0; i < skip && cursor.rset.next(); i++)
       database.fetch(cursor.rset,timeconv,formatter);
-    
+
     for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
       table.add(database.fetch(cursor.rset,timeconv,formatter));
 
@@ -289,7 +289,7 @@ public class Session
     synchronized(LOCK)
     {
       boolean owner = this.thread == thread;
-      
+
       System.out.println("Session lock, lockthread="+this.thread+", thread="+thread+" exclusive="+exclusive);
 
       while(!owner && this.exclusive)
@@ -312,8 +312,8 @@ public class Session
       }
     }
   }
-  
-  
+
+
   public void assertOpen()
   {
     if (thread != 0 || exclusive || shared > 0)

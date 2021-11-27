@@ -28,6 +28,10 @@ public class BindValueDef
     this.type = SQLTypes.getType(type);
   }
 
+  public boolean isDate()
+  {
+    return(SQLTypes.isDate(type));
+  }
 
   public BindValue copy(boolean out)
   {

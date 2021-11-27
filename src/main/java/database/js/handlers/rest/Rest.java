@@ -13,6 +13,7 @@
 package database.js.handlers.rest;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Base64;
 import java.util.TreeSet;
 import java.util.HashMap;
@@ -214,8 +215,8 @@ public class Rest
 
         if (method == AuthMethod.PoolToken)
         {
-          if (anonymous) pool = config.getDatabase().proxy();
-          else           pool = config.getDatabase().anonymous();
+          if (!anonymous) pool = config.getDatabase().proxy();
+          else            pool = config.getDatabase().anonymous();
         }
 
         if (error != null)
@@ -255,7 +256,7 @@ public class Rest
       int rows = 0;
       int skip = 0;
       String name = null;
-      String dateconv = null;
+      String dateform = null;
       boolean compact = false;
       boolean savepoint = getSavepoint(payload,false);
 
@@ -268,7 +269,7 @@ public class Rest
       if (payload.has("skip")) skip = payload.getInt("skip");
       if (payload.has("cursor")) name = payload.getString("cursor");
       if (payload.has("compact")) compact = payload.getBoolean("compact");
-      if (payload.has("dateconversion")) dateconv = payload.getString("dateconversion");
+      if (payload.has("dateformat")) dateform = payload.getString("dateformat");
       if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
 
       String sql = getStatement(payload);
@@ -303,7 +304,7 @@ public class Rest
 
       cursor.rows = rows;
       cursor.compact = compact;
-      cursor.dateconversion = dateconv;
+      cursor.dateformat = dateform;
 
       String[] columns = session.getColumnNames(cursor);
       ArrayList<Object[]> table = session.fetch(cursor,skip);
@@ -628,7 +629,15 @@ public class Rest
       if (!bvalue.has("value")) outval = true;
       else value = bvalue.get("value");
 
-      this.bindvalues.put(name,new BindValueDef(name,type,outval,value));
+      BindValueDef bindvalue = new BindValueDef(name,type,outval,value);
+
+      if (value != null && bindvalue.isDate())
+      {
+        if (value instanceof Long)
+          value = new Date((Long) value);
+      }
+
+      this.bindvalues.put(name,bindvalue);
     }
   }
 
@@ -764,8 +773,6 @@ public class Rest
         session.lock(exclusive);
         if (!exclusive) shared++;
         else this.exclusive = true;
-
-        System.out.println("Rest lock exclusive="+this.exclusive+" shared="+shared);
       }
       catch (Throwable e)
       {
@@ -787,8 +794,6 @@ public class Rest
 
         if (!exclusive) shared--;
         else this.exclusive = false;
-
-        System.out.println("Rest release exclusive="+this.exclusive+" shared="+shared);
       }
       catch (Throwable e)
       {
@@ -804,10 +809,10 @@ public class Rest
 
       try
       {
-        System.out.println("Rest releaseAll exclusive="+exclusive+" shared="+shared);
         if (exclusive || shared > 0)
           session.releaseAll(exclusive,shared);
 
+        shared = 0;
         exclusive = false;
       }
       catch (Throwable e)

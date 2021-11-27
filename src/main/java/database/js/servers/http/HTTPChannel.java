@@ -225,7 +225,7 @@ public class HTTPChannel
   {
     if (permanent && !on)
       return;
-    
+
     stayalive = on;
   }
 
