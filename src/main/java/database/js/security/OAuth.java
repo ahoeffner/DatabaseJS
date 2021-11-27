@@ -15,11 +15,14 @@ package database.js.security;
 import java.net.URL;
 import java.util.ArrayList;
 import javax.net.ssl.SSLContext;
+import java.util.logging.Logger;
 import database.js.config.Config;
 import javax.net.ssl.TrustManager;
 import database.js.client.HTTPClient;
 import database.js.client.HTTPRequest;
 import database.js.database.NameValuePair;
+
+import java.util.logging.Logger;
 
 
 public class OAuth
@@ -27,6 +30,7 @@ public class OAuth
   private final int port;
   private final String host;
   private final String path;
+  private final Logger logger;
   private final SSLContext ctx;
   private final ArrayList<NameValuePair<Object>> headers;
 
@@ -59,6 +63,7 @@ public class OAuth
     this.host = url.getHost();
     this.port = url.getPort();
     this.path = url.getPath();
+    this.logger = config.getLogger().rest;
   }
 
 
@@ -70,14 +75,16 @@ public class OAuth
     for(NameValuePair<Object> header : headers)
       request.setHeader(header.getName(),header.getValue().toString());
 
+    logger.info("OAuth connect to "+host+":"+port);
     client.connect();
+
+    logger.info("OAuth send request");
     byte[] bytes = client.send(request.page());
 
     String response = new String(bytes);
-    System.out.println(response);
+    logger.info("OAuth response \n"+response);
 
     String user = "????";
-
     return(user);
   }
 }
