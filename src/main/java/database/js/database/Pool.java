@@ -124,7 +124,7 @@ public class Pool
   }
 
 
-  private Connection connect() throws Exception
+  public Connection connect() throws Exception
   {
     return(connect(this.token));
   }

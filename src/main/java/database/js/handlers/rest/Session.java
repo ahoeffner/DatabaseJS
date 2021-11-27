@@ -131,6 +131,7 @@ public class Session
     switch(method)
     {
       case OAuth :
+        conn = pool.connect();
         break;
 
       case Database :

@@ -24,7 +24,14 @@ public class Database
 {
   private final String url;
   private final String test;
+
   private final String repo;
+
+  private final boolean compact;
+  private final String dateform;
+
+  private final String rewclass;
+  private final String valclass;
 
   private final Pool proxy;
   private final Pool anonymous;
@@ -38,20 +45,36 @@ public class Database
   @SuppressWarnings("unchecked")
   Database(JSONObject config) throws Exception
   {
-    String type = config.getString("type");
+    JSONObject section = config.getJSONObject("database");
+    //********************* General Section *********************
+
+    String type = section.getString("type");
 
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
-    this.url = config.getString("jdbc");
-    this.test = config.getString("test");
+    this.url = section.getString("jdbc");
+    this.test = section.getString("test");
+
     this.type = DatabaseType.valueOf(type);
     this.urlparts = DatabaseUtils.parse(url);
 
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
 
-    String repo = config.getString("repository");
+    section = config.getJSONObject("resultset");
+    //*********************  Data Section   *********************
+
+    this.compact = section.getBoolean("compact");
+
+    if (section.isNull("dateformat")) this.dateform = null;
+    else   this.dateform = section.getString("dateformat");
+
+
+    section = config.getJSONObject("repository");
+    //*********************  Repos Section  *********************
+
+    String repo = section.getString("path");
 
     if (repo.startsWith("." + File.separator))
     {
@@ -62,14 +85,28 @@ public class Database
 
     this.repo = repo;
 
+    section = config.getJSONObject("savepoints");
+    //******************* Savepoint Section  *******************
+
     this.savepoints = new NameValuePair[2];
-    JSONObject savep = config.getJSONObject("savepoint.defaults");
+    this.savepoints[0] = new NameValuePair<Boolean>("post",section.getBoolean("post"));
+    this.savepoints[1] = new NameValuePair<Boolean>("patch",section.getBoolean("patch"));
 
-    this.savepoints[0] = new NameValuePair<Boolean>("post",savep.getBoolean("post"));
-    this.savepoints[1] = new NameValuePair<Boolean>("patch",savep.getBoolean("patch"));
+    section = config.getJSONObject("interceptors");
+    //****************** Interceptors Section ******************
 
-    this.proxy = getPool("proxy",config);
-    this.anonymous = getPool("anonymous",config);
+    if (section.isNull("rewrite.class")) this.rewclass = null;
+    else   this.rewclass = section.getString("rewrite.class");
+
+    if (section.isNull("validator.class")) this.valclass = null;
+    else   this.valclass = section.getString("validator.class");
+
+
+    section = config.getJSONObject("pools");
+    //*********************  Pool Section  *********************
+
+    this.proxy = getPool("proxy",section);
+    this.anonymous = getPool("anonymous",section);
   }
 
 
@@ -123,6 +160,30 @@ public class Database
   public Pool anonymous()
   {
     return(anonymous);
+  }
+
+
+  public boolean compact()
+  {
+    return(compact);
+  }
+
+
+  public String dateformat()
+  {
+    return(dateform);
+  }
+
+
+  public String rewrite()
+  {
+    return(rewclass);
+  }
+
+
+  public String validator()
+  {
+    return(valclass);
   }
 
 

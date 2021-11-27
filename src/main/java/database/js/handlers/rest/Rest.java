@@ -39,9 +39,18 @@ public class Rest
   private final String host;
   private final String path;
   private final String repo;
+
+  private final boolean compact;
+  private final String dateform;
+
+  private final String rewclass;
+  private final String valclass;
+
   private final String payload;
   private final String[] parts;
+
   private final boolean modify;
+
   private final boolean sppost;
   private final boolean sppatch;
 
@@ -87,6 +96,10 @@ public class Rest
     this.payload  = payload;
     this.logger   = config.getLogger().rest;
     this.parts    = path.substring(1).split("/");
+    this.rewclass = config.getDatabase().rewrite();
+    this.compact  = config.getDatabase().compact();
+    this.valclass = config.getDatabase().validator();
+    this.dateform = config.getDatabase().dateformat();
     this.repo     = config.getDatabase().repository();
     this.sppost   = config.getDatabase().savepoint("sppost");
     this.sppatch  = config.getDatabase().savepoint("sppatch");
@@ -283,8 +296,8 @@ public class Rest
       int rows = 0;
       int skip = 0;
       String name = null;
-      String dateform = null;
-      boolean compact = false;
+      boolean compact = this.compact;
+      String dateform = this.dateform;
       boolean savepoint = getSavepoint(payload,false);
 
       session.ensure();
