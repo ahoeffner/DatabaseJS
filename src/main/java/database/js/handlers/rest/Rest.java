@@ -213,7 +213,7 @@ public class Rest
           default: error("Unknown authentication method "+meth);
         }
 
-        if (method == AuthMethod.PoolToken)
+        if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)
         {
           if (!anonymous) pool = config.getDatabase().proxy();
           else            pool = config.getDatabase().anonymous();
