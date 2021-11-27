@@ -12,9 +12,16 @@
 
 package database.js.database.impl;
 
+import java.sql.Savepoint;
 import database.js.database.Database;
 
 
 public class Oracle extends Database
 {
+  @Override
+  public void releaseSavePoint(Savepoint savepoint, boolean rollback) throws Exception
+  {
+    // Oracle only supports rollback. Savepoints are released when commit/rollback
+    if (rollback) super.releaseSavePoint(savepoint,rollback);
+  }
 }

@@ -790,6 +790,7 @@ public class Rest
 
     void releaseAll(Rest rest)
     {
+      // Remember KeepAlive on channel while in call
       Session session = rest.session;
       if (session == null) return;
 
@@ -797,6 +798,8 @@ public class Rest
       {
         if (exclusive || shared > 0)
           session.releaseAll(exclusive,shared);
+
+        exclusive = false;
       }
       catch (Throwable e)
       {

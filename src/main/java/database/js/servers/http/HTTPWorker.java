@@ -35,6 +35,8 @@ public class HTTPWorker implements Runnable
     this.channel  = request.channel();
     this.logger   = request.channel().logger();
     this.handlers = channel.config().getHTTP().handlers();
+
+    this.channel.stayalive(true);
   }
 
 
@@ -90,6 +92,10 @@ public class HTTPWorker implements Runnable
       this.workers.done();
       this.channel.failed();
       logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+    finally
+    {
+      this.channel.stayalive(false);
     }
   }
 }

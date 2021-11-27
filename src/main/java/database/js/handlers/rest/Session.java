@@ -159,10 +159,13 @@ public class Session
 
   public boolean releaseSavePoint(Savepoint savepoint, boolean rollback)
   {
+    if (savepoint == null)
+      return(true);
+
     try
     {
-      if (savepoint != null)
-        database.releaseSavePoint(savepoint,rollback);
+      database.releaseSavePoint(savepoint,rollback);
+      return(true);
     }
     catch (Throwable e)
     {
@@ -170,14 +173,12 @@ public class Session
 
       if (!rollback)
       {
-        try {database.releaseSavePoint(savepoint,true);}
+        try {database.releaseSavePoint(savepoint,rollback);}
         catch (Throwable rb) {;}
       }
 
       return(false);
     }
-
-    return(true);
   }
 
 
