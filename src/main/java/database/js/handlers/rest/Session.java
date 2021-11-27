@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 import database.js.database.Pool;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
-import database.js.security.OAuth;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
@@ -127,14 +126,16 @@ public class Session
 
   public void connect() throws Exception
   {
-    String user = username;
     Connection conn = null;
 
     switch(method)
     {
       case OAuth :
         conn = pool.connect();
-        user = OAuth.getUserName(secret);
+
+        if (pool.proxy())
+          conn = database.setProxyUser(username);
+
         break;
 
       case Database :
@@ -144,10 +145,13 @@ public class Session
       case PoolToken :
         if (dedicated) conn = pool.connect(secret);
         else           conn = pool.getConnection(secret);
+
+        if (pool.proxy())
+          conn = database.setProxyUser(username);
+
         break;
     }
 
-    // If proxy(oauth -> set username
     database.setConnection(conn);
   }
 

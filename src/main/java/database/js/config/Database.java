@@ -105,12 +105,12 @@ public class Database
     section = config.getJSONObject("pools");
     //*********************  Pool Section  *********************
 
-    this.proxy = getPool("proxy",section);
-    this.anonymous = getPool("anonymous",section);
+    this.proxy = getPool("proxy",section,true);
+    this.anonymous = getPool("anonymous",section,false);
   }
 
 
-  private Pool getPool(String type, JSONObject config)
+  private Pool getPool(String type, JSONObject config, boolean proxy)
   {
     if (!config.has(type)) return(null);
     JSONObject pconf = config.getJSONObject(type);
@@ -123,7 +123,7 @@ public class Database
     String pwd = pconf.getString("password");
     String secret = pconf.getString("auth.secret");
 
-    return(new Pool(secret,DatabaseUtils.bind(usr,pwd),size));
+    return(new Pool(proxy,secret,DatabaseUtils.bind(usr,pwd),size));
   }
 
 

@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
+import database.js.security.OAuth;
 import database.js.database.SQLParser;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
@@ -227,6 +228,16 @@ public class Rest
           case "pool-token" : method = AuthMethod.PoolToken; break;
 
           default: error("Unknown authentication method "+meth);
+        }
+
+        if (method == AuthMethod.OAuth)
+        {
+          try {username = OAuth.getUserName(secret);}
+          catch (Exception e)
+          {
+            error(e);
+            return(error("OAuth authentication failed"));
+          }
         }
 
         if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)

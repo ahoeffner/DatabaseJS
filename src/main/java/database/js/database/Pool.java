@@ -24,15 +24,23 @@ public class Pool
   private final int max;
   private final String url;
   private final String token;
+  private final boolean proxy;
   private final ArrayList<Connection> pool;
 
 
-  public Pool(String token, String url, int size)
+  public Pool(boolean proxy, String token, String url, int size)
   {
     this.url = url;
     this.max = size;
+    this.proxy = proxy;
     this.token = token;
     this.pool = new ArrayList<Connection>();
+  }
+
+
+  public boolean proxy()
+  {
+    return(proxy);
   }
 
 

@@ -81,6 +81,12 @@ public abstract class Database
   }
 
 
+  public Connection setProxyUser(String username) throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
+
+
   public Savepoint setSavePoint() throws Exception
   {
     return(conn.setSavepoint());
