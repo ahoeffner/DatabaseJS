@@ -27,10 +27,23 @@ import database.js.handlers.rest.DateUtils;
 public abstract class Database
 {
   private Connection conn;
+  private static String teststmt;
+  
+  
+  public static void setTestSQL(String test)
+  {
+    Database.teststmt = test;
+  }
 
 
   public Database()
   {
+  }
+  
+  
+  public String getTestSQL()
+  {
+    return(Database.teststmt);
   }
 
 
