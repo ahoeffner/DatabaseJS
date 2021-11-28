@@ -308,11 +308,6 @@ public class Session
     }
     else
     {
-      String testsql = null;
-      if (!pool.test(database.connection(),testsql))
-      {
-        System.out.println("Cleanout");
-      }
     }
   }
 

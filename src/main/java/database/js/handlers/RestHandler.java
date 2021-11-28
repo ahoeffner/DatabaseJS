@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.security.OAuth;
+import database.js.database.Database;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.handlers.file.PathUtil;
@@ -29,7 +30,6 @@ import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.database.Database;
 
 
 public class RestHandler extends Handler
@@ -46,7 +46,7 @@ public class RestHandler extends Handler
     OAuth.init(config);
     config.loadDatabaseConfig();
     Database.setTestSQL(config.getDatabase().test());
-    
+
     this.path = new PathUtil(this);
     this.domains = new TreeSet<String>();
   }

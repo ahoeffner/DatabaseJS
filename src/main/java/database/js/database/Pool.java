@@ -109,7 +109,7 @@ public class Pool
   }
 
 
-  public void testAll(String sql)
+  public void validate()
   {
     synchronized(this)
     {
@@ -118,14 +118,15 @@ public class Pool
       for (int i = 0; i < size; i++)
       {
         Connection conn = this.pool.remove(0);
-        if (test(conn,sql)) this.pool.add(conn);
+        if (validate(conn)) this.pool.add(conn);
       }
     }
   }
 
 
-  public boolean test(Connection conn, String sql)
+  private boolean validate(Connection conn)
   {
+    String sql = Database.getTestSQL();
     try {conn.createStatement().execute(sql);}
     catch(Exception e) {return(false);}
     return(true);

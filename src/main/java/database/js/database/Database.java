@@ -17,6 +17,8 @@ import java.sql.Savepoint;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.sql.DriverManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
@@ -28,8 +30,15 @@ public abstract class Database
 {
   private Connection conn;
   private static String teststmt;
-  
-  
+  private final static Logger logger = Logger.getLogger("rest");
+
+
+  public static String getTestSQL()
+  {
+    return(Database.teststmt);
+  }
+
+
   public static void setTestSQL(String test)
   {
     Database.teststmt = test;
@@ -38,12 +47,6 @@ public abstract class Database
 
   public Database()
   {
-  }
-  
-  
-  public String getTestSQL()
-  {
-    return(Database.teststmt);
   }
 
 
@@ -110,6 +113,32 @@ public abstract class Database
   {
     if (rollback) conn.rollback(savepoint);
     else  conn.releaseSavepoint(savepoint);
+  }
+
+
+  public boolean validate()
+  {
+    try
+    {
+      String sql = getTestSQL();
+
+      PreparedStatement stmt =
+        conn.prepareStatement(sql);
+
+      ResultSet rset =
+        stmt.executeQuery();
+
+      rset.next();
+      rset.close();
+      stmt.close();
+
+      return(true);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.WARNING,e.getMessage(),e);
+      return(false);
+    }
   }
 
 
