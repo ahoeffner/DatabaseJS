@@ -47,7 +47,7 @@ public class HTTPServer extends Thread
   public final static int DISABLED  = 1;
   public final static int RUNNING   = 2;
   public final static int STOPPED   = 3;
-  
+
   private final static Logger logger = Logger.getLogger("http");
 
 

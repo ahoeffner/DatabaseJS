@@ -50,7 +50,7 @@ public class Deployment
   private String modstring = null;
   private ConcurrentHashMap<String,StaticFile> index = null;
 
-  private static final String sep = File.separator;  
+  private static final String sep = File.separator;
   private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
 
 
