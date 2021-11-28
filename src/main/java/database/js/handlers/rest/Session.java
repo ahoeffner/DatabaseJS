@@ -306,6 +306,7 @@ public class Session
     {
       if (database.validate())
       {
+        sessions.remove(guid);
         database.disconnect();
         return(true);
       }
@@ -314,6 +315,7 @@ public class Session
     {
       if (!pool.validate(database.connection()))
       {
+        sessions.remove(guid);
         database.setConnection(null);
         return(true);
       }

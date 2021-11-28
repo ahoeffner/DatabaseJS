@@ -28,9 +28,9 @@ public class Logger
   private final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
 
   private final String itlevel;
-  private final String dblevel;
   private final String htlevel;
   private final String rtlevel;
+
   private final Formatter formatter = new Formatter();
 
   private int count = 2;
@@ -50,7 +50,6 @@ public class Logger
 
     htlevel = config.getString("http");
     rtlevel = config.getString("rest");
-    dblevel = config.getString("database");
     itlevel = config.getString("internal");
 
     if (config.has("files"))   count = config.getInt("files");

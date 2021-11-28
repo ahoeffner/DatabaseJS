@@ -57,6 +57,7 @@ public class Rest
   private final boolean sppatch;
 
   private String error = null;
+  private boolean fatal = false;
   private Session session = null;
   private Savepoint savepoint = null;
 
@@ -414,7 +415,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.fatal();
+      fatal = session.fatal();
       return(error(e));
     }
   }
@@ -481,7 +482,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.fatal();
+      fatal = session.fatal();
       return(error(e));
     }
   }
@@ -554,7 +555,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.fatal();
+      fatal = session.fatal();
       return(error(e));
     }
   }
@@ -612,7 +613,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      session.fatal();
+      fatal = session.fatal();
       return(error(e));
     }
   }
@@ -830,6 +831,7 @@ public class Rest
 
     json.set(e);
     json.success(false);
+    json.fatal(fatal,"Session closed");
 
     this.error = json.toString();
     return(this.error);

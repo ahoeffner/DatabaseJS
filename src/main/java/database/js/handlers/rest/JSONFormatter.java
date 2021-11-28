@@ -61,6 +61,13 @@ public class JSONFormatter
   }
 
 
+  public void fatal(boolean fatal, String message)
+  {
+    if (fatal)
+      content.fatal(message);
+  }
+
+
   public void pop()
   {
     content = content.parent;
@@ -159,6 +166,13 @@ public class JSONFormatter
       String name = "success";
       content.add(0,new Object[] {name,success});
     }
+
+   void fatal(String message)
+   {
+     String name = "fatal";
+     content.add(0,new Object[] {name,true});
+     content.add(new Object[] {"fatal-error",message});
+   }
 
     void add(Object[] array)
     {
