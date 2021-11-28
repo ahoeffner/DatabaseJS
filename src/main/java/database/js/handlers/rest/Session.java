@@ -300,17 +300,26 @@ public class Session
   }
 
 
-  public void failed()
+  public boolean fatal()
   {
     if (pool == null)
     {
-      database.disconnect();
+      if (database.validate())
+      {
+        database.disconnect();
+        return(true);
+      }
     }
     else
     {
       if (!pool.validate(database.connection()))
+      {
         database.setConnection(null);
+        return(true);        
+      }
     }
+    
+    return(false);
   }
 
 

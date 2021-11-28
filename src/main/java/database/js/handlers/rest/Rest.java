@@ -414,7 +414,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.failed();
+      session.fatal();
       return(error(e));
     }
   }
@@ -481,7 +481,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.failed();
+      session.fatal();
       return(error(e));
     }
   }
@@ -554,7 +554,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
-      session.failed();
+      session.fatal();
       return(error(e));
     }
   }
@@ -612,7 +612,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      session.failed();
+      session.fatal();
       return(error(e));
     }
   }
