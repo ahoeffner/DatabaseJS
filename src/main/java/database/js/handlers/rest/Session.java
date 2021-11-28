@@ -301,8 +301,6 @@ public class Session
     {
       boolean owner = this.thread == thread;
 
-      System.out.println("Session lock, lockthread="+this.thread+", thread="+thread+" exclusive="+exclusive);
-
       while(!owner && this.exclusive)
         LOCK.wait();
 
