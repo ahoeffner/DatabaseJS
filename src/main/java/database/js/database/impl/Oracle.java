@@ -13,11 +13,27 @@
 package database.js.database.impl;
 
 import java.sql.Savepoint;
+import java.sql.Connection;
+import java.util.Properties;
 import database.js.database.Database;
+import oracle.jdbc.driver.OracleConnection;
 
 
 public class Oracle extends Database
 {
+  @Override
+  public Connection setProxyUser(String username) throws Exception
+  {
+    Properties props = new Properties();
+    props.put(OracleConnection.PROXY_USER_NAME, username);
+
+    OracleConnection conn = (OracleConnection) super.connection();
+    conn.openProxySession(OracleConnection.PROXYTYPE_USER_NAME,props);
+
+    return(conn);
+  }
+
+
   @Override
   public void releaseSavePoint(Savepoint savepoint, boolean rollback) throws Exception
   {

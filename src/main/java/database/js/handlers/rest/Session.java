@@ -132,6 +132,7 @@ public class Session
     {
       case OAuth :
         conn = pool.connect();
+        database.setConnection(conn);
 
         if (pool.proxy())
           conn = database.setProxyUser(username);
@@ -146,13 +147,13 @@ public class Session
         if (dedicated) conn = pool.connect(secret);
         else           conn = pool.getConnection(secret);
 
+        database.setConnection(conn);
+
         if (pool.proxy())
           conn = database.setProxyUser(username);
 
         break;
     }
-
-    database.setConnection(conn);
   }
 
 
