@@ -169,7 +169,15 @@ public class Config
 
   public void loadDatabaseConfig() throws Exception
   {
-    this.getDatabase();
+    try
+    {
+      this.getDatabase();
+    }
+    catch (Exception exception)
+    {
+      exception.printStackTrace();
+      throw exception;
+    }
   }
 
 

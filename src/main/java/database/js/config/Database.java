@@ -99,11 +99,11 @@ public class Database
     //****************** Interceptors Section ******************
 
     String rewclass = null;
-    if (section.has("rewrite.class") && section.isNull("rewrite.class"))
+    if (section.has("rewrite.class") && !section.isNull("rewrite.class"))
       rewclass = section.getString("rewrite.class");
 
     String valclass = null;
-    if (section.has("validator.class") && section.isNull("validator.class"))
+    if (section.has("validator.class") && !section.isNull("validator.class"))
       valclass = section.getString("validator.class");
 
     if (rewclass == null) this.rewriter = null;
