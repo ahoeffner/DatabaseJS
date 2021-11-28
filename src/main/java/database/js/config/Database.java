@@ -16,6 +16,9 @@ import java.io.File;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
+import java.lang.reflect.Constructor;
+import database.js.custom.SQLRewriter;
+import database.js.custom.SQLValidator;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 
@@ -30,8 +33,8 @@ public class Database
   private final boolean compact;
   private final String dateform;
 
-  private final String rewclass;
-  private final String valclass;
+  private final SQLRewriter rewriter;
+  private final SQLValidator validator;
 
   private final Pool proxy;
   private final Pool anonymous;
@@ -95,12 +98,27 @@ public class Database
     section = config.getJSONObject("interceptors");
     //****************** Interceptors Section ******************
 
-    if (section.isNull("rewrite.class")) this.rewclass = null;
-    else   this.rewclass = section.getString("rewrite.class");
+    String rewclass = null;
+    if (section.has("rewrite.class") && section.isNull("rewrite.class"))
+      rewclass = section.getString("rewrite.class");
 
-    if (section.isNull("validator.class")) this.valclass = null;
-    else   this.valclass = section.getString("validator.class");
+    String valclass = null;
+    if (section.has("validator.class") && section.isNull("validator.class"))
+      valclass = section.getString("validator.class");
 
+    if (rewclass == null) this.rewriter = null;
+    else
+    {
+      Constructor contructor = Class.forName(rewclass).getDeclaredConstructor();
+      this.rewriter = (SQLRewriter) contructor.newInstance();
+    }
+
+    if (valclass == null) this.validator = null;
+    else
+    {
+      Constructor contructor = Class.forName(valclass).getDeclaredConstructor();
+      this.validator = (SQLValidator) contructor.newInstance();
+    }
 
     section = config.getJSONObject("pools");
     //*********************  Pool Section  *********************
@@ -175,15 +193,15 @@ public class Database
   }
 
 
-  public String rewrite()
+  public SQLRewriter rewriter()
   {
-    return(rewclass);
+    return(rewriter);
   }
 
 
-  public String validator()
+  public SQLValidator validator()
   {
-    return(valclass);
+    return(validator);
   }
 
 

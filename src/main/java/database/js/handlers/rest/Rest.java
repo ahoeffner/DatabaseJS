@@ -27,7 +27,10 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
 import database.js.security.OAuth;
+import database.js.custom.SQLRewriter;
 import database.js.database.SQLParser;
+import database.js.database.BindValue;
+import database.js.custom.SQLValidator;
 import database.js.database.AuthMethod;
 import database.js.database.BindValueDef;
 import database.js.database.NameValuePair;
@@ -44,9 +47,6 @@ public class Rest
   private final boolean compact;
   private final String dateform;
 
-  private final String rewclass;
-  private final String valclass;
-
   private final String payload;
   private final String[] parts;
 
@@ -61,6 +61,9 @@ public class Rest
   private String error = null;
   private Session session = null;
   private Savepoint savepoint = null;
+
+  private final SQLRewriter rewriter;
+  private final SQLValidator validator;
 
   private final SessionState state = new SessionState();
 
@@ -97,9 +100,9 @@ public class Rest
     this.payload  = payload;
     this.logger   = config.getLogger().rest;
     this.parts    = path.substring(1).split("/");
-    this.rewclass = config.getDatabase().rewrite();
+    this.rewriter = config.getDatabase().rewriter();
     this.compact  = config.getDatabase().compact();
-    this.valclass = config.getDatabase().validator();
+    this.validator = config.getDatabase().validator();
     this.dateform = config.getDatabase().dateformat();
     this.repo     = config.getDatabase().repository();
     this.sppost   = config.getDatabase().savepoint("sppost");
@@ -332,6 +335,21 @@ public class Rest
 
       SQLParser parser = new SQLParser(bindvalues,sql);
 
+      sql = parser.sql();
+      ArrayList<BindValue> bindvalues = parser.bindvalues();
+
+      if (rewriter != null)
+        sql = rewriter.rewrite(sql,bindvalues);
+
+      if (validator != null)
+        validator.validate(sql,bindvalues);
+
+      if (!batch && savepoint)
+      {
+        state.lock(this,true);
+        this.savepoint = session.setSavePoint();
+      }
+
       session.closeCursor(curname);
 
       if (!batch && savepoint)
@@ -341,7 +359,7 @@ public class Rest
       }
 
       state.lock(this,false);
-      Cursor cursor = session.executeQuery(curname,parser.sql(),parser.bindvalues());
+      Cursor cursor = session.executeQuery(curname,sql,bindvalues);
       state.release(this,false);
 
       if (!batch && savepoint)
@@ -422,6 +440,15 @@ public class Rest
 
       SQLParser parser = new SQLParser(bindvalues,sql);
 
+      sql = parser.sql();
+      ArrayList<BindValue> bindvalues = parser.bindvalues();
+
+      if (rewriter != null)
+        sql = rewriter.rewrite(sql,bindvalues);
+
+      if (validator != null)
+        validator.validate(sql,bindvalues);
+
       if (!batch && savepoint)
       {
         state.lock(this,true);
@@ -429,7 +456,7 @@ public class Rest
       }
 
       state.lock(this,false);
-      int rows = session.executeUpdate(parser.sql(),parser.bindvalues());
+      int rows = session.executeUpdate(sql,bindvalues);
       state.release(this,false);
 
       if (!batch && savepoint)
