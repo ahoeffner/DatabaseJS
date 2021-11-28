@@ -26,7 +26,6 @@ public class Logger
   private final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
   private final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
   private final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
-  private final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
 
   private final String itlevel;
   private final String dblevel;
@@ -175,11 +174,6 @@ public class Logger
     intern.setLevel(Level.parse(itlevel.toUpperCase()));
 
     intern.addHandler(handler);
-
-    database.setUseParentHandlers(false);
-    database.setLevel(Level.parse(dblevel.toUpperCase()));
-
-    database.addHandler(handler);
     open = true;
   }
 }

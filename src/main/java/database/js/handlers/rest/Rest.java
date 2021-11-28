@@ -226,7 +226,7 @@ public class Rest
           case "database" : method = AuthMethod.Database; break;
           case "pool-token" : method = AuthMethod.PoolToken; break;
 
-          default: error("Unknown authentication method "+meth);
+          default: return(error("Unknown authentication method "+meth));
         }
 
         if (method == AuthMethod.OAuth)
@@ -241,10 +241,10 @@ public class Rest
         {
           if (!anonymous) pool = config.getDatabase().proxy();
           else            pool = config.getDatabase().anonymous();
-        }
 
-        if (error != null)
-          return(error);
+          if (pool == null)
+            return(error("Connection pool not configured"));
+        }
 
         if (!anonymous && username == null)
           return(error("Username must be specified"));
@@ -414,6 +414,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
+      session.failed();
       return(error(e));
     }
   }
@@ -480,6 +481,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
+      session.failed();
       return(error(e));
     }
   }
@@ -552,6 +554,7 @@ public class Rest
       this.savepoint = null;
       state.releaseAll(this);
 
+      session.failed();
       return(error(e));
     }
   }
@@ -609,6 +612,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      session.failed();
       return(error(e));
     }
   }

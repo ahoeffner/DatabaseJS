@@ -111,7 +111,13 @@ public class Session
 
   public void disconnect() throws Exception
   {
-    database.rollback();
+    try {database.rollback();}
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    sessions.remove(guid);
     if (pool == null) database.disconnect();
     else pool.release(database.connection());
   }
@@ -291,6 +297,23 @@ public class Session
       cursors.remove(cursor.name);
 
     cursor.closed = true;
+  }
+
+
+  public void failed()
+  {
+    if (pool == null)
+    {
+      database.disconnect();
+    }
+    else
+    {
+      String testsql = null;
+      if (!pool.test(database.connection(),testsql))
+      {
+        System.out.println("Cleanout");
+      }
+    }
   }
 
 

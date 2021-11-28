@@ -46,7 +46,7 @@ public abstract class Database
   }
 
 
-  public void disconnect() throws Exception
+  public void disconnect()
   {
     try {conn.close();}
     catch (Exception e) {;}
