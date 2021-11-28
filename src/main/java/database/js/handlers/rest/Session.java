@@ -315,10 +315,10 @@ public class Session
       if (!pool.validate(database.connection()))
       {
         database.setConnection(null);
-        return(true);        
+        return(true);
       }
     }
-    
+
     return(false);
   }
 

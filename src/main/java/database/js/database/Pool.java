@@ -122,12 +122,12 @@ public class Pool
       }
     }
   }
-  
-  
+
+
   public boolean validate(Connection conn)
   {
     if (assure(conn)) return(true);
-    
+
     synchronized(this)
     {
       pool.remove(conn);
