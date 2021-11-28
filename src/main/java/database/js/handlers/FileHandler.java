@@ -15,7 +15,6 @@ package database.js.handlers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.control.Process.Type;
 import database.js.handlers.file.PathUtil;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
@@ -27,6 +26,7 @@ import database.js.handlers.file.Deployment.StaticFile;
 public class FileHandler extends Handler
 {
   private final PathUtil path;
+  private final Logger logger = Logger.getLogger("http");
 
 
   public FileHandler(Config config, HandlerProperties properties) throws Exception
@@ -40,7 +40,6 @@ public class FileHandler extends Handler
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
     request.server().request();
-    Logger logger = this.getLogger(Type.http);
     HTTPResponse response = new HTTPResponse();
     String path = this.path.getPath(request.path());
 

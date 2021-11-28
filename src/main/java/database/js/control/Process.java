@@ -24,13 +24,13 @@ public class Process
   private final int servers;
   private final String instnm;
   private final Config config;
-  private final Logger logger;
   private final String javaexe;
   private final String httpopts;
   private final String restopts;
   private final String httpjars;
   private final String restjars;
   private final static String psep = File.pathSeparator;
+  private final Logger logger = Logger.getLogger("internal");
 
 
   public Process(Config config) throws Exception
@@ -38,7 +38,6 @@ public class Process
     this.config = config;
     this.instnm = config.instance();
     this.javaexe = config.getJava().exe();
-    this.logger = config.getLogger().intern;
     this.servers = config.getTopology().servers();
     this.httpopts = config.getJava().getHttpOptions();
     this.restopts = config.getJava().getRestOptions();

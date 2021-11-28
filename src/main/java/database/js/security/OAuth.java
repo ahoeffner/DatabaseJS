@@ -29,9 +29,9 @@ public class OAuth
   private final int port;
   private final String host;
   private final String path;
-  private final Logger logger;
   private final SSLContext ctx;
   private final ArrayList<NameValuePair<Object>> headers;
+  private final static Logger logger = Logger.getLogger("rest");
 
   private static OAuth instance = null;
 
@@ -62,7 +62,6 @@ public class OAuth
     this.host = url.getHost();
     this.port = url.getPort();
     this.path = url.getPath();
-    this.logger = config.getLogger().rest;
   }
 
 

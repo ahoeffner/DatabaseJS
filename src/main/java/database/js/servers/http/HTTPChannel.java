@@ -41,11 +41,12 @@ public class HTTPChannel
 
   private final Server server;
   private final Config config;
-  private final Logger logger;
   private final SSLEngine engine;
   private final ThreadPool workers;
   private final HTTPBuffers buffers;
   private final SocketChannel channel;
+
+  private final static Logger logger = Logger.getLogger("http");
 
 
   public HTTPChannel(Server server, SocketChannel channel, boolean ssl) throws Exception
@@ -58,7 +59,6 @@ public class HTTPChannel
     this.connected = false;
     this.stayalive = false;
     this.config = server.config();
-    this.logger = config.getLogger().intern;
     this.touched = System.currentTimeMillis();
     this.reqssl = config.getHTTP().requiressl();
 
@@ -93,7 +93,6 @@ public class HTTPChannel
     this.connected = false;
     this.stayalive = false;
     this.config = server.config();
-    this.logger = config.getLogger().intern;
     this.touched = System.currentTimeMillis();
     this.reqssl = config.getHTTP().requiressl();
 

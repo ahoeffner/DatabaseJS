@@ -41,7 +41,6 @@ public class Server extends Thread
   private final long started;
   private final short servers;
   private final int heartbeat;
-  private final Logger logger;
   private final Config config;
   private final boolean embedded;
 
@@ -56,6 +55,8 @@ public class Server extends Thread
 
   private volatile boolean sowner = false;
   private volatile boolean powner = false;
+
+  private final static Logger logger = Logger.getLogger("internal");
 
 
   public static void main(String[] args)
@@ -78,7 +79,6 @@ public class Server extends Thread
     System.setErr(out);
 
     config.getLogger().open(id);
-    this.logger = config.getLogger().intern;
 
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();

@@ -24,7 +24,6 @@ import database.js.servers.Server;
 import database.js.security.OAuth;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
-import database.js.control.Process.Type;
 import database.js.handlers.file.PathUtil;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
@@ -36,6 +35,7 @@ public class RestHandler extends Handler
 {
   private final PathUtil path;
   private final TreeSet<String> domains;
+  private final static Logger logger = Logger.getLogger("rest");
 
 
   public RestHandler(Config config, HandlerProperties properties) throws Exception
@@ -54,7 +54,6 @@ public class RestHandler extends Handler
   {
     HTTPResponse response = null;
     Server server = request.server();
-    Logger logger = getLogger(Type.rest);
 
     server.request();
     logger.fine("REST request received: "+request.path());

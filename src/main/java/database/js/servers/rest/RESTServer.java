@@ -44,16 +44,16 @@ public class RESTServer implements RESTConnection
   private final short rid;
   private final Server server;
   private final Config config;
-  private final Logger logger;
   private final MailBox mailbox;
   private final ThreadPool workers;
+
+  private final static Logger logger = Logger.getLogger("rest");
 
 
   public RESTServer(Server server) throws Exception
   {
     this.server = server;
     this.config = server.config();
-    this.logger = config.getLogger().rest;
     this.mailbox = new MailBox(config,server.id());
 
     logger.info("RESTServer starting ...");

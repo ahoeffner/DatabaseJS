@@ -43,6 +43,7 @@ public class Rest
   private final String host;
   private final String path;
   private final String repo;
+  private final Config config;
 
   private final boolean compact;
   private final String dateform;
@@ -55,9 +56,6 @@ public class Rest
   private final boolean sppost;
   private final boolean sppatch;
 
-  private final Config config;
-  private final Logger logger;
-
   private String error = null;
   private Session session = null;
   private Savepoint savepoint = null;
@@ -66,6 +64,7 @@ public class Rest
   private final SQLValidator validator;
 
   private final SessionState state = new SessionState();
+  private final static Logger logger = Logger.getLogger("rest");
 
   private static final ConcurrentHashMap<String,String> sqlfiles =
     new ConcurrentHashMap<String,String>();
@@ -98,7 +97,6 @@ public class Rest
     this.config    = config;
     this.modify    = modify;
     this.payload   = payload;
-    this.logger    = config.getLogger().rest;
     this.parts     = path.substring(1).split("/");
     this.compact   = config.getDatabase().compact();
     this.rewriter  = config.getDatabase().rewriter();

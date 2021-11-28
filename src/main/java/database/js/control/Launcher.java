@@ -43,8 +43,9 @@ import database.js.handlers.file.Deployment;
 public class Launcher implements ILauncher
 {
   private Config config = null;
-  private Logger logger = null;
+
   private final static String psep = File.pathSeparator;
+  private final static Logger logger = Logger.getLogger("internal");
 
 
   public static void main(String[] args) throws Exception
@@ -111,7 +112,6 @@ public class Launcher implements ILauncher
   {
     this.config = new Config();
     config.getLogger().openControlLog();
-    this.logger = config.getLogger().intern;
   }
 
 

@@ -22,11 +22,11 @@ import java.util.logging.FileHandler;
 
 public class Logger
 {
-  public final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
-  public final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
-  public final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
-  public final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
-  public final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
+  private final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
+  private final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
+  private final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
+  private final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
+  private final java.util.logging.Logger database = java.util.logging.Logger.getLogger("database");
 
   private final String itlevel;
   private final String dblevel;

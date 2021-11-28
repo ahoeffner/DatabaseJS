@@ -12,9 +12,7 @@
 
 package database.js.handlers;
 
-import java.util.logging.Logger;
 import database.js.config.Config;
-import database.js.control.Process.Type;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
@@ -42,24 +40,6 @@ public abstract class Handler
   public HandlerProperties properties()
   {
     return(properties);
-  }
-
-
-  public Logger getLogger(Type type) throws Exception
-  {
-    switch(type)
-    {
-      case http: return(config.getLogger().http);
-      case rest: return(config.getLogger().rest);
-    }
-
-    return(config.getLogger().intern);
-  }
-
-
-  public Logger getAdminLogger() throws Exception
-  {
-    return(config.getLogger().admin);
   }
 
 

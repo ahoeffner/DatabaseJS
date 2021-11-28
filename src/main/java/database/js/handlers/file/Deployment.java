@@ -37,10 +37,11 @@ public class Deployment
   private final String home;
   private final String deploy;
   private final Config config;
-  private final Logger logger;
 
   private final ArrayList<FilePattern> cache;
   private final ArrayList<FilePattern> compression;
+
+  private final static Logger logger = Logger.getLogger("http");
 
   private int grace = 0;
   private long synched = 0;
@@ -49,7 +50,7 @@ public class Deployment
   private String modstring = null;
   private ConcurrentHashMap<String,StaticFile> index = null;
 
-  private static final String sep = File.separator;
+  private static final String sep = File.separator;  
   private static final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
 
 
@@ -69,7 +70,6 @@ public class Deployment
   public Deployment(Config config) throws Exception
   {
     this.config = config;
-    this.logger = config.getLogger().http;
     this.cache = this.config.getHTTP().cache();
     this.grace = config.getHTTP().graceperiod();
     this.home = this.config.getHTTP().getAppPath();

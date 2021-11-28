@@ -25,6 +25,9 @@ import database.js.config.Handlers.HandlerProperties;
 
 public class AdminHandler extends Handler
 {
+  private final Logger logger = java.util.logging.Logger.getLogger("admin");
+
+
   public AdminHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
@@ -34,7 +37,6 @@ public class AdminHandler extends Handler
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
-    Logger logger = getAdminLogger();
     Server server = request.server();
     HTTPResponse response = new HTTPResponse();
 

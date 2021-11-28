@@ -33,12 +33,13 @@ public class RESTClient implements RESTConnection
   private volatile boolean up = false;
 
   private final Config config;
-  private final Logger logger;
   private final Server server;
   private final MailBox mailbox;
   private final RESTWriter writer;
   private final RESTReader reader;
   private final ConcurrentHashMap<Long,RESTComm> incoming;
+
+  private final static Logger logger = Logger.getLogger("http");
 
 
 
@@ -52,7 +53,6 @@ public class RESTClient implements RESTConnection
     this.writer = new RESTWriter(this);
     this.reader = new RESTReader(this);
     this.mailbox = new MailBox(config,id);
-    this.logger = config.getLogger().rest;
     this.incoming = new ConcurrentHashMap<Long,RESTComm>();
   }
 

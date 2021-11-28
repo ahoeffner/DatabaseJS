@@ -34,7 +34,6 @@ public class HTTPServer extends Thread
   private final boolean ssl;
   private final Server server;
   private final Config config;
-  private final Logger logger;
   private final boolean admin;
   private final boolean embedded;
   private final boolean redirect;
@@ -48,6 +47,8 @@ public class HTTPServer extends Thread
   public final static int DISABLED  = 1;
   public final static int RUNNING   = 2;
   public final static int STOPPED   = 3;
+  
+  private final static Logger logger = Logger.getLogger("http");
 
 
   public HTTPServer(Server server, HTTPServerType type, boolean embedded) throws Exception
@@ -58,7 +59,6 @@ public class HTTPServer extends Thread
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
-    this.logger = config.getLogger().http;
     this.timeout = config.getHTTP().timeout();
 
     config.getPKIContext(); // Initialize ssl

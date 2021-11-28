@@ -35,7 +35,6 @@ class HTTPWaiter extends Thread
   private final int timeout;
   private final Server server;
   private final Config config;
-  private final Logger logger;
   private final boolean embedded;
   private final Selector selector;
   private final ThreadPool workers;
@@ -49,6 +48,8 @@ class HTTPWaiter extends Thread
   private final ConcurrentHashMap<SelectionKey,HTTPRequest> incomplete =
     new ConcurrentHashMap<SelectionKey,HTTPRequest>();
 
+  private final static Logger logger = Logger.getLogger("http");
+
 
   HTTPWaiter(Server server, int id, boolean embedded) throws Exception
   {
@@ -57,7 +58,6 @@ class HTTPWaiter extends Thread
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
-    this.logger = config.getLogger().http;
     this.timeout = config.getHTTP().timeout();
 
     this.setDaemon(true);

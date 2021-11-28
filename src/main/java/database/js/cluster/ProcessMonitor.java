@@ -27,7 +27,6 @@ import java.nio.channels.FileChannel;
 public class ProcessMonitor
 {
   private final Server server;
-  private final Logger logger;
   private final Config config;
   private final FileChannel channel;
   private static ProcessMonitor mon = null;
@@ -37,6 +36,8 @@ public class ProcessMonitor
 
   private static final int MGR = 0;
   private static final int HTTP = 1;
+
+  private final static Logger logger = Logger.getLogger("internal");
 
 
   ProcessMonitor(Server server) throws Exception
@@ -53,7 +54,6 @@ public class ProcessMonitor
       out.close();
     }
 
-    this.logger = config.getLogger().intern;
     this.channel = new RandomAccessFile(lfile,"rw").getChannel();
   }
 
@@ -98,7 +98,7 @@ public class ProcessMonitor
     }
     catch (Exception e)
     {
-      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
     return(true);
@@ -118,7 +118,7 @@ public class ProcessMonitor
     }
     catch (Exception e)
     {
-      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
     return(false);
@@ -138,7 +138,7 @@ public class ProcessMonitor
     }
     catch (Exception e)
     {
-      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
     return(false);
@@ -154,7 +154,7 @@ public class ProcessMonitor
     }
     catch (Exception e)
     {
-      mon.logger.log(Level.SEVERE,e.getMessage(),e);
+      logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
     return(false);
@@ -177,7 +177,7 @@ public class ProcessMonitor
 
   private void onServerDown(ProcessWatch watcher)
   {
-    mon.logger.fine("Process "+watcher.type+" died");
+    logger.fine("Process "+watcher.type+" died");
 
     if (watcher.lock == HTTP)
     {
@@ -216,7 +216,7 @@ public class ProcessMonitor
     public void run()
     {
       boolean obtained = false;
-      monitor.logger.fine("Watching "+type+" process");
+      logger.fine("Watching "+type+" process");
 
       try
       {
@@ -240,11 +240,11 @@ public class ProcessMonitor
       }
       catch (Exception e)
       {
-        monitor.logger.fine("FileLock : "+e.getMessage());
+        logger.fine("FileLock : "+e.getMessage());
       }
 
       if (!obtained)
-        monitor.logger.warning("Unable to obtain "+type+" lock");
+        logger.warning("Unable to obtain "+type+" lock");
 
       monitor.onServerDown(this);
     }

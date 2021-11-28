@@ -33,18 +33,17 @@ public class MailBox
 {
   private final int extnds;
   private final int extsize;
-  private final Logger logger;
   private final MappedByteBuffer shmmem;
   private final HashMap<Integer,Long> extmap;
 
   private final Object RLOCK = new Object();
   private final Object WLOCK = new Object();
+  private final Logger logger = Logger.getLogger("internal");
 
 
   public MailBox(Config config, short id) throws Exception
   {
     String filename = getFileName(id);
-    this.logger = config.getLogger().intern;
     FileSystem fs = FileSystems.getDefault();
 
     this.extmap = new HashMap<Integer,Long>();
