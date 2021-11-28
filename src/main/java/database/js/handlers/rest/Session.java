@@ -308,6 +308,8 @@ public class Session
     }
     else
     {
+      if (!pool.validate(database.connection()))
+        database.setConnection(null);
     }
   }
 

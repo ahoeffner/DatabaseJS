@@ -118,13 +118,25 @@ public class Pool
       for (int i = 0; i < size; i++)
       {
         Connection conn = this.pool.remove(0);
-        if (validate(conn)) this.pool.add(conn);
+        if (assure(conn)) this.pool.add(conn);
       }
+    }
+  }
+  
+  
+  public boolean validate(Connection conn)
+  {
+    if (assure(conn)) return(true);
+    
+    synchronized(this)
+    {
+      pool.remove(conn);
+      return(false);
     }
   }
 
 
-  private boolean validate(Connection conn)
+  private boolean assure(Connection conn)
   {
     String sql = Database.getTestSQL();
     try {conn.createStatement().execute(sql);}
