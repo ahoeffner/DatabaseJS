@@ -93,20 +93,20 @@ public class Rest
 
   public Rest(Config config, String path, boolean modify, String host, String payload) throws Exception
   {
-    this.host     = host;
-    this.path     = path;
-    this.config   = config;
-    this.modify   = modify;
-    this.payload  = payload;
-    this.logger   = config.getLogger().rest;
-    this.parts    = path.substring(1).split("/");
-    this.rewriter = config.getDatabase().rewriter();
-    this.compact  = config.getDatabase().compact();
+    this.host      = host;
+    this.path      = path;
+    this.config    = config;
+    this.modify    = modify;
+    this.payload   = payload;
+    this.logger    = config.getLogger().rest;
+    this.parts     = path.substring(1).split("/");
+    this.compact   = config.getDatabase().compact();
+    this.rewriter  = config.getDatabase().rewriter();
     this.validator = config.getDatabase().validator();
-    this.dateform = config.getDatabase().dateformat();
-    this.repo     = config.getDatabase().repository();
-    this.sppost   = config.getDatabase().savepoint("sppost");
-    this.sppatch  = config.getDatabase().savepoint("sppatch");
+    this.dateform  = config.getDatabase().dateformat();
+    this.repo      = config.getDatabase().repository();
+    this.sppost    = config.getDatabase().savepoint("sppost");
+    this.sppatch   = config.getDatabase().savepoint("sppatch");
   }
 
 
@@ -510,6 +510,15 @@ public class Rest
 
       SQLParser parser = new SQLParser(bindvalues,sql,true);
 
+      sql = parser.sql();
+      ArrayList<BindValue> bindvalues = parser.bindvalues();
+
+      if (rewriter != null)
+        sql = rewriter.rewrite(sql,bindvalues);
+
+      if (validator != null)
+        validator.validate(sql,bindvalues);
+
       if (!batch && savepoint)
       {
         state.lock(this,true);
@@ -517,7 +526,7 @@ public class Rest
       }
 
       state.lock(this,false);
-      ArrayList<NameValuePair<Object>> values = session.executeCall(parser.sql(),parser.bindvalues(),dateconv);
+      ArrayList<NameValuePair<Object>> values = session.executeCall(sql,bindvalues,dateconv);
       state.release(this,false);
 
       if (!batch && savepoint)
