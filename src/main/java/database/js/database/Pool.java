@@ -14,7 +14,8 @@ package database.js.database;
 
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.sql.DriverManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Pool
@@ -22,19 +23,24 @@ public class Pool
   private int size = 0;
 
   private final int max;
-  private final String url;
   private final String token;
   private final boolean proxy;
+  private final String username;
+  private final String password;
+  private final Database database;
   private final ArrayList<Connection> pool;
+  private final static Logger logger = Logger.getLogger("rest");
 
 
-  public Pool(boolean proxy, String token, String url, int size)
+  public Pool(boolean proxy, String token, String username, String password, int size) throws Exception
   {
-    this.url = url;
     this.max = size;
     this.proxy = proxy;
     this.token = token;
+    this.username = username;
+    this.password = password;
     this.pool = new ArrayList<Connection>();
+    this.database = DatabaseUtils.getInstance();
   }
 
 
@@ -52,7 +58,7 @@ public class Pool
         throw new Exception("Invalid connect token");
     }
 
-    Connection conn = DriverManager.getConnection(url);
+    Connection conn = database.connect(username,password);
     conn.setAutoCommit(false);
 
     return(conn);
@@ -84,6 +90,18 @@ public class Pool
 
   public void release(Connection conn)
   {
+    if (proxy)
+    {
+      try
+      {
+        conn = database.releaseProxyUser(conn);
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+    }
+    
     synchronized(this)
     {
       pool.add(conn);

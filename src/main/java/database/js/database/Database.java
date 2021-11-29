@@ -92,14 +92,7 @@ public abstract class Database
   {
     String url = DatabaseUtils.bind(username,password);
     Connection conn = DriverManager.getConnection(url);
-    conn.setAutoCommit(false);
     return(conn);
-  }
-
-
-  public Connection setProxyUser(String username) throws Exception
-  {
-    throw new Exception("Feature not supported");
   }
 
 
@@ -253,4 +246,8 @@ public abstract class Database
 
     return(values);
   }
+
+
+  public abstract Connection setProxyUser(String username) throws Exception;
+  public abstract Connection releaseProxyUser(Connection conn) throws Exception;
 }

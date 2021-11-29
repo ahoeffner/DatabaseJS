@@ -12,9 +12,21 @@
 
 package database.js.database.impl;
 
+import java.sql.Connection;
 import database.js.database.Database;
 
 
 public class Postgres extends Database
 {
+  @Override
+  public Connection setProxyUser(String username) throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
+
+  @Override
+  public Connection releaseProxyUser(Connection conn) throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
 }

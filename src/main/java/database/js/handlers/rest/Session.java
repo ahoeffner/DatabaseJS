@@ -147,6 +147,7 @@ public class Session
 
       case Database :
         conn = database.connect(username,secret);
+        conn.setAutoCommit(false);
         break;
 
       case PoolToken :

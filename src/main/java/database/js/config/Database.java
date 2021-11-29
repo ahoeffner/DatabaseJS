@@ -128,7 +128,7 @@ public class Database
   }
 
 
-  private Pool getPool(String type, JSONObject config, boolean proxy)
+  private Pool getPool(String type, JSONObject config, boolean proxy) throws Exception
   {
     if (!config.has(type)) return(null);
     JSONObject pconf = config.getJSONObject(type);
@@ -141,7 +141,7 @@ public class Database
     String pwd = pconf.getString("password");
     String secret = pconf.getString("auth.secret");
 
-    return(new Pool(proxy,secret,DatabaseUtils.bind(usr,pwd),size));
+    return(new Pool(proxy,secret,usr,pwd,size));
   }
 
 

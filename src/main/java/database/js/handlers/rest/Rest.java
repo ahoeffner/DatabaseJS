@@ -142,39 +142,106 @@ public class Rest
 
   private String batch(JSONObject payload)
   {
-    System.out.println("Batch");
     boolean savepoint = getSavepoint(payload,false);
-    
+
     try
     {
       JSONArray services = payload.getJSONArray("batch");
       if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
-      
+
       if (savepoint)
       {
         state.lock(this,true);
         this.savepoint = session.setSavePoint();
       }
-      
-      String response = "";
+
+      String response = "[\n";
 
       for (int i = 0; i < services.length(); i++)
       {
         String cont = "\n";
         if (i < services.length() - 1) cont += ",\n";
-        
+
         JSONObject service = services.getJSONObject(i);
-        
+
         String path = service.getString("path");
         JSONObject spload = service.getJSONObject("payload");
-        
+
         if (path.startsWith("/"))
           path = path.substring(1);
-        
+
         String result = exec(path,spload,true);
         if (error != null) return(error);
-        
+
         response += result + cont;
+      }
+
+      response += "]";
+
+      if (savepoint)
+      {
+        if (!session.releaseSavePoint(this.savepoint))
+        {
+          this.savepoint = null;
+          throw new Exception("Could not release savepoint");
+        }
+
+        state.release(this,true);
+      }
+
+      if (!session.dedicated())
+        session.disconnect();
+
+      return(response);
+    }
+    catch (Exception e)
+    {
+      session.releaseSavePoint(this.savepoint,true);
+      this.savepoint = null;
+
+      state.releaseAll(this);
+      fatal = session.fatal();
+
+      if (!fatal && !session.dedicated())
+        session.disconnect();
+
+      return(error(e));
+    }
+  }
+
+
+  private String script(JSONObject payload)
+  {
+    boolean savepoint = getSavepoint(payload,false);
+
+    try
+    {
+      JSONArray services = payload.getJSONArray("script");
+      if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
+
+      if (savepoint)
+      {
+        state.lock(this,true);
+        this.savepoint = session.setSavePoint();
+      }
+
+      String response = null;
+
+      for (int i = 0; i < services.length(); i++)
+      {
+        String cont = "\n";
+        if (i < services.length() - 1) cont += ",\n";
+
+        JSONObject service = services.getJSONObject(i);
+
+        String path = service.getString("path");
+        JSONObject spload = service.getJSONObject("payload");
+
+        if (path.startsWith("/"))
+          path = path.substring(1);
+
+        response = exec(path,spload,true);
+        if (error != null) return(error);
       }
 
       if (savepoint)
@@ -185,33 +252,27 @@ public class Rest
           throw new Exception("Could not release savepoint");
         }
 
-        state.release(this,true);        
+        state.release(this,true);
       }
-      
+
       if (!session.dedicated())
         session.disconnect();
-      
+
       return(response);
     }
     catch (Exception e)
     {
       session.releaseSavePoint(this.savepoint,true);
       this.savepoint = null;
-      
+
       state.releaseAll(this);
       fatal = session.fatal();
-      
+
       if (!fatal && !session.dedicated())
         session.disconnect();
-      
+
       return(error(e));
     }
-  }
-
-
-  private String script(JSONObject payload)
-  {
-    return(null);
   }
 
 
@@ -436,7 +497,7 @@ public class Rest
           throw new Exception("Could not release savepoint");
         }
 
-        state.release(this,true);        
+        state.release(this,true);
       }
 
       cursor.rows = rows;
@@ -470,7 +531,7 @@ public class Rest
 
       if (cursor.name == null)
         session.closeCursor(cursor);
-      
+
       if (!batch && !session.dedicated())
         session.disconnect();
 
@@ -480,13 +541,13 @@ public class Rest
     {
       session.releaseSavePoint(this.savepoint,true);
       this.savepoint = null;
-      
+
       state.releaseAll(this);
       fatal = session.fatal();
-      
+
       if (!fatal && !session.dedicated())
         session.disconnect();
-      
+
       return(error(e));
     }
   }
@@ -538,14 +599,14 @@ public class Rest
           throw new Exception("Could not release savepoint");
         }
 
-        state.release(this,true);        
+        state.release(this,true);
       }
 
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
       json.add("rows",rows);
-      
+
       if (!batch && !session.dedicated())
         session.disconnect();
 
@@ -555,13 +616,13 @@ public class Rest
     {
       session.releaseSavePoint(this.savepoint,true);
       this.savepoint = null;
-      
+
       state.releaseAll(this);
       fatal = session.fatal();
-      
+
       if (!fatal && !session.dedicated())
         session.disconnect();
-      
+
       return(error(e));
     }
   }
@@ -617,7 +678,7 @@ public class Rest
           throw new Exception("Could not release savepoint");
         }
 
-        state.release(this,true);        
+        state.release(this,true);
       }
 
       JSONFormatter json = new JSONFormatter();
@@ -626,7 +687,7 @@ public class Rest
 
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
-      
+
       if (!batch && !session.dedicated())
         session.disconnect();
 
@@ -636,13 +697,13 @@ public class Rest
     {
       session.releaseSavePoint(this.savepoint,true);
       this.savepoint = null;
-      
+
       state.releaseAll(this);
       fatal = session.fatal();
-      
+
       if (!fatal && !session.dedicated())
         session.disconnect();
-      
+
       return(error(e));
     }
   }
@@ -871,10 +932,10 @@ public class Rest
       error("Session '"+parts[0]+"' does not exist");
       return(null);
     }
-    
+
     if (payload.has("batch"))
       return("batch");
-    
+
     if (payload.has("script"))
       return("script");
 
@@ -886,14 +947,14 @@ public class Rest
   {
     byte[] bdata = data.getBytes();
     byte[] bsalt = salt.getBytes();
-    
+
     byte indicator = (byte) (System.nanoTime() % 256);
-    
+
     if (priv && indicator % 2 != 0) indicator++;
     if (!priv && indicator % 2 == 0) indicator++;
-    
+
     byte[] token = new byte[bdata.length+1];
-    
+
     token[0] = indicator;
     System.arraycopy(bdata,0,token,1,bdata.length);
 
@@ -910,7 +971,7 @@ public class Rest
 
     int len = token.length;
     while(token[len-1] == '=') len--;
-    
+
     return(new String(token,0,len));
   }
 
@@ -919,15 +980,15 @@ public class Rest
   {
     byte[] bsalt = salt.getBytes();
     while(data.length() % 4 != 0) data += "=";
-    
+
     byte[] bdata = Base64.getDecoder().decode(data);
-    
+
     byte indicator = bdata[0];
     boolean priv = indicator % 2 == 0;
 
     byte[] token = new byte[bdata.length-1];
     System.arraycopy(bdata,1,token,0,token.length);
-    
+
     if (priv)
     {
       for (int i = 0; i < token.length; i++)
@@ -936,7 +997,7 @@ public class Rest
         token[i] = (byte) (token[i] ^ s);
       }
     }
-    
+
     return(new String(token));
   }
 

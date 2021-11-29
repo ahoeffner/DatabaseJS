@@ -35,6 +35,13 @@ public class Oracle extends Database
 
 
   @Override
+  public Connection releaseProxyUser(Connection conn) throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
+
+
+  @Override
   public void releaseSavePoint(Savepoint savepoint, boolean rollback) throws Exception
   {
     // Oracle only supports rollback. Savepoints are released when commit/rollback
