@@ -109,7 +109,7 @@ public class Session
   }
 
 
-  public void disconnect() throws Exception
+  public void disconnect()
   {
     try {database.rollback();}
     catch (Exception e)
@@ -123,7 +123,7 @@ public class Session
   }
 
 
-  public void ensure() throws Exception
+  public synchronized void ensure() throws Exception
   {
     if (!connected())
       connect();
