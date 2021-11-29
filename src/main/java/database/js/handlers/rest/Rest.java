@@ -48,10 +48,8 @@ public class Rest
   private final boolean compact;
   private final String dateform;
 
-  private final String payload;
-  private final String[] parts;
-
   private final boolean modify;
+  private final String payload;
 
   private final boolean sppost;
   private final boolean sppatch;
@@ -98,7 +96,6 @@ public class Rest
     this.config    = config;
     this.modify    = modify;
     this.payload   = payload;
-    this.parts     = path.substring(1).split("/");
     this.compact   = config.getDatabase().compact();
     this.rewriter  = config.getDatabase().rewriter();
     this.validator = config.getDatabase().validator();
@@ -111,18 +108,12 @@ public class Rest
 
   public String execute()
   {
-    if (parts.length == 0)
-    {
-      error("Invalid rest path");
-      return(error);
-    }
-
     try
     {
-      JSONObject payload = parse();
+      JSONObject payload = parse(this.payload);
       if (payload == null) return(error);
 
-      String cmd = divert(payload);
+      String cmd = divert(this.path,payload);
       if (cmd == null) return(error);
 
       if (cmd.equals("batch"))
@@ -155,6 +146,7 @@ public class Rest
         this.savepoint = session.setSavePoint();
       }
 
+      String result = null;
       String response = "[\n";
 
       for (int i = 0; i < services.length(); i++)
@@ -172,8 +164,14 @@ public class Rest
 
         if (path.startsWith("/"))
           path = path.substring(1);
+        
+        if (path.equals("map"))
+        {
+          map(result,spload);            
+          continue;
+        }
 
-        String result = exec(path,spload,true);
+        result = exec(path,spload,true);
         if (error != null) return(error);
 
         response += result + cont;
@@ -228,8 +226,7 @@ public class Rest
         this.savepoint = session.setSavePoint();
       }
 
-      String response = null;
-
+      String result = null;
       for (int i = 0; i < services.length(); i++)
       {
         String cont = "\n";
@@ -245,8 +242,14 @@ public class Rest
 
         if (path.startsWith("/"))
           path = path.substring(1);
+        
+        if (path.equals("map"))
+        {
+          map(result,spload);            
+          continue;
+        }
 
-        response = exec(path,spload,true);
+        result = exec(path,spload,true);
         if (error != null) return(error);
       }
 
@@ -264,7 +267,7 @@ public class Rest
       if (!session.dedicated())
         session.disconnect();
 
-      return(response);
+      return(result);
     }
     catch (Exception e)
     {
@@ -772,6 +775,22 @@ public class Rest
       return(error(e));
     }
   }
+  
+  
+  private void map(String latest, JSONObject payload) throws Exception
+  {
+    JSONArray columns = null;
+    JSONObject last = parse(latest);
+    
+    if (last.has("columns"))
+      columns = last.getJSONArray("columns");
+    
+    if (!last.has("rows"))
+      throw new Exception("Map can only be used right after a query");
+    
+    JSONArray rows = last.getJSONArray("rows");
+
+  }
 
 
   private String peek(JSONObject payload)
@@ -839,14 +858,11 @@ public class Rest
   }
 
 
-  private JSONObject parse()
+  private JSONObject parse(String payload)
   {
-    if (this.payload == null)
-    {
-      error("Missing rest payload");
-      return(null);
-    }
-
+    if (payload == null)
+      payload = "{}";
+    
     try
     {
       JSONTokener tokener = new JSONTokener(payload);
@@ -854,7 +870,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      error(e);
+      error("Could not parse json payload: ["+payload+"]");
       return(null);
     }
   }
@@ -909,10 +925,18 @@ public class Rest
   }
 
 
-  private String divert(JSONObject payload)
+  private String divert(String path, JSONObject payload)
   {
     String cmd = null;
     boolean ses = false;
+    
+    if (path == null)
+    {
+      error("invalid rest-path");
+      return(null);
+    }
+    
+    String[] parts = path.substring(1).split("/");
 
     if (commands.contains(parts[0].toLowerCase()))
       cmd = parts[0].toLowerCase();
