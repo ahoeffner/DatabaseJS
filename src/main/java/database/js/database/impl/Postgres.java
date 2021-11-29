@@ -19,13 +19,13 @@ import database.js.database.Database;
 public class Postgres extends Database
 {
   @Override
-  public Connection setProxyUser(String username) throws Exception
+  public void setProxyUser(String username) throws Exception
   {
     throw new Exception("Feature not supported");
   }
 
   @Override
-  public Connection releaseProxyUser(Connection conn) throws Exception
+  public void releaseProxyUser() throws Exception
   {
     throw new Exception("Feature not supported");
   }

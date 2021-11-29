@@ -162,10 +162,13 @@ public class Rest
         String cont = "\n";
         if (i < services.length() - 1) cont += ",\n";
 
+        JSONObject spload = null;
         JSONObject service = services.getJSONObject(i);
 
         String path = service.getString("path");
-        JSONObject spload = service.getJSONObject("payload");
+
+        if (service.has("payload"))
+          spload = service.getJSONObject("payload");
 
         if (path.startsWith("/"))
           path = path.substring(1);
@@ -232,10 +235,13 @@ public class Rest
         String cont = "\n";
         if (i < services.length() - 1) cont += ",\n";
 
+        JSONObject spload = null;
         JSONObject service = services.getJSONObject(i);
 
         String path = service.getString("path");
-        JSONObject spload = service.getJSONObject("payload");
+
+        if (service.has("payload"))
+          spload = service.getJSONObject("payload");
 
         if (path.startsWith("/"))
           path = path.substring(1);
@@ -407,6 +413,7 @@ public class Rest
     try
     {
       session.disconnect();
+      session.remove();
     }
     catch (Throwable e)
     {

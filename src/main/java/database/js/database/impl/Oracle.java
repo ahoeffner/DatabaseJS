@@ -22,22 +22,21 @@ import oracle.jdbc.driver.OracleConnection;
 public class Oracle extends Database
 {
   @Override
-  public Connection setProxyUser(String username) throws Exception
+  public void setProxyUser(String username) throws Exception
   {
     Properties props = new Properties();
     props.put(OracleConnection.PROXY_USER_NAME, username);
 
     OracleConnection conn = (OracleConnection) super.connection();
     conn.openProxySession(OracleConnection.PROXYTYPE_USER_NAME,props);
-
-    return(conn);
   }
 
 
   @Override
-  public Connection releaseProxyUser(Connection conn) throws Exception
+  public void releaseProxyUser() throws Exception
   {
-    throw new Exception("Feature not supported");
+    OracleConnection conn = (OracleConnection) super.connection();
+    conn.close(OracleConnection.PROXY_SESSION);
   }
 
 

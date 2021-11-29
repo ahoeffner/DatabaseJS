@@ -12,7 +12,6 @@
 
 package database.js.database;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,8 +26,7 @@ public class Pool
   private final boolean proxy;
   private final String username;
   private final String password;
-  private final Database database;
-  private final ArrayList<Connection> pool;
+  private final ArrayList<Database> pool;
   private final static Logger logger = Logger.getLogger("rest");
 
 
@@ -39,8 +37,7 @@ public class Pool
     this.token = token;
     this.username = username;
     this.password = password;
-    this.pool = new ArrayList<Connection>();
-    this.database = DatabaseUtils.getInstance();
+    this.pool = new ArrayList<Database>();
   }
 
 
@@ -50,7 +47,7 @@ public class Pool
   }
 
 
-  public Connection connect(String token) throws Exception
+  public Database connect(String token) throws Exception
   {
     if (this.token != null)
     {
@@ -58,14 +55,14 @@ public class Pool
         throw new Exception("Invalid connect token");
     }
 
-    Connection conn = database.connect(username,password);
-    conn.setAutoCommit(false);
+    Database database = DatabaseUtils.getInstance();
+    database.connect(username,password);
 
-    return(conn);
+    return(database);
   }
 
 
-  public Connection getConnection(String token) throws Exception
+  public Database getConnection(String token) throws Exception
   {
     if (this.token != null)
     {
@@ -73,38 +70,38 @@ public class Pool
         throw new Exception("Invalid connect token");
     }
 
-    Connection conn = null;
+    Database database = null;
 
     synchronized(this)
     {
       while(pool.size() == 0 && size == max)
         this.wait();
 
-      if (pool.size() == 0) conn = connect();
-      else                  conn = pool.remove(0);
+      if (pool.size() == 0) database = connect();
+      else                  database = pool.remove(0);
     }
 
-    return(conn);
+    return(database);
   }
 
 
-  public void release(Connection conn)
+  public void release(Database database)
   {
     if (proxy)
     {
       try
       {
-        conn = database.releaseProxyUser(conn);
+        database.releaseProxyUser();
       }
       catch (Exception e)
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
     }
-    
+
     synchronized(this)
     {
-      pool.add(conn);
+      pool.add(database);
       this.notifyAll();
     }
   }
@@ -118,9 +115,9 @@ public class Pool
 
       for (int i = 0; i < size; i++)
       {
-        Connection conn = this.pool.remove(0);
+        Database database = this.pool.remove(0);
 
-        try {conn.close();}
+        try {database.disconnect();}
         catch(Exception e) {;}
       }
     }
@@ -135,35 +132,14 @@ public class Pool
 
       for (int i = 0; i < size; i++)
       {
-        Connection conn = this.pool.remove(0);
-        if (assure(conn)) this.pool.add(conn);
+        Database database = this.pool.remove(0);
+        if (database.validate()) this.pool.add(database);
       }
     }
   }
 
 
-  public boolean validate(Connection conn)
-  {
-    if (assure(conn)) return(true);
-
-    synchronized(this)
-    {
-      pool.remove(conn);
-      return(false);
-    }
-  }
-
-
-  private boolean assure(Connection conn)
-  {
-    String sql = Database.getTestSQL();
-    try {conn.createStatement().execute(sql);}
-    catch(Exception e) {return(false);}
-    return(true);
-  }
-
-
-  public Connection connect() throws Exception
+  public Database connect() throws Exception
   {
     return(connect(this.token));
   }

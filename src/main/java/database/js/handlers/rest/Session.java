@@ -14,7 +14,6 @@ package database.js.handlers.rest;
 
 import java.sql.ResultSet;
 import java.sql.Savepoint;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +23,6 @@ import java.sql.CallableStatement;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
-import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,12 +34,12 @@ public class Session
   private final String guid;
   private final String secret;
   private final String username;
-  private final Database database;
   private final AuthMethod method;
   private final boolean dedicated;
 
   private int shared = 0;
   private long thread = 0;
+  private Database database = null;
   private boolean exclusive = false;
   private final Object LOCK = new Object();
   private long touched = System.currentTimeMillis();
@@ -69,7 +67,6 @@ public class Session
     this.secret = secret;
     this.username = username;
     this.dedicated = dedicated;
-    this.database = DatabaseUtils.getInstance();
   }
 
 
@@ -105,21 +102,31 @@ public class Session
 
   public boolean connected()
   {
-    return(database.connected());
+    return(database != null);
+  }
+
+
+  public void remove()
+  {
+    sessions.remove(guid);
   }
 
 
   public void disconnect()
   {
+    if (database == null)
+      return;
+
     try {database.rollback();}
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    sessions.remove(guid);
-    if (pool == null) database.disconnect();
-    else pool.release(database.connection());
+    if (pool != null) database.disconnect();
+    else              pool.release(database);
+
+    database = null;
   }
 
 
@@ -132,32 +139,28 @@ public class Session
 
   public void connect() throws Exception
   {
-    Connection conn = null;
-
     switch(method)
     {
       case OAuth :
-        conn = pool.connect();
-        database.setConnection(conn);
+        database = pool.connect();
 
-        if (pool.proxy())
-          conn = database.setProxyUser(username);
+        database.setAutoCommit(false);
+        if (pool.proxy()) database.setProxyUser(username);
 
         break;
 
       case Database :
-        conn = database.connect(username,secret);
-        conn.setAutoCommit(false);
+        database.connect(username,secret);
+        database.setAutoCommit(false);
+
         break;
 
       case PoolToken :
-        if (dedicated) conn = pool.connect(secret);
-        else           conn = pool.getConnection(secret);
+        if (dedicated) database = pool.connect(secret);
+        else           database = pool.getConnection(secret);
 
-        database.setConnection(conn);
-
-        if (pool.proxy())
-          conn = database.setProxyUser(username);
+        database.setAutoCommit(false);
+        if (pool.proxy()) database.setProxyUser(username);
 
         break;
     }
@@ -303,25 +306,16 @@ public class Session
 
   public boolean fatal()
   {
-    if (pool == null)
-    {
-      if (database.validate())
-      {
-        sessions.remove(guid);
-        database.disconnect();
-        return(true);
-      }
-    }
-    else
-    {
-      if (!pool.validate(database.connection()))
-      {
-        sessions.remove(guid);
-        database.setConnection(null);
-        return(true);
-      }
-    }
+    if (database == null)
+      return(true);
 
+    if (!database.validate())
+    {
+      sessions.remove(guid);
+      database.disconnect();
+      database = null;
+      return(true);
+    }
     return(false);
   }
 

@@ -29,8 +29,15 @@ import database.js.handlers.rest.DateUtils;
 public abstract class Database
 {
   private Connection conn;
+  private static String url;
   private static String teststmt;
   private final static Logger logger = Logger.getLogger("rest");
+
+
+  public static void setUrl(String url)
+  {
+    Database.url = url;
+  }
 
 
   public static String getTestSQL()
@@ -70,6 +77,12 @@ public abstract class Database
   }
 
 
+  public void setAutoCommit(boolean on) throws Exception
+  {
+    conn.setAutoCommit(on);
+  }
+
+
   public void commit() throws Exception
   {
     conn.commit();
@@ -82,17 +95,10 @@ public abstract class Database
   }
 
 
-  public void setConnection(Connection conn)
-  {
-    this.conn = conn;
-  }
-
-
-  public Connection connect(String username, String password) throws Exception
+  public void connect(String username, String password) throws Exception
   {
     String url = DatabaseUtils.bind(username,password);
-    Connection conn = DriverManager.getConnection(url);
-    return(conn);
+    this.conn = DriverManager.getConnection(url);
   }
 
 
@@ -248,6 +254,6 @@ public abstract class Database
   }
 
 
-  public abstract Connection setProxyUser(String username) throws Exception;
-  public abstract Connection releaseProxyUser(Connection conn) throws Exception;
+  public abstract void releaseProxyUser() throws Exception;
+  public abstract void setProxyUser(String username) throws Exception;
 }

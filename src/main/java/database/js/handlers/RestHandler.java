@@ -45,6 +45,7 @@ public class RestHandler extends Handler
 
     OAuth.init(config);
     config.loadDatabaseConfig();
+    Database.setUrl(config.getDatabase().url());
     Database.setTestSQL(config.getDatabase().test());
 
     this.path = new PathUtil(this);
