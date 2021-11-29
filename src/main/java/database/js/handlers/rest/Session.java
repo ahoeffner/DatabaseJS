@@ -23,6 +23,7 @@ import java.sql.CallableStatement;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
+import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,7 +124,7 @@ public class Session
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    if (pool != null) database.disconnect();
+    if (pool == null) database.disconnect();
     else              pool.release(database);
 
     database = null;
@@ -150,6 +151,8 @@ public class Session
         break;
 
       case Database :
+        database = DatabaseUtils.getInstance();
+
         database.connect(username,secret);
         database.setAutoCommit(false);
 

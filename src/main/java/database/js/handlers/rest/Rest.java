@@ -164,10 +164,10 @@ public class Rest
 
         if (path.startsWith("/"))
           path = path.substring(1);
-        
+
         if (path.equals("map"))
         {
-          map(result,spload);            
+          map(result,spload);
           continue;
         }
 
@@ -242,10 +242,10 @@ public class Rest
 
         if (path.startsWith("/"))
           path = path.substring(1);
-        
+
         if (path.equals("map"))
         {
-          map(result,spload);            
+          map(result,spload);
           continue;
         }
 
@@ -775,19 +775,19 @@ public class Rest
       return(error(e));
     }
   }
-  
-  
+
+
   private void map(String latest, JSONObject payload) throws Exception
   {
     JSONArray columns = null;
     JSONObject last = parse(latest);
-    
+
     if (last.has("columns"))
       columns = last.getJSONArray("columns");
-    
+
     if (!last.has("rows"))
       throw new Exception("Map can only be used right after a query");
-    
+
     JSONArray rows = last.getJSONArray("rows");
 
   }
@@ -862,7 +862,7 @@ public class Rest
   {
     if (payload == null)
       payload = "{}";
-    
+
     try
     {
       JSONTokener tokener = new JSONTokener(payload);
@@ -929,13 +929,13 @@ public class Rest
   {
     String cmd = null;
     boolean ses = false;
-    
+
     if (path == null)
     {
       error("invalid rest-path");
       return(null);
     }
-    
+
     String[] parts = path.substring(1).split("/");
 
     if (commands.contains(parts[0].toLowerCase()))
