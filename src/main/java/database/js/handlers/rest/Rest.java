@@ -360,9 +360,9 @@ public class Rest
 
         switch(meth.toLowerCase())
         {
-          case "oauth" : method = AuthMethod.OAuth; break;
+          case "oauth"    : method = AuthMethod.OAuth; break;
           case "database" : method = AuthMethod.Database; break;
-          case "pool-token" : method = AuthMethod.PoolToken; break;
+          case "token"    : method = AuthMethod.PoolToken; break;
 
           default: return(error("Unknown authentication method "+meth));
         }
