@@ -13,6 +13,8 @@
 package database.js.database;
 
 import java.sql.Types;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.logging.Logger;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,8 +33,11 @@ public class SQLTypes
     types.put("INTEGER",Types.INTEGER);
     types.put("SMALLINT",Types.SMALLINT);
 
+    types.put("LONG",Types.BIGINT);
+
     types.put("FLOAT",Types.FLOAT);
     types.put("DOUBLE",Types.DOUBLE);
+
     types.put("NUMBER",Types.DECIMAL);
     types.put("NUMERIC",Types.DECIMAL);
     types.put("DECIMAL",Types.DECIMAL);
@@ -61,6 +66,39 @@ public class SQLTypes
     }
 
     return(sqlt);
+  }
+
+
+  public static Integer getType(Object value)
+  {
+    if (value == null)
+      return(-1);
+
+    if (value instanceof Boolean)
+      return(Types.BOOLEAN);
+
+    if (value instanceof Long)
+      return(Types.BIGINT);
+
+    if (value instanceof Short)
+      return(Types.SMALLINT);
+
+    if (value instanceof Integer)
+      return(Types.INTEGER);
+
+    if (value instanceof Float)
+      return(Types.FLOAT);
+
+    if (value instanceof Double)
+      return(Types.DOUBLE);
+
+    if (value instanceof BigInteger)
+      return(Types.DECIMAL);
+
+    if (value instanceof BigDecimal)
+      return(Types.DECIMAL);
+
+    return(Types.VARCHAR);
   }
 
   public static boolean isDate(int type)

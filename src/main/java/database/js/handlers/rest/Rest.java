@@ -779,17 +779,79 @@ public class Rest
 
   private void map(String latest, JSONObject payload) throws Exception
   {
-    JSONArray columns = null;
+    JSONArray rows = null;
+    ArrayList<String> cols = null;
     JSONObject last = parse(latest);
 
+    if (last.has("rows"))
+      rows = last.getJSONArray("rows");
+
     if (last.has("columns"))
-      columns = last.getJSONArray("columns");
+    {
+      cols = new ArrayList<String>();
+      JSONArray columns = last.getJSONArray("columns");
+      for (int i = 0; i < columns.length(); i++)
+        cols.add((String) columns.get(i));
+    }
 
-    if (!last.has("rows"))
-      throw new Exception("Map can only be used right after a query");
+    String[] bindvalues = JSONObject.getNames(payload);
 
-    JSONArray rows = last.getJSONArray("rows");
+    if (rows == null)
+    {
+      // Previous was procedure
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+        String bindv = bindvalues[i];
+        String pointer = payload.getString(bindv).trim();
+        this.bindvalues.put(bindv,new BindValueDef(bindv,last.get(pointer)));
+      }
+    }
+    else
+    {
+      // Previous was select
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+        int row = 0;
+        Object value = null;
+        String bindv = bindvalues[i];
+        String pointer = payload.getString(bindv).trim();
 
+        if (pointer.endsWith("]"))
+        {
+          int pos = pointer.lastIndexOf('[');
+
+          if (pos > 0)
+          {
+            row = Integer.parseInt(pointer.substring(pos+1,pointer.length()-1));
+            pointer = pointer.substring(0,pos);
+          }
+        }
+
+        if (cols == null)
+        {
+          JSONObject record = (JSONObject) rows.get(row);
+          value = record.get(pointer);
+        }
+        else
+        {
+          int col = -1;
+
+          for (int j = 0; j < cols.size(); j++)
+          {
+            if (cols.get(j).equals(pointer))
+            {
+              col = j;
+              break;
+            }
+          }
+
+          JSONArray record = (JSONArray) rows.get(row);
+          value = record.get(col);
+        }
+
+        this.bindvalues.put(bindv,new BindValueDef(bindv,value));
+      }
+    }
   }
 
 
