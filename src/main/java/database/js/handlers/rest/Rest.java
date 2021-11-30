@@ -1041,10 +1041,11 @@ public class Rest
     byte[] bdata = data.getBytes();
     byte[] bsalt = salt.getBytes();
 
-    byte indicator = (byte) (System.nanoTime() % 256);
+    byte indicator;
+    int ran = (int) System.currentTimeMillis() % 25;
 
-    if (priv && indicator % 2 != 0) indicator++;
-    if (!priv && indicator % 2 == 0) indicator++;
+    if (priv) indicator = (byte) ('a' + ran);
+    else      indicator = (byte) ('A' + ran);
 
     byte[] token = new byte[bdata.length+1];
 
@@ -1077,7 +1078,7 @@ public class Rest
     byte[] bdata = Base64.getDecoder().decode(data);
 
     byte indicator = bdata[0];
-    boolean priv = indicator % 2 == 0;
+    boolean priv = indicator >= 'a' && indicator <= 'z';
 
     byte[] token = new byte[bdata.length-1];
     System.arraycopy(bdata,1,token,0,token.length);
