@@ -59,6 +59,9 @@ public class RestHandler extends Handler
     HTTPResponse response = null;
     Server server = request.server();
 
+    String html = config().getHTTP().mimetypes().get("html");
+    String json = config().getHTTP().mimetypes().get("json");
+
     server.request();
     logger.fine("REST request received: "+request.path());
 
@@ -67,7 +70,7 @@ public class RestHandler extends Handler
       response = new HTTPResponse();
 
       response.setResponse(400);
-      response.setContentType("text/html");
+      response.setContentType(html);
       response.setBody("<b>Bad Request</b>");
 
       return(response);
@@ -76,7 +79,7 @@ public class RestHandler extends Handler
     if (!server.embedded())
     {
       RESTClient client = null;
-      short rsrv = this.getClient(request);
+      short rsrv = getClient(config(),request);
 
       if (rsrv < 0) client = server.worker();
       else          client = server.worker(rsrv);
@@ -84,7 +87,7 @@ public class RestHandler extends Handler
       if (client == null)
       {
         response = new HTTPResponse();
-        response.setContentType("application/json");
+        response.setContentType(json);
 
         logger.warning("No RESTServer's connected");
         response.setBody("{\"status\": \"failed\", \"message\": \"No RESTServer's connected\"}");
@@ -102,7 +105,7 @@ public class RestHandler extends Handler
     }
 
     response = new HTTPResponse();
-    this.setClient(request,response);
+    setClient(config(),request,response);
 
     String path = this.path.getPath(request.path());
     boolean modify = request.method().equals("PATCH");
@@ -110,7 +113,7 @@ public class RestHandler extends Handler
     if (path == null)
     {
       response.setResponse(404);
-      response.setContentType("text/html");
+      response.setContentType(html);
       response.setBody("<b>Page not found</b>");
       return(response);
     }
@@ -122,7 +125,7 @@ public class RestHandler extends Handler
 
       if (origin == null)
       {
-        response.setContentType("application/json");
+        response.setContentType(json);
 
         logger.warning("Null Cors Origin header detected. Request rejected");
         response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
@@ -132,7 +135,7 @@ public class RestHandler extends Handler
 
       if (!allow(origin))
       {
-        response.setContentType("application/json");
+        response.setContentType(json);
 
         logger.warning("Origin "+origin+" rejected by Cors");
         response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
@@ -162,7 +165,7 @@ public class RestHandler extends Handler
     String payload = new String(body);
 
     Rest rest = new Rest(config(),path,modify,remote,payload);
-    response.setContentType("application/json");
+    response.setContentType(json);
 
     response.setBody(rest.execute());
 
@@ -202,16 +205,16 @@ public class RestHandler extends Handler
 
     return(false);
   }
-
-
-  private short getClient(HTTPRequest request) throws Exception
+  
+  
+  public static short getClient(Config config, HTTPRequest request) throws Exception
   {
     Server server = request.server();
 
     long date = 0;
     short rsrv = -1;
     String cinst = null;
-    String instance = config().instance();
+    String instance = config.instance();
     String cookie = request.getCookie("RESTSRVID");
 
     if (cookie == null)
@@ -238,14 +241,14 @@ public class RestHandler extends Handler
   }
 
 
-  private void setClient(HTTPRequest request, HTTPResponse response) throws Exception
+  public static void setClient(Config config, HTTPRequest request, HTTPResponse response) throws Exception
   {
     Server server = request.server();
     if (!server.isRestType()) return;
 
     short rsrv = server.id();
     long date = server.started();
-    byte[] instance = config().instance().getBytes();
+    byte[] instance = config.instance().getBytes();
 
     ByteBuffer buffer = ByteBuffer.allocate(10+instance.length);
 

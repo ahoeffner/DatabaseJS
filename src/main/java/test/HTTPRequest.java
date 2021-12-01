@@ -38,7 +38,7 @@ public class HTTPRequest
   {
     String header = (body == null) ? "GET " : "POST ";
 
-    header += path + " HTTP/1.0"+nl;
+    header += path + " HTTP/1.1"+nl;
     header += "Host: "+host+nl;
     header += "Connection: Keep-Alive" + nl;
 
