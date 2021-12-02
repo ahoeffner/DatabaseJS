@@ -60,7 +60,10 @@ public class HTTPWorker implements Runnable
         HTTPResponse response = new HTTPResponse();
 
         response.setResponse(301);
-        response.setHeader("Location","https://"+host);
+        response.setHeader("Location","https://"+host+request.path());
+
+        if (logger.getLevel() == Level.FINEST)
+          logger.finest("redirect: "+new String(response.page()));
 
         request.respond(response.page());
         this.channel.stayalive(false);

@@ -334,7 +334,6 @@ public class Rest
     String username = null;
     AuthMethod method = null;
     boolean dedicated = false;
-    boolean anonymous = false;
     boolean privateses = true;
 
     try
@@ -347,9 +346,6 @@ public class Rest
 
       if (payload.has("dedicated"))
         dedicated = payload.getBoolean("dedicated");
-
-      if (payload.has("anonymous"))
-        anonymous = payload.getBoolean("anonymous");
 
       if (payload.has("auth.secret"))
         secret = payload.getString("auth.secret");
@@ -375,6 +371,7 @@ public class Rest
             return(error("OAuth authentication failed"));
         }
 
+        boolean anonymous = username == null;
         if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)
         {
           if (!anonymous) pool = config.getDatabase().proxy;
@@ -383,9 +380,6 @@ public class Rest
           if (pool == null)
             return(error("Connection pool not configured"));
         }
-
-        if (!anonymous && username == null)
-          return(error("Username must be specified"));
 
         this.session = new Session(method,pool,dedicated,username,secret);
 

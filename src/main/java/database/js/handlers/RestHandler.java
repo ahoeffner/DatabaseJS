@@ -57,7 +57,7 @@ public class RestHandler extends Handler
     String json = config().getHTTP().mimetypes.get("json");
 
     server.request();
-    logger.fine("REST request received: "+request.path());
+    logger.finest("REST request received: "+request.path());
 
     if (request.getHeader("Host") == null)
     {
@@ -253,17 +253,21 @@ public class RestHandler extends Handler
   }
 
 
+  private static String req = "\n----------------- request -----------------\n";
+  private static String rsp = "\n----------------- response -----------------\n";
+  private static String end = "\n---------------------------------------------\n";
+
   private void log(Logger logger, HTTPRequest request, HTTPResponse response)
   {
     long time = System.nanoTime() - request.start();
 
-    if (logger.getLevel() == Level.FINE)
+    if (logger.getLevel() == Level.INFO)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
 
-    if (logger.getLevel() == Level.FINER)
-      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.body())+"\n\n"+new String(response.body())+"\n");
+    if (logger.getLevel() == Level.FINE)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms"+req+new String(request.body())+rsp+new String(response.body())+end);
 
     if (logger.getLevel() == Level.FINEST)
-      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.page())+"\n\n"+new String(response.page())+"\n");
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms"+req+new String(request.page())+rsp+new String(response.page())+end);
   }
 }
