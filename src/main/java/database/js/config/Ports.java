@@ -20,13 +20,13 @@ public class Ports
   public final int ssl;
   public final int admin;
   public final int plain;
-  public final boolean sslrequired;
+  public final boolean sslredirect;
 
   public Ports(JSONObject config)
   {
     this.ssl = Config.get(config,"ssl");
     this.plain = Config.get(config,"plain");
     this.admin = Config.get(config,"admin");
-    this.sslrequired = plain == 0;
+    this.sslredirect = Config.get(config,"ssl.redirect");
   }
 }
