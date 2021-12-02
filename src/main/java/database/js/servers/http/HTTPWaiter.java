@@ -58,11 +58,11 @@ class HTTPWaiter extends Thread
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
-    this.timeout = config.getHTTP().timeout();
+    this.timeout = config.getHTTP().timeout;
 
     this.setDaemon(true);
     this.setName("HTTPWaiter("+id+")");
-    this.workers = new ThreadPool(config.getTopology().workers());
+    this.workers = new ThreadPool(config.getTopology().workers);
 
     this.start();
   }

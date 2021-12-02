@@ -14,12 +14,12 @@ package database.js.handlers;
 
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.servers.Server;
 import database.js.handlers.file.PathUtil;
+import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.servers.Server;
-import database.js.servers.rest.RESTClient;
 
 
 public class AppFileHandler extends Handler
@@ -40,13 +40,13 @@ public class AppFileHandler extends Handler
     request.server().request();
     HTTPResponse response = null;
     Server server = request.server();
-    String json = config().getHTTP().mimetypes().get("json");
-    
+    String json = config().getHTTP().mimetypes.get("json");
+
     if (!server.embedded())
     {
       RESTClient client = null;
       short rsrv = RestHandler.getClient(config(),request);
-      
+
       if (rsrv >= 0) client = server.worker(rsrv);
       else
       {
@@ -81,26 +81,26 @@ public class AppFileHandler extends Handler
         return(response);
       }
     }
-    
+
     return(null);
   }
-  
-  
+
+
   private boolean ensure(RESTClient client, HTTPRequest request) throws Exception
   {
     String path = this.path.getPath(request.path());
     if (path == null) return(false);
-    
+
     String ensure = "";
     String nl = "\r\n";
     String session = path.split("/")[0];
-    
+
     ensure += "POST /"+session+"/status HTTP/1.1"+nl;
     ensure += "Host: localhost"+nl+nl+nl;
-    
+
     byte[] response = client.send("localhost",ensure.getBytes());
     System.out.println(new String(response));
-    
+
     return(true);
   }
 }

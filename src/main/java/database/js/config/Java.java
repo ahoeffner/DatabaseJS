@@ -19,6 +19,8 @@ import org.json.JSONObject;
 public class Java
 {
   private final String exe;
+  private final String opts;
+  private final String jars;
   private final String httpopts;
   private final String restopts;
   private final String httpjars;
@@ -36,14 +38,29 @@ public class Java
     if (Config.windows()) exe += ".exe";
 
     this.exe = exe;
-    this.httpopts = config.getString("http.opts");
-    this.restopts = config.getString("rest.opts");
+    this.opts = Config.get(config,"opts");
+    this.httpopts = Config.get(config,"http.opts");
+    this.restopts = Config.get(config,"rest.opts");
 
-    String httpjars = "";
-    if (!config.isNull("http.jars"))
+    String srvjars = Config.get(config,"jars",null);
+
+    if (srvjars != null)
     {
       String path = "";
-      httpjars = config.getString("http.jars");
+      String[] jars = srvjars.split(", ;:");
+
+      for(String jar : jars)
+        path += File.pathSeparator+jar;
+
+      srvjars = path;
+    }
+
+
+    String httpjars = Config.get(config,"http.jars",null);
+
+    if (httpjars != null)
+    {
+      String path = "";
       String[] jars = httpjars.split(", ;:");
 
       for(String jar : jars)
@@ -52,11 +69,11 @@ public class Java
       httpjars = path;
     }
 
-    String restjars = "";
-    if (!config.isNull("http.jars"))
+
+    String restjars = Config.get(config,"rest.jars",null);
+    if (restjars != null)
     {
       String path = "";
-      restjars = config.getString("rest.jars");
       String[] jars = restjars.split(", ;:");
 
       for(String jar : jars)
@@ -65,6 +82,7 @@ public class Java
       restjars = path;
     }
 
+    this.jars = srvjars;
     this.httpjars = httpjars;
     this.restjars = restjars;
   }
@@ -81,6 +99,16 @@ public class Java
   public String exe()
   {
     return(exe);
+  }
+
+  public String getClassPath()
+  {
+    return(jars);
+  }
+
+  public String getOptions()
+  {
+    return(opts);
   }
 
   public String getHTTPClassPath()

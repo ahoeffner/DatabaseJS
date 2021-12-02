@@ -94,10 +94,10 @@ public class Server extends Thread
 
     Cluster.setStatistics(this);
 
-    this.servers = config.getTopology().servers();
+    this.servers = config.getTopology().servers;
     Process.Type type = Cluster.getType(id);
 
-    this.heartbeat = config.getTopology().heartbeat();
+    this.heartbeat = config.getTopology().heartbeat;
 
     if (type == Process.Type.rest)
     {

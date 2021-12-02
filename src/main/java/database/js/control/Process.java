@@ -22,6 +22,8 @@ import database.js.config.Config;
 public class Process
 {
   private final int servers;
+  private final String opts;
+  private final String jars;
   private final String instnm;
   private final Config config;
   private final String javaexe;
@@ -38,7 +40,11 @@ public class Process
     this.config = config;
     this.instnm = config.instance();
     this.javaexe = config.getJava().exe();
-    this.servers = config.getTopology().servers();
+    this.servers = config.getTopology().servers;
+
+    this.opts = config.getJava().getOptions();
+    this.jars = config.getJava().getClassPath();
+
     this.httpopts = config.getJava().getHttpOptions();
     this.restopts = config.getJava().getRestOptions();
     this.httpjars = config.getJava().getHTTPClassPath();
@@ -58,6 +64,12 @@ public class Process
     else                   options = restopts;
 
     boolean embedded = servers <= 0;
+
+    if (!embedded)
+    {
+      jars = this.jars;
+      options = this.opts;
+    }
 
     logger.fine("Starting "+type+" instance "+instnm+"["+inst+"]");
     String classpath = classpath(type != Type.http || embedded) + jars;

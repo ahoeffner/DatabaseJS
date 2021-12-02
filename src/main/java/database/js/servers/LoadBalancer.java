@@ -29,11 +29,11 @@ class LoadBalancer
   LoadBalancer(Config config) throws Exception
   {
     this.config = config;
-    this.servers = config.getTopology().servers();
-    this.threads = config.getTopology().workers();
+    this.servers = config.getTopology().servers;
+    this.threads = config.getTopology().workers;
 
     short htsrvs = 1;
-    if (config.getTopology().hotstandby()) htsrvs++;
+    if (config.getTopology().hot) htsrvs++;
 
     this.htsrvs = htsrvs;
     this.workers = new RESTClient[servers];

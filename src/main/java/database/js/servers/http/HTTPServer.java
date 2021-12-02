@@ -59,23 +59,23 @@ public class HTTPServer extends Thread
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
-    this.timeout = config.getHTTP().timeout();
+    this.timeout = config.getHTTP().timeout;
 
     config.getPKIContext(); // Initialize ssl
-    HTTPBuffers.setSize(config.getHTTP().bufsize());
+    HTTPBuffers.setSize(config.getHTTP().bufsize);
 
     switch(type)
     {
-      case ssl    : this.port = config.getHTTP().ssl();   ssl = true;  admin = false; break;
-      case plain  : this.port = config.getHTTP().plain(); ssl = false; admin = false; break;
-      case admin  : this.port = config.getHTTP().admin(); ssl = true;  admin = true;  break;
+      case ssl    : this.port = config.getPorts().ssl;   ssl = true;  admin = false; break;
+      case plain  : this.port = config.getPorts().plain; ssl = false; admin = false; break;
+      case admin  : this.port = config.getPorts().admin; ssl = true;  admin = true;  break;
       default: port = -1; ssl = false; admin = false;
     }
 
     this.setDaemon(true);
     this.setName("HTTPServer("+type+")");
-    this.workers = new ThreadPool(config.getTopology().workers());
-    this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters());
+    this.workers = new ThreadPool(config.getTopology().workers);
+    this.waiters = new HTTPWaiterPool(server,embedded,config.getTopology().waiters);
 
     HTTPReaper.start(logger,waiters,timeout);
   }

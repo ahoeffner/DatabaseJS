@@ -47,8 +47,8 @@ public class MailBox
     FileSystem fs = FileSystems.getDefault();
 
     this.extmap = new HashMap<Integer,Long>();
-    this.extnds = config.getTopology().extnds();
-    this.extsize = config.getTopology().extsize();
+    this.extnds = config.getTopology().extnds;
+    this.extsize = config.getTopology().extsize;
 
     Path path = fs.getPath(filename);
     FileChannel fc = FileChannel.open(path,CREATE,READ,WRITE);

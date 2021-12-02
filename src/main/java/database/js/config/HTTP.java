@@ -22,77 +22,45 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class HTTP
 {
-  private final int ssl;
-  private final int plain;
-  private final int admin;
-  private final int bsize;
-  private final int grace;
-  private final String host;
-  private final String path;
-  private final int timeout;
-  private final String tmppath;
-  private final String virtendp;
-  private final Handlers handlers;
-  private final boolean requiressl;
-  private final ArrayList<FilePattern> cache;
-  private final ArrayList<String> corsdomains;
-  private final ArrayList<FilePattern> compression;
-  private final ConcurrentHashMap<String,String> mimetypes;
+  public final String host;
+  public final String path;
+  public final Ports ports;
+  public final int timeout;
+  public final int bufsize;
+  public final String tmppath;
+  public final String virtendp;
+  public final int graceperiod;
+  public final Handlers handlers;
+  public final ArrayList<FilePattern> cache;
+  public final ArrayList<String> corsdomains;
+  public final ArrayList<FilePattern> compression;
+  public final ConcurrentHashMap<String,String> mimetypes;
 
 
   HTTP(Handlers handlers, JSONObject config) throws Exception
   {
-    String host = InetAddress.getLocalHost().getHostName();
-    if (config.has("Host") && !config.isNull("Host")) host = config.getString("Host");
+    this.timeout = Config.<Integer>get(config,"KeepAlive") * 1000;
+    this.host = Config.get(config,"Host",InetAddress.getLocalHost().getHostName());
 
-    this.host = host;
-    this.timeout = config.getInt("KeepAlive") * 1000;
+    JSONObject buffers = Config.getSection(config,"buffers");
+    this.bufsize = Config.get(buffers,"network",4096);
 
-    if (!config.has("buffers")) this.bsize = 4096;
-    else
-    {
-      JSONObject buffers = config.getJSONObject("buffers");
-      this.bsize = buffers.getInt("network");
-    }
+    JSONObject deploy = config.getJSONObject("deployment");
+    graceperiod = Config.get(deploy,"grace.period");
 
-    JSONObject app = config.getJSONObject("application");
+    String apppath = Config.get(deploy,"path");
+    this.path = Config.getPath(apppath,Paths.apphome);
 
-    grace = app.getInt("grace.period");
-
-    String apppath = null;
-    apppath = app.getString("path");
-
-    if (apppath.startsWith("." + File.separator))
-    {
-      apppath = Paths.apphome + File.separator + apppath;
-      File appf = new File(apppath);
-      apppath = appf.getCanonicalPath();
-    }
-
-    this.path = apppath;
     File tmp = new File(Paths.tmpdir);
     this.tmppath = tmp.getCanonicalPath();
 
-    JSONObject ports = config.getJSONObject("ports");
-
-    this.ssl = ports.getInt("ssl");
-    this.plain = ports.getInt("plain");
-    this.admin = ports.getInt("admin");
+    this.ports = new Ports(Config.getSection(config,"ports"));
 
 
-    boolean requiressl = false;
-    JSONObject security = config.getJSONObject("security");
+    JSONObject security = Config.getSection(config,"security");
 
-    if (security.has("require.ssl")) requiressl = security.getBoolean("require.ssl");
-    this.requiressl = requiressl;
-
-    String elem = "Cors-Allow-Domains";
     this.corsdomains = new ArrayList<String>();
-
-    String corsdomains = null;
-
-    if (security.has(elem) && !security.isNull(elem))
-      corsdomains = security.getString(elem);
+    String corsdomains = Config.get(security,"Cors-Allow-Domains");
 
     if (corsdomains != null)
     {
@@ -105,104 +73,64 @@ public class HTTP
       }
     }
 
-
-    if (!config.has("virtual-path")) this.virtendp = null;
-    else
-    {
-      JSONObject virtp = config.getJSONObject("virtual-path");
-      this.virtendp = virtp.getString("endpoint");
-    }
-
+    JSONObject virtp = Config.getSection(config,"virtual-path");
+    this.virtendp = Config.get(virtp,"endpoint");
 
     this.handlers = handlers;
 
-    JSONArray hconfig = config.getJSONArray("handlers");
-
-    for (int i = 0; i < hconfig.length(); i++)
+    if (handlers != null)
     {
-      JSONObject entry = hconfig.getJSONObject(i);
-      this.handlers.add(entry.getString("url"),entry.getString("methods"),entry.getString("class"));
-    }
+      JSONArray hconfig = Config.getArray(config,"handlers");
 
-    this.handlers.finish();
+      for (int i = 0; i < hconfig.length(); i++)
+      {
+        JSONObject entry = hconfig.getJSONObject(i);
+
+        this.handlers.add(
+          Config.get(entry,"url"),
+          Config.get(entry,"methods"),
+          Config.get(entry,"class"));
+      }
+
+      this.handlers.finish();
+    }
 
 
     this.cache = new ArrayList<FilePattern>();
-    JSONArray cache = config.getJSONArray("cache");
+    JSONArray cache = Config.getArray(config,"cache");
 
     for (int i = 0; i < cache.length(); i++)
     {
       JSONObject entry = cache.getJSONObject(i);
 
-      int size = entry.getInt("maxsize");
-      String pattern = entry.getString("pattern");
+      int size = Config.get(entry,"maxsize");
+      String pattern = Config.get(entry,"pattern");
 
       this.cache.add(new FilePattern(pattern,size));
     }
 
 
     this.compression = new ArrayList<FilePattern>();
-    JSONArray compression = config.getJSONArray("compression");
+    JSONArray compression = Config.getArray(config,"compression");
 
     for (int i = 0; i < compression.length(); i++)
     {
       JSONObject entry = compression.getJSONObject(i);
 
-      int size = entry.getInt("minsize");
-      String pattern = entry.getString("pattern");
+      int size = Config.get(entry,"minsize");
+      String pattern = Config.get(entry,"pattern");
 
       this.compression.add(new FilePattern(pattern,size));
     }
 
-    JSONArray mtypes = config.getJSONArray("mimetypes");
+    JSONArray mtypes = Config.getArray(config,"mimetypes");
     this.mimetypes = new ConcurrentHashMap<String,String>();
 
     for (int i = 0; i < mtypes.length(); i++)
     {
       JSONObject entry = mtypes.getJSONObject(i);
-      mimetypes.put(entry.getString("ext"),entry.getString("type"));
+      mimetypes.put(Config.get(entry,"ext"),Config.get(entry,"type"));
     }
-  }
-
-
-  public String host()
-  {
-    return(host);
-  }
-
-  public int timeout()
-  {
-    return(timeout);
-  }
-
-  public int ssl()
-  {
-    return(ssl);
-  }
-
-  public int plain()
-  {
-    return(plain);
-  }
-
-  public int admin()
-  {
-    return(admin);
-  }
-
-  public int bufsize()
-  {
-    return(bsize);
-  }
-
-  public int graceperiod()
-  {
-    return(grace);
-  }
-
-  public String getVirtualEndpoint()
-  {
-    return(virtendp);
   }
 
   public String getAppPath()
@@ -215,34 +143,9 @@ public class HTTP
     return(tmppath);
   }
 
-  public Handlers handlers()
+  public String getVirtualEndpoint()
   {
-    return(handlers);
-  }
-
-  public boolean requiressl()
-  {
-    return(requiressl);
-  }
-
-  public ArrayList<FilePattern> cache()
-  {
-    return(cache);
-  }
-
-  public ArrayList<String> corsdomains()
-  {
-    return(corsdomains);
-  }
-
-  public ArrayList<FilePattern> compression()
-  {
-    return(compression);
-  }
-
-  public ConcurrentHashMap<String,String> mimetypes()
-  {
-    return(mimetypes);
+    return(virtendp);
   }
 
 

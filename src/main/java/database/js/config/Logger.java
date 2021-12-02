@@ -27,14 +27,13 @@ public class Logger
   private final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
   private final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
 
+  private final int size;
+  private final int count;
   private final String itlevel;
   private final String htlevel;
   private final String rtlevel;
-
   private final Formatter formatter = new Formatter();
 
-  private int count = 2;
-  private int size = LOGSIZE;
   private boolean open = false;
   private String logdir = "." + File.separator + "logs";
 
@@ -45,18 +44,21 @@ public class Logger
 
   Logger(JSONObject config, String inst) throws Exception
   {
-    String lfsize = null;
     String path = Paths.apphome;
 
-    htlevel = config.getString("http");
-    rtlevel = config.getString("rest");
-    itlevel = config.getString("internal");
+    htlevel = Config.get(config,"http");
+    rtlevel = Config.get(config,"rest");
+    itlevel = Config.get(config,"internal");
 
-    if (config.has("files"))   count = config.getInt("files");
+    count = Config.get(config,"files",1);
+    logdir = Config.get(config,"path",logdir);
+
+    String lfsize = Config.get(config,"size",null);
+
     if (config.has("size"))    lfsize = config.getString("size");
-    if (config.has("path"))    logdir = config.getString("path");
 
-    if (lfsize != null)
+    if (lfsize == null) size = LOGSIZE;
+    else
     {
       int mp = 1;
       lfsize = lfsize.trim();

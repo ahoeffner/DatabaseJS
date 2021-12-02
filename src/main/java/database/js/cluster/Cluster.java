@@ -322,8 +322,8 @@ public class Cluster
   public static Short[] getServers(Config config) throws Exception
   {
     short http = 1;
-    if (config.getTopology().hotstandby()) http++;
-    return(new Short[] {http,config.getTopology().servers()});
+    if (config.getTopology().hot) http++;
+    return(new Short[] {http,config.getTopology().servers});
   }
 
 

@@ -34,12 +34,12 @@ public class Security
     String file = null;
     String passwd = null;
 
-    JSONObject identsec = config.getJSONObject("identity");
+    JSONObject identsec = Config.getSection(config,"identity");
 
-    type = identsec.getString("type");
-    file = identsec.getString("keystore");
-    passwd = identsec.getString("password");
-    String alias = identsec.getString("alias");
+    type = Config.get(identsec,"type");
+    file = Config.get(identsec,"keystore");
+    passwd = Config.get(identsec,"password");
+    String alias = Config.get(identsec,"alias");
 
     if (file.startsWith("."+File.separator))
       file = Paths.apphome + File.separator + file;
@@ -48,18 +48,18 @@ public class Security
 
     JSONObject trustsec = config.getJSONObject("identity");
 
-    type = trustsec.getString("type");
-    file = trustsec.getString("keystore");
-    passwd = trustsec.getString("password");
+    type = Config.get(trustsec,"type");
+    file = Config.get(trustsec,"keystore");
+    passwd = Config.get(trustsec,"password");
 
     if (file.startsWith("."+File.separator))
       file = Paths.apphome + File.separator + file;
 
     trust = new Keystore(file,type,null,passwd);
 
-    JSONObject oauth = config.getJSONObject("oauth2");
+    JSONObject oauth = Config.getSection(config,"oauth2");
 
-    this.oaurl = oauth.getString("url");
+    this.oaurl = Config.get(oauth,"url");
     this.headers = new ArrayList<NameValuePair<Object>>();
 
     JSONArray headers = oauth.getJSONArray("headers");
@@ -69,7 +69,7 @@ public class Security
       JSONObject header = headers.getJSONObject(i);
       String name = JSONObject.getNames(header)[0];
 
-      Object value = header.get(name);
+      Object value = Config.get(header,name);
       this.headers.add(new NameValuePair<Object>(name,value));
     }
   }

@@ -70,11 +70,11 @@ public class Deployment
   public Deployment(Config config) throws Exception
   {
     this.config = config;
-    this.cache = this.config.getHTTP().cache();
-    this.grace = config.getHTTP().graceperiod();
+    this.cache = this.config.getHTTP().cache;
+    this.grace = config.getHTTP().graceperiod;
     this.home = this.config.getHTTP().getAppPath();
     this.deploy = this.config.getHTTP().getTmpPath();
-    this.compression = this.config.getHTTP().compression();
+    this.compression = this.config.getHTTP().compression;
   }
 
 

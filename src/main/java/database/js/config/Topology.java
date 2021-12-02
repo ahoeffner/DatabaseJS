@@ -17,31 +17,28 @@ import org.json.JSONObject;
 
 public class Topology
 {
-  private final boolean hot;
-  private final short workers;
-  private final short waiters;
-  private final short servers;
+  public final boolean hot;
+  public final short workers;
+  public final short waiters;
+  public final short servers;
 
-  private final int heartbeat;
+  public final int heartbeat;
 
-  private final int extnds;
-  private final int extsize;
+  public final int extnds;
+  public final int extsize;
 
   public static final int cores = Runtime.getRuntime().availableProcessors();
 
 
+  @SuppressWarnings("cast")
   Topology(JSONObject config) throws Exception
   {
-    if (!config.has("servers")) servers = 0;
-    else servers = (short) config.getInt("servers");
+    this.servers = Config.get(config,"servers",0).shortValue();
 
-    short waiters = 0;
-    short workers = 0;
+    short waiters = Config.get(config,"waiters",0).shortValue();
+    short workers = Config.get(config,"workers",0).shortValue();
 
     short multi = servers > 0 ? servers : 1;
-
-    if (!config.isNull("waiters"))
-      waiters = (short) config.getInt("waiters");
 
     if (waiters == 0)
     {
@@ -51,19 +48,16 @@ public class Topology
 
     this.waiters = waiters;
 
-    if (!config.isNull("workers"))
-      workers = (short) config.getInt("workers");
-
     if (workers > 0) this.workers = workers;
     else             this.workers = (short) (multi * 8 * cores);
 
-    this.hot = config.getBoolean("hot-standby");
+    this.hot = Config.get(config,"hot-standby");
 
     JSONObject ipc = config.getJSONObject("ipc");
 
     this.extnds = this.workers * 2;
 
-    String extsz = ipc.get("extsize").toString();
+    String extsz = Config.get(ipc,"extsize").toString();
     extsz = extsz.replaceAll(" ","").trim().toUpperCase();
 
     int mfac = 1;
@@ -81,41 +75,6 @@ public class Topology
 
     this.extsize = Integer.parseInt(extsz) * mfac;
 
-    this.heartbeat = ipc.getInt("heartbeat");
-  }
-
-  public short waiters()
-  {
-    return(waiters);
-  }
-
-  public short workers()
-  {
-    return(workers);
-  }
-
-  public short servers()
-  {
-    return(servers);
-  }
-
-  public int heartbeat()
-  {
-    return(heartbeat);
-  }
-
-  public boolean hotstandby()
-  {
-    return(hot);
-  }
-
-  public int extnds()
-  {
-    return(extnds);
-  }
-
-  public int extsize()
-  {
-    return(extsize);
+    this.heartbeat = Config.get(ipc,"heartbeat");
   }
 }

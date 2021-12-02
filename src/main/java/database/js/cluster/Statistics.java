@@ -94,7 +94,7 @@ public class Statistics
     {
       long time = System.currentTimeMillis();
       Short[] servers = Cluster.getServers(config);
-      int heartbeat = config.getTopology().heartbeat();
+      int heartbeat = config.getTopology().heartbeat;
 
       for (short i = 0; i < servers[0] + servers[1]; i++)
       {

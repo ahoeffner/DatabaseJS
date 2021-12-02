@@ -49,7 +49,7 @@ public class RESTWorker implements Runnable
       String host = new String(bridge.host);
       HTTPRequest request = new HTTPRequest(srv,host,bridge.page());
 
-      Handlers handlers = rserver.config().getHTTP().handlers();
+      Handlers handlers = rserver.config().getHTTP().handlers;
       RestHandler handler = handlers.getRESTHandler();
 
       HTTPResponse response = handler.handle(request);

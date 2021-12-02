@@ -110,7 +110,7 @@ public class Launcher implements ILauncher
 
   public void setConfig() throws Exception
   {
-    this.config = new Config();
+    this.config = new Config(false);
     config.getLogger().openControlLog();
   }
 
@@ -137,7 +137,7 @@ public class Launcher implements ILauncher
     {
       logger.fine("Shutting down");
       Cluster.init(config); Cluster.stop();
-      Thread.sleep((int) (1.25*config.getTopology().heartbeat()));
+      Thread.sleep((int) (1.25*config.getTopology().heartbeat));
     }
     else
     {
@@ -148,7 +148,7 @@ public class Launcher implements ILauncher
         url = url.substring(8);
 
       int pos = url.indexOf(':') + 1;
-      int admin = config.getPorts()[2];
+      int admin = config.getPorts().admin;
 
       if (pos > 1)
       {
@@ -184,7 +184,7 @@ public class Launcher implements ILauncher
         url = url.substring(8);
 
       int pos = url.indexOf(':') + 1;
-      int admin = config.getPorts()[2];
+      int admin = config.getPorts().admin;
 
       if (pos > 1)
       {
@@ -218,7 +218,7 @@ public class Launcher implements ILauncher
         url = url.substring(8);
 
       int pos = url.indexOf(':') + 1;
-      int admin = config.getPorts()[2];
+      int admin = config.getPorts().admin;
 
       if (pos > 1)
       {
@@ -249,7 +249,7 @@ public class Launcher implements ILauncher
     out.println();
 
     Topology topology = config.getTopology();
-    out.println("Cores: "+Topology.cores+", Waiters: "+topology.waiters()+", Workers: "+topology.workers());
+    out.println("Cores: "+Topology.cores+", Waiters: "+topology.waiters+", Workers: "+topology.workers);
     out.println();
 
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
@@ -364,7 +364,7 @@ public class Launcher implements ILauncher
 
   public int heartbeat() throws Exception
   {
-    return(config.getTopology().heartbeat());
+    return(config.getTopology().heartbeat);
   }
 
 

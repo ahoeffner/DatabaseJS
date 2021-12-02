@@ -17,33 +17,41 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.io.FileInputStream;
 import database.js.security.PKIContext;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Config
 {
   private final String inst;
-  private final String loge;
-  private final String httpe;
-  private final String securitye;
-  private final String topologye;
-  private final String databasee;
+  private final boolean full;
+  private final String topconf;
+  private final String dataconf;
+  private final JSONObject config;
 
   private Java java = null;
   private HTTP http = null;
+  private Ports ports = null;
   private Logger logger = null;
+  private Handlers handlers = null;
   private PKIContext pkictx = null;
   private Security security = null;
   private Topology topology = null;
   private Database database = null;
 
-  private static final String CONFDEF = "conf.json";
-  private static final String JAVADEF = "java.json";
-  private static final String HTTPDEF = "http.json";
-  private static final String LOGGERDEF = "logger.json";
-  private static final String SECURITYDEF = "security.json";
+  private ConcurrentHashMap<String,JSONObject> sections =
+    new ConcurrentHashMap<String,JSONObject>();
 
-  private static final String TOPOLOGY = "topology";
-  private static final String DATABASE = "database";
+
+  public static int clientTimeout()
+  {
+    return(2000);
+  }
+
+
+  public static String path()
+  {
+    return(Paths.confdir + File.separator);
+  }
 
 
   public static boolean windows()
@@ -53,44 +61,38 @@ public class Config
   }
 
 
-  public static int HTTPBufsize() throws Exception
-  {
-    Config config = new Config();
-    return(config.getHTTP().bufsize());
-  }
-
-
-  public static PKIContext PKIContext() throws Exception
-  {
-    FileInputStream in = new FileInputStream(securitypath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    Security security = new Security(config);
-    return(new PKIContext(security.getIdentity(),security.getTrusted()));
-  }
-
-
   public Config() throws Exception
   {
-    FileInputStream in = new FileInputStream(confpath());
+    this(true);
+  }
 
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
 
-    this.inst = config.getString("instance");
-    this.topologye = config.getString("topology");
-    this.databasee = config.getString("database");
+  public static void main(String[] args) throws Exception
+  {
+    new Config(true);
+  }
 
-    if (!config.has("log")) loge = "logger";
-    else  loge = config.getString("logger");
 
-    if (!config.has("http")) httpe = "http";
-    else   httpe = config.getString("http");
+  public Config(boolean full) throws Exception
+  {
+    this.full = full;
+    String path = path() + "config.json";
+    FileInputStream in = new FileInputStream(path);
+    this.config  = new JSONObject(new JSONTokener(in));
 
-    if (!config.has("security")) securitye = "security";
-    else       securitye = config.getString("security");
+    this.inst = get("instance");
+    this.topconf = get("topology");
+    this.dataconf = get("database");
+
+    sections.put("java",getSection("java"));
+    sections.put("http",getSection("http"));
+    sections.put("rest",getSection("rest"));
+    sections.put("logger",getSection("logger"));
+    sections.put("security",getSection("security"));
+    sections.put("topology",getSection("topology",topconf));
+    sections.put("database",getSection("database",dataconf));
+
+    Statics.init(this);
   }
 
 
@@ -100,20 +102,16 @@ public class Config
   }
 
 
-  public int[] getPorts() throws Exception
+  public boolean loadAll()
   {
-    FileInputStream in = new FileInputStream(httppath());
+    return(full);
+  }
 
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-    JSONObject  pconfig = config.getJSONObject("ports");
 
-    int[] ports = new int[3];
-
-    ports[0] = pconfig.getInt("ssl");
-    ports[1] = pconfig.getInt("plain");
-    ports[2] = pconfig.getInt("admin");
-
+  public synchronized Ports getPorts() throws Exception
+  {
+    if (ports != null) return(ports);
+    ports = getHTTP().ports;
     return(ports);
   }
 
@@ -130,12 +128,7 @@ public class Config
   public synchronized Java getJava() throws Exception
   {
     if (java != null) return(java);
-    FileInputStream in = new FileInputStream(javapath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    java = new Java(config);
+    java = new Java(sections.get("java"));
     return(java);
   }
 
@@ -143,13 +136,8 @@ public class Config
   public synchronized HTTP getHTTP() throws Exception
   {
     if (http != null) return(http);
-    FileInputStream in = new FileInputStream(httppath());
-
-    Handlers handlers   = new Handlers(this);
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    http = new HTTP(handlers,config);
+    if (full) handlers = new Handlers(this);
+    http = new HTTP(handlers,sections.get("http"));
     return(http);
   }
 
@@ -157,39 +145,15 @@ public class Config
   public synchronized Logger getLogger() throws Exception
   {
     if (logger != null) return(logger);
-    FileInputStream in = new FileInputStream(loggerpath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    logger = new Logger(config,inst);
+    logger = new Logger(sections.get("logger"),inst);
     return(logger);
-  }
-
-
-  public void loadDatabaseConfig() throws Exception
-  {
-    try
-    {
-      this.getDatabase();
-    }
-    catch (Exception exception)
-    {
-      exception.printStackTrace();
-      throw exception;
-    }
   }
 
 
   public synchronized Database getDatabase() throws Exception
   {
     if (database != null) return(database);
-    FileInputStream in = new FileInputStream(dbpath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    database = new Database(config);
+    database = new Database(sections.get("database"));
     return(database);
   }
 
@@ -197,12 +161,7 @@ public class Config
   public synchronized Security getSecurity() throws Exception
   {
     if (security != null) return(security);
-    FileInputStream in = new FileInputStream(securitypath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    security = new Security(config);
+    security = new Security(sections.get("security"));
     return(security);
   }
 
@@ -210,60 +169,89 @@ public class Config
   public synchronized Topology getTopology() throws Exception
   {
     if (topology != null) return(topology);
-    FileInputStream in = new FileInputStream(toppath());
-
-    JSONTokener tokener = new JSONTokener(in);
-    JSONObject  config  = new JSONObject(tokener);
-
-    topology = new Topology(config);
+    topology = new Topology(sections.get("topology"));
     return(topology);
   }
 
 
-  private static String path()
+  @SuppressWarnings({ "unchecked", "cast" })
+  public static <T> T get(JSONObject config, String attr)
   {
-    return(Paths.confdir + File.separator);
+    return((T) config.get(attr));
   }
 
 
-  private static String javapath()
+  @SuppressWarnings({ "unchecked", "cast" })
+  public static <T> T getArray(JSONObject config, String attr)
   {
-    return(path() + JAVADEF);
+    return((T) config.getJSONArray(attr));
   }
 
 
-  private static String httppath()
+  @SuppressWarnings({ "unchecked", "cast" })
+  public static <T> T get(JSONObject config, String attr, T defval)
   {
-    return(path() + HTTPDEF);
+    T value = defval;
+
+    if (config.has(attr) && !config.isNull(attr))
+      value = (T) config.get(attr);
+
+    return(value);
   }
 
 
-  private static String loggerpath()
+  public static JSONObject getSection(JSONObject config, String section) throws Exception
   {
-    return(path() + LOGGERDEF);
+    JSONObject conf = null;
+
+    if (config.has(section))
+      conf = config.getJSONObject(section);
+
+    if (conf == null)
+      System.err.println("Section <"+section+"> does not exist");
+
+    return(conf);
   }
 
 
-  private static String securitypath()
+  public static String getPath(String path, String parent)
   {
-    return(path() + SECURITYDEF);
+    try
+    {
+      if (path.startsWith("." + File.separator))
+      {
+        path = parent + File.separator + path;
+        File appf = new File(path);
+        path = appf.getCanonicalPath();
+      }
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+
+    return(path);
   }
 
 
-  private static String confpath()
+  @SuppressWarnings({ "unchecked", "cast" })
+  private <T> T get(String attr)
   {
-    return(path() + CONFDEF);
+    return((T) config.get(attr));
   }
 
 
-  private String dbpath()
+  private JSONObject getSection(String section) throws Exception
   {
-    return(path() + DATABASE + File.separator + databasee + ".json");
+    return(getSection(this.config,section));
   }
 
 
-  private String toppath()
+  private JSONObject getSection(String path, String fname) throws Exception
   {
-    return(path() + TOPOLOGY + File.separator + topologye + ".json");
+    path = path() + path + File.separator + fname;
+    FileInputStream in = new FileInputStream(path+".json");
+    JSONObject config  = new JSONObject(new JSONTokener(in));
+    return(config);
   }
 }

@@ -96,11 +96,11 @@ public class Rest
     this.config    = config;
     this.modify    = modify;
     this.payload   = payload;
-    this.compact   = config.getDatabase().compact();
-    this.rewriter  = config.getDatabase().rewriter();
-    this.validator = config.getDatabase().validator();
-    this.dateform  = config.getDatabase().dateformat();
-    this.repo      = config.getDatabase().repository();
+    this.compact   = config.getDatabase().compact;
+    this.rewriter  = config.getDatabase().rewriter;
+    this.validator = config.getDatabase().validator;
+    this.dateform  = config.getDatabase().dateformat;
+    this.repo      = config.getDatabase().repository;
     this.sppost    = config.getDatabase().savepoint("sppost");
     this.sppatch   = config.getDatabase().savepoint("sppatch");
   }
@@ -377,8 +377,8 @@ public class Rest
 
         if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)
         {
-          if (!anonymous) pool = config.getDatabase().proxy();
-          else            pool = config.getDatabase().anonymous();
+          if (!anonymous) pool = config.getDatabase().proxy;
+          else            pool = config.getDatabase().anonymous;
 
           if (pool == null)
             return(error("Connection pool not configured"));

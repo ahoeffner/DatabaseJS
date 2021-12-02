@@ -137,7 +137,7 @@ public class FileHandler extends Handler
     }
 
     String ext = file.fileext();
-    String mimetype = config().getHTTP().mimetypes().get(ext);
+    String mimetype = config().getHTTP().mimetypes.get(ext);
 
     response.setBody(content);
     response.setContentType(mimetype);

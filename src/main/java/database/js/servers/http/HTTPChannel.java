@@ -60,7 +60,7 @@ public class HTTPChannel
     this.stayalive = false;
     this.config = server.config();
     this.touched = System.currentTimeMillis();
-    this.reqssl = config.getHTTP().requiressl();
+    this.reqssl = config.getPorts().sslrequired;
 
     if (!ssl)
     {
@@ -94,7 +94,7 @@ public class HTTPChannel
     this.stayalive = false;
     this.config = server.config();
     this.touched = System.currentTimeMillis();
-    this.reqssl = config.getHTTP().requiressl();
+    this.reqssl = config.getPorts().sslrequired;
 
     if (!ssl)
     {

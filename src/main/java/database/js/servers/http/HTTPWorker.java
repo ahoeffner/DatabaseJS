@@ -34,7 +34,7 @@ public class HTTPWorker implements Runnable
     this.request  = request;
     this.channel  = request.channel();
     this.logger   = request.channel().logger();
-    this.handlers = channel.config().getHTTP().handlers();
+    this.handlers = channel.config().getHTTP().handlers;
 
     this.channel.stayalive(true);
   }
@@ -51,8 +51,8 @@ public class HTTPWorker implements Runnable
 
       if (request.redirect())
       {
-        int ssl = channel.config().getHTTP().ssl();
-        int plain = channel.config().getHTTP().plain();
+        int ssl = channel.config().getPorts().ssl;
+        int plain = channel.config().getPorts().plain;
 
         String host = request.getHeader("Host");
         host = host.replace(plain+"",ssl+"");

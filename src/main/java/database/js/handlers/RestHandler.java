@@ -42,12 +42,6 @@ public class RestHandler extends Handler
   public RestHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
-
-    OAuth.init(config);
-    config.loadDatabaseConfig();
-    Database.setUrl(config.getDatabase().url());
-    Database.setTestSQL(config.getDatabase().test());
-
     this.path = new PathUtil(this);
     this.domains = new TreeSet<String>();
   }
@@ -59,8 +53,8 @@ public class RestHandler extends Handler
     HTTPResponse response = null;
     Server server = request.server();
 
-    String html = config().getHTTP().mimetypes().get("html");
-    String json = config().getHTTP().mimetypes().get("json");
+    String html = config().getHTTP().mimetypes.get("html");
+    String json = config().getHTTP().mimetypes.get("json");
 
     server.request();
     logger.fine("REST request received: "+request.path());
@@ -177,12 +171,12 @@ public class RestHandler extends Handler
   private boolean allow(String origin) throws Exception
   {
     if (this.domains.contains(origin)) return(true);
-    ArrayList<String> corsheaders = config().getHTTP().corsdomains();
+    ArrayList<String> corsheaders = config().getHTTP().corsdomains;
 
     URL url = new URL(origin);
 
     origin = url.getHost();
-    String host = config().getHTTP().host();
+    String host = config().getHTTP().host;
 
     if (origin.equals(host))
     {
@@ -205,8 +199,8 @@ public class RestHandler extends Handler
 
     return(false);
   }
-  
-  
+
+
   public static short getClient(Config config, HTTPRequest request) throws Exception
   {
     Server server = request.server();

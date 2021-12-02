@@ -27,19 +27,26 @@ public class Client
 {
   private Socket socket;
   private final int port;
-  private final int psize;
   private final String host;
-  private final PKIContext pki;
+  private final boolean ssl;
+
+  private static int psize;
+  private static int timeout;
+  private static PKIContext pki;
+
+  public static void setConfig(PKIContext pki, int psize, int timeout)
+  {
+    Client.pki = pki;
+    Client.psize = psize;
+    Client.timeout = timeout;
+  }
 
 
   public Client(String host, int port, boolean ssl) throws Exception
   {
+    this.ssl  = ssl;
     this.host = host;
     this.port = port;
-    this.psize = Config.HTTPBufsize();
-
-    if (!ssl) this.pki = null;
-    else this.pki = Config.PKIContext();
   }
 
 
@@ -101,7 +108,7 @@ public class Client
 
   public void connect() throws Exception
   {
-    if (pki == null)
+    if (!ssl)
     {
       this.socket = new Socket(host,port);
     }
@@ -111,7 +118,7 @@ public class Client
       ((SSLSocket) socket).startHandshake();
     }
 
-    this.socket.setSoTimeout(15000);
+    this.socket.setSoTimeout(timeout);
     this.socket.getOutputStream().flush();
   }
 }

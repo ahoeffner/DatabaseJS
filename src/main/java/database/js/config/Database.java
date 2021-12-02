@@ -12,7 +12,6 @@
 
 package database.js.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import database.js.database.Pool;
@@ -25,22 +24,22 @@ import database.js.database.NameValuePair;
 
 public class Database
 {
-  private final String url;
-  private final String test;
+  public final String url;
+  public final String test;
 
-  private final String repo;
+  public final String repository;
 
-  private final boolean compact;
-  private final String dateform;
+  public final boolean compact;
+  public final String dateformat;
 
-  private final SQLRewriter rewriter;
-  private final SQLValidator validator;
+  public final SQLRewriter rewriter;
+  public final SQLValidator validator;
 
-  private final Pool proxy;
-  private final Pool anonymous;
+  public final Pool proxy;
+  public final Pool anonymous;
 
-  private final DatabaseType type;
-  private final ArrayList<String> urlparts;
+  public final DatabaseType type;
+  public final ArrayList<String> urlparts;
 
   private final NameValuePair<Boolean>[] savepoints;
 
@@ -48,16 +47,16 @@ public class Database
   @SuppressWarnings("unchecked")
   Database(JSONObject config) throws Exception
   {
-    JSONObject section = config.getJSONObject("database");
+    JSONObject section = Config.getSection(config,"database");
     //********************* General Section *********************
 
-    String type = section.getString("type");
+    String type = Config.get(section,"type");
 
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
-    this.url = section.getString("jdbc");
-    this.test = section.getString("test");
+    this.url = Config.get(section,"jdbc");
+    this.test = Config.get(section,"test");
 
     this.type = DatabaseType.valueOf(type);
     this.urlparts = DatabaseUtils.parse(url);
@@ -65,46 +64,33 @@ public class Database
     DatabaseUtils.setType(this.type);
     DatabaseUtils.setUrlParts(urlparts);
 
-    section = config.getJSONObject("resultset");
+    section = Config.getSection(config,"resultset");
     //*********************  Data Section   *********************
 
-    this.compact = section.getBoolean("compact");
-
-    if (section.isNull("dateformat")) this.dateform = null;
-    else   this.dateform = section.getString("dateformat");
+    this.compact = Config.get(section,"compact");
+    this.dateformat = Config.get(section,"dateformat",null);
 
 
-    section = config.getJSONObject("repository");
+    section = Config.getSection(config,"repository");
     //*********************  Repos Section  *********************
 
-    String repo = section.getString("path");
+    String repo = Config.get(section,"path");
+    this.repository = Config.getPath(repo,Paths.apphome);
 
-    if (repo.startsWith("." + File.separator))
-    {
-      repo = Paths.apphome + File.separator + repo;
-      File appf = new File(repo);
-      repo = appf.getCanonicalPath();
-    }
 
-    this.repo = repo;
-
-    section = config.getJSONObject("savepoints");
+    section = Config.getSection(config,"savepoints");
     //******************* Savepoint Section  *******************
 
     this.savepoints = new NameValuePair[2];
-    this.savepoints[0] = new NameValuePair<Boolean>("post",section.getBoolean("post"));
-    this.savepoints[1] = new NameValuePair<Boolean>("patch",section.getBoolean("patch"));
+    this.savepoints[0] = new NameValuePair<Boolean>("post",Config.get(section,"post"));
+    this.savepoints[1] = new NameValuePair<Boolean>("patch",Config.get(section,"patch"));
 
-    section = config.getJSONObject("interceptors");
+
+    section = Config.getSection(config,"interceptors");
     //****************** Interceptors Section ******************
 
-    String rewclass = null;
-    if (section.has("rewrite.class") && !section.isNull("rewrite.class"))
-      rewclass = section.getString("rewrite.class");
-
-    String valclass = null;
-    if (section.has("validator.class") && !section.isNull("validator.class"))
-      valclass = section.getString("validator.class");
+    String rewclass = Config.get(section,"rewrite.class",null);
+    String valclass = Config.get(section,"validator.class",null);
 
     if (rewclass == null) this.rewriter = null;
     else
@@ -120,7 +106,7 @@ public class Database
       this.validator = (SQLValidator) contructor.newInstance();
     }
 
-    section = config.getJSONObject("pools");
+    section = Config.getSection(config,"pools");
     //*********************  Pool Section  *********************
 
     this.proxy = getPool("proxy",section,true);
@@ -131,77 +117,17 @@ public class Database
   private Pool getPool(String type, JSONObject config, boolean proxy) throws Exception
   {
     if (!config.has(type)) return(null);
-    JSONObject pconf = config.getJSONObject(type);
+    JSONObject pconf = Config.getSection(config,type);
 
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
-    int size = pconf.getInt("pool");
-    String usr = pconf.getString("username");
-    String pwd = pconf.getString("password");
-    String secret = pconf.getString("auth.secret");
+    int size = Config.get(pconf,"pool");
+    String usr = Config.get(pconf,"username");
+    String pwd = Config.get(pconf,"password");
+    String secret = Config.get(pconf,"auth.secret");
 
     return(new Pool(proxy,secret,usr,pwd,size));
-  }
-
-
-  public DatabaseType type()
-  {
-    return(type);
-  }
-
-  public String url()
-  {
-    return(url);
-  }
-
-  public ArrayList<String> urlparts()
-  {
-    return(urlparts);
-  }
-
-  public String test()
-  {
-    return(test);
-  }
-
-  public String repository()
-  {
-    return(repo);
-  }
-
-  public Pool proxy()
-  {
-    return(proxy);
-  }
-
-  public Pool anonymous()
-  {
-    return(anonymous);
-  }
-
-
-  public boolean compact()
-  {
-    return(compact);
-  }
-
-
-  public String dateformat()
-  {
-    return(dateform);
-  }
-
-
-  public SQLRewriter rewriter()
-  {
-    return(rewriter);
-  }
-
-
-  public SQLValidator validator()
-  {
-    return(validator);
   }
 
 

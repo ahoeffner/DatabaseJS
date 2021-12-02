@@ -42,9 +42,6 @@ public class Handlers
   {
     Collections.sort(this.entries);
 
-    if (config.getClass().getClassLoader().getName() == null)
-      return;
-
     this.admin = new AdminHandler(config,null);
 
     for(HandlerClass hdl : this.entries)
@@ -65,11 +62,8 @@ public class Handlers
 
   void add(String prefix, String methods, String clazz) throws Exception
   {
-    if (config.getClass().getClassLoader().getName() != null)
-    {
-      if (!prefix.endsWith("/")) prefix += "/";
-      this.entries.add(new HandlerClass(config,prefix,methods,clazz));
-    }
+    if (!prefix.endsWith("/")) prefix += "/";
+    this.entries.add(new HandlerClass(config,prefix,methods,clazz));
   }
 
 
