@@ -285,6 +285,7 @@ public class HTTPChannel
     {
       buffers.alloc();
       int read = channel.read(buffers.data);
+      logger.finer("Read "+read+" bytes");
 
       if (read <= 0)
       {
@@ -317,6 +318,7 @@ public class HTTPChannel
       buffers.sslb.clear();
 
       int read = channel.read(buffers.sslb);
+      logger.finer("Read "+read+" bytes");
 
       if (read <= 0)
       {

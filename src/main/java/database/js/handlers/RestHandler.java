@@ -93,8 +93,6 @@ public class RestHandler extends Handler
       byte[] data = client.send(host,request.page());
 
       response = new HTTPResponse(data);
-      log(logger,request,response);
-
       return(response);
     }
 

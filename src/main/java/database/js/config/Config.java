@@ -67,12 +67,6 @@ public class Config
   }
 
 
-  public static void main(String[] args) throws Exception
-  {
-    new Config(true);
-  }
-
-
   public Config(boolean full) throws Exception
   {
     this.full = full;
@@ -84,7 +78,6 @@ public class Config
     this.topconf = get("topology");
     this.dataconf = get("database");
 
-    sections.put("java",getSection("java"));
     sections.put("http",getSection("http"));
     sections.put("rest",getSection("rest"));
     sections.put("logger",getSection("logger"));
@@ -99,12 +92,6 @@ public class Config
   public String instance()
   {
     return(inst);
-  }
-
-
-  public boolean loadAll()
-  {
-    return(full);
   }
 
 
@@ -128,7 +115,7 @@ public class Config
   public synchronized Java getJava() throws Exception
   {
     if (java != null) return(java);
-    java = new Java(sections.get("java"));
+    java = new Java(getSection(sections.get("topology"),"java"));
     return(java);
   }
 

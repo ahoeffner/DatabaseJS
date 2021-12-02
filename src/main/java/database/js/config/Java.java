@@ -29,22 +29,16 @@ public class Java
 
   Java(JSONObject config) throws Exception
   {
-    String exe = null;
+    this.opts = Config.get(config,"opts","");
+    this.httpopts = Config.get(config,"http.opts","");
+    this.restopts = Config.get(config,"rest.opts","");
 
-    if (!config.isNull("java"))
-      exe = config.getString("java");
+    String exe = Config.get(config,"java",current());
+    this.exe = exe + (Config.windows() ? ".exe" : "");
 
-    if (exe == null) exe = current();
-    if (Config.windows()) exe += ".exe";
+    String srvjars = Config.get(config,"jars","");
 
-    this.exe = exe;
-    this.opts = Config.get(config,"opts");
-    this.httpopts = Config.get(config,"http.opts");
-    this.restopts = Config.get(config,"rest.opts");
-
-    String srvjars = Config.get(config,"jars",null);
-
-    if (srvjars != null)
+    if (srvjars.length() > 0)
     {
       String path = "";
       String[] jars = srvjars.split(", ;:");
@@ -56,9 +50,9 @@ public class Java
     }
 
 
-    String httpjars = Config.get(config,"http.jars",null);
+    String httpjars = Config.get(config,"http.jars","");
 
-    if (httpjars != null)
+    if (httpjars.length() > 0)
     {
       String path = "";
       String[] jars = httpjars.split(", ;:");
@@ -70,8 +64,9 @@ public class Java
     }
 
 
-    String restjars = Config.get(config,"rest.jars",null);
-    if (restjars != null)
+    String restjars = Config.get(config,"rest.jars","");
+
+    if (restjars.length() > 0)
     {
       String path = "";
       String[] jars = restjars.split(", ;:");

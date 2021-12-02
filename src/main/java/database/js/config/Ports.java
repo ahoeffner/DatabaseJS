@@ -24,9 +24,9 @@ public class Ports
 
   public Ports(JSONObject config)
   {
-    this.ssl = config.getInt("ssl");
-    this.plain = config.getInt("plain");
-    this.admin = config.getInt("admin");
-    this.sslrequired = plain != 0;
+    this.ssl = Config.get(config,"ssl");
+    this.plain = Config.get(config,"plain");
+    this.admin = Config.get(config,"admin");
+    this.sslrequired = plain == 0;
   }
 }

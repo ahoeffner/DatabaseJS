@@ -175,8 +175,8 @@ class HTTPWaiter extends Thread
 
               try
               {
-                if (done)
-                  workers.submit(new HTTPWorker(workers,request));
+                logger.finest("Request "+request.path()+" submit "+done);
+                if (done) workers.submit(new HTTPWorker(workers,request));
               }
               catch (Exception e)
               {
