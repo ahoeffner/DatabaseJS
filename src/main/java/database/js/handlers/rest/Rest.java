@@ -297,6 +297,9 @@ public class Rest
 
     switch(cmd)
     {
+      case "ping" :
+        response = ping(payload); break;
+
       case "connect" :
         response = connect(payload,batch); break;
 
@@ -326,6 +329,13 @@ public class Rest
     return(response);
   }
 
+
+  private String ping(JSONObject payload)
+  {
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
+    return(json.toString());
+  }
 
   private String connect(JSONObject payload, boolean batch)
   {

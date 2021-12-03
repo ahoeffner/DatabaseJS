@@ -30,6 +30,7 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 public class HTTPChannel
 {
+  private int attempt;
   private long touched;
   private boolean stayalive;
   private boolean permanent;
@@ -258,6 +259,12 @@ public class HTTPChannel
   {
     this.channel.configureBlocking(block);
   }
+  
+  
+  public int attempts()
+  {
+    return(attempt);
+  }
 
 
   public ByteBuffer read()
@@ -274,6 +281,9 @@ public class HTTPChannel
     {
       logger.log(Level.WARNING,e.getMessage(),e);
     }
+    
+    if (buf == null) attempt++;
+    else             attempt = 0;
 
     return(buf);
   }

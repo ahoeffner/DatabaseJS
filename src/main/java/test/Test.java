@@ -25,6 +25,12 @@ public class Test
       System.out.println("loadtest url ips threads loops [payload-file]");
       System.exit(-1);
     }
+    
+    System.out.println("Loops "+args[3]);
+    System.out.println("Threads "+args[2]);
+    System.out.println("Hits per connect "+args[1]);
+    System.out.println("Payload "+args[4]);
+    System.out.println("Url "+args[0]);
 
     String url = args[0];
     int ips = Integer.parseInt(args[1]);

@@ -65,7 +65,7 @@ public class Process
 
     boolean embedded = servers <= 0;
 
-    if (!embedded)
+    if (embedded)
     {
       jars = this.jars;
       options = this.opts;

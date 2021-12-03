@@ -148,8 +148,12 @@ class HTTPWaiter extends Thread
 
             if (buf == null)
             {
-              key.cancel();
-              channel.close();
+              if (client.attempts() > 5)
+              {
+                key.cancel();
+                channel.close();
+              }
+              
               continue;
             }
 
