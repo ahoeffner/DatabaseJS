@@ -153,7 +153,7 @@ class HTTPWaiter extends Thread
                 key.cancel();
                 channel.close();
               }
-              
+
               continue;
             }
 

@@ -92,6 +92,7 @@ public class TestThread extends Thread
         {
           failed++;
           session.close();
+          e.printStackTrace();
           System.out.println(e.getMessage());
           session = new Session(url.getHost(),url.getPort(),ssl);
         }

@@ -259,8 +259,8 @@ public class HTTPChannel
   {
     this.channel.configureBlocking(block);
   }
-  
-  
+
+
   public int attempts()
   {
     return(attempt);
@@ -281,7 +281,7 @@ public class HTTPChannel
     {
       logger.log(Level.WARNING,e.getMessage(),e);
     }
-    
+
     if (buf == null) attempt++;
     else             attempt = 0;
 

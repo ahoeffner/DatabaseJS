@@ -25,7 +25,7 @@ public class Test
       System.out.println("loadtest url ips threads loops [payload-file]");
       System.exit(-1);
     }
-    
+
     System.out.println("Loops "+args[3]);
     System.out.println("Threads "+args[2]);
     System.out.println("Hits per connect "+args[1]);
