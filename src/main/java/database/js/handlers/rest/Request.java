@@ -69,7 +69,7 @@ public class Request
     Rest rest = new Rest(new Config(false),false,"localhost");
     Request request = new Request(rest,"/connect",payload);
 
-    System.out.println(request);
+    System.out.println(request+" "+request.func);
   }
 
 
@@ -155,6 +155,13 @@ public class Request
       throw new Exception("Could not parse json payload: ["+payload+"]");
     }
   }
+  
+  
+  public String nvlfunc()
+  {
+    if (func == null) return("");
+    else              return(func);
+  }
 
 
   @Override
@@ -162,8 +169,8 @@ public class Request
   {
     String str = "";
 
-    if (session == null) str += "[]";
-    else                 str += "[" + session + "]";
+    if (session == null) str += "[]/";
+    else                 str += "[" + session + "]/";
 
     str += this.cmd;
     if (func != null) str += "/" + func;

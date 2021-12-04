@@ -83,6 +83,12 @@ class RESTComm
   {
     return(id);
   }
+  
+  
+  byte[] host()
+  {
+    return(host);
+  }
 
 
   int hsize()

@@ -40,7 +40,7 @@ public class Rest
   private final String host;
   private final String repo;
   private final Config config;
-
+  
   private final boolean compact;
   private final String dateform;
 
@@ -48,6 +48,7 @@ public class Rest
   private final boolean sppost;
   private final boolean sppatch;
 
+  private boolean failed = false;
   private Session session = null;
   private Savepoint savepoint = null;
 
@@ -83,10 +84,10 @@ public class Rest
       if (request.session != null)
         this.session = Session.get(request.session);
 
-      if (request.cmd.equals("batch"))
+      if (request.func.equals("batch"))
         return(batch(request.payload));
 
-      if (request.cmd.equals("script"))
+      if (request.func.equals("script"))
         return(script(request.payload));
 
       return(exec(request,false));
@@ -131,19 +132,21 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
-        if (request.cmd.equals("map"))
+        if (request.nvlfunc().equals("map"))
         {
           map(result,spload);
           continue;
         }
 
-        result = exec(request,true);
+        result = exec(request,true);    
         response += result + cont;
+        
+        if (failed) break;
       }
 
       response += "]";
 
-      if (savepoint)
+      if (savepoint && session != null)
       {
         if (!session.releaseSavePoint(this.savepoint))
         {
@@ -159,10 +162,13 @@ public class Rest
 
       return(response);
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
-      session.releaseSavePoint(this.savepoint,true);
-      this.savepoint = null;
+      if (session != null)
+      {
+        session.releaseSavePoint(this.savepoint,true);
+        this.savepoint = null;        
+      }
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
@@ -206,16 +212,17 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
-        if (request.cmd.equals("map"))
+        if (request.nvlfunc().equals("map"))
         {
           map(result,spload);
           continue;
         }
 
         result = exec(request,true);
+        if (failed) break;
       }
 
-      if (savepoint)
+      if (savepoint && session != null)
       {
         if (!session.releaseSavePoint(this.savepoint))
         {
@@ -231,10 +238,13 @@ public class Rest
 
       return(result);
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
-      session.releaseSavePoint(this.savepoint,true);
-      this.savepoint = null;
+      if (session != null)
+      {
+        session.releaseSavePoint(this.savepoint,true);
+        this.savepoint = null;        
+      }
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
@@ -295,6 +305,8 @@ public class Rest
 
             case "call" :
               response = call(request.payload,batch); break;
+
+            default : return(error("Unknown command "+request));
           }
 
           break;
@@ -1030,6 +1042,7 @@ public class Rest
 
   private String error(Throwable e, boolean fatal)
   {
+    failed = true;
     JSONFormatter json = new JSONFormatter();
 
     json.set(e);
@@ -1042,6 +1055,7 @@ public class Rest
 
   private String error(String message)
   {
+    failed = true;
     JSONFormatter json = new JSONFormatter();
 
     json.success(false);
