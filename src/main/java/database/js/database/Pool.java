@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 public class Pool
 {
   private int size = 0;
+  private boolean closed = false;
 
   private final int max;
   private final String token;
@@ -64,6 +65,9 @@ public class Pool
 
   public Database getConnection(String token) throws Exception
   {
+    if (closed)
+      throw new Exception("Pool closed");    
+    
     if (this.token != null)
     {
       if (token == null || !this.token.equals(token))
@@ -81,6 +85,7 @@ public class Pool
       else                  database = pool.remove(0);
     }
 
+    database.touch();
     return(database);
   }
 
@@ -101,7 +106,7 @@ public class Pool
 
     synchronized(this)
     {
-      pool.add(database);
+      pool.add(0,database);
       this.notifyAll();
     }
   }
@@ -111,6 +116,7 @@ public class Pool
   {
     synchronized(this)
     {
+      closed = true;
       int size = this.pool.size();
 
       for (int i = 0; i < size; i++)

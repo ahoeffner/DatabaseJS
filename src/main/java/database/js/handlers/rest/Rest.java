@@ -440,8 +440,26 @@ public class Rest
 
   private String run(JSONObject payload, boolean batch)
   {
+    boolean success = false;
+    
+    if (session == null)
+      return(error("not connected"));
+
+    try
+    {
+
+      String sql = getStatement(payload);
+      if (sql == null) return(error("Attribute \"sql\" is missing"));
+      success = session.execute(sql);
+    }
+    catch (Throwable e)
+    {
+      return(error(e,true));
+    }
+
     JSONFormatter json = new JSONFormatter();
     json.success(true);
+    json.add("result",success);
     return(json.toString());
   }
 

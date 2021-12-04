@@ -25,12 +25,20 @@ import java.sql.ResultSetMetaData;
 import java.time.format.DateTimeFormatter;
 import database.js.handlers.rest.DateUtils;
 
+import java.sql.Statement;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 public abstract class Database
 {
+  private final int id;
   private Connection conn;
+  private long touched = 0;
+
   private static String url;
   private static String teststmt;
+  private static AtomicInteger next = new AtomicInteger(0);
   private final static Logger logger = Logger.getLogger("rest");
 
 
@@ -54,6 +62,26 @@ public abstract class Database
 
   public Database()
   {
+    id = next.getAndIncrement();
+    touched = System.currentTimeMillis();
+  }
+  
+  
+  public int id()
+  {
+    return(id);
+  }
+
+
+  public final void touch()
+  {
+    touched = System.currentTimeMillis();
+  }
+
+
+  public final long touched()
+  {
+    return(touched);
   }
 
 
@@ -187,6 +215,13 @@ public abstract class Database
   public int executeUpdate(PreparedStatement stmt) throws Exception
   {
     return(stmt.executeUpdate());
+  }
+
+
+  public boolean execute(String sql) throws Exception
+  {
+    Statement stmt = conn.createStatement();
+    return(stmt.execute(sql));
   }
 
 

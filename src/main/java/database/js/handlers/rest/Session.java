@@ -205,6 +205,12 @@ public class Session
       return(false);
     }
   }
+  
+  
+  public boolean execute(String sql) throws Exception
+  {
+    return(database.execute(sql));
+  }
 
 
   public int executeUpdate(String sql, ArrayList<BindValue> bindvalues) throws Exception
