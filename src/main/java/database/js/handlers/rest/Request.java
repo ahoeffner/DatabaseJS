@@ -104,11 +104,16 @@ public class Request
         func = args[i];
         break;
       }
+      
+      String syn = args[i];
 
-      if (commands.contains(args[i]))
+      if (syn.equals("sql")) syn = "exec";
+      if (syn.equals("execute")) syn = "exec";
+
+      if (commands.contains(syn))
       {
         pos = i;
-        cmd = args[i];
+        cmd = syn;
         break;
       }
     }
