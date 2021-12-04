@@ -25,6 +25,7 @@ import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
 import database.js.cluster.Statistics;
+import database.js.database.PoolManager;
 import database.js.cluster.ProcessMonitor;
 import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
@@ -32,6 +33,7 @@ import database.js.servers.http.HTTPServer;
 import database.js.handlers.file.Deployment;
 import database.js.cluster.Cluster.ServerType;
 import database.js.servers.http.HTTPServerType;
+import database.js.handlers.rest.SessionManager;
 
 
 public class Server extends Thread
@@ -51,6 +53,8 @@ public class Server extends Thread
   private final HTTPServer admin;
 
   private final RESTServer rest;
+  private final PoolManager pmgr;
+  private final SessionManager smgr;
   private final LoadBalancer loadblcr;
 
   private volatile boolean sowner = false;
@@ -107,12 +111,21 @@ public class Server extends Thread
       this.loadblcr = null;
       this.embedded = true;
       this.rest = new RESTServer(this);
+      this.pmgr = new PoolManager(this,true);
+      this.smgr = new SessionManager(this,true);
     }
     else
     {
       this.rest = null;
+
       Deployment.init(config);
       this.embedded = servers <= 0;
+
+      if (!this.embedded) this.pmgr = null;
+      else this.pmgr = new PoolManager(this);
+
+      if (!this.embedded) this.smgr = null;
+      else this.smgr = new SessionManager(this);
 
       if (this.embedded) this.loadblcr = null;
       else this.loadblcr = new LoadBalancer(config);
@@ -156,6 +169,12 @@ public class Server extends Thread
     ssl.start();
     plain.start();
     admin.start();
+
+    if (embedded)
+    {
+      pmgr.start();
+      smgr.start();
+    }
 
     while(admin.state() < HTTPServer.RUNNING)
       try {sleep(1);} catch (Exception e) {;}

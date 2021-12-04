@@ -15,15 +15,12 @@ package database.js.handlers.rest;
 import java.io.File;
 import java.util.Date;
 import java.util.Base64;
-import java.util.TreeSet;
 import java.util.HashMap;
 import org.json.JSONArray;
 import java.sql.Savepoint;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import org.json.JSONTokener;
 import java.io.FileInputStream;
-import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.database.Pool;
 import database.js.security.OAuth;
@@ -41,7 +38,6 @@ import static database.js.handlers.rest.JSONFormatter.Type.*;
 public class Rest
 {
   private final String host;
-  private final String path;
   private final String repo;
   private final Config config;
 
@@ -49,13 +45,9 @@ public class Rest
   private final String dateform;
 
   private final boolean modify;
-  private final String payload;
-
   private final boolean sppost;
   private final boolean sppatch;
 
-  private String error = null;
-  private boolean fatal = false;
   private Session session = null;
   private Savepoint savepoint = null;
 
@@ -63,39 +55,15 @@ public class Rest
   private final SQLValidator validator;
 
   private final SessionState state = new SessionState();
-  private final static Logger logger = Logger.getLogger("rest");
-
-  private static final ConcurrentHashMap<String,String> sqlfiles =
-    new ConcurrentHashMap<String,String>();
-
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
+  private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
 
-  private static final TreeSet<String> commands = new TreeSet<String>();
-
-  static
-  {
-    commands.add("ping");
-    commands.add("call");
-    commands.add("batch");
-    commands.add("fetch");
-    commands.add("script");
-    commands.add("status");
-    commands.add("execute");
-    commands.add("commit");
-    commands.add("connect");
-    commands.add("rollback");
-    commands.add("disconnect");
-  }
-
-
-  public Rest(Config config, String path, boolean modify, String host, String payload) throws Exception
+  public Rest(Config config, boolean modify, String host) throws Exception
   {
     this.host      = host;
-    this.path      = path;
     this.config    = config;
     this.modify    = modify;
-    this.payload   = payload;
     this.compact   = config.getDatabase().compact;
     this.rewriter  = config.getDatabase().rewriter;
     this.validator = config.getDatabase().validator;
@@ -106,27 +74,26 @@ public class Rest
   }
 
 
-  public String execute()
+  public String execute(String path, String payload)
   {
     try
     {
-      JSONObject payload = parse(this.payload);
-      if (payload == null) return(error);
+      Request request = new Request(this,path,payload);
 
-      String cmd = divert(this.path,payload);
-      if (cmd == null) return(error);
+      if (request.session != null)
+        this.session = Session.get(request.session);
 
-      if (cmd.equals("batch"))
-        return(batch(payload));
+      if (request.cmd.equals("batch"))
+        return(batch(request.payload));
 
-      if (cmd.equals("script"))
-        return(script(payload));
+      if (request.cmd.equals("script"))
+        return(script(request.payload));
 
-      return(exec(cmd,payload,false));
+      return(exec(request,false));
     }
     catch (Throwable e)
     {
-      return(error(e));
+      return(error(e,false));
     }
   }
 
@@ -162,18 +129,15 @@ public class Rest
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
 
-        if (path.startsWith("/"))
-          path = path.substring(1);
+        Request request = new Request(this,path,spload);
 
-        if (path.equals("map"))
+        if (request.cmd.equals("map"))
         {
           map(result,spload);
           continue;
         }
 
-        result = exec(path,spload,true);
-        if (error != null) return(error);
-
+        result = exec(request,true);
         response += result + cont;
       }
 
@@ -201,12 +165,12 @@ public class Rest
       this.savepoint = null;
 
       state.releaseAll(this);
-      fatal = session.fatal();
+      boolean fatal = session.fatal();
 
       if (!fatal && !session.dedicated())
         session.disconnect();
 
-      return(error(e));
+      return(error(e,fatal));
     }
   }
 
@@ -240,17 +204,15 @@ public class Rest
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
 
-        if (path.startsWith("/"))
-          path = path.substring(1);
+        Request request = new Request(this,path,spload);
 
-        if (path.equals("map"))
+        if (request.cmd.equals("map"))
         {
           map(result,spload);
           continue;
         }
 
-        result = exec(path,spload,true);
-        if (error != null) return(error);
+        result = exec(request,true);
       }
 
       if (savepoint)
@@ -275,50 +237,70 @@ public class Rest
       this.savepoint = null;
 
       state.releaseAll(this);
-      fatal = session.fatal();
+      boolean fatal = session.fatal();
 
       if (!fatal && !session.dedicated())
         session.disconnect();
 
-      return(error(e));
+      return(error(e,fatal));
     }
   }
 
 
-  private String exec(String cmd, JSONObject payload, boolean batch)
+  private String exec(Request request, boolean batch)
   {
     String response = null;
 
-    if (cmd.equals("execute"))
-      cmd = peek(payload);
-
-    if (error != null)
-      return(error);
-
-    switch(cmd)
+    switch(request.cmd)
     {
       case "ping" :
-        response = ping(payload); break;
+        response = ping(request.payload); break;
+
+      case "status" :
+        response = ping(request.payload); break;
 
       case "connect" :
-        response = connect(payload,batch); break;
+        response = connect(request.payload,batch); break;
 
-      case "update" :
-        response = update(payload,batch); break;
+      case "commit" :
+        response = commit(); break;
 
-      case "select" :
-        response = select(payload,batch); break;
-
-      case "fetch" :
-        response = fetch(payload); break;
-
-      case "call" :
-        response = call(payload,batch); break;
+      case "rollback" :
+        response = rollback(); break;
 
       case "disconnect" :
         response = disconnect(); break;
 
-      default : return(error("Unknown command "+cmd));
+      case "exec" :
+        {
+          switch(request.func)
+          {
+            case "run" :
+              response = run(request.payload,batch); break;
+
+            case "merge" :
+              response = update(request.payload,batch); break;
+
+            case "insert" :
+              response = update(request.payload,batch); break;
+
+            case "update" :
+              response = update(request.payload,batch); break;
+
+            case "select" :
+              response = select(request.payload,batch); break;
+
+            case "fetch" :
+              response = fetch(request.payload); break;
+
+            case "call" :
+              response = call(request.payload,batch); break;
+          }
+
+          break;
+        }
+
+      default : return(error("Unknown command "+request.cmd));
     }
 
     if (!batch)
@@ -331,6 +313,14 @@ public class Rest
 
 
   private String ping(JSONObject payload)
+  {
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
+    return(json.toString());
+  }
+
+
+  private String status(JSONObject payload)
   {
     JSONFormatter json = new JSONFormatter();
     json.success(true);
@@ -399,7 +389,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      return(error(e));
+      return(error(e,false));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -424,7 +414,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      return(error(e));
+      return(error(e,true));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -432,6 +422,14 @@ public class Rest
     json.success(true);
     json.add("disconnected",true);
 
+    return(json.toString());
+  }
+
+
+  private String run(JSONObject payload, boolean batch)
+  {
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
     return(json.toString());
   }
 
@@ -469,9 +467,7 @@ public class Rest
       if (session.dedicated() && payload.has("cursor")) curname = payload.getString("cursor");
 
       String sql = getStatement(payload);
-
-      if (error != null)
-        return(error);
+      if (sql == null) return(error("Attribute \"sql\" is missing"));
 
       SQLParser parser = new SQLParser(bindvalues,sql);
 
@@ -557,12 +553,12 @@ public class Rest
       this.savepoint = null;
 
       state.releaseAll(this);
-      fatal = session.fatal();
+      boolean fatal = session.fatal();
 
       if (!fatal && !session.dedicated())
         session.disconnect();
 
-      return(error(e));
+      return(error(e,fatal));
     }
   }
 
@@ -580,9 +576,7 @@ public class Rest
         this.getBindValues(payload.getJSONArray("bindvalues"));
 
       String sql = getStatement(payload);
-
-      if (error != null)
-        return(error);
+      if (sql == null) return(error("Attribute \"sql\" is missing"));
 
       SQLParser parser = new SQLParser(bindvalues,sql);
 
@@ -632,12 +626,12 @@ public class Rest
       this.savepoint = null;
 
       state.releaseAll(this);
-      fatal = session.fatal();
+      boolean fatal = session.fatal();
 
       if (!fatal && !session.dedicated())
         session.disconnect();
 
-      return(error(e));
+      return(error(e,fatal));
     }
   }
 
@@ -659,9 +653,7 @@ public class Rest
         this.getBindValues(payload.getJSONArray("bindvalues"));
 
       String sql = getStatement(payload);
-
-      if (error != null)
-        return(error);
+      if (sql == null) return(error("Attribute \"sql\" is missing"));
 
       SQLParser parser = new SQLParser(bindvalues,sql,true);
 
@@ -713,12 +705,12 @@ public class Rest
       this.savepoint = null;
 
       state.releaseAll(this);
-      fatal = session.fatal();
+      boolean fatal = session.fatal();
 
       if (!fatal && !session.dedicated())
         session.disconnect();
 
-      return(error(e));
+      return(error(e,fatal));
     }
   }
 
@@ -775,9 +767,25 @@ public class Rest
     }
     catch (Throwable e)
     {
-      fatal = session.fatal();
-      return(error(e));
+      boolean fatal = session.fatal();
+      return(error(e,fatal));
     }
+  }
+
+
+  private String commit()
+  {
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
+    return(json.toString());
+  }
+
+
+  private String rollback()
+  {
+    JSONFormatter json = new JSONFormatter();
+    json.success(true);
+    return(json.toString());
   }
 
 
@@ -785,7 +793,7 @@ public class Rest
   {
     JSONArray rows = null;
     ArrayList<String> cols = null;
-    JSONObject last = parse(latest);
+    JSONObject last = Request.parse(latest);
 
     if (last.has("rows"))
       rows = last.getJSONArray("rows");
@@ -859,29 +867,11 @@ public class Rest
   }
 
 
-  private String peek(JSONObject payload)
+  String getStatement(JSONObject payload) throws Exception
   {
-    String sql = getStatement(payload);
+    if (!payload.has("sql"))
+      return(null);
 
-    if (error != null)
-      return(error);
-
-    if (sql.length() > 6)
-    {
-      String cmd = sql.substring(0,7).toLowerCase();
-
-      if (cmd.equals("select ")) return("select");
-      if (cmd.equals("insert ")) return("update");
-      if (cmd.equals("update ")) return("update");
-      if (cmd.equals("delete ")) return("update");
-    }
-
-    return("call");
-  }
-
-
-  private String getStatement(JSONObject payload)
-  {
     String file = "@";
     String sql = payload.getString("sql");
 
@@ -896,49 +886,24 @@ public class Rest
 
       File f = new File(fname);
 
-      try
-      {
-        String path = f.getCanonicalPath();
+      String path = f.getCanonicalPath();
 
-        if (!path.startsWith(repo+File.separator))
-          return(error("Illegal path '"+path+"'. File must be located in repository"));
+      if (!path.startsWith(repo+File.separator))
+        throw new Exception("Illegal path '"+path+"'. File must be located in repository");
 
-        byte[] content = new byte[(int) f.length()];
-        FileInputStream in = new FileInputStream(f);
-        int read = in.read(content);
-        in.close();
+      byte[] content = new byte[(int) f.length()];
+      FileInputStream in = new FileInputStream(f);
+      int read = in.read(content);
+      in.close();
 
-        if (read != content.length)
-          return(error("Could not read '"+f.getCanonicalPath()+"'"));
+      if (read != content.length)
+        throw new Exception("Could not read '"+f.getCanonicalPath()+"'");
 
-        sql = new String(content);
-        sqlfiles.put(fname,sql);
-      }
-      catch (Exception e)
-      {
-        return(error(e));
-      }
+      sql = new String(content);
+      sqlfiles.put(fname,sql);
     }
 
     return(sql);
-  }
-
-
-  private JSONObject parse(String payload)
-  {
-    if (payload == null)
-      payload = "{}";
-
-    try
-    {
-      JSONTokener tokener = new JSONTokener(payload);
-      return(new JSONObject(tokener));
-    }
-    catch (Throwable e)
-    {
-      error("Could not parse json payload: ["+payload+"]");
-      return(null);
-    }
   }
 
 
@@ -985,68 +950,31 @@ public class Rest
     }
     catch (Throwable e)
     {
-      error(e);
+      error(e,false);
       return(defaults);
     }
   }
 
 
-  private String divert(String path, JSONObject payload)
+  String encode(boolean priv, String data)
   {
-    String cmd = null;
-    boolean ses = false;
-
-    if (path == null)
-    {
-      error("invalid rest-path");
-      return(null);
-    }
-
-    String[] parts = path.substring(1).split("/");
-
-    if (commands.contains(parts[0].toLowerCase()))
-      cmd = parts[0].toLowerCase();
-
-    if (cmd == null && parts.length > 1)
-    {
-      ses = true;
-      String sesid = decode(parts[0],host);
-
-      this.session = Session.get(sesid);
-
-      if (commands.contains(parts[1].toLowerCase()))
-        cmd = parts[1].toLowerCase();
-    }
-
-    if (cmd == null)
-    {
-      error("Rest path "+path+" not mapped to any service");
-      return(null);
-    }
-
-    if (ses && session == null)
-    {
-      error("Session '"+parts[0]+"' does not exist");
-      return(null);
-    }
-
-    if (payload.has("batch"))
-      return("batch");
-
-    if (payload.has("script"))
-      return("script");
-
-    return(cmd);
+    return(encode(priv,data,host));
   }
 
 
-  private static String encode(boolean priv, String data, String salt)
+  String decode(String data)
+  {
+    return(decode(data,host));
+  }
+
+
+  static String encode(boolean priv, String data, String salt)
   {
     byte[] bdata = data.getBytes();
     byte[] bsalt = salt.getBytes();
 
     byte indicator;
-    int ran = (int) System.currentTimeMillis() % 25;
+    long ran = System.currentTimeMillis() % 25;
 
     if (priv) indicator = (byte) ('a' + ran);
     else      indicator = (byte) ('A' + ran);
@@ -1074,7 +1002,7 @@ public class Rest
   }
 
 
-  private static String decode(String data, String salt)
+  static String decode(String data, String salt)
   {
     byte[] bsalt = salt.getBytes();
     while(data.length() % 4 != 0) data += "=";
@@ -1082,7 +1010,7 @@ public class Rest
     byte[] bdata = Base64.getDecoder().decode(data);
 
     byte indicator = bdata[0];
-    boolean priv = indicator >= 'a' && indicator <= 'z';
+    boolean priv = (indicator >= 'a' && indicator <= 'z');
 
     byte[] token = new byte[bdata.length-1];
     System.arraycopy(bdata,1,token,0,token.length);
@@ -1100,16 +1028,15 @@ public class Rest
   }
 
 
-  private String error(Throwable e)
+  private String error(Throwable e, boolean fatal)
   {
     JSONFormatter json = new JSONFormatter();
 
     json.set(e);
     json.success(false);
-    json.fatal(fatal,"Session closed");
+    json.fatal(fatal,"disconnected");
 
-    this.error = json.toString();
-    return(this.error);
+    return(json.toString());
   }
 
 
@@ -1120,8 +1047,7 @@ public class Rest
     json.success(false);
     json.add("message",message);
 
-    this.error = json.toString();
-    return(this.error);
+    return(json.toString());
   }
 
 
@@ -1143,7 +1069,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e);
+        rest.error(e,false);
       }
     }
 
@@ -1164,7 +1090,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e);
+        rest.error(e,false);
       }
     }
 
@@ -1184,7 +1110,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e);
+        rest.error(e,false);
       }
     }
   }

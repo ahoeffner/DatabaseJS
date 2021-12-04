@@ -34,7 +34,12 @@ public class Guid
     bi = new BigInteger(bytes);
     String p2 = Integer.toHexString(bi.intValue());
 
-    guid = (p1 + p2);
+    String guid = (p1 + p2);
+
+    while(guid.length() < 16)
+      guid += random.nextInt(9);
+
+    this.guid = guid;
   }
 
 

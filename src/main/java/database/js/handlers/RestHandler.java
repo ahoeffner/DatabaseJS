@@ -156,10 +156,10 @@ public class RestHandler extends Handler
     String remote = request.remote();
     String payload = new String(body);
 
-    Rest rest = new Rest(config(),path,modify,remote,payload);
+    Rest rest = new Rest(config(),modify,remote);
     response.setContentType(json);
 
-    response.setBody(rest.execute());
+    response.setBody(rest.execute(path,payload));
 
     log(logger,request,response);
     return(response);
