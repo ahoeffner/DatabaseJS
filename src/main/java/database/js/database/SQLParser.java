@@ -14,6 +14,8 @@ package database.js.database;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class SQLParser
@@ -22,6 +24,25 @@ public class SQLParser
   private final boolean func;
   private final ArrayList<BindValue> bindings;
   private final HashMap<String,BindValueDef> bindvalues;
+
+  private final static Pattern procedure = Pattern.compile("\\w*\\s*\\(.*\\)");
+  private final static Pattern function = Pattern.compile("\\w*\\s*=\\s*\\w*\\s*\\(.*\\)");
+
+
+  public static boolean function(String stmt)
+  {
+    if (stmt == null) return(false);
+    Matcher matcher = function.matcher(stmt.trim());
+    return(matcher.matches());
+  }
+
+
+  public static boolean procedure(String stmt)
+  {
+    if (stmt == null) return(false);
+    Matcher matcher = procedure.matcher(stmt.trim());
+    return(matcher.matches());
+  }
 
 
   public SQLParser(HashMap<String,BindValueDef> bindvalues, String stmt)
@@ -96,19 +117,6 @@ public class SQLParser
     {
       this.sql = nsql.toString();
     }
-  }
-
-
-  private boolean function(String stmt)
-  {
-    int eq = stmt.indexOf('=');
-    if (eq < 0) return(false);
-
-    int br = stmt.indexOf('(');
-    if (br < 0) br = stmt.length();
-
-    if (br < eq) return(false);
-    return(true);
   }
 
 

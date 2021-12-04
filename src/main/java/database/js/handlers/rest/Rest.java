@@ -285,8 +285,8 @@ public class Rest
         {
           switch(request.func)
           {
-            case "run" :
-              response = run(request.payload,batch); break;
+            case "ddl" :
+              response = ddl(request.payload,batch); break;
 
             case "merge" :
               response = update(request.payload,batch); break;
@@ -438,7 +438,7 @@ public class Rest
   }
 
 
-  private String run(JSONObject payload, boolean batch)
+  private String ddl(JSONObject payload, boolean batch)
   {
     boolean success = false;
     

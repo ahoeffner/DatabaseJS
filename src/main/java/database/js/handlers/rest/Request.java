@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import database.js.config.Config;
+import database.js.database.SQLParser;
 
 
 public class Request
@@ -33,13 +34,13 @@ public class Request
 
   static
   {
+    function.add("ddl");
     function.add("map");
-    function.add("run");
     function.add("call");
     function.add("batch");
     function.add("merge");
-    function.add("script");
     function.add("fetch");
+    function.add("script");
     function.add("select");
     function.add("insert");
     function.add("update");
@@ -55,21 +56,6 @@ public class Request
     commands.add("connect");
     commands.add("rollback");
     commands.add("disconnect");
-  }
-
-
-  public static void main(String[] args) throws Exception
-  {
-    String payload =
-
-    "{" +
-    "  \"sql\": \"select bla   \"" +
-    "}";
-
-    Rest rest = new Rest(new Config(false),false,"localhost");
-    Request request = new Request(rest,"/connect",payload);
-
-    System.out.println(request+" "+request.func);
   }
 
 
@@ -206,7 +192,10 @@ public class Request
       if (cmd.equals("update ")) return("update");
       if (cmd.equals("delete ")) return("update");
     }
+    
+    if (SQLParser.function(sql)) return("call");
+    if (SQLParser.procedure(sql)) return("call");
 
-    return("call");
+    return("ddl");
   }
 }
