@@ -12,6 +12,8 @@
 
 package database.js.handlers.rest;
 
+import database.js.config.Config;
+
 import java.sql.ResultSet;
 import java.sql.Savepoint;
 import java.util.ArrayList;
@@ -33,10 +35,10 @@ public class Session
 {
   private final Pool pool;
   private final String guid;
+  private final Scope scope;
   private final String secret;
   private final String username;
   private final AuthMethod method;
-  private final boolean dedicated;
 
   private int shared = 0;
   private long thread = 0;
@@ -48,26 +50,23 @@ public class Session
   private final ConcurrentHashMap<String,Cursor> cursors =
     new ConcurrentHashMap<String,Cursor>();
 
-  private final static ConcurrentHashMap<String,Session> sessions =
-    new ConcurrentHashMap<String,Session>();
-
   private final static Logger logger = Logger.getLogger("rest");
 
 
   public static Session get(String guid)
   {
-    return(sessions.get(guid));
+    return(SessionManager.get(guid));
   }
 
 
-  public Session(AuthMethod method, Pool pool, boolean dedicated, String username, String secret) throws Exception
+  public Session(AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
   {
     this.pool = pool;
-    this.guid = create();
     this.method = method;
     this.secret = secret;
     this.username = username;
-    this.dedicated = dedicated;
+    this.scope = getScope(scope);
+    this.guid = SessionManager.register(this);
   }
 
 
@@ -89,12 +88,6 @@ public class Session
   }
 
 
-  public boolean dedicated()
-  {
-    return(dedicated);
-  }
-
-
   public Database database()
   {
     return(database);
@@ -107,18 +100,87 @@ public class Session
   }
 
 
+  public boolean dedicated()
+  {
+    return(scope != Scope.Shared);
+  }
+
+
   public void remove()
   {
-    sessions.remove(guid);
+    SessionManager.remove(guid);
+  }
+  
+  
+  public Scope getScope(String scope)
+  {
+    if (scope == null)
+      return(Scope.Shared);
+
+    scope = Character.toUpperCase(scope.charAt(0))
+           + scope.substring(1).toLowerCase();
+    
+    return(Scope.valueOf(scope));
+  }
+  
+  
+  public void done(boolean modified) throws Exception
+  {
+    if (scope == Scope.Shared)
+    {
+      if (modified)
+        database.commit();
+      
+      if (pool == null) database.disconnect();
+      else              pool.release(database);
+      
+      database = null;
+    }
+  }
+  
+  
+  public void failed()
+  {
+    if (database == null)
+      return;
+    
+    try {database.rollback();}
+    catch (Exception e) {;}
+
+    try
+    {
+      if (scope == Scope.Shared)
+      {        
+        if (pool == null) database.disconnect();
+        else              pool.release(database);        
+      }
+    }
+    catch (Exception e) {;}
+    finally {database = null;}
   }
 
 
   public void disconnect()
   {
+    if (database == null) return;
+
+    if (pool == null) database.disconnect();
+    else              pool.release(database);
+
+    database = null;
+  }
+  
+
+  public void disconnect(boolean commit)
+  {
     if (database == null)
       return;
 
-    try {database.rollback();}
+    try 
+    {
+      if (commit) database.commit();
+      else        database.rollback();
+    }
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
@@ -159,8 +221,8 @@ public class Session
         break;
 
       case PoolToken :
-        if (dedicated) database = pool.connect(secret);
-        else           database = pool.getConnection(secret);
+        if (scope == Scope.Dedicated) database = pool.connect(secret);
+        else                          database = pool.getConnection(secret);
 
         database.setAutoCommit(false);
         if (pool.proxy()) database.setProxyUser(username);
@@ -205,8 +267,8 @@ public class Session
       return(false);
     }
   }
-  
-  
+
+
   public boolean execute(String sql) throws Exception
   {
     return(database.execute(sql));
@@ -320,7 +382,7 @@ public class Session
 
     if (!database.validate())
     {
-      sessions.remove(guid);
+      SessionManager.remove(guid);
       database.disconnect();
       database = null;
       return(true);
@@ -402,19 +464,12 @@ public class Session
       LOCK.notifyAll();
     }
   }
-
-
-  private synchronized String create()
+  
+  
+  private static enum Scope
   {
-    String guid = null;
-
-    while(guid == null)
-    {
-      guid = new Guid().toString();
-      if (sessions.get(guid) != null) guid = null;
-    }
-
-    sessions.put(guid,this);
-    return(guid);
+    Shared,
+    Transaction,
+    Dedicated
   }
 }

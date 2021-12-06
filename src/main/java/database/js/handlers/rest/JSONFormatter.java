@@ -16,15 +16,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class JSONFormatter
 {
   private Content content = null;
-  private final static Logger logger = Logger.getLogger("rest");
 
 
   public static void main(String[] args)
@@ -89,7 +86,6 @@ public class JSONFormatter
   public void set(Throwable err)
   {
     content.set(err);
-    logger.log(Level.WARNING,err.getMessage(),err);
   }
 
 

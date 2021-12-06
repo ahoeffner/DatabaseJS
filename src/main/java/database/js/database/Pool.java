@@ -22,7 +22,9 @@ public class Pool
   private int size = 0;
   private boolean closed = false;
 
+  private final int min;
   private final int max;
+  private final int idle;
   private final String token;
   private final boolean proxy;
   private final String username;
@@ -31,9 +33,11 @@ public class Pool
   private final static Logger logger = Logger.getLogger("rest");
 
 
-  public Pool(boolean proxy, String token, String username, String password, int size) throws Exception
+  public Pool(boolean proxy, String token, String username, String password, int min, int max, int idle) throws Exception
   {
-    this.max = size;
+    this.min = min;
+    this.max = max;
+    this.idle = idle;
     this.proxy = proxy;
     this.token = token;
     this.username = username;
@@ -66,8 +70,8 @@ public class Pool
   public Database getConnection(String token) throws Exception
   {
     if (closed)
-      throw new Exception("Pool closed");    
-    
+      throw new Exception("Pool closed");
+
     if (this.token != null)
     {
       if (token == null || !this.token.equals(token))
@@ -106,6 +110,7 @@ public class Pool
 
     synchronized(this)
     {
+      database.touch();
       pool.add(0,database);
       this.notifyAll();
     }

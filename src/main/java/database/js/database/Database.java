@@ -14,6 +14,7 @@ package database.js.database;
 
 import java.sql.ResultSet;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.sql.DriverManager;
@@ -24,9 +25,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.time.format.DateTimeFormatter;
 import database.js.handlers.rest.DateUtils;
-
-import java.sql.Statement;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -65,8 +63,8 @@ public abstract class Database
     id = next.getAndIncrement();
     touched = System.currentTimeMillis();
   }
-  
-  
+
+
   public int id()
   {
     return(id);

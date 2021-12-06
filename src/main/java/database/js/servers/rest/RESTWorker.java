@@ -71,7 +71,7 @@ public class RESTWorker implements Runnable
     {
       this.workers.done();
       logger.log(Level.SEVERE,e.getMessage(),e);
-      
+
       byte[] data = ("{\"status\": \""+e.getMessage()+"\"}").getBytes();
       RESTComm error = new RESTComm(bridge.id(),bridge.extend(),bridge.host(),data);
       rserver.respond(bridge);

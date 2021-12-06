@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class SessionManager extends Thread
@@ -23,6 +24,37 @@ public class SessionManager extends Thread
   private final Server server;
   private final Config config;
   private final static Logger logger = Logger.getLogger("rest");
+
+  private final static ConcurrentHashMap<String,Session> sessions =
+    new ConcurrentHashMap<String,Session>();
+  
+  
+  public static synchronized String register(Session session)
+  {
+    String guid = null;
+
+    while(guid == null)
+    {
+      guid = new Guid().toString();
+      if (sessions.get(guid) != null) guid = null;
+    }
+
+    sessions.put(guid,session);
+    return(guid);
+  }
+  
+  
+  public static Session get(String guid)
+  {
+    return(sessions.get(guid));
+  }
+  
+  
+  public static Session remove(String guid)
+  {
+    return(sessions.remove(guid));
+  }
+
 
 
   public SessionManager(Server server)
@@ -47,10 +79,13 @@ public class SessionManager extends Thread
   public void run()
   {
     logger.info("SessionManager started");
-
+    
     try
     {
-      ;
+      while(true)
+      {
+        Thread.sleep(10000);
+      }
     }
     catch (Exception e)
     {

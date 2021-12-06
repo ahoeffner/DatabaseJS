@@ -90,7 +90,7 @@ public class Request
         func = args[i];
         break;
       }
-      
+
       String syn = args[i];
 
       if (syn.equals("sql")) syn = "exec";
@@ -146,8 +146,8 @@ public class Request
       throw new Exception("Could not parse json payload: ["+payload+"]");
     }
   }
-  
-  
+
+
   public String nvlfunc()
   {
     if (func == null) return("");
@@ -192,7 +192,7 @@ public class Request
       if (cmd.equals("update ")) return("update");
       if (cmd.equals("delete ")) return("update");
     }
-    
+
     if (SQLParser.function(sql)) return("call");
     if (SQLParser.procedure(sql)) return("call");
 

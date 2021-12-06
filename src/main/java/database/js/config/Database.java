@@ -122,12 +122,15 @@ public class Database
     type = Character.toUpperCase(type.charAt(0))
            + type.substring(1).toLowerCase();
 
-    int size = Config.get(pconf,"pool");
+    int min = Config.get(pconf,"min");
+    int max = Config.get(pconf,"max");
+    int idle = Config.get(pconf,"idle");
+
     String usr = Config.get(pconf,"username");
     String pwd = Config.get(pconf,"password");
     String secret = Config.get(pconf,"auth.secret");
 
-    return(new Pool(proxy,secret,usr,pwd,size));
+    return(new Pool(proxy,secret,usr,pwd,min,max,idle));
   }
 
 

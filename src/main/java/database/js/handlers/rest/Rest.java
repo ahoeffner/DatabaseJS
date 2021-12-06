@@ -33,14 +33,19 @@ import database.js.database.BindValueDef;
 import database.js.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
+import database.js.servers.Server;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Rest
 {
   private final String host;
   private final String repo;
+  private final Server server;
   private final Config config;
-  
+
   private final boolean compact;
   private final String dateform;
 
@@ -50,21 +55,24 @@ public class Rest
 
   private boolean failed = false;
   private Session session = null;
-  private Savepoint savepoint = null;
 
   private final SQLRewriter rewriter;
   private final SQLValidator validator;
 
   private final SessionState state = new SessionState();
+  private final static Logger logger = Logger.getLogger("rest");
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
 
-  public Rest(Config config, boolean modify, String host) throws Exception
+  public Rest(Server server, boolean modify, String host) throws Exception
   {
     this.host      = host;
-    this.config    = config;
     this.modify    = modify;
+    
+    this.server    = server;
+    this.config    = server.config();
+    
     this.compact   = config.getDatabase().compact;
     this.rewriter  = config.getDatabase().rewriter;
     this.validator = config.getDatabase().validator;
@@ -84,10 +92,10 @@ public class Rest
       if (request.session != null)
         this.session = Session.get(request.session);
 
-      if (request.func.equals("batch"))
+      if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
 
-      if (request.func.equals("script"))
+      if (request.nvlfunc().equals("script"))
         return(script(request.payload));
 
       return(exec(request,false));
@@ -101,17 +109,18 @@ public class Rest
 
   private String batch(JSONObject payload)
   {
-    boolean savepoint = getSavepoint(payload,false);
+    Savepoint savepoint = null;
+    boolean savepnt = getSavepoint(payload,false);
 
     try
     {
       JSONArray services = payload.getJSONArray("batch");
-      if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
+      if (payload.has("savepoint")) savepnt = payload.getBoolean("savepoint");
 
-      if (savepoint)
+      if (savepnt)
       {
         state.lock(this,true);
-        this.savepoint = session.setSavePoint();
+        savepoint = session.setSavePoint();
       }
 
       String result = null;
@@ -138,44 +147,33 @@ public class Rest
           continue;
         }
 
-        result = exec(request,true);    
+        result = exec(request,true);
         response += result + cont;
-        
+
         if (failed) break;
       }
 
       response += "]";
 
-      if (savepoint && session != null)
+      if (savepnt && session != null)
       {
-        if (!session.releaseSavePoint(this.savepoint))
-        {
-          this.savepoint = null;
+        if (!session.releaseSavePoint(savepoint))
           throw new Exception("Could not release savepoint");
-        }
 
         state.release(this,true);
       }
 
-      if (!session.dedicated())
-        session.disconnect();
-
+      session.done(modify);
       return(response);
     }
     catch (Throwable e)
     {
-      if (session != null)
-      {
-        session.releaseSavePoint(this.savepoint,true);
-        this.savepoint = null;        
-      }
+      session.releaseSavePoint(savepoint,true);
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
 
-      if (!fatal && !session.dedicated())
-        session.disconnect();
-
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -183,17 +181,18 @@ public class Rest
 
   private String script(JSONObject payload)
   {
-    boolean savepoint = getSavepoint(payload,false);
+    Savepoint savepoint = null;
+    boolean savepnt = getSavepoint(payload,false);
 
     try
     {
       JSONArray services = payload.getJSONArray("script");
-      if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
+      if (payload.has("savepoint")) savepnt = payload.getBoolean("savepoint");
 
-      if (savepoint)
+      if (savepnt)
       {
         state.lock(this,true);
-        this.savepoint = session.setSavePoint();
+        savepoint = session.setSavePoint();
       }
 
       String result = null;
@@ -222,36 +221,26 @@ public class Rest
         if (failed) break;
       }
 
-      if (savepoint && session != null)
+      if (savepnt && session != null)
       {
-        if (!session.releaseSavePoint(this.savepoint))
-        {
-          this.savepoint = null;
+        if (!session.releaseSavePoint(savepoint))
           throw new Exception("Could not release savepoint");
-        }
 
         state.release(this,true);
       }
 
-      if (!session.dedicated())
-        session.disconnect();
-
+      session.done(modify);
       return(result);
     }
     catch (Throwable e)
     {
       if (session != null)
-      {
-        session.releaseSavePoint(this.savepoint,true);
-        this.savepoint = null;        
-      }
+        session.releaseSavePoint(savepoint,true);
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
 
-      if (!fatal && !session.dedicated())
-        session.disconnect();
-
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -267,7 +256,7 @@ public class Rest
         response = ping(request.payload); break;
 
       case "status" :
-        response = ping(request.payload); break;
+        response = status(request.payload); break;
 
       case "connect" :
         response = connect(request.payload,batch); break;
@@ -326,6 +315,24 @@ public class Rest
 
   private String ping(JSONObject payload)
   {
+    try
+    {
+      boolean keepalive = false;
+      
+      if (payload.has("keepalive"))
+        keepalive = payload.getBoolean("keepalive");
+      
+      if (keepalive && session == null)
+        return(error("keepalive cannot be used without a valid session"));
+      
+      if (keepalive) 
+        session.touch();
+    }
+    catch (Throwable e)
+    {
+      return(error(e,false));
+    }
+    
     JSONFormatter json = new JSONFormatter();
     json.success(true);
     return(json.toString());
@@ -334,18 +341,33 @@ public class Rest
 
   private String status(JSONObject payload)
   {
+    ArrayList<String[]> stats = new ArrayList<String[]>();
+    
+    try
+    {
+      ;
+    }
+    catch (Throwable e)
+    {
+      return(error(e,false));
+    }
+    
     JSONFormatter json = new JSONFormatter();
     json.success(true);
+    
+    for(String[] stat : stats)
+      json.add(stat[0],stat[1]);
+    
     return(json.toString());
   }
 
   private String connect(JSONObject payload, boolean batch)
   {
     Pool pool = null;
+    String scope = null;
     String secret = null;
     String username = null;
     AuthMethod method = null;
-    boolean dedicated = false;
     boolean privateses = true;
 
     try
@@ -356,8 +378,8 @@ public class Rest
       if (payload.has("private"))
         privateses = payload.getBoolean("private");
 
-      if (payload.has("dedicated"))
-        dedicated = payload.getBoolean("dedicated");
+      if (payload.has("scope"))
+        scope = payload.getString("scope");
 
       if (payload.has("auth.secret"))
         secret = payload.getString("auth.secret");
@@ -393,10 +415,10 @@ public class Rest
             return(error("Connection pool not configured"));
         }
 
-        this.session = new Session(method,pool,dedicated,username,secret);
+        this.session = new Session(method,pool,scope,username,secret);
 
-        if (dedicated || method == AuthMethod.Database) this.session.connect();
-        if (!dedicated && !batch && method == AuthMethod.Database) this.session.disconnect();
+        if (session.dedicated() || method == AuthMethod.Database) this.session.connect();
+        if (!session.dedicated() && !batch && method == AuthMethod.Database) this.session.disconnect();
       }
     }
     catch (Throwable e)
@@ -421,7 +443,7 @@ public class Rest
 
     try
     {
-      session.disconnect();
+      session.disconnect(false);
       session.remove();
     }
     catch (Throwable e)
@@ -441,20 +463,53 @@ public class Rest
   private String ddl(JSONObject payload, boolean batch)
   {
     boolean success = false;
-    
+    Savepoint savepoint = null;
+
     if (session == null)
       return(error("not connected"));
 
     try
     {
-
+      boolean savepnt = getSavepoint(payload,false);
+      
+      if (!batch && payload.has("savepoint")) 
+        savepnt = payload.getBoolean("savepoint");
+      
       String sql = getStatement(payload);
       if (sql == null) return(error("Attribute \"sql\" is missing"));
-      success = session.execute(sql);
+
+      session.ensure();
+
+      if (!batch && savepnt)
+      {
+        state.lock(this,true);
+        savepoint = session.setSavePoint();
+      }
+      
+      state.lock(this,false);
+      success = session.execute(sql);      
+      state.release(this,false);
+
+      if (!batch && savepnt)
+      {
+        if (!session.releaseSavePoint(savepoint))
+          throw new Exception("Could not release savepoint");
+        
+        state.release(this,true);
+      }
+      
+      session.done(modify);
     }
     catch (Throwable e)
     {
-      return(error(e,true));
+      if (session != null)
+        session.releaseSavePoint(savepoint,true);
+
+      state.releaseAll(this);
+      boolean fatal = session.fatal();
+
+      session.failed();
+      return(error(e,fatal));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -466,6 +521,8 @@ public class Rest
 
   private String select(JSONObject payload, boolean batch)
   {
+    Savepoint savepoint = null;
+
     if (session == null)
       return(error("Not connected"));
 
@@ -476,9 +533,7 @@ public class Rest
       String curname = null;
       boolean compact = this.compact;
       String dateform = this.dateform;
-      boolean savepoint = getSavepoint(payload,false);
-
-      session.ensure();
+      boolean savepnt = getSavepoint(payload,false);
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
@@ -493,7 +548,7 @@ public class Rest
       }
 
       if (payload.has("compact")) compact = payload.getBoolean("compact");
-      if (!batch && payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
+      if (!batch && payload.has("savepoint")) savepnt = payload.getBoolean("savepoint");
       if (session.dedicated() && payload.has("cursor")) curname = payload.getString("cursor");
 
       String sql = getStatement(payload);
@@ -510,35 +565,31 @@ public class Rest
       if (validator != null)
         validator.validate(sql,bindvalues);
 
-      if (!batch && savepoint)
-      {
-        state.lock(this,true);
-        this.savepoint = session.setSavePoint();
-      }
-
+      session.ensure();
       session.closeCursor(curname);
 
-      if (!batch && savepoint)
+      if (!batch && savepnt)
       {
         state.lock(this,true);
-        this.savepoint = session.setSavePoint();
+        savepoint = session.setSavePoint();
       }
 
       state.lock(this,false);
       Cursor cursor = session.executeQuery(curname,sql,bindvalues);
       state.release(this,false);
 
-      if (!batch && savepoint)
+      if (!batch && savepnt)
       {
-        if (!session.releaseSavePoint(this.savepoint))
+        if (!session.releaseSavePoint(savepoint))
         {
-          this.savepoint = null;
           session.closeCursor(cursor);
           throw new Exception("Could not release savepoint");
         }
 
         state.release(this,true);
       }
+      
+      session.done(modify);
 
       cursor.rows = rows;
       cursor.compact = compact;
@@ -572,22 +623,16 @@ public class Rest
       if (cursor.name == null)
         session.closeCursor(cursor);
 
-      if (!batch && !session.dedicated())
-        session.disconnect();
-
       return(json.toString());
     }
     catch (Throwable e)
     {
-      session.releaseSavePoint(this.savepoint,true);
-      this.savepoint = null;
+      session.releaseSavePoint(savepoint,true);
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
 
-      if (!fatal && !session.dedicated())
-        session.disconnect();
-
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -595,12 +640,14 @@ public class Rest
 
   private String update(JSONObject payload, boolean batch)
   {
+    Savepoint savepoint = null;
+
     if (session == null)
       return(error("Not connected"));
 
     try
     {
-      boolean savepoint = getSavepoint(payload,true);
+      boolean savepnt = getSavepoint(payload,true);
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
@@ -619,23 +666,22 @@ public class Rest
       if (validator != null)
         validator.validate(sql,bindvalues);
 
-      if (!batch && savepoint)
+      session.ensure();
+
+      if (!batch && savepnt)
       {
         state.lock(this,true);
-        this.savepoint = session.setSavePoint();
+        savepoint = session.setSavePoint();
       }
 
       state.lock(this,false);
       int rows = session.executeUpdate(sql,bindvalues);
       state.release(this,false);
 
-      if (!batch && savepoint)
+      if (!batch && savepnt)
       {
-        if (!session.releaseSavePoint(this.savepoint))
-        {
-          this.savepoint = null;
+        if (!session.releaseSavePoint(savepoint))
           throw new Exception("Could not release savepoint");
-        }
 
         state.release(this,true);
       }
@@ -645,22 +691,17 @@ public class Rest
       json.success(true);
       json.add("rows",rows);
 
-      if (!batch && !session.dedicated())
-        session.disconnect();
-
+      session.done(modify);
       return(json.toString());
     }
     catch (Throwable e)
     {
-      session.releaseSavePoint(this.savepoint,true);
-      this.savepoint = null;
+      session.releaseSavePoint(savepoint,true);
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
 
-      if (!fatal && !session.dedicated())
-        session.disconnect();
-
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -668,13 +709,15 @@ public class Rest
 
   private String call(JSONObject payload, boolean batch)
   {
+    Savepoint savepoint = null;
+
     if (session == null)
       return(error("Not connected"));
 
     try
     {
       String dateconv = null;
-      boolean savepoint = getSavepoint(payload,true);
+      boolean savepnt = getSavepoint(payload,true);
 
       if (payload.has("dateconversion"))
         dateconv = payload.getString("dateconversion");
@@ -695,27 +738,28 @@ public class Rest
 
       if (validator != null)
         validator.validate(sql,bindvalues);
+      
+      session.ensure();
 
-      if (!batch && savepoint)
+      if (!batch && savepnt)
       {
         state.lock(this,true);
-        this.savepoint = session.setSavePoint();
+        savepoint = session.setSavePoint();
       }
 
       state.lock(this,false);
       ArrayList<NameValuePair<Object>> values = session.executeCall(sql,bindvalues,dateconv);
       state.release(this,false);
 
-      if (!batch && savepoint)
+      if (!batch && savepnt)
       {
-        if (!session.releaseSavePoint(this.savepoint))
-        {
-          this.savepoint = null;
+        if (!session.releaseSavePoint(savepoint))
           throw new Exception("Could not release savepoint");
-        }
 
         state.release(this,true);
       }
+      
+      session.done(modify);
 
       JSONFormatter json = new JSONFormatter();
 
@@ -724,22 +768,16 @@ public class Rest
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
 
-      if (!batch && !session.dedicated())
-        session.disconnect();
-
       return(json.toString());
     }
     catch (Throwable e)
     {
-      session.releaseSavePoint(this.savepoint,true);
-      this.savepoint = null;
+      session.releaseSavePoint(savepoint,true);
 
       state.releaseAll(this);
       boolean fatal = session.fatal();
 
-      if (!fatal && !session.dedicated())
-        session.disconnect();
-
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -770,8 +808,12 @@ public class Rest
         return(json.toString());
       }
 
+      session.ensure();
+
       String[] columns = session.getColumnNames(cursor);
       ArrayList<Object[]> table = session.fetch(cursor,0);
+      
+      session.done(modify);
 
       json.success(true);
       json.add("more",!cursor.closed);
@@ -797,7 +839,10 @@ public class Rest
     }
     catch (Throwable e)
     {
+      state.releaseAll(this);
       boolean fatal = session.fatal();
+
+      session.failed();
       return(error(e,fatal));
     }
   }
@@ -1058,12 +1103,13 @@ public class Rest
   }
 
 
-  private String error(Throwable e, boolean fatal)
+  private String error(Throwable err, boolean fatal)
   {
     failed = true;
     JSONFormatter json = new JSONFormatter();
+    logger.log(Level.WARNING,err.getMessage(),err);
 
-    json.set(e);
+    json.set(err);
     json.success(false);
     json.fatal(fatal,"disconnected");
 
