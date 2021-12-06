@@ -27,8 +27,8 @@ public class SessionManager extends Thread
 
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
-  
-  
+
+
   public static synchronized String register(Session session)
   {
     String guid = null;
@@ -42,14 +42,14 @@ public class SessionManager extends Thread
     sessions.put(guid,session);
     return(guid);
   }
-  
-  
+
+
   public static Session get(String guid)
   {
     return(sessions.get(guid));
   }
-  
-  
+
+
   public static Session remove(String guid)
   {
     return(sessions.remove(guid));
@@ -79,7 +79,7 @@ public class SessionManager extends Thread
   public void run()
   {
     logger.info("SessionManager started");
-    
+
     try
     {
       while(true)

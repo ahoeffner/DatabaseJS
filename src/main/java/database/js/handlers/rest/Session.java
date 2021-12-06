@@ -12,8 +12,6 @@
 
 package database.js.handlers.rest;
 
-import database.js.config.Config;
-
 import java.sql.ResultSet;
 import java.sql.Savepoint;
 import java.util.ArrayList;
@@ -55,6 +53,7 @@ public class Session
 
   public static Session get(String guid)
   {
+    if (guid == null) return(null);
     return(SessionManager.get(guid));
   }
 
@@ -110,8 +109,8 @@ public class Session
   {
     SessionManager.remove(guid);
   }
-  
-  
+
+
   public Scope getScope(String scope)
   {
     if (scope == null)
@@ -119,40 +118,40 @@ public class Session
 
     scope = Character.toUpperCase(scope.charAt(0))
            + scope.substring(1).toLowerCase();
-    
+
     return(Scope.valueOf(scope));
   }
-  
-  
+
+
   public void done(boolean modified) throws Exception
   {
     if (scope == Scope.Shared)
     {
       if (modified)
         database.commit();
-      
+
       if (pool == null) database.disconnect();
       else              pool.release(database);
-      
+
       database = null;
     }
   }
-  
-  
+
+
   public void failed()
   {
     if (database == null)
       return;
-    
+
     try {database.rollback();}
     catch (Exception e) {;}
 
     try
     {
       if (scope == Scope.Shared)
-      {        
+      {
         if (pool == null) database.disconnect();
-        else              pool.release(database);        
+        else              pool.release(database);
       }
     }
     catch (Exception e) {;}
@@ -169,14 +168,14 @@ public class Session
 
     database = null;
   }
-  
+
 
   public void disconnect(boolean commit)
   {
     if (database == null)
       return;
 
-    try 
+    try
     {
       if (commit) database.commit();
       else        database.rollback();
@@ -464,8 +463,8 @@ public class Session
       LOCK.notifyAll();
     }
   }
-  
-  
+
+
   private static enum Scope
   {
     Shared,
