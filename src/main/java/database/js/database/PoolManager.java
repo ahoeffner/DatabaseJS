@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
 
+import java.util.ArrayList;
+
 
 public class PoolManager extends Thread
 {
@@ -50,7 +52,34 @@ public class PoolManager extends Thread
 
     try
     {
-      ;
+      ArrayList<Database> conns = null;
+      
+      Pool pp = config.getDatabase().proxy;
+      Pool ap = config.getDatabase().anonymous;
+      
+      if (ap == null && pp == null)
+        return;
+
+      while(true)
+      {
+        Thread.sleep(10000);
+        
+        if (ap != null)
+        {
+          conns = ap.connections();
+          
+          for(Database conn : conns)
+            System.out.println("a: "+conn);
+        }
+        
+        if (pp != null)
+        {
+          conns = pp.connections();
+          
+          for(Database conn : conns)
+            System.out.println("p: "+conn);
+        }        
+      }
     }
     catch (Exception e)
     {

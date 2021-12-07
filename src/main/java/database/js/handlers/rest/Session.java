@@ -233,13 +233,15 @@ public class Session
   
   public void commit() throws Exception
   {
-    database.commit();
+    if (scope == Scope.Dedicated) database.commit();
+    else disconnect(true);
   }
   
   
   public void rollback() throws Exception
   {
-    database.rollback();
+    if (scope == Scope.Dedicated) database.rollback();
+    else disconnect(false);
   }
 
 
@@ -481,10 +483,10 @@ public class Session
   {
     String str = "";
     
-    str += "connected: " + (database != null);
+    str += "Scope: " + scope + " connected: " + (database != null);
     
     if (pool != null)
-      str = " pooled: "+pool.proxy();
+      str += " pooled: "+pool.proxy();
     
     if (thread != 0 || exclusive || shared > 0)
       str += " lock[thread: "+thread+" excl: "+exclusive+" shared: "+shared+"]";      

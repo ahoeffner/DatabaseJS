@@ -154,4 +154,11 @@ public class Pool
   {
     return(connect(this.token));
   }
+  
+  
+  ArrayList<Database> connections()
+  {
+    synchronized(this)
+    {return(new ArrayList<Database>(pool));}    
+  }
 }

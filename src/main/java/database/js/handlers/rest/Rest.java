@@ -95,13 +95,11 @@ public class Rest
       if (request.nvlfunc().equals("script"))
         return(script(request.payload));
 
-      System.out.println("session: "+state.session());
       return(exec(request));
     }
     catch (Throwable e)
     {
       failed = true;
-      System.out.println("session: "+state.session());
       return(error(e,false));
     }
   }

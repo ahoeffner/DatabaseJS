@@ -16,6 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -85,6 +87,13 @@ public class SessionManager extends Thread
       while(true)
       {
         Thread.sleep(10000);
+        
+        for(Map.Entry<String,Session> entry : sessions.entrySet())
+        {
+          System.out.println("mgr session: "+entry.getValue());
+        }
+        
+        System.out.println();
       }
     }
     catch (Exception e)
