@@ -229,6 +229,18 @@ public class Session
         break;
     }
   }
+  
+  
+  public void commit() throws Exception
+  {
+    database.commit();
+  }
+  
+  
+  public void rollback() throws Exception
+  {
+    database.rollback();
+  }
 
 
   public Savepoint setSavePoint() throws Exception
@@ -462,6 +474,22 @@ public class Session
 
       LOCK.notifyAll();
     }
+  }
+  
+  
+  public String toString()
+  {
+    String str = "";
+    
+    str += "connected: " + (database != null);
+    
+    if (pool != null)
+      str = " pooled: "+pool.proxy();
+    
+    if (thread != 0 || exclusive || shared > 0)
+      str += " lock[thread: "+thread+" excl: "+exclusive+" shared: "+shared+"]";      
+        
+    return(str);
   }
 
 

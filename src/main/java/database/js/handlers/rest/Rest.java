@@ -95,10 +95,13 @@ public class Rest
       if (request.nvlfunc().equals("script"))
         return(script(request.payload));
 
+      System.out.println("session: "+state.session());
       return(exec(request));
     }
     catch (Throwable e)
     {
+      failed = true;
+      System.out.println("session: "+state.session());
       return(error(e,false));
     }
   }
@@ -149,6 +152,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -193,6 +197,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -253,7 +258,9 @@ public class Rest
           break;
         }
 
-      default : return(error("Unknown command "+request.cmd));
+      default : 
+        failed = true;
+        return(error("Unknown command "+request.cmd));
     }
 
     return(response);
@@ -277,6 +284,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(error(e,false));
     }
 
@@ -296,6 +304,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(error(e,false));
     }
 
@@ -307,6 +316,7 @@ public class Rest
 
     return(json.toString());
   }
+
 
   private String connect(JSONObject payload)
   {
@@ -373,6 +383,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(error(e,false));
     }
 
@@ -389,7 +400,10 @@ public class Rest
   private String disconnect()
   {
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -398,6 +412,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(error(e,true));
     }
 
@@ -415,7 +430,10 @@ public class Rest
     boolean success = false;
 
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -446,7 +464,10 @@ public class Rest
   private String select(JSONObject payload)
   {
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -532,6 +553,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -540,7 +562,10 @@ public class Rest
   private String update(JSONObject payload)
   {
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -579,6 +604,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -587,7 +613,10 @@ public class Rest
   private String call(JSONObject payload)
   {
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -633,6 +662,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -641,7 +671,10 @@ public class Rest
   private String fetch(JSONObject payload)
   {
     if (state.session() == null)
+    {
+      failed = true;
       return(error("not connected"));
+    }
 
     try
     {
@@ -696,6 +729,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      failed = true;
       return(state.failed(e));
     }
   }
@@ -703,6 +737,22 @@ public class Rest
 
   private String commit()
   {
+    if (state.session() == null)
+    {
+      failed = true;
+      return(error("not connected"));
+    }
+
+    try
+    {
+      state.session().commit();
+    }
+    catch (Exception e)
+    {
+      failed = true;
+      return(state.failed(e));
+    }
+
     JSONFormatter json = new JSONFormatter();
     json.success(true);
     return(json.toString());
@@ -711,6 +761,22 @@ public class Rest
 
   private String rollback()
   {
+    if (state.session() == null)
+    {
+      failed = true;
+      return(error("not connected"));
+    }
+
+    try
+    {
+      state.session().rollback();
+    }
+    catch (Exception e)
+    {
+      failed = true;
+      return(state.failed(e));
+    }
+
     JSONFormatter json = new JSONFormatter();
     json.success(true);
     return(json.toString());
@@ -719,85 +785,87 @@ public class Rest
 
   private void map(String latest, JSONObject payload) throws Exception
   {
-    JSONArray rows = null;
-    ArrayList<String> cols = null;
-    JSONObject last = Request.parse(latest);
-
-    if (last.has("rows"))
-      rows = last.getJSONArray("rows");
-
-    if (last.has("columns"))
+    try
     {
-      cols = new ArrayList<String>();
-      JSONArray columns = last.getJSONArray("columns");
-      for (int i = 0; i < columns.length(); i++)
-        cols.add((String) columns.get(i));
-    }
+      JSONArray rows = null;
+      ArrayList<String> cols = null;
+      JSONObject last = Request.parse(latest);
 
-    String[] bindvalues = JSONObject.getNames(payload);
+      if (last.has("rows"))
+        rows = last.getJSONArray("rows");
 
-    if (rows == null)
-    {
-      // Previous was procedure
-      for (int i = 0; i < bindvalues.length; i++)
+      if (last.has("columns"))
       {
-        String bindv = bindvalues[i];
-        String pointer = payload.getString(bindv).trim();
-        this.bindvalues.put(bindv,new BindValueDef(bindv,last.get(pointer)));
+        cols = new ArrayList<String>();
+        JSONArray columns = last.getJSONArray("columns");
+        for (int i = 0; i < columns.length(); i++)
+          cols.add((String) columns.get(i));
       }
-    }
-    else
-    {
-      // Previous was select
-      for (int i = 0; i < bindvalues.length; i++)
+
+      String[] bindvalues = JSONObject.getNames(payload);
+
+      if (rows == null)
       {
-        int row = 0;
-        Object value = null;
-        String bindv = bindvalues[i];
-        String pointer = payload.getString(bindv).trim();
-
-        if (pointer.endsWith("]"))
+        // Previous was procedure
+        for (int i = 0; i < bindvalues.length; i++)
         {
-          int pos = pointer.lastIndexOf('[');
-
-          if (pos > 0)
-          {
-            row = Integer.parseInt(pointer.substring(pos+1,pointer.length()-1));
-            pointer = pointer.substring(0,pos);
-          }
+          String bindv = bindvalues[i];
+          String pointer = payload.getString(bindv).trim();
+          this.bindvalues.put(bindv,new BindValueDef(bindv,last.get(pointer)));
         }
-
-        if (cols == null)
+      }
+      else
+      {
+        // Previous was select
+        for (int i = 0; i < bindvalues.length; i++)
         {
-          JSONObject record = (JSONObject) rows.get(row);
-          value = record.get(pointer);
-        }
-        else
-        {
-          int col = -1;
+          int row = 0;
+          Object value = null;
+          String bindv = bindvalues[i];
+          String pointer = payload.getString(bindv).trim();
 
-          for (int j = 0; j < cols.size(); j++)
+          if (pointer.endsWith("]"))
           {
-            if (cols.get(j).equals(pointer))
+            int pos = pointer.lastIndexOf('[');
+
+            if (pos > 0)
             {
-              col = j;
-              break;
+              row = Integer.parseInt(pointer.substring(pos+1,pointer.length()-1));
+              pointer = pointer.substring(0,pos);
             }
           }
 
-          JSONArray record = (JSONArray) rows.get(row);
-          value = record.get(col);
-        }
+          if (cols == null)
+          {
+            JSONObject record = (JSONObject) rows.get(row);
+            value = record.get(pointer);
+          }
+          else
+          {
+            int col = -1;
 
-        this.bindvalues.put(bindv,new BindValueDef(bindv,value));
+            for (int j = 0; j < cols.size(); j++)
+            {
+              if (cols.get(j).equals(pointer))
+              {
+                col = j;
+                break;
+              }
+            }
+
+            JSONArray record = (JSONArray) rows.get(row);
+            value = record.get(col);
+          }
+
+          this.bindvalues.put(bindv,new BindValueDef(bindv,value));
+        }
       }
     }
-  }
-
-
-  void failed()
-  {
-    failed = true;
+    catch (Throwable e)
+    {
+      failed = true;
+      error(e,false);
+    }
   }
 
 
@@ -964,7 +1032,6 @@ public class Rest
 
   private String error(Throwable err, boolean fatal)
   {
-    failed = true;
     JSONFormatter json = new JSONFormatter();
     logger.log(Level.WARNING,err.getMessage(),err);
 
@@ -978,7 +1045,6 @@ public class Rest
 
   private String error(String message)
   {
-    failed = true;
     JSONFormatter json = new JSONFormatter();
 
     json.success(false);
@@ -1032,6 +1098,8 @@ public class Rest
 
     void prepare(JSONObject payload) throws Exception
     {
+      System.out.println("prepare dept="+dept);
+
       if (dept == 0)
       {
         boolean savepoint = rest.getSavepoint(payload,false);
@@ -1050,6 +1118,8 @@ public class Rest
 
     void release() throws Exception
     {
+      System.out.println("release dept="+dept);
+
       if (--dept > 0)
         return;
 
@@ -1074,7 +1144,6 @@ public class Rest
         session.releaseSavePoint(savepoint,true);
 
         releaseAll();
-        rest.failed();
         session.failed();
         fatal = session.fatal();
       }
