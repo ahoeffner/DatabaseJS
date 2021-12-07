@@ -44,6 +44,24 @@ public class Pool
     this.password = password;
     this.pool = new ArrayList<Database>();
   }
+  
+  
+  public int min()
+  {
+    return(min);
+  }
+  
+  
+  public int max()
+  {
+    return(max);
+  }
+  
+  
+  public int idle()
+  {
+    return(idle);
+  }
 
 
   public boolean proxy()
