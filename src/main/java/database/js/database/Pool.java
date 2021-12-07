@@ -44,20 +44,20 @@ public class Pool
     this.password = password;
     this.pool = new ArrayList<Database>();
   }
-  
-  
+
+
   public int min()
   {
     return(min);
   }
-  
-  
+
+
   public int max()
   {
     return(max);
   }
-  
-  
+
+
   public int idle()
   {
     return(idle);
@@ -172,11 +172,11 @@ public class Pool
   {
     return(connect(this.token));
   }
-  
-  
+
+
   ArrayList<Database> connections()
   {
     synchronized(this)
-    {return(new ArrayList<Database>(pool));}    
+    {return(new ArrayList<Database>(pool));}
   }
 }

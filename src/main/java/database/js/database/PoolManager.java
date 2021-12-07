@@ -12,12 +12,11 @@
 
 package database.js.database;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
-
-import java.util.ArrayList;
 
 
 public class PoolManager extends Thread
@@ -53,38 +52,38 @@ public class PoolManager extends Thread
     try
     {
       ArrayList<Database> conns = null;
-      
+
       Pool pp = config.getDatabase().proxy;
       Pool ap = config.getDatabase().anonymous;
-      
+
       if (ap == null && pp == null)
         return;
-      
-      int pidle = (pp == null) ? 3600 : pp.idle(); 
+
+      int pidle = (pp == null) ? 3600 : pp.idle();
       int aidle = (ap == null) ? 3600 : ap.idle();
       int sleep = (pidle < aidle) ? pidle * 1000/4 : aidle * 1000/4;
-      
+
       System.out.println("sleep: "+sleep);
 
       while(true)
       {
         Thread.sleep(sleep);
-        
+
         if (ap != null)
         {
           conns = ap.connections();
-          
+
           for(Database conn : conns)
             System.out.println("a: "+conn);
         }
-        
+
         if (pp != null)
         {
           conns = pp.connections();
-          
+
           for(Database conn : conns)
             System.out.println("p: "+conn);
-        }        
+        }
       }
     }
     catch (Exception e)

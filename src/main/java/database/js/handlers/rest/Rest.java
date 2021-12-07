@@ -256,7 +256,7 @@ public class Rest
           break;
         }
 
-      default : 
+      default :
         failed = true;
         return(error("Unknown command "+request.cmd));
     }
