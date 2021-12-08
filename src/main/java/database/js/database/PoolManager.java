@@ -79,17 +79,17 @@ public class PoolManager extends Thread
       logger.log(Level.SEVERE,e.getMessage(),e);
     }
   }
-  
-  
+
+
   private void cleanout(Pool pool)
   {
     long time = System.currentTimeMillis();
     ArrayList<Database> conns = pool.connections();
-    
+
     int min = pool.min();
     int size = conns.size();
     long idle = pool.idle() * 1000;
-    
+
     for (int i = conns.size() - 1; i >= 0 && size > min; i--)
     {
       Database conn = conns.get(i);

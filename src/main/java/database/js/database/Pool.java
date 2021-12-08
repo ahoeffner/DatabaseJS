@@ -83,16 +83,16 @@ public class Pool
 
     return(database);
   }
-  
-  
+
+
   public boolean remove(Database database)
   {
-    if (!pool.remove(database)) 
+    if (!pool.remove(database))
       return(false);
-    
+
     database.disconnect();
     logger.fine("Pool["+(proxy ? "proxy" : "anonymous")+"] connection closed");
-    
+
     return(true);
   }
 

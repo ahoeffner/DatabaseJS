@@ -27,6 +27,7 @@ import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Session
@@ -36,10 +37,13 @@ public class Session
   private final Scope scope;
   private final String secret;
   private final String username;
+  private final SessionLock lock;
   private final AuthMethod method;
+  private final AtomicInteger sharing;
 
   private int shared = 0;
   private long thread = 0;
+  private boolean failed = false;
   private Database database = null;
   private boolean exclusive = false;
   private final Object LOCK = new Object();
@@ -65,17 +69,37 @@ public class Session
     this.secret = secret;
     this.username = username;
     this.scope = getScope(scope);
+    this.lock = new SessionLock();
+    this.sharing = new AtomicInteger(0);
     this.guid = SessionManager.register(this);
   }
 
 
-  public void touch()
+  public int share()
+  {
+    return(sharing.getAndIncrement());
+  }
+
+
+  public int clients()
+  {
+    return(sharing.get());
+  }
+
+
+  public int release()
+  {
+    return(sharing.decrementAndGet());
+  }
+
+
+  public synchronized void touch()
   {
     touched = System.currentTimeMillis();
   }
 
 
-  public long touched()
+  public synchronized long touched()
   {
     return(touched);
   }
@@ -84,18 +108,6 @@ public class Session
   public String guid()
   {
     return(guid);
-  }
-
-
-  public Database database()
-  {
-    return(database);
-  }
-
-
-  public boolean connected()
-  {
-    return(database != null);
   }
 
 
@@ -108,18 +120,7 @@ public class Session
   public void remove()
   {
     SessionManager.remove(guid);
-  }
-
-
-  public Scope getScope(String scope)
-  {
-    if (scope == null)
-      return(Scope.Shared);
-
-    scope = Character.toUpperCase(scope.charAt(0))
-           + scope.substring(1).toLowerCase();
-
-    return(Scope.valueOf(scope));
+    disconnect(false);
   }
 
 
@@ -159,47 +160,14 @@ public class Session
   }
 
 
-  public void disconnect()
-  {
-    if (database == null) return;
-
-    if (pool == null) database.disconnect();
-    else              pool.release(database);
-
-    database = null;
-  }
-
-
-  public void disconnect(boolean commit)
-  {
-    if (database == null)
-      return;
-
-    try
-    {
-      if (commit) database.commit();
-      else        database.rollback();
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
-    }
-
-    if (pool == null) database.disconnect();
-    else              pool.release(database);
-
-    database = null;
-  }
-
-
   public synchronized void ensure() throws Exception
   {
-    if (!connected())
-      connect();
+    if (database == null)
+      connect(false);
   }
 
 
-  public void connect() throws Exception
+  public void connect(boolean keep) throws Exception
   {
     switch(method)
     {
@@ -228,6 +196,42 @@ public class Session
 
         break;
     }
+
+    if (!keep && !dedicated() && method == AuthMethod.Database)
+      disconnect();
+  }
+
+
+  private void disconnect()
+  {
+    if (database == null) return;
+
+    if (pool == null) database.disconnect();
+    else              pool.release(database);
+
+    database = null;
+  }
+
+
+  private void disconnect(boolean commit)
+  {
+    if (database == null)
+      return;
+
+    try
+    {
+      if (commit) database.commit();
+      else        database.rollback();
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+
+    if (pool == null) database.disconnect();
+    else              pool.release(database);
+
+    database = null;
   }
 
 
@@ -476,6 +480,18 @@ public class Session
 
       LOCK.notifyAll();
     }
+  }
+
+
+  private Scope getScope(String scope)
+  {
+    if (scope == null)
+      return(Scope.Shared);
+
+    scope = Character.toUpperCase(scope.charAt(0))
+           + scope.substring(1).toLowerCase();
+
+    return(Scope.valueOf(scope));
   }
 
 

@@ -48,14 +48,30 @@ public class SessionManager extends Thread
   public static Session get(String guid)
   {
     Session session = sessions.get(guid);
-    //if (session != null) session.inuse();
+
+    synchronized(session)
+    {
+      session.share();
+    }
+
     return(session);
   }
 
 
-  public static Session remove(String guid)
+  public static boolean remove(String guid)
   {
-    return(sessions.remove(guid));
+    Session session = sessions.remove(guid);
+
+    synchronized(session)
+    {
+      if (session.clients() != 0)
+      {
+        sessions.put(session.guid(),session);
+        return(false);
+      }
+    }
+
+    return(true);
   }
 
 
@@ -86,7 +102,7 @@ public class SessionManager extends Thread
     try
     {
       int timeout = config.getREST().timeout * 1000 / 4;
-      
+
       while(true)
       {
         Thread.sleep(timeout);

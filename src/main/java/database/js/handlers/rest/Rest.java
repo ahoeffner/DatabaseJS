@@ -373,10 +373,7 @@ public class Rest
         state.session(new Session(method,pool,scope,username,secret));
 
         if (state.session().dedicated() || method == AuthMethod.Database)
-          state.session().connect();
-
-        if (!state.session().dedicated() && !state.batch() && method == AuthMethod.Database)
-          state.session().disconnect();
+          state.session().connect(state.batch());
       }
     }
     catch (Throwable e)
@@ -405,7 +402,6 @@ public class Rest
 
     try
     {
-      state.session().disconnect(false);
       state.session().remove();
     }
     catch (Throwable e)
