@@ -101,6 +101,12 @@ public abstract class Database
     catch (Exception e) {;}
     finally {this.conn = null;}
   }
+  
+  
+  public boolean getAutoCommit() throws Exception
+  {
+    return(conn.getAutoCommit());
+  }
 
 
   public void setAutoCommit(boolean on) throws Exception

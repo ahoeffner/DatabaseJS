@@ -63,32 +63,41 @@ public class PoolManager extends Thread
       int aidle = (ap == null) ? 3600000 : ap.idle();
       int sleep = (pidle < aidle) ? pidle * 1000/4 : aidle * 1000/4;
 
-      System.out.println("sleep: "+sleep);
-
       while(true)
       {
         Thread.sleep(sleep);
 
         if (ap != null)
-        {
-          conns = ap.connections();
-
-          for(Database conn : conns)
-            System.out.println("a: "+conn);
-        }
+          cleanout(ap);
 
         if (pp != null)
-        {
-          conns = pp.connections();
-
-          for(Database conn : conns)
-            System.out.println("p: "+conn);
-        }
+          cleanout(ap);
       }
     }
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
+    }
+  }
+  
+  
+  private void cleanout(Pool pool)
+  {
+    long time = System.currentTimeMillis();
+    ArrayList<Database> conns = pool.connections();
+    
+    int min = pool.min();
+    int size = conns.size();
+    long idle = pool.idle() * 1000;
+    
+    for (int i = conns.size() - 1; i >= 0 && size > min; i--)
+    {
+      Database conn = conns.get(i);
+      if (time - conn.touched() > idle)
+      {
+        size--;
+        pool.remove(conn);
+      }
     }
   }
 }

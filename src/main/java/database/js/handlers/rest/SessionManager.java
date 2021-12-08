@@ -47,7 +47,9 @@ public class SessionManager extends Thread
 
   public static Session get(String guid)
   {
-    return(sessions.get(guid));
+    Session session = sessions.get(guid);
+    //if (session != null) session.inuse();
+    return(session);
   }
 
 
@@ -83,13 +85,22 @@ public class SessionManager extends Thread
 
     try
     {
+      int timeout = config.getREST().timeout * 1000 / 4;
+      
       while(true)
       {
-        Thread.sleep(10000);
+        Thread.sleep(timeout);
+        long time = System.currentTimeMillis();
 
         for(Map.Entry<String,Session> entry : sessions.entrySet())
         {
-          System.out.println("mgr session: "+entry.getValue());
+          Session session = entry.getValue();
+
+          if (time - session.touched() > timeout)
+          {
+            sessions.remove(session.guid());
+            //if (session.connected())
+          }
         }
 
         System.out.println();

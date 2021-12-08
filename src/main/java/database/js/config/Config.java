@@ -29,6 +29,7 @@ public class Config
   private final JSONObject config;
 
   private Java java = null;
+  private Rest rest = null;
   private HTTP http = null;
   private Ports ports = null;
   private Logger logger = null;
@@ -126,6 +127,14 @@ public class Config
     if (full) handlers = new Handlers(this);
     http = new HTTP(handlers,sections.get("http"));
     return(http);
+  }
+
+
+  public synchronized Rest getREST() throws Exception
+  {
+    if (rest != null) return(rest);
+    rest = new Rest(sections.get("rest"));
+    return(rest);
   }
 
 
