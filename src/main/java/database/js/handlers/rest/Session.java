@@ -26,6 +26,7 @@ import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,27 +40,15 @@ public class Session
   private final String username;
   private final SessionLock lock;
   private final AuthMethod method;
-  private final AtomicInteger sharing;
 
-  private int shared = 0;
-  private long thread = 0;
-  private boolean failed = false;
+  private int clients = 0;
   private Database database = null;
-  private boolean exclusive = false;
-  private final Object LOCK = new Object();
   private long touched = System.currentTimeMillis();
 
   private final ConcurrentHashMap<String,Cursor> cursors =
     new ConcurrentHashMap<String,Cursor>();
 
   private final static Logger logger = Logger.getLogger("rest");
-
-
-  public static Session get(String guid)
-  {
-    if (guid == null) return(null);
-    return(SessionManager.get(guid));
-  }
 
 
   public Session(AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
@@ -70,26 +59,33 @@ public class Session
     this.username = username;
     this.scope = getScope(scope);
     this.lock = new SessionLock();
-    this.sharing = new AtomicInteger(0);
     this.guid = SessionManager.register(this);
   }
 
 
-  public int share()
+  public synchronized int share()
   {
-    return(sharing.getAndIncrement());
+    return(++clients);
   }
 
 
-  public int clients()
+  public synchronized int clients()
   {
-    return(sharing.get());
+    return(clients);
   }
 
 
-  public int release()
+  public synchronized boolean release(boolean failed)
   {
-    return(sharing.decrementAndGet());
+    clients--;
+    boolean reuse = true;
+
+    if (failed && !database.validate())
+      reuse = false;
+    
+    disconnect(reuse);
+    System.out.println("released: "+this);
+    return(!reuse);
   }
 
 
@@ -113,57 +109,23 @@ public class Session
 
   public boolean dedicated()
   {
-    return(scope != Scope.Shared);
+    return(scope != Scope.None);
   }
 
 
-  public void remove()
+  public synchronized void disconnect()
   {
+    disconnect(true);
     SessionManager.remove(guid);
-    disconnect(false);
-  }
-
-
-  public void done(boolean modified) throws Exception
-  {
-    if (scope == Scope.Shared)
-    {
-      if (modified)
-        database.commit();
-
-      if (pool == null) database.disconnect();
-      else              pool.release(database);
-
-      database = null;
-    }
-  }
-
-
-  public void failed()
-  {
-    if (database == null)
-      return;
-
-    try {database.rollback();}
-    catch (Exception e) {;}
-
-    try
-    {
-      if (scope == Scope.Shared)
-      {
-        if (pool == null) database.disconnect();
-        else              pool.release(database);
-      }
-    }
-    catch (Exception e) {;}
-    finally {database = null;}
   }
 
 
   public synchronized void ensure() throws Exception
   {
+    touch();
+    
     if (database == null)
-      connect(false);
+      connect(true);
   }
 
 
@@ -197,39 +159,30 @@ public class Session
         break;
     }
 
-    if (!keep && !dedicated() && method == AuthMethod.Database)
-      disconnect();
+    if (!keep && !dedicated())
+      disconnect(true);
   }
 
 
-  private void disconnect()
-  {
-    if (database == null) return;
-
-    if (pool == null) database.disconnect();
-    else              pool.release(database);
-
-    database = null;
-  }
-
-
-  private void disconnect(boolean commit)
+  private synchronized void disconnect(boolean reuse)
   {
     if (database == null)
+    {
+      logger.severe("Releasing allready released connection");      
       return;
-
-    try
-    {
-      if (commit) database.commit();
-      else        database.rollback();
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
     }
 
-    if (pool == null) database.disconnect();
-    else              pool.release(database);
+    if (clients != 1)
+    {
+      logger.severe("Releasing connection while other clients connected");      
+      return;
+    }
+
+    if (reuse)
+    {
+      if (pool == null) database.disconnect();
+      else              pool.release(database);
+    }
 
     database = null;
   }
@@ -237,15 +190,15 @@ public class Session
 
   public void commit() throws Exception
   {
-    if (scope == Scope.Dedicated) database.commit();
-    else disconnect(true);
+    database.commit();
+    if (scope == Scope.Transaction) disconnect(true);
   }
 
 
   public void rollback() throws Exception
   {
-    if (scope == Scope.Dedicated) database.rollback();
-    else disconnect(false);
+    database.rollback();
+    if (scope == Scope.Transaction) disconnect(true);
   }
 
 
@@ -390,103 +343,25 @@ public class Session
 
     cursor.closed = true;
   }
-
-
-  public boolean fatal()
+  
+  
+  public void closeAllCursors()
   {
-    if (database == null)
-      return(true);
-
-    if (!database.validate())
-    {
-      SessionManager.remove(guid);
-      database.disconnect();
-      database = null;
-      return(true);
-    }
-    return(false);
+    for(Map.Entry<String,Cursor> entry : cursors.entrySet())
+      closeCursor(entry.getValue());
   }
-
-
-  public void lock(boolean exclusive) throws Exception
+  
+  
+  public SessionLock lock()
   {
-    long thread = Thread.currentThread().getId();
-
-    synchronized(LOCK)
-    {
-      boolean owner = this.thread == thread;
-
-      while(!owner && this.exclusive)
-        LOCK.wait();
-
-      if (exclusive)
-      {
-        while(!owner && this.shared > 0)
-          LOCK.wait();
-
-        this.thread = thread;
-        this.exclusive = true;
-      }
-      else
-      {
-        while(!owner && this.exclusive)
-          LOCK.wait();
-
-        this.shared++;
-      }
-    }
-  }
-
-
-  public void releaseAll(boolean exclusive, int shared) throws Exception
-  {
-    if (exclusive) release(true,0);
-    if (shared > 0) release(false,shared);
-  }
-
-
-  public void release(boolean exclusive) throws Exception
-  {
-    int shared = 0;
-    if (!exclusive) shared = 1;
-    this.release(exclusive,shared);
-  }
-
-
-  public void release(boolean exclusive, int shared) throws Exception
-  {
-    long thread = Thread.currentThread().getId();
-
-    synchronized(LOCK)
-    {
-      if (exclusive && this.thread != thread)
-        throw new Exception("Thread "+thread+" cannot release session lock owned by "+this.thread);
-
-      if (exclusive && !this.exclusive)
-        throw new Exception("Cannot release exclusive lock, when only shared obtained");
-
-      if (!exclusive && this.shared < shared)
-        throw new Exception("Cannot release "+shared+" shared lock(s) not obtained");
-
-      if (exclusive)
-      {
-        this.thread = 0;
-        this.exclusive = false;
-      }
-      else
-      {
-        this.shared -= shared;
-      }
-
-      LOCK.notifyAll();
-    }
+    return(lock);
   }
 
 
   private Scope getScope(String scope)
   {
     if (scope == null)
-      return(Scope.Shared);
+      return(Scope.None);
 
     scope = Character.toUpperCase(scope.charAt(0))
            + scope.substring(1).toLowerCase();
@@ -501,11 +376,10 @@ public class Session
 
     str += "Scope: " + scope + " connected: " + (database != null);
 
-    if (pool != null)
-      str += " pooled: "+pool.proxy();
-
-    if (thread != 0 || exclusive || shared > 0)
-      str += " lock[thread: "+thread+" excl: "+exclusive+" shared: "+shared+"]";
+    if (pool == null) str += " " + username;
+    else str += " pooled["+(pool.proxy() ? username : "----")+"]";
+    
+    str += " "+lock;
 
     return(str);
   }
@@ -513,7 +387,7 @@ public class Session
 
   private static enum Scope
   {
-    Shared,
+    None,
     Transaction,
     Dedicated
   }

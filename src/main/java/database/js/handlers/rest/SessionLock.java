@@ -59,13 +59,6 @@ public class SessionLock
   }
 
 
-  public void releaseAll(boolean exclusive, int shared) throws Exception
-  {
-    if (exclusive) release(true,0);
-    if (shared > 0) release(false,shared);
-  }
-
-
   public void release(boolean exclusive) throws Exception
   {
     int shared = 0;
@@ -86,7 +79,7 @@ public class SessionLock
       if (exclusive && !this.exclusive)
         throw new Exception("Cannot release exclusive lock, when only shared obtained");
 
-      if (!exclusive && this.shared < shared)
+      if (this.shared < shared)
         throw new Exception("Cannot release "+shared+" shared lock(s) not obtained");
 
       if (exclusive)
@@ -94,12 +87,18 @@ public class SessionLock
         this.thread = 0;
         this.exclusive = false;
       }
-      else
-      {
-        this.shared -= shared;
-      }
-
+      
+      this.shared -= shared;
       LOCK.notifyAll();
     }
+  }
+  
+  
+  public String toString()
+  {
+    if (!exclusive && shared == 0)
+      return("locks[]");
+    
+    return("locks["+exclusive+","+shared+"]");
   }
 }

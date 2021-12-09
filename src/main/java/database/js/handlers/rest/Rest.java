@@ -87,7 +87,7 @@ public class Rest
     try
     {
       Request request = new Request(this,path,payload);
-      state.session(Session.get(request.session));
+      state.session(SessionManager.get(request.session));
 
       if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
@@ -151,7 +151,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -196,7 +196,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -371,9 +371,7 @@ public class Rest
         }
 
         state.session(new Session(method,pool,scope,username,secret));
-
-        if (state.session().dedicated() || method == AuthMethod.Database)
-          state.session().connect(state.batch());
+        state.session().connect(state.batch());
       }
     }
     catch (Throwable e)
@@ -402,7 +400,7 @@ public class Rest
 
     try
     {
-      state.session().remove();
+      state.session().disconnect();
     }
     catch (Throwable e)
     {
@@ -445,7 +443,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      return(state.failed(e));
+      return(state.release(e));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -548,7 +546,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -599,7 +597,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -640,6 +638,7 @@ public class Rest
       state.prepare(payload);
 
       state.lock();
+      System.out.println("sql: <"+sql+">");
       ArrayList<NameValuePair<Object>> values = state.session().executeCall(sql,bindvalues,dateconv);
       state.unlock();
 
@@ -657,7 +656,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -724,7 +723,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
   }
 
@@ -744,7 +743,7 @@ public class Rest
     catch (Exception e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -768,7 +767,7 @@ public class Rest
     catch (Exception e)
     {
       failed = true;
-      return(state.failed(e));
+      return(state.release(e));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -931,7 +930,7 @@ public class Rest
   }
 
 
-  private boolean getSavepoint(JSONObject payload, boolean modify)
+  private boolean getSavepoint(JSONObject payload)
   {
     boolean defaults = modify ? sppatch : sppost;
 
@@ -1096,7 +1095,7 @@ public class Rest
 
       if (dept == 0)
       {
-        boolean savepoint = rest.getSavepoint(payload,false);
+        boolean savepoint = rest.getSavepoint(payload);
         if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
 
         if (savepoint)
@@ -1112,8 +1111,6 @@ public class Rest
 
     void release() throws Exception
     {
-      System.out.println("release dept="+dept);
-
       if (--dept > 0)
         return;
 
@@ -1125,11 +1122,11 @@ public class Rest
         unlock(true);
       }
 
-      session.done(modify);
+      session.release(false);
     }
 
 
-    String failed(Throwable err)
+    String release(Throwable err)
     {
       boolean fatal = false;
 
@@ -1138,8 +1135,7 @@ public class Rest
         session.releaseSavePoint(savepoint,true);
 
         releaseAll();
-        session.failed();
-        fatal = session.fatal();
+        fatal = session.release(true);
       }
 
       return(rest.error(err,fatal));
@@ -1156,7 +1152,7 @@ public class Rest
     {
       try
       {
-        session.lock(exclusive);
+        session.lock().lock(exclusive);
         if (!exclusive) shared++;
         else this.exclusive = true;
       }
@@ -1180,7 +1176,7 @@ public class Rest
         if (!exclusive && shared < 1)
           throw new Throwable("Cannot release shared lock not obtained");
 
-        session.release(exclusive);
+        session.lock().release(exclusive);
 
         if (!exclusive) shared--;
         else this.exclusive = false;
@@ -1197,7 +1193,7 @@ public class Rest
       try
       {
         if (exclusive || shared > 0)
-          session.releaseAll(exclusive,shared);
+          session.lock().release(exclusive,shared);
 
         shared = 0;
         exclusive = false;

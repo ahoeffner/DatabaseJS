@@ -28,6 +28,14 @@ public class BindValueDef
     this.type = SQLTypes.getType(value);
   }
 
+  public BindValueDef(String name, String type, boolean outval)
+  {
+    this.name = name;
+    this.value = null;
+    this.outval = outval;
+    this.type = SQLTypes.getType(type);
+  }
+
   public BindValueDef(String name, String type, boolean outval, Object value)
   {
     this.name = name;

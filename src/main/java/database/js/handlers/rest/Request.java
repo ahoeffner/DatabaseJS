@@ -119,7 +119,7 @@ public class Request
     if (func == null && cmd.equals("exec"))
       func = peek(rest,payload);
 
-    if (pos == 1)
+    if (pos > 0)
       session = rest.decode(args[0]);
 
     for (int i = pos+1; i < args.length; i++)
