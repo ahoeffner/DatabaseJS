@@ -12,6 +12,7 @@
 
 package database.js.handlers.rest;
 
+import java.util.Map;
 import java.sql.ResultSet;
 import java.sql.Savepoint;
 import java.util.ArrayList;
@@ -26,7 +27,6 @@ import database.js.database.AuthMethod;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -82,7 +82,7 @@ public class Session
 
     if (failed && !database.validate())
       reuse = false;
-    
+
     disconnect(reuse);
     System.out.println("released: "+this);
     return(!reuse);
@@ -115,15 +115,15 @@ public class Session
 
   public synchronized void disconnect()
   {
-    disconnect(true);
-    SessionManager.remove(guid);
+    if (disconnect(true))
+      SessionManager.remove(guid);
   }
 
 
   public synchronized void ensure() throws Exception
   {
     touch();
-    
+
     if (database == null)
       connect(true);
   }
@@ -164,18 +164,18 @@ public class Session
   }
 
 
-  private synchronized void disconnect(boolean reuse)
+  private synchronized boolean disconnect(boolean reuse)
   {
     if (database == null)
     {
-      logger.severe("Releasing allready released connection");      
-      return;
+      logger.severe("Releasing allready released connection");
+      return(false);
     }
 
     if (clients != 1)
     {
-      logger.severe("Releasing connection while other clients connected");      
-      return;
+      logger.severe("Releasing connection while other clients connected");
+      return(false);
     }
 
     if (reuse)
@@ -185,6 +185,7 @@ public class Session
     }
 
     database = null;
+    return(true);
   }
 
 
@@ -343,15 +344,15 @@ public class Session
 
     cursor.closed = true;
   }
-  
-  
+
+
   public void closeAllCursors()
   {
     for(Map.Entry<String,Cursor> entry : cursors.entrySet())
       closeCursor(entry.getValue());
   }
-  
-  
+
+
   public SessionLock lock()
   {
     return(lock);
@@ -378,7 +379,7 @@ public class Session
 
     if (pool == null) str += " " + username;
     else str += " pooled["+(pool.proxy() ? username : "----")+"]";
-    
+
     str += " "+lock;
 
     return(str);

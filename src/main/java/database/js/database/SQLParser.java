@@ -27,18 +27,18 @@ public class SQLParser
 
   private final static Pattern procedure = Pattern.compile("\\w*\\s*\\(.*\\)");
   private final static Pattern function = Pattern.compile("\\w*\\s*=\\s*\\w*\\s*\\(.*\\)");
-  
-  
+
+
   public static void main(String[] args)
   {
     String stmt = "value = GetTestFunc(:id)";
     System.out.println(function(stmt));
-    
+
     HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
 
     bindvalues.put("id",new BindValueDef("id","number",false,10));
     bindvalues.put("value",new BindValueDef("value","varchar2",true));
-    
+
     SQLParser parser = new SQLParser(bindvalues,stmt,true);
     System.out.println(parser.sql());
   }

@@ -638,7 +638,6 @@ public class Rest
       state.prepare(payload);
 
       state.lock();
-      System.out.println("sql: <"+sql+">");
       ArrayList<NameValuePair<Object>> values = state.session().executeCall(sql,bindvalues,dateconv);
       state.unlock();
 

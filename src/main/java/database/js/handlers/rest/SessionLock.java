@@ -87,18 +87,18 @@ public class SessionLock
         this.thread = 0;
         this.exclusive = false;
       }
-      
+
       this.shared -= shared;
       LOCK.notifyAll();
     }
   }
-  
-  
+
+
   public String toString()
   {
     if (!exclusive && shared == 0)
       return("locks[]");
-    
+
     return("locks["+exclusive+","+shared+"]");
   }
 }
