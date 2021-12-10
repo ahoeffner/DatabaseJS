@@ -28,7 +28,6 @@ import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Session
@@ -83,7 +82,9 @@ public class Session
     if (failed && !database.validate())
       reuse = false;
 
-    disconnect(reuse);
+    if (scope == Scope.None || !reuse)
+      disconnect(reuse,-1);
+    
     System.out.println("released: "+this);
     return(!reuse);
   }
@@ -115,7 +116,8 @@ public class Session
 
   public synchronized void disconnect()
   {
-    if (disconnect(true))
+    clients--;
+    if (disconnect(true,0))
       SessionManager.remove(guid);
   }
 
@@ -160,20 +162,19 @@ public class Session
     }
 
     if (!keep && !dedicated())
-      disconnect(true);
+      disconnect(true,0);
   }
 
 
-  private synchronized boolean disconnect(boolean reuse)
+  private synchronized boolean disconnect(boolean reuse, int expected)
   {
-    System.out.println("disconnect database="+database+" clients="+clients);
     if (database == null)
     {
       logger.severe("Releasing allready released connection");
       return(false);
     }
 
-    if (clients > 1)
+    if (expected >= 0 && clients != expected)
     {
       logger.severe("Releasing connection while other clients connected, clients: "+clients);
       return(false);
@@ -190,17 +191,31 @@ public class Session
   }
 
 
-  public void commit() throws Exception
+  public boolean commit() throws Exception
   {
+    if (database == null)
+      return(false);
+    
     database.commit();
-    if (scope == Scope.Transaction) disconnect(true);
+    
+    if (scope == Scope.Transaction) 
+      disconnect(true,1);
+    
+    return(true);
   }
 
 
-  public void rollback() throws Exception
+  public boolean rollback() throws Exception
   {
+    if (database == null)
+      return(false);
+    
     database.rollback();
-    if (scope == Scope.Transaction) disconnect(true);
+    
+    if (scope == Scope.Transaction) 
+      disconnect(true,1);
+    
+    return(true);
   }
 
 

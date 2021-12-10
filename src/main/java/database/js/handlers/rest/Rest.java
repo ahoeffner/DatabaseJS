@@ -729,6 +729,8 @@ public class Rest
 
   private String commit()
   {
+    boolean success = true;
+    
     if (state.session() == null)
     {
       failed = true;
@@ -737,7 +739,7 @@ public class Rest
 
     try
     {
-      state.session().commit();
+      success = state.session().commit();
     }
     catch (Exception e)
     {
@@ -746,13 +748,20 @@ public class Rest
     }
 
     JSONFormatter json = new JSONFormatter();
-    json.success(true);
+
+    json.success(success);      
+    
+    if (!success)
+      json.add("message","Transaction already comitted");
+    
     return(json.toString());
   }
 
 
   private String rollback()
   {
+    boolean success = true;
+    
     if (state.session() == null)
     {
       failed = true;
@@ -761,7 +770,7 @@ public class Rest
 
     try
     {
-      state.session().rollback();
+      success = state.session().rollback();
     }
     catch (Exception e)
     {
@@ -770,7 +779,12 @@ public class Rest
     }
 
     JSONFormatter json = new JSONFormatter();
-    json.success(true);
+
+    json.success(success);      
+    
+    if (!success)
+      json.add("message","Transaction already rolled back");
+    
     return(json.toString());
   }
 

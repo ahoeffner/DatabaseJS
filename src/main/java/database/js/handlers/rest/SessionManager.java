@@ -110,11 +110,9 @@ public class SessionManager extends Thread
 
           if (time - session.touched() > timeout)
           {
-            System.out.println("session 1 : "+session);
             session.share();
             session.disconnect();
-            System.out.println("session 2: "+session);
-            logger.fine("Session: "+session.guid()+" timed out");
+            logger.fine("Session: timed out");
           }
         }
       }
