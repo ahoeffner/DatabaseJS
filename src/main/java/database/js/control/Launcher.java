@@ -319,7 +319,7 @@ public class Launcher implements ILauncher
       String hits = String.format("%12s ",stats.requests());
 
       String type = stats.http() ? "http" : "rest";
-      if (stats.httpmgr() || stats.restmgr()) type += "(+)";
+      if (stats.http() && !stats.httpmgr()) type += "(-)";
       type = String.format(" %-8s",type);
 
       int up = (int) ((stats.updated() - stats.started())/1000);

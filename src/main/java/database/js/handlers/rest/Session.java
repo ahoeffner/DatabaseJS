@@ -166,15 +166,16 @@ public class Session
 
   private synchronized boolean disconnect(boolean reuse)
   {
+    System.out.println("disconnect database="+database+" clients="+clients);
     if (database == null)
     {
       logger.severe("Releasing allready released connection");
       return(false);
     }
 
-    if (clients != 1)
+    if (clients > 1)
     {
-      logger.severe("Releasing connection while other clients connected");
+      logger.severe("Releasing connection while other clients connected, clients: "+clients);
       return(false);
     }
 
@@ -371,6 +372,7 @@ public class Session
   }
 
 
+  @Override
   public String toString()
   {
     String str = "";

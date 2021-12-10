@@ -81,9 +81,10 @@ public class Database
     section = Config.getSection(config,"savepoints");
     //******************* Savepoint Section  *******************
 
-    this.savepoints = new NameValuePair[2];
+    this.savepoints = new NameValuePair[3];
     this.savepoints[0] = new NameValuePair<Boolean>("post",Config.get(section,"post"));
     this.savepoints[1] = new NameValuePair<Boolean>("patch",Config.get(section,"patch"));
+    this.savepoints[2] = new NameValuePair<Boolean>("delete",Config.get(section,"delete"));
 
 
     section = Config.getSection(config,"interceptors");

@@ -56,7 +56,6 @@ public class SessionManager extends Thread
 
   public static boolean remove(String guid)
   {
-    System.out.println("rem <"+guid+">");
     Session session = sessions.remove(guid);
 
     synchronized(session)
@@ -98,12 +97,11 @@ public class SessionManager extends Thread
 
     try
     {
-      int timeout = config.getREST().timeout * 1000 / 4;
-      System.out.println("timeout = "+timeout);
+      int timeout = config.getREST().timeout * 1000;
 
       while(true)
       {
-        Thread.sleep(timeout);
+        Thread.sleep(timeout/4);
         long time = System.currentTimeMillis();
 
         for(Map.Entry<String,Session> entry : sessions.entrySet())
@@ -112,13 +110,13 @@ public class SessionManager extends Thread
 
           if (time - session.touched() > timeout)
           {
-            //System.out.println("age = "+(time - session.touched()));
-            //sessions.remove(session.guid());
-            //if (session.connected())
+            System.out.println("session 1 : "+session);
+            session.share();
+            session.disconnect();
+            System.out.println("session 2: "+session);
+            logger.fine("Session: "+session.guid()+" timed out");
           }
         }
-
-        System.out.println();
       }
     }
     catch (Exception e)

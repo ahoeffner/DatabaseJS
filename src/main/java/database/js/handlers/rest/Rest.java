@@ -1090,12 +1090,9 @@ public class Rest
 
     void prepare(JSONObject payload) throws Exception
     {
-      System.out.println("prepare dept="+dept);
-
       if (dept == 0)
       {
         boolean savepoint = rest.getSavepoint(payload);
-        if (payload.has("savepoint")) savepoint = payload.getBoolean("savepoint");
 
         if (savepoint)
         {

@@ -51,8 +51,6 @@ public class PoolManager extends Thread
 
     try
     {
-      ArrayList<Database> conns = null;
-
       Pool pp = config.getDatabase().proxy;
       Pool ap = config.getDatabase().anonymous;
 
@@ -96,6 +94,7 @@ public class PoolManager extends Thread
       if (time - conn.touched() > idle)
       {
         size--;
+        logger.fine("connection: "+conn+" timed out");
         pool.remove(conn);
       }
     }

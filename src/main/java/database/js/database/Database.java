@@ -291,6 +291,13 @@ public abstract class Database
 
     return(values);
   }
+  
+  
+  @Override
+  public String toString()
+  {
+    return("id = "+id);
+  }
 
 
   public abstract void releaseProxyUser() throws Exception;
