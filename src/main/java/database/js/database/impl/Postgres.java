@@ -21,12 +21,11 @@ public class Postgres extends Database
   @Override
   public void setProxyUser(String username) throws Exception
   {
-    throw new Exception("Feature not supported");
+    super.execute("set role "+username);
   }
 
   @Override
   public void releaseProxyUser() throws Exception
   {
-    throw new Exception("Feature not supported");
   }
 }
