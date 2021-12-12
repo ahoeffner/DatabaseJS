@@ -97,11 +97,17 @@ public class SessionManager extends Thread
 
     try
     {
+      int dump = config.getREST().dump * 1000;
       int timeout = config.getREST().timeout * 1000;
+
+      int sleep = timeout/4;
+      if (sleep > dump) sleep = dump;
+      
+      long last = System.currentTimeMillis();
 
       while(true)
       {
-        Thread.sleep(timeout/4);
+        Thread.sleep(sleep);
         long time = System.currentTimeMillis();
 
         for(Map.Entry<String,Session> entry : sessions.entrySet())
@@ -114,6 +120,21 @@ public class SessionManager extends Thread
             session.disconnect();
             logger.fine("Session: timed out "+session.guid());
           }
+        }
+        
+        if (dump > 0 && time - last >= dump && sessions.size() > 0)
+        {
+          String dmp = "\n";
+          dmp += "------------------------------------\n";
+          dmp += "            Sessions\n";
+          
+          for(Map.Entry<String,Session> entry : sessions.entrySet())
+            dmp += entry.getValue()+"\n";
+          
+          dmp += "------------------------------------\n";
+
+          logger.info(dmp);
+          last = System.currentTimeMillis();
         }
       }
     }

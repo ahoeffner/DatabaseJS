@@ -17,11 +17,13 @@ import org.json.JSONObject;
 
 public class Rest
 {
+  public final int dump;
   public final int timeout;
 
 
   public Rest(JSONObject config)
   {
+    this.dump = Config.get(config,"dump-stats");
     this.timeout = Config.get(config,"timeout");
   }
 }
