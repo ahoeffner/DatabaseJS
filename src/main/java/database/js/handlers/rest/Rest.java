@@ -165,6 +165,8 @@ public class Rest
       state.prepare(payload);
 
       String result = null;
+      boolean connect = false;
+      
       for (int i = 0; i < services.length(); i++)
       {
         String cont = "\n";
@@ -180,6 +182,12 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
+        if (request.nvlfunc().equals("connect"))
+        {
+          if (i < services.length() - 1)
+            connect = true;          
+        }
+
         if (request.nvlfunc().equals("map"))
         {
           map(result,spload);
@@ -191,6 +199,10 @@ public class Rest
       }
 
       state.release();
+      
+      if (connect && state.session() != null)
+        state.session().disconnect();
+      
       return(result);
     }
     catch (Throwable e)
@@ -403,6 +415,7 @@ public class Rest
     try
     {
       state.session().disconnect();
+      state.session(null);
     }
     catch (Throwable e)
     {

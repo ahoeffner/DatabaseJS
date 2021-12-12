@@ -89,6 +89,7 @@ public class Session
     if (scope == Scope.None || !reuse)
       disconnect(reuse,0);
     
+    logger.info("Session released "+this);
     return(!reuse);
   }
 
@@ -172,9 +173,6 @@ public class Session
 
   private synchronized boolean disconnect(boolean reuse, int expected)
   {
-    if (database == null)
-      logger.severe("Releasing allready released connection");
-    
     if (expected >= 0 && clients != expected)
     {
       logger.severe("Releasing connection while other clients connected, clients: "+clients);
