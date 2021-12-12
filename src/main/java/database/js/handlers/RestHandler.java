@@ -100,7 +100,7 @@ public class RestHandler extends Handler
     setClient(config(),request,response);
 
     String path = this.path.getPath(request.path());
-    
+
     boolean modify = false;
     if (request.method().equals("PATCH")) modify = true;
     if (request.method().equals("DELETE")) modify = true;

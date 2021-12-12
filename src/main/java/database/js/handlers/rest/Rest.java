@@ -166,7 +166,7 @@ public class Rest
 
       String result = null;
       boolean connect = false;
-      
+
       for (int i = 0; i < services.length(); i++)
       {
         String cont = "\n";
@@ -185,7 +185,7 @@ public class Rest
         if (request.nvlfunc().equals("connect"))
         {
           if (i < services.length() - 1)
-            connect = true;          
+            connect = true;
         }
 
         if (request.nvlfunc().equals("map"))
@@ -199,10 +199,10 @@ public class Rest
       }
 
       state.release();
-      
+
       if (connect && state.session() != null)
         state.session().disconnect();
-      
+
       return(result);
     }
     catch (Throwable e)
@@ -383,7 +383,7 @@ public class Rest
         }
 
         state.session(new Session(method,pool,scope,username,secret));
-        
+
         state.session().connect(state.batch());
         if (state.batch()) state.session().share();
       }
@@ -745,7 +745,7 @@ public class Rest
   private String commit()
   {
     boolean success = true;
-    
+
     if (state.session() == null)
     {
       failed = true;
@@ -764,11 +764,11 @@ public class Rest
 
     JSONFormatter json = new JSONFormatter();
 
-    json.success(success);      
-    
+    json.success(success);
+
     if (!success)
       json.add("message","Transaction already comitted");
-    
+
     return(json.toString());
   }
 
@@ -776,7 +776,7 @@ public class Rest
   private String rollback()
   {
     boolean success = true;
-    
+
     if (state.session() == null)
     {
       failed = true;
@@ -795,11 +795,11 @@ public class Rest
 
     JSONFormatter json = new JSONFormatter();
 
-    json.success(success);      
-    
+    json.success(success);
+
     if (!success)
       json.add("message","Transaction already rolled back");
-    
+
     return(json.toString());
   }
 
@@ -873,7 +873,7 @@ public class Rest
                 break;
               }
             }
-            
+
             if (row < 0 || col < 0)
             {
               logger.severe("Unable to map "+pointer);

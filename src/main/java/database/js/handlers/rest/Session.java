@@ -83,13 +83,12 @@ public class Session
     {
       database.disconnect();
       SessionManager.remove(guid);
-      return(true);      
+      return(true);
     }
 
     if (scope == Scope.None || !reuse)
       disconnect(reuse,0);
-    
-    logger.info("Session released "+this);
+
     return(!reuse);
   }
 
@@ -121,7 +120,7 @@ public class Session
   public synchronized void disconnect()
   {
     clients--;
-    
+
     if (disconnect(true,0))
       SessionManager.remove(guid);
   }
@@ -194,12 +193,12 @@ public class Session
   {
     if (database == null)
       return(false);
-    
+
     database.commit();
-    
-    if (scope == Scope.Transaction) 
+
+    if (scope == Scope.Transaction)
       disconnect(true,1);
-    
+
     return(true);
   }
 
@@ -208,12 +207,12 @@ public class Session
   {
     if (database == null)
       return(false);
-    
+
     database.rollback();
-    
-    if (scope == Scope.Transaction) 
+
+    if (scope == Scope.Transaction)
       disconnect(true,1);
-    
+
     return(true);
   }
 
@@ -391,10 +390,10 @@ public class Session
   {
     String str = "";
 
-    str += "Scope: " + scope + " connected: " + (database != null)+" clients: "+clients;
+    str += "Scope: " + scope + ", Connected: " + (database != null)+", Clients: "+clients;
 
     if (pool == null) str += " " + username;
-    else str += " pooled["+(pool.proxy() ? username : "----")+"]";
+    else str += " Pool["+(pool.proxy() ? username : "----")+"]";
 
     str += " "+lock;
 

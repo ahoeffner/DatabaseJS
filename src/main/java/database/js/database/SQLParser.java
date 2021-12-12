@@ -14,9 +14,9 @@ package database.js.database;
 
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 
 public class SQLParser
@@ -119,7 +119,7 @@ public class SQLParser
     {
       this.sql = nsql.toString();
     }
-    
+
     logger.finest(this.sql);
   }
 
