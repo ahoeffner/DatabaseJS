@@ -80,12 +80,15 @@ public class Session
     boolean reuse = true;
 
     if (failed && !database.validate())
-      reuse = false;
+    {
+      database.disconnect();
+      SessionManager.remove(guid);
+      return(true);      
+    }
 
     if (scope == Scope.None || !reuse)
-      disconnect(reuse,-1);
+      disconnect(reuse,0);
     
-    System.out.println("released: "+this);
     return(!reuse);
   }
 
@@ -117,6 +120,7 @@ public class Session
   public synchronized void disconnect()
   {
     clients--;
+    
     if (disconnect(true,0))
       SessionManager.remove(guid);
   }
@@ -169,18 +173,15 @@ public class Session
   private synchronized boolean disconnect(boolean reuse, int expected)
   {
     if (database == null)
-    {
       logger.severe("Releasing allready released connection");
-      return(false);
-    }
-
+    
     if (expected >= 0 && clients != expected)
     {
       logger.severe("Releasing connection while other clients connected, clients: "+clients);
       return(false);
     }
 
-    if (reuse)
+    if (reuse && database != null)
     {
       if (pool == null) database.disconnect();
       else              pool.release(database);
@@ -392,7 +393,7 @@ public class Session
   {
     String str = "";
 
-    str += "Scope: " + scope + " connected: " + (database != null);
+    str += "Scope: " + scope + " connected: " + (database != null)+" clients: "+clients;
 
     if (pool == null) str += " " + username;
     else str += " pooled["+(pool.proxy() ? username : "----")+"]";

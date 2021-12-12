@@ -371,7 +371,9 @@ public class Rest
         }
 
         state.session(new Session(method,pool,scope,username,secret));
+        
         state.session().connect(state.batch());
+        if (state.batch()) state.session().share();
       }
     }
     catch (Throwable e)
@@ -857,6 +859,12 @@ public class Rest
                 col = j;
                 break;
               }
+            }
+            
+            if (row < 0 || col < 0)
+            {
+              logger.severe("Unable to map "+pointer);
+              continue;
             }
 
             JSONArray record = (JSONArray) rows.get(row);

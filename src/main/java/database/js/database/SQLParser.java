@@ -14,6 +14,7 @@ package database.js.database;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ public class SQLParser
   private final boolean func;
   private final ArrayList<BindValue> bindings;
   private final HashMap<String,BindValueDef> bindvalues;
+  private final static Logger logger = Logger.getLogger("rest");
 
   private final static Pattern procedure = Pattern.compile("(\\w*\\.)?\\w*\\s*\\(.*\\)");
   private final static Pattern function = Pattern.compile("\\w*\\s*=\\s*(\\w*\\.)?\\w*\\s*\\(.*\\)");
@@ -117,6 +119,8 @@ public class SQLParser
     {
       this.sql = nsql.toString();
     }
+    
+    logger.finest(this.sql);
   }
 
 

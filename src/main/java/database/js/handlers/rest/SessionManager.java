@@ -112,7 +112,7 @@ public class SessionManager extends Thread
           {
             session.share();
             session.disconnect();
-            logger.fine("Session: timed out");
+            logger.fine("Session: timed out "+session.guid());
           }
         }
       }
