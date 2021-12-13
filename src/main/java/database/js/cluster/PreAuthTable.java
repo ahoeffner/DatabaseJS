@@ -67,14 +67,13 @@ public class PreAuthTable
       }
       catch (Exception e)
       {
-        logger.warning("Unable to set file permissions for mailbox");
+        logger.warning("Unable to set file permissions for PreAuthTable");
       }
     }
 
     this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,256*2048);
     this.timeout = config.getSSO().timeout;
     this.extend = shmmem.get(0);
-    logger.info("PreAuthTab");
   }
 
 
