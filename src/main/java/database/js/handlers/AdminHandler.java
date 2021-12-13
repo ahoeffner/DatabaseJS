@@ -70,16 +70,28 @@ public class AdminHandler extends Handler
       return(null);
     }
 
-    if (request.path().equals("/shutdown"))
-      server.shutdown();
-
-    if (request.path().equals("/deploy"))
-      Deployment.get().deploy();
-
-    if (request.path().equals("/status"))
+    switch(request.path().substring(1))
     {
-      String status = Launcher.getStatus(config());
-      response.setBody(status);
+      case "shutdown":
+        server.shutdown();
+        break;
+
+      case "deploy":
+        Deployment.get().deploy();
+        break;
+
+      case "status":
+        String status = Launcher.getStatus(config());
+        response.setBody(status);
+        break;
+
+      case "authenticate":
+        logger.warning("Authenticate");
+        response.setBody("3216dshb7712n");
+        break;
+
+      default:
+        throw new Exception("Unknown admin request <"+request.path().substring(1)+">");
     }
 
     return(response);

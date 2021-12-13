@@ -46,7 +46,7 @@ public class Security
 
     identity = new Keystore(file,type,alias,passwd);
 
-    JSONObject trustsec = config.getJSONObject("identity");
+    JSONObject trustsec = Config.getSection(config,"trust");
 
     type = Config.get(trustsec,"type");
     file = Config.get(trustsec,"keystore");

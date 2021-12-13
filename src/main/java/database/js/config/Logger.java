@@ -54,8 +54,7 @@ public class Logger
     logdir = Config.get(config,"path",logdir);
 
     String lfsize = Config.get(config,"size",null);
-
-    if (config.has("size"))    lfsize = config.getString("size");
+    if (config.has("size")) lfsize = Config.get(config,"size");
 
     if (lfsize == null) size = LOGSIZE;
     else

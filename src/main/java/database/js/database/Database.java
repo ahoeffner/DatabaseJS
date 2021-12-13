@@ -131,6 +131,7 @@ public abstract class Database
   {
     String url = DatabaseUtils.bind(username,password);
     this.conn = DriverManager.getConnection(url);
+    touched = System.currentTimeMillis();
   }
 
 

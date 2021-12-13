@@ -70,6 +70,24 @@ public class Pool
   }
 
 
+  void init()
+  {
+    try
+    {
+      for (int i = 0; i < min; i++)
+      {
+        Database database = DatabaseUtils.getInstance();
+        database.connect(username,password);
+        pool.add(database);
+      }
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.WARNING,e.getMessage(),e);
+    }
+  }
+
+
   public Database connect(String token) throws Exception
   {
     if (this.token != null)
@@ -78,7 +96,6 @@ public class Pool
         throw new Exception("Invalid connect token");
     }
 
-    System.out.println("Connect proxy="+proxy);
     Database database = DatabaseUtils.getInstance();
     database.connect(username,password);
 
@@ -120,8 +137,6 @@ public class Pool
       else                  database = pool.remove(0);
     }
 
-    database.touch();
-    System.out.println("getConnection proxy="+proxy);
     return(database);
   }
 
@@ -145,7 +160,6 @@ public class Pool
     {
       database.touch();
       pool.add(0,database);
-      System.out.println("released conn to pool, proxy="+proxy);
       this.notifyAll();
     }
   }

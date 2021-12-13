@@ -57,6 +57,9 @@ public class PoolManager extends Thread
       if (ap == null && pp == null)
         return;
 
+      if (ap != null) ap.init();
+      if (pp != null) pp.init();
+
       int pidle = (pp == null) ? 3600000 : pp.idle();
       int aidle = (ap == null) ? 3600000 : ap.idle();
       int sleep = (pidle < aidle) ? pidle * 1000/4 : aidle * 1000/4;
