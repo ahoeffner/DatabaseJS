@@ -26,6 +26,9 @@ public class SessionManager extends Thread
   private final Config config;
   private final static Logger logger = Logger.getLogger("rest");
 
+  private final static ConcurrentHashMap<String,String> preauth =
+    new ConcurrentHashMap<String,String>();
+
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
 
@@ -41,6 +44,21 @@ public class SessionManager extends Thread
     }
 
     sessions.put(guid,session);
+    return(guid);
+  }
+
+
+  public static synchronized String preauth(String username)
+  {
+    String guid = null;
+
+    while(guid == null)
+    {
+      guid = new Guid().toString();
+      if (preauth.get(guid) != null) guid = null;
+    }
+
+    preauth.put(guid,username);
     return(guid);
   }
 

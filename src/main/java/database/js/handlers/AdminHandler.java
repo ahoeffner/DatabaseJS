@@ -21,6 +21,7 @@ import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.config.Handlers.HandlerProperties;
+import database.js.handlers.rest.SessionManager;
 
 
 public class AdminHandler extends Handler
@@ -86,8 +87,8 @@ public class AdminHandler extends Handler
         break;
 
       case "authenticate":
-        logger.warning("Authenticate");
-        response.setBody("3216dshb7712n");
+        String username = new String(request.body());
+        response.setBody(SessionManager.preauth(username));
         break;
 
       default:
