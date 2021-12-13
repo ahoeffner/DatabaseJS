@@ -12,6 +12,8 @@
 
 package database.js.servers;
 
+import database.js.cluster.PreAuthTable;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +58,7 @@ public class Server extends Thread
   private final PoolManager pmgr;
   private final SessionManager smgr;
   private final LoadBalancer loadblcr;
+  private final PreAuthTable authtab;
 
   private volatile boolean sowner = false;
   private volatile boolean powner = false;
@@ -136,6 +139,9 @@ public class Server extends Thread
 
       sowner = this.startup();
     }
+    
+    if (servers <= 0) this.authtab = null;
+    else this.authtab = new PreAuthTable(config); 
 
     this.start();
 

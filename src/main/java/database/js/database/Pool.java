@@ -72,19 +72,14 @@ public class Pool
 
   void init()
   {
-    try
-    {
-      for (int i = 0; i < min; i++)
-      {
-        Database database = DatabaseUtils.getInstance();
-        database.connect(username,password);
-        pool.add(database);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.WARNING,e.getMessage(),e);
-    }
+    Initiator init = new Initiator(this);
+    init.start();
+  }
+  
+  
+  synchronized void add(Database database)
+  {
+    pool.add(database);    
   }
 
 
@@ -103,7 +98,7 @@ public class Pool
   }
 
 
-  public boolean remove(Database database)
+  public synchronized boolean remove(Database database)
   {
     if (!pool.remove(database))
       return(false);
@@ -208,5 +203,36 @@ public class Pool
   {
     synchronized(this)
     {return(new ArrayList<Database>(pool));}
+  }
+  
+  
+  private static class Initiator extends Thread
+  {
+    private final Pool pool;
+    
+    Initiator(Pool pool)
+    {
+      this.pool = pool;
+      this.setDaemon(true);
+      this.setName("Pool initiator");
+    }
+    
+    @Override
+    public void run()
+    {
+      try
+      {
+        for (int i = 0; i < pool.min; i++)
+        {
+          Database database = DatabaseUtils.getInstance();
+          database.connect(pool.username,pool.password);
+          pool.add(database);
+        }
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.WARNING,e.getMessage(),e);
+      }
+    }
   }
 }

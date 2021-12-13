@@ -20,8 +20,8 @@ import database.js.servers.rest.RESTClient;
 import database.js.handlers.file.Deployment;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
-import database.js.config.Handlers.HandlerProperties;
 import database.js.handlers.rest.SessionManager;
+import database.js.config.Handlers.HandlerProperties;
 
 
 public class AdminHandler extends Handler
