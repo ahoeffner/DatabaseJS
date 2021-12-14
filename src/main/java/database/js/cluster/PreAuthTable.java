@@ -87,7 +87,8 @@ public class PreAuthTable
 
     this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,256*2048);
     this.timeout = config.getSSO().timeout;
-    this.extend = shmmem.get(0);
+
+    this.extend = current();
     
     int offset = 0;
     entries = entries(extend);
@@ -99,11 +100,45 @@ public class PreAuthTable
   }
   
   
+  int next(int extend)
+  {
+    return(next(extend,false));
+  }
+  
+  
+  int next(int extend, boolean set)
+  {
+    extend = ++extend % 256;
+    if (set) current(extend);
+    return(extend);
+  }
+  
+  
+  int current()
+  {
+    return(shmmem.get(0));
+  }
+  
+  
+  void current(int extend)
+  {
+    shmmem.put(0,(byte) extend);
+  }
+  
+  
   int entries(int extend)
   {
     int pos = 0;
     if (extend == 0) pos++;
     return(shmmem.get(extend*2048+pos));
+  }
+  
+  
+  void entries(int extend, int entries)
+  {
+    int pos = 0;
+    if (extend == 0) pos++;
+    shmmem.put(extend*2048+pos, (byte) entries);
   }
   
   
@@ -232,9 +267,8 @@ public class PreAuthTable
     {
       if (!table.fits(offset,auth))
       {
-        extend++;
         offset = 0;
-        shmmem.put(0,(byte) extend);
+        extend = table.next(extend,true);
         System.out.println("Next extend"); 
       }
       
