@@ -75,11 +75,11 @@ public class Pool
     Initiator init = new Initiator(this);
     init.start();
   }
-  
-  
+
+
   synchronized void add(Database database)
   {
-    pool.add(database);    
+    pool.add(database);
   }
 
 
@@ -204,19 +204,19 @@ public class Pool
     synchronized(this)
     {return(new ArrayList<Database>(pool));}
   }
-  
-  
+
+
   private static class Initiator extends Thread
   {
     private final Pool pool;
-    
+
     Initiator(Pool pool)
     {
       this.pool = pool;
       this.setDaemon(true);
       this.setName("Pool initiator");
     }
-    
+
     @Override
     public void run()
     {

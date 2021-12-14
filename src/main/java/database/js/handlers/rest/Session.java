@@ -81,6 +81,7 @@ public class Session
 
     if (failed && !database.validate())
     {
+      closeAllCursors();
       database.disconnect();
       SessionManager.remove(guid);
       return(true);
@@ -180,6 +181,8 @@ public class Session
 
     if (reuse && database != null)
     {
+      closeAllCursors();
+
       if (pool == null) database.disconnect();
       else              pool.release(database);
     }

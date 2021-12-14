@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.cluster.PreAuthRecord;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -26,8 +27,8 @@ public class SessionManager extends Thread
   private final Config config;
   private final static Logger logger = Logger.getLogger("rest");
 
-  private final static ConcurrentHashMap<String,PreAuth> preauth =
-    new ConcurrentHashMap<String,PreAuth>();
+  private final static ConcurrentHashMap<String,PreAuthRecord> preauth =
+    new ConcurrentHashMap<String,PreAuthRecord>();
 
   private final static ConcurrentHashMap<String,Session> sessions =
     new ConcurrentHashMap<String,Session>();
@@ -58,7 +59,7 @@ public class SessionManager extends Thread
       if (preauth.get(guid) != null) guid = null;
     }
 
-    preauth.put(guid,new PreAuth(guid,username));
+    preauth.put(guid,new PreAuthRecord(guid,username));
     return(guid);
   }
 
@@ -160,21 +161,6 @@ public class SessionManager extends Thread
     catch (Exception e)
     {
       logger.log(Level.SEVERE,e.getMessage(),e);
-    }
-  }
-
-
-  public static class PreAuth
-  {
-    public final long time;
-    public final String guid;
-    public final String username;
-
-    PreAuth(String guid, String username)
-    {
-      this.guid = guid;
-      this.username = username;
-      this.time = System.currentTimeMillis();
     }
   }
 }

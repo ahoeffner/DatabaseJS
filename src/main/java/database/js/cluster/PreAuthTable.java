@@ -24,28 +24,42 @@ import database.js.config.Config;
 import java.nio.MappedByteBuffer;
 import java.nio.file.FileSystems;
 import java.nio.channels.FileChannel;
+import static java.nio.file.StandardOpenOption.*;
 import java.nio.file.attribute.PosixFilePermission;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
-import static java.nio.file.StandardOpenOption.CREATE;
+import java.util.ArrayList;
 
 
 /**
  *
- * A record consists of guid (16 bytes) + created (long) + length (1 byte) + username.
+ * A record consists of user.length (1 byte) + guid (16 bytes) + created (long) + user.
  * Records are written to extends (2 k) which is recycled when the file is full
  * Each extend has a header that consists of the number of entries (1 byte)
- * The file has has a header that consists of 1 byte that indicates the current extend
+ * The file has has a header that consists of 1 byte that indicates the current extend.
+ * To align with 2k, the first extend starts at byte 1 and size 2047 bytes.
  *
  */
 public class PreAuthTable
 {
-  private int extend = 0;
+  private final int extend;
+  private final int offset;
+  private final int entries;
   private final int timeout;
   private final MappedByteBuffer shmmem;
 
-  public final static int rechead = 16 + Long.BYTES + 1;
+  public final static int reclen = 16 + Long.BYTES + 1;
   private final Logger logger = Logger.getLogger("rest");
+  
+  
+  public static void main(String[] args) throws Exception
+  {
+    Config config = new Config();
+    PreAuthTable table = new PreAuthTable(config);
+
+    Reader reader = table.getReader();
+    Writer writer = table.getWriter();
+    
+    
+  }
 
 
   public PreAuthTable(Config config) throws Exception
@@ -74,33 +88,123 @@ public class PreAuthTable
     this.shmmem = fc.map(FileChannel.MapMode.READ_WRITE,0,256*2048);
     this.timeout = config.getSSO().timeout;
     this.extend = shmmem.get(0);
+    
+    int offset = 0;
+    entries = entries(extend);
+    
+    for (int i = 0; i < entries; i++)
+      offset = next(extend,offset);
+    
+    this.offset = offset;
+  }
+  
+  
+  int entries(int extend)
+  {
+    int pos = 0;
+    if (extend == 0) pos++;
+    return(shmmem.get(extend*2048+pos));
+  }
+  
+  
+  int next(int extend, int offset)
+  {
+    if (offset == 0)
+      offset++;
+    
+    if (extend == 0 && offset == 1)
+      offset++;
+
+    return(offset + reclen + shmmem.get(extend*2048+offset));
+  }
+
+
+  boolean fits(int offset, PreAuthRecord entry)
+  {
+    return(offset + reclen + entry.username.length() < 2048);
+  }
+
+
+  int put(PreAuthRecord entry, int extend, int offset)
+  {
+    if (offset == 0)
+      offset++;
+    
+    if (extend == 0 && offset == 1)
+      offset++;
+
+    long time = entry.time;
+    byte[] guid = entry.guid.getBytes();
+    byte[] user = entry.username.getBytes();
+
+    byte len = (byte) user.length;
+
+    shmmem.put(offset++,len);
+    shmmem.put(offset,guid);
+    shmmem.putLong(offset+16,time);
+    shmmem.put(offset+reclen,user);
+
+    return(offset+reclen+len);
+  }
+
+
+  PreAuthRecord get(int extend, int offset)
+  {
+    if (offset == 0)
+      offset++;
+    
+    if (extend == 0 && offset == 1)
+      offset++;
+
+    int len = shmmem.get(offset++);
+
+    byte[] guid = new byte[16];
+    byte[] user = new byte[len];
+
+    shmmem.get(offset,guid);
+    long time = shmmem.getLong(offset+16);
+    shmmem.get(offset+reclen,user);
+
+    return(new PreAuthRecord(guid,time,user));
   }
 
 
   public Reader getReader()
   {
-    return(new Reader(shmmem,extend,timeout));
+    return(new Reader(this));
   }
 
 
   public Writer getWriter()
   {
-    return(new Writer(shmmem,extend,timeout));
+    return(new Writer(this));
   }
 
 
   public static class Reader
   {
     private int extend = 0;
-    private int timeout = 0;
+    private int offset = 0;
+    private final int timeout;
+    private final PreAuthTable table;
     private final MappedByteBuffer shmmem;
 
 
-    private Reader(MappedByteBuffer shmmem, int extend, int timeout)
+    private Reader(PreAuthTable table)
     {
-      this.shmmem = shmmem;
-      this.extend = extend;
-      this.timeout = timeout * 1000;
+      this.table = table;
+      this.shmmem = table.shmmem;
+      this.extend = table.extend;
+      this.offset = table.offset;
+      this.timeout = table.timeout * 1000;
+    }
+    
+    
+    public ArrayList<PreAuthRecord> refresh()
+    {
+      ArrayList<PreAuthRecord> recs = new ArrayList<PreAuthRecord>();
+      
+      return(recs);
     }
   }
 
@@ -108,15 +212,33 @@ public class PreAuthTable
   public static class Writer
   {
     private int extend = 0;
-    private int timeout = 0;
+    private int offset = 0;
+    private final int timeout;
+    private final PreAuthTable table;
     private final MappedByteBuffer shmmem;
 
 
-    private Writer(MappedByteBuffer shmmem, int extend, int timeout)
+    private Writer(PreAuthTable table)
     {
-      this.shmmem = shmmem;
-      this.extend = extend;
-      this.timeout = timeout * 1000;
+      this.table = table;
+      this.shmmem = table.shmmem;
+      this.extend = table.extend;
+      this.offset = table.offset;
+      this.timeout = table.timeout * 1000;
+    }
+    
+    
+    public void write(PreAuthRecord auth)
+    {
+      if (!table.fits(offset,auth))
+      {
+        extend++;
+        offset = 0;
+        shmmem.put(0,(byte) extend);
+        System.out.println("Next extend"); 
+      }
+      
+      offset = table.put(auth,extend,offset);
     }
   }
 }

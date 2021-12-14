@@ -12,8 +12,6 @@
 
 package database.js.servers;
 
-import database.js.cluster.PreAuthTable;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,8 +25,10 @@ import database.js.cluster.Cluster;
 import database.js.pools.ThreadPool;
 import java.io.BufferedOutputStream;
 import database.js.cluster.Statistics;
+import database.js.cluster.PreAuthTable;
 import database.js.database.PoolManager;
 import database.js.cluster.ProcessMonitor;
+import database.js.cluster.PreAuthTable.*;
 import database.js.servers.rest.RESTServer;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPServer;
@@ -139,9 +139,9 @@ public class Server extends Thread
 
       sowner = this.startup();
     }
-    
+
     if (servers <= 0) this.authtab = null;
-    else this.authtab = new PreAuthTable(config); 
+    else this.authtab = new PreAuthTable(config);
 
     this.start();
 
@@ -243,6 +243,20 @@ public class Server extends Thread
   public boolean embedded()
   {
     return(embedded);
+  }
+
+
+  public Reader getAuthReader()
+  {
+    if (this.authtab == null) return(null);
+    else  return(this.authtab.getReader());
+  }
+
+
+  public Writer getAuthWriter()
+  {
+    if (this.authtab == null) return(null);
+    else  return(this.authtab.getWriter());
   }
 
 
