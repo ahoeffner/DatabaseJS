@@ -18,6 +18,7 @@ public class PreAuthRecord
   public final long time;
   public final String guid;
   public final String username;
+  public final static int reclen = 16 + Long.BYTES + 1;
 
 
   public PreAuthRecord(String guid, String username)
@@ -32,5 +33,16 @@ public class PreAuthRecord
     this.time = time;
     this.guid = new String(guid);
     this.username = new String(username);
+  }
+  
+  public int size()
+  {
+    return(reclen + username.length());
+  }
+  
+  @Override
+  public String toString()
+  {
+    return(guid+" "+username);
   }
 }
