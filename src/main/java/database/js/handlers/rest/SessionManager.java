@@ -21,10 +21,11 @@ import database.js.cluster.PreAuthRecord;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class SessionManager extends Thread
+public class SessionManager
 {
   private final Server server;
   private final Config config;
+  private final SessionReaper sreaper;
   private final static Logger logger = Logger.getLogger("rest");
 
   private final static ConcurrentHashMap<String,PreAuthRecord> preauth =
@@ -101,66 +102,85 @@ public class SessionManager extends Thread
   {
     this.server = server;
     this.config = server.config();
-
-    this.setDaemon(true);
-    this.setName("PoolManager");
-
-    if (start) this.start();
+    this.sreaper = new SessionReaper(server);
+    if (start) start();
   }
-
-
-  @Override
-  public void run()
+  
+  
+  public void start()
   {
-    logger.info("SessionManager started");
+    sreaper.start();
+  }
+  
+  
+  private static class SessionReaper extends Thread
+  {
+    private final Server server;
+    private final Config config;
 
-    try
+    SessionReaper(Server server)
     {
-      int dump = config.getREST().dump * 1000;
-      int timeout = config.getREST().timeout * 1000;
+      this.server = server;
+      this.config = server.config();
 
-      int sleep = timeout/4;
-      if (sleep > dump) sleep = dump;
+      this.setDaemon(true);
+      this.setName("SessionReaper");
+    }
 
-      long last = System.currentTimeMillis();
 
-      while(true)
+    @Override
+    public void run()
+    {
+      logger.info("SessionReaper started");
+
+      try
       {
-        Thread.sleep(sleep);
-        long time = System.currentTimeMillis();
+        int dump = config.getREST().dump * 1000;
+        int timeout = config.getREST().timeout * 1000;
 
-        if (dump > 0 && time - last >= dump && sessions.size() > 0)
+        int sleep = timeout/4;
+        if (sleep > dump) sleep = dump;
+
+        long last = System.currentTimeMillis();
+
+        while(true)
         {
-          String dmp = "\n";
-          dmp += "--------------------------------------------------------------------------\n";
-          dmp += "                              Sessions\n";
-          dmp += "--------------------------------------------------------------------------\n";
+          Thread.sleep(sleep);
+          long time = System.currentTimeMillis();
+
+          if (dump > 0 && time - last >= dump && sessions.size() > 0)
+          {
+            String dmp = "\n";
+            dmp += "--------------------------------------------------------------------------\n";
+            dmp += "                              Sessions\n";
+            dmp += "--------------------------------------------------------------------------\n";
+
+            for(Map.Entry<String,Session> entry : sessions.entrySet())
+              dmp += entry.getValue()+"\n";
+
+            dmp += "--------------------------------------------------------------------------\n";
+
+            logger.info(dmp);
+            last = System.currentTimeMillis();
+          }
 
           for(Map.Entry<String,Session> entry : sessions.entrySet())
-            dmp += entry.getValue()+"\n";
-
-          dmp += "--------------------------------------------------------------------------\n";
-
-          logger.info(dmp);
-          last = System.currentTimeMillis();
-        }
-
-        for(Map.Entry<String,Session> entry : sessions.entrySet())
-        {
-          Session session = entry.getValue();
-
-          if (time - session.touched() > timeout)
           {
-            session.share();
-            session.disconnect();
-            logger.fine("Session: timed out "+session.guid());
+            Session session = entry.getValue();
+
+            if (time - session.touched() > timeout)
+            {
+              session.share();
+              session.disconnect();
+              logger.fine("Session: timed out "+session.guid());
+            }
           }
         }
       }
-    }
-    catch (Exception e)
-    {
-      logger.log(Level.SEVERE,e.getMessage(),e);
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
     }
   }
 }
