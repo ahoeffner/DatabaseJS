@@ -34,12 +34,12 @@ public class PreAuthRecord
     this.guid = new String(guid);
     this.username = new String(username);
   }
-  
+
   public int size()
   {
     return(reclen + username.length());
   }
-  
+
   @Override
   public String toString()
   {
