@@ -12,6 +12,8 @@
 
 package database.js.handlers;
 
+import database.js.cluster.PreAuthRecord;
+
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
@@ -88,7 +90,12 @@ public class AdminHandler extends Handler
 
       case "authenticate":
         String username = new String(request.body());
-        response.setBody(SessionManager.preauth(username));
+        PreAuthRecord auth = SessionManager.preauth(username);
+        
+        if (server.getAuthWriter() != null)
+          server.getAuthWriter().write(auth);
+        
+        response.setBody(auth.guid);
         break;
 
       default:

@@ -58,8 +58,9 @@ public class Server extends Thread
   private final PoolManager pmgr;
   private final SessionManager smgr;
   private final LoadBalancer loadblcr;
-  private final PreAuthTable authtab;
-
+  private final PreAuthTable.Writer authwrt;
+  private final PreAuthTable.Reader authrdr;
+  
   private volatile boolean sowner = false;
   private volatile boolean powner = false;
 
@@ -140,8 +141,18 @@ public class Server extends Thread
       sowner = this.startup();
     }
 
-    if (servers <= 0) this.authtab = null;
-    else this.authtab = new PreAuthTable(config);
+    if (servers <= 0)
+    {
+      this.authrdr = null;
+      this.authwrt = null;
+    }
+    else 
+    {
+      PreAuthTable authtab = new PreAuthTable(config);
+
+      this.authrdr = authtab.getReader();
+      this.authwrt = authtab.getWriter();
+    }
 
     this.start();
 
@@ -248,15 +259,13 @@ public class Server extends Thread
 
   public Reader getAuthReader()
   {
-    if (this.authtab == null) return(null);
-    else  return(this.authtab.getReader());
+    return(this.authrdr);
   }
 
 
   public Writer getAuthWriter()
   {
-    if (this.authtab == null) return(null);
-    else  return(this.authtab.getWriter());
+    return(this.authwrt);
   }
 
 

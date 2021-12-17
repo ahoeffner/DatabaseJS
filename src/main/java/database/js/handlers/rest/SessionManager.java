@@ -50,7 +50,7 @@ public class SessionManager
   }
 
 
-  public static synchronized String preauth(String username)
+  public static synchronized PreAuthRecord preauth(String username)
   {
     String guid = null;
 
@@ -59,9 +59,11 @@ public class SessionManager
       guid = new Guid().toString();
       if (preauth.get(guid) != null) guid = null;
     }
-
-    preauth.put(guid,new PreAuthRecord(guid,username));
-    return(guid);
+    
+    PreAuthRecord rec = new PreAuthRecord(guid,username);
+    preauth.put(guid,rec);
+    
+    return(rec);
   }
 
 
