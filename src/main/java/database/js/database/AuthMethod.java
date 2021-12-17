@@ -15,6 +15,7 @@ package database.js.database;
 
 public enum AuthMethod
 {
+  SSO,
   OAuth,
   Database,
   PoolToken

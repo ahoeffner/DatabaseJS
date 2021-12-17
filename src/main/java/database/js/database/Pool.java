@@ -110,6 +110,12 @@ public class Pool
   }
 
 
+  public Database getConnection() throws Exception
+  {
+    return(getConnection(token));
+  }
+
+
   public Database getConnection(String token) throws Exception
   {
     if (closed)

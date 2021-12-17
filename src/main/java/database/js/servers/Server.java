@@ -60,7 +60,7 @@ public class Server extends Thread
   private final LoadBalancer loadblcr;
   private final PreAuthTable.Writer authwrt;
   private final PreAuthTable.Reader authrdr;
-  
+
   private volatile boolean sowner = false;
   private volatile boolean powner = false;
 
@@ -146,7 +146,7 @@ public class Server extends Thread
       this.authrdr = null;
       this.authwrt = null;
     }
-    else 
+    else
     {
       PreAuthTable authtab = new PreAuthTable(config);
 

@@ -13,10 +13,12 @@
 package database.js.handlers.rest;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.cluster.PreAuthTable;
 import database.js.cluster.PreAuthRecord;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,11 +61,28 @@ public class SessionManager
       guid = new Guid().toString();
       if (preauth.get(guid) != null) guid = null;
     }
-    
+
     PreAuthRecord rec = new PreAuthRecord(guid,username);
     preauth.put(guid,rec);
-    
+
     return(rec);
+  }
+
+
+  public static void refresh(PreAuthTable.Reader reader)
+  {
+    if (reader != null)
+    {
+      ArrayList<PreAuthRecord> records = reader.refresh();
+      for(PreAuthRecord rec : records) preauth.put(rec.guid,rec);
+    }
+  }
+
+
+  public static PreAuthRecord validate(String guid)
+  {
+    if (guid == null) return(null);
+    else return(preauth.get(guid));
   }
 
 
@@ -107,14 +126,14 @@ public class SessionManager
     this.sreaper = new SessionReaper(server);
     if (start) start();
   }
-  
-  
+
+
   public void start()
   {
     sreaper.start();
   }
-  
-  
+
+
   private static class SessionReaper extends Thread
   {
     private final Server server;

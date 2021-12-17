@@ -87,7 +87,7 @@ public class Session
       return(true);
     }
 
-    if (scope == Scope.None || !reuse)
+    if (!statefull() || !reuse)
       disconnect(reuse,0);
 
     return(!reuse);
@@ -112,7 +112,7 @@ public class Session
   }
 
 
-  public boolean dedicated()
+  public boolean statefull()
   {
     return(scope != Scope.None);
   }
@@ -140,34 +140,41 @@ public class Session
   {
     switch(method)
     {
-      case OAuth :
-        database = pool.connect();
+      case SSO :
+        if (scope == Scope.Dedicated) database = pool.connect();
+        else                          database = pool.getConnection();
 
-        database.setAutoCommit(false);
         if (pool.proxy()) database.setProxyUser(username);
+        break;
 
+      case OAuth :
+        if (scope == Scope.Dedicated) database = pool.connect();
+        else                          database = pool.getConnection();
+
+        if (pool.proxy()) database.setProxyUser(username);
         break;
 
       case Database :
         database = DatabaseUtils.getInstance();
-
         database.connect(username,secret);
-        database.setAutoCommit(false);
-
         break;
 
       case PoolToken :
         if (scope == Scope.Dedicated) database = pool.connect(secret);
         else                          database = pool.getConnection(secret);
 
-        database.setAutoCommit(false);
         if (pool.proxy()) database.setProxyUser(username);
-
         break;
     }
 
-    if (!keep && !dedicated())
+    if (!statefull() && !keep)
+    {
       disconnect(true,0);
+      return;
+    }
+
+    if (!statefull()) database.setAutoCommit(true);
+    else              database.setAutoCommit(false);
   }
 
 

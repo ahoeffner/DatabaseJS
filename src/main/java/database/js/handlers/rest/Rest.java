@@ -32,6 +32,7 @@ import database.js.database.SQLParser;
 import database.js.database.BindValue;
 import database.js.custom.SQLValidator;
 import database.js.database.AuthMethod;
+import database.js.cluster.PreAuthRecord;
 import database.js.database.BindValueDef;
 import database.js.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
@@ -357,6 +358,7 @@ public class Rest
 
         switch(meth.toLowerCase())
         {
+          case "sso"      : method = AuthMethod.SSO; break;
           case "oauth"    : method = AuthMethod.OAuth; break;
           case "database" : method = AuthMethod.Database; break;
           case "token"    : method = AuthMethod.PoolToken; break;
@@ -364,16 +366,48 @@ public class Rest
           default: return(error("Unknown authentication method "+meth));
         }
 
+
+        boolean usepool = false;
+        boolean anonymous = false;
+
         if (method == AuthMethod.OAuth)
         {
+          usepool = true;
           username = OAuth.getUserName(secret);
 
           if (username == null)
             return(error("OAuth authentication failed"));
+
+          method = AuthMethod.PoolToken;
+
+          if (payload.has("anonymous"))
+            anonymous = payload.getBoolean("anonymous");
         }
 
-        boolean anonymous = username == null;
-        if (method == AuthMethod.PoolToken || method == AuthMethod.OAuth)
+        if (method == AuthMethod.SSO)
+        {
+          if (server.getAuthReader() != null)
+            SessionManager.refresh(server.getAuthReader());
+
+          usepool = true;
+          PreAuthRecord rec = SessionManager.validate(secret);
+
+          if (rec == null)
+            return(error("SSO authentication failed"));
+
+          username = rec.username;
+
+          if (payload.has("anonymous"))
+            anonymous = payload.getBoolean("anonymous");
+        }
+
+        if (method == AuthMethod.PoolToken)
+        {
+          usepool = true;
+          anonymous = username == null;
+        }
+
+        if (usepool)
         {
           if (!anonymous) pool = config.getDatabase().proxy;
           else            pool = config.getDatabase().anonymous;
@@ -497,7 +531,7 @@ public class Rest
       }
 
       if (payload.has("compact")) compact = payload.getBoolean("compact");
-      if (state.session().dedicated() && payload.has("cursor")) curname = payload.getString("cursor");
+      if (state.session().statefull() && payload.has("cursor")) curname = payload.getString("cursor");
 
       String sql = getStatement(payload);
       if (sql == null) return(error("Attribute \"sql\" is missing"));
