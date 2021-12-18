@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.net.ssl.SSLSocket;
-import database.js.config.Config;
 import database.js.client.HTTPRequest;
 import database.js.security.PKIContext;
 import database.js.client.SocketReader;

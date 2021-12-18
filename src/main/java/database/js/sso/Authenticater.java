@@ -60,7 +60,7 @@ public class Authenticater
 
   public String authenticate(String username) throws Exception
   {
-    byte[] response = client.send("authenticate");
+    byte[] response = client.send("authenticate",username);
     return(new String(response));
   }
 }

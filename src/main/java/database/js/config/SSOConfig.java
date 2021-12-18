@@ -52,8 +52,8 @@ public class SSOConfig
     int count = get(config,"files",1);
     String logdir = get(config,"path",this.logdir);
 
-    String lfsize = Config.get(config,"size",null);
-    if (config.has("size")) lfsize = Config.get(config,"size");
+    String lfsize = get(config,"size",null);
+    if (config.has("size")) lfsize = get(config,"size");
 
     int size = LOGSIZE;
 
