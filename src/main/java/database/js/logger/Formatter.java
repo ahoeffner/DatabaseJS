@@ -29,10 +29,12 @@ public class Formatter extends java.util.logging.Formatter
   public String format(LogRecord record)
   {
     String date = df.format(new Date());
+    String location = record.getSourceClassName()+"."+record.getSourceMethodName();
+    location = location.substring("database.js.".length());
 
     String message = ": "+record.getMessage();
     String level = String.format("%-7s",record.getLevel().toString());
-    String source = String.format("%-52s",record.getSourceClassName()+"."+record.getSourceMethodName());
+    String source = String.format("%-48s",location);
 
     StringBuffer entry = new StringBuffer();
     boolean exception = (record.getThrown() != null);

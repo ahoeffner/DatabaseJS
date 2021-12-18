@@ -27,7 +27,8 @@ public class SessionManager
 {
   private final Server server;
   private final Config config;
-  private final SessionReaper sreaper;
+  private final SSOReaper ssoreaper;
+  private final SessionReaper sesreaper;
   private final static Logger logger = Logger.getLogger("rest");
 
   private final static ConcurrentHashMap<String,PreAuthRecord> preauth =
@@ -82,7 +83,7 @@ public class SessionManager
   public static PreAuthRecord validate(String guid)
   {
     if (guid == null) return(null);
-    else return(preauth.get(guid));
+    else return(preauth.remove(guid));
   }
 
 
@@ -123,14 +124,74 @@ public class SessionManager
   {
     this.server = server;
     this.config = server.config();
-    this.sreaper = new SessionReaper(server);
-    if (start) start();
+    this.ssoreaper = new SSOReaper(server);
+    this.sesreaper = new SessionReaper(server);
+    if (start) startSessionManager();
   }
 
 
-  public void start()
+  public void startSessionManager()
   {
-    sreaper.start();
+    sesreaper.start();
+  }
+
+
+  public void startSSOManager()
+  {
+    ssoreaper.start();
+  }
+
+
+  private static class SSOReaper extends Thread
+  {
+    private final Server server;
+    private final Config config;
+
+    SSOReaper(Server server)
+    {
+      this.server = server;
+      this.config = server.config();
+
+      this.setDaemon(true);
+      this.setName("SSOReaper");
+    }
+
+
+    @Override
+    public void run()
+    {
+      logger.info("SSOReaper started");
+
+      try
+      {
+        int timeout = config.getREST().ssotimeout * 1000;
+
+        while(true)
+        {
+          Thread.sleep(timeout/4);
+          long time = System.currentTimeMillis();
+          ArrayList<String> remove = new ArrayList<String>();
+
+          for(Map.Entry<String,PreAuthRecord> entry : preauth.entrySet())
+          {
+            PreAuthRecord sso = entry.getValue();
+
+            if (time - sso.time > timeout)
+            {
+              remove.add(sso.guid);
+              logger.fine("SSO: "+sso.guid+" timed out");
+            }
+          }
+
+          for(String guid : remove)
+            preauth.remove(guid);
+        }
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+    }
   }
 
 
@@ -193,7 +254,7 @@ public class SessionManager
             {
               session.share();
               session.disconnect();
-              logger.fine("Session: timed out "+session.guid());
+              logger.fine("Session: "+session.guid()+" timed out");
             }
           }
         }

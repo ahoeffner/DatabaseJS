@@ -19,11 +19,13 @@ public class Rest
 {
   public final int dump;
   public final int timeout;
+  public final int ssotimeout;
 
 
   public Rest(JSONObject config)
   {
-    this.dump = Config.get(config,"dump-stats");
-    this.timeout = Config.get(config,"timeout");
+    this.dump = Config.get(config,"ses.dump");
+    this.timeout = Config.get(config,"ses.timeout");
+    this.ssotimeout = Config.get(config,"sso.timeout");
   }
 }

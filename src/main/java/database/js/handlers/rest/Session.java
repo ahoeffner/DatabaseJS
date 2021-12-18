@@ -388,6 +388,9 @@ public class Session
     if (scope == null)
       return(Scope.None);
 
+    if (scope.equalsIgnoreCase("shared"))
+      scope = "None";
+
     scope = Character.toUpperCase(scope.charAt(0))
            + scope.substring(1).toLowerCase();
 

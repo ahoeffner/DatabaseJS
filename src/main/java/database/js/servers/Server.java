@@ -124,12 +124,10 @@ public class Server extends Thread
 
       Deployment.init(config);
       this.embedded = servers <= 0;
+      this.smgr = new SessionManager(this);
 
       if (!this.embedded) this.pmgr = null;
       else this.pmgr = new PoolManager(this);
-
-      if (!this.embedded) this.smgr = null;
-      else this.smgr = new SessionManager(this);
 
       if (this.embedded) this.loadblcr = null;
       else this.loadblcr = new LoadBalancer(config);
@@ -186,11 +184,12 @@ public class Server extends Thread
     ssl.start();
     plain.start();
     admin.start();
+    smgr.startSSOManager();
 
     if (embedded)
     {
       pmgr.start();
-      smgr.start();
+      smgr.startSessionManager();
     }
 
     while(admin.state() < HTTPServer.RUNNING)
