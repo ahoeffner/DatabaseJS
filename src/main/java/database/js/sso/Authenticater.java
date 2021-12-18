@@ -23,11 +23,9 @@ public class Authenticater
 
   public static void main(String[] args) throws Exception
   {
-    args = new String[] {"localhost:9003","alex"};
-
     if (args.length != 2)
     {
-      System.out.println("Usage: sso server username");
+      System.out.println("Usage: server:port username");
       System.exit(-1);
     }
 
