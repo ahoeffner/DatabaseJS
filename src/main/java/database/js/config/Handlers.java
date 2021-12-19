@@ -88,7 +88,7 @@ public class Handlers
   public Handler getHandler(String path, String method)
   {
     path += "/";
-    
+
     for(HandlerClass entry : entries)
     {
       if (path.startsWith(entry.prefix))

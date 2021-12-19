@@ -16,28 +16,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class JSONFormatter
 {
   private Content content = null;
-
-
-  public static void main(String[] args)
-  {
-    JSONFormatter format = null;
-
-    String[] columns = new String[] {"col1","col2"};
-    Object[] values = new Object[] {1,"2"};
-
-    format = new JSONFormatter();
-    format.success(true);
-    format.push("rows",ObjectArray);
-    format.add(columns,values);
-
-    System.out.println(format);
-  }
 
 
   public JSONFormatter()

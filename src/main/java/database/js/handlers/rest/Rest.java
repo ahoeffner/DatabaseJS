@@ -404,7 +404,12 @@ public class Rest
         if (method == AuthMethod.PoolToken)
         {
           usepool = true;
-          anonymous = username == null;
+
+          if (payload.has("anonymous"))
+            anonymous = payload.getBoolean("anonymous");
+
+          if (username == null)
+            anonymous = true;
         }
 
         if (usepool)

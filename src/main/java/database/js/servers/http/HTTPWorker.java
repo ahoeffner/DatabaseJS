@@ -74,7 +74,7 @@ public class HTTPWorker implements Runnable
 
       Handler handler = null;
       boolean admin = channel.admin();
-      
+
       if (admin) handler = handlers.getAdminHandler();
       else       handler = handlers.getHandler(path,method);
 

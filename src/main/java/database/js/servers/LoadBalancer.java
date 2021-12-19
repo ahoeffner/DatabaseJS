@@ -42,6 +42,12 @@ class LoadBalancer
 
   public RESTClient worker(short id)
   {
+    if (id - this.htsrvs < 0)
+      return(null);
+
+    if (id - this.htsrvs >= workers.length)
+      return(null);
+
     return(workers[id-this.htsrvs]);
   }
 

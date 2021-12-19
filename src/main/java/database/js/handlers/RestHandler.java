@@ -179,6 +179,18 @@ public class RestHandler extends Handler
     origin = url.getHost();
     String host = config().getHTTP().host;
 
+    int pos = host.indexOf(':');
+    if (pos > 0) host = host.substring(0,pos);
+
+    if (origin.startsWith("http://"))
+      origin = origin.substring(7);
+
+    if (origin.startsWith("https://"))
+      origin = origin.substring(8);
+
+    pos = origin.indexOf(':');
+    if (pos > 0) origin = origin.substring(0,pos);
+
     if (origin.equals(host))
     {
       this.domains.add(origin);
