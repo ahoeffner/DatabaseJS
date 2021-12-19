@@ -41,6 +41,8 @@ public class AppFileHandler extends Handler
     HTTPResponse response = null;
     Server server = request.server();
     String json = config().getHTTP().mimetypes.get("json");
+    
+    System.out.println("AppFileHandler");
 
     if (!server.embedded())
     {

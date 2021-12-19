@@ -87,6 +87,8 @@ public class Handlers
 
   public Handler getHandler(String path, String method)
   {
+    path += "/";
+    
     for(HandlerClass entry : entries)
     {
       if (path.startsWith(entry.prefix))
@@ -168,7 +170,7 @@ public class Handlers
     @Override
     public int compareTo(HandlerClass another)
     {
-      return(this.prefix.length() - another.prefix.length());
+      return(another.prefix.length() - this.prefix.length());
     }
   }
 }
