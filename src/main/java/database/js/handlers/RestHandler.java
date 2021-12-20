@@ -29,13 +29,14 @@ import database.js.handlers.file.PathUtil;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
+import database.js.handlers.rest.JSONFormatter;
 import database.js.config.Handlers.HandlerProperties;
 
 
 public class RestHandler extends Handler
 {
   private final PathUtil path;
-  private final TreeSet<String> domains;
+  private final CorsDomains domains;
   private final static Logger logger = Logger.getLogger("rest");
 
 
@@ -43,32 +44,43 @@ public class RestHandler extends Handler
   {
     super(config,properties);
     this.path = new PathUtil(this);
-    this.domains = new TreeSet<String>();
+    this.domains = new CorsDomains(config);
   }
 
 
   @Override
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
-    HTTPResponse response = null;
     Server server = request.server();
-
-    String html = config().getHTTP().mimetypes.get("html");
+    HTTPResponse response = new HTTPResponse();
     String json = config().getHTTP().mimetypes.get("json");
 
     server.request();
-    logger.finest("REST request received: "+request.path());
+    response.setContentType(json);
+    String path = this.path.getPath(request.path());
 
-    if (request.getHeader("Host") == null)
+    logger.finest("REST request received: "+path);
+
+    if (path == null)
     {
-      response = new HTTPResponse();
+      JSONFormatter jfmt = new JSONFormatter();
 
-      response.setResponse(400);
-      response.setContentType(html);
-      response.setBody("<b>Bad Request</b>");
+      jfmt.success(false);
+      jfmt.add("message","Path not mapped to any resource");
 
+      response.setBody(jfmt.toString());
       return(response);
     }
+
+    String errm = domains.allow(request);
+
+    if (errm != null)
+    {
+      response.setBody(errm);
+      return(response);
+    }
+
+    domains.addCorsHeaders(request,response);
 
     if (!server.embedded())
     {
@@ -80,11 +92,13 @@ public class RestHandler extends Handler
 
       if (client == null)
       {
-        response = new HTTPResponse();
-        response.setContentType(json);
+        JSONFormatter jfmt = new JSONFormatter();
 
+        jfmt.success(false);
+        jfmt.add("message","No RESTServer's connected");
+
+        response.setBody(jfmt.toString());
         logger.warning("No RESTServer's connected");
-        response.setBody("{\"status\": \"failed\", \"message\": \"No RESTServer's connected\"}");
 
         return(response);
       }
@@ -92,58 +106,15 @@ public class RestHandler extends Handler
       String host = request.remote();
       byte[] data = client.send(host,request.page());
 
-      response = new HTTPResponse(data);
+      response.setBody(data);
       return(response);
     }
 
-    response = new HTTPResponse();
     setClient(config(),request,response);
-
-    String path = this.path.getPath(request.path());
 
     boolean modify = false;
     if (request.method().equals("PATCH")) modify = true;
     if (request.method().equals("DELETE")) modify = true;
-
-    if (path == null)
-    {
-      response.setResponse(404);
-      response.setContentType(html);
-      response.setBody("<b>Page not found</b>");
-      return(response);
-    }
-
-    String mode = request.getHeader("Sec-Fetch-Mode");
-    if (mode != null && mode.equalsIgnoreCase("cors"))
-    {
-      String origin = request.getHeader("Origin");
-
-      if (origin == null)
-      {
-        response.setContentType(json);
-
-        logger.warning("Null Cors Origin header detected. Request rejected");
-        response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
-
-        return(response);
-      }
-
-      if (!allow(origin))
-      {
-        response.setContentType(json);
-
-        logger.warning("Origin "+origin+" rejected by Cors");
-        response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
-
-        return(response);
-      }
-
-      response.setHeader("Access-Control-Allow-Headers","*");
-      response.setHeader("Access-Control-Request-Method","*");
-      response.setHeader("Access-Control-Request-Headers","*");
-      response.setHeader("Access-Control-Allow-Origin",origin);
-      response.setHeader("Access-Control-Allow-Credentials","true");
-    }
 
     String session = request.getCookie("JSESSIONID");
     if (session == null) session = new Guid().toString();
@@ -166,51 +137,6 @@ public class RestHandler extends Handler
 
     log(logger,request,response);
     return(response);
-  }
-
-
-  private boolean allow(String origin) throws Exception
-  {
-    if (this.domains.contains(origin)) return(true);
-    ArrayList<String> corsheaders = config().getHTTP().corsdomains;
-
-    URL url = new URL(origin);
-
-    origin = url.getHost();
-    String host = config().getHTTP().host;
-
-    int pos = host.indexOf(':');
-    if (pos > 0) host = host.substring(0,pos);
-
-    if (origin.startsWith("http://"))
-      origin = origin.substring(7);
-
-    if (origin.startsWith("https://"))
-      origin = origin.substring(8);
-
-    pos = origin.indexOf(':');
-    if (pos > 0) origin = origin.substring(0,pos);
-
-    if (origin.equals(host))
-    {
-      this.domains.add(origin);
-      return(true);
-    }
-
-    origin = "." + origin + ".";
-    for(String pattern : corsheaders)
-    {
-      pattern = pattern.replace(".","\\.");
-      pattern = pattern.replace("*",".*");
-
-      if (origin.matches(".*"+pattern+".*"))
-      {
-        this.domains.add(origin);
-        return(true);
-      }
-    }
-
-    return(false);
   }
 
 

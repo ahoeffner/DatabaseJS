@@ -12,9 +12,6 @@
 
 package database.js.handlers;
 
-import java.net.URL;
-import java.util.TreeSet;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
@@ -29,7 +26,7 @@ import database.js.config.Handlers.HandlerProperties;
 public class AppFileHandler extends Handler
 {
   private final PathUtil path;
-  private final TreeSet<String> domains;
+  private final CorsDomains domains;
   private final Logger logger = Logger.getLogger("http");
 
 
@@ -37,7 +34,7 @@ public class AppFileHandler extends Handler
   {
     super(config,properties);
     this.path = new PathUtil(this);
-    this.domains = new TreeSet<String>();
+    this.domains = new CorsDomains(config);
   }
 
 
@@ -45,25 +42,23 @@ public class AppFileHandler extends Handler
   public HTTPResponse handle(HTTPRequest request) throws Exception
   {
     request.server().request();
-    HTTPResponse response = null;
     Server server = request.server();
-
+    HTTPResponse response = new HTTPResponse();
     String json = config().getHTTP().mimetypes.get("json");
-    String html = config().getHTTP().mimetypes.get("html");
 
     server.request();
-    logger.finest("REST request received: "+request.path());
+    logger.finest("AppFile request received: "+request.path());
 
-    if (request.getHeader("Host") == null)
+    response.setContentType(json);
+    String errm = domains.allow(request);
+
+    if (errm != null)
     {
-      response = new HTTPResponse();
-
-      response.setResponse(400);
-      response.setContentType(html);
-      response.setBody("<b>Bad Request</b>");
-
+      response.setBody(errm);
       return(response);
     }
+
+    domains.addCorsHeaders(request,response);
 
     String boundary = null;
     String ctype = request.getHeader("Content-Type");
@@ -73,48 +68,12 @@ public class AppFileHandler extends Handler
       if (pos > 0) boundary = ctype.substring(pos+9);
     }
 
-    String mode = request.getHeader("Sec-Fetch-Mode");
-    if (mode != null && mode.equalsIgnoreCase("cors"))
-    {
-      String origin = request.getHeader("Origin");
-
-      if (origin == null)
-      {
-        response = new HTTPResponse();
-        response.setContentType(json);
-
-        logger.warning("Null Cors Origin header detected. Request rejected");
-        response.setBody("{\"status\": \"failed\", \"message\": \"Null Cors Origin header detected. Request rejected\"}");
-
-        return(response);
-      }
-
-      if (!allow(origin))
-      {
-        response = new HTTPResponse();
-        response.setContentType(json);
-
-        logger.warning("Origin "+origin+" rejected by Cors");
-        response.setBody("{\"status\": \"failed\", \"message\": \"\"Origin \"+origin+\" rejected by Cors\"}");
-
-        return(response);
-      }
-
-      response.setHeader("Access-Control-Allow-Headers","*");
-      response.setHeader("Access-Control-Request-Method","*");
-      response.setHeader("Access-Control-Request-Headers","*");
-      response.setHeader("Access-Control-Allow-Origin",origin);
-      response.setHeader("Access-Control-Allow-Credentials","true");
-    }
-
     if (!server.embedded())
     {
-      String errm = ensure(request);
+      errm = ensure(request);
 
       if (errm != null)
       {
-        response = new HTTPResponse();
-        response.setContentType(json);
         JSONFormatter jfmt = new JSONFormatter();
 
         jfmt.success(false);
@@ -128,8 +87,6 @@ public class AppFileHandler extends Handler
 
     //System.out.println(new String(request.page()));
 
-    response = new HTTPResponse();
-    response.setContentType(json);
     JSONFormatter jfmt = new JSONFormatter();
 
     jfmt.success(true);
@@ -169,50 +126,5 @@ public class AppFileHandler extends Handler
     System.out.println(new String(response));
 
     return(null);
-  }
-
-
-  private boolean allow(String origin) throws Exception
-  {
-    if (this.domains.contains(origin)) return(true);
-    ArrayList<String> corsheaders = config().getHTTP().corsdomains;
-
-    URL url = new URL(origin);
-
-    origin = url.getHost();
-    String host = config().getHTTP().host;
-
-    int pos = host.indexOf(':');
-    if (pos > 0) host = host.substring(0,pos);
-
-    if (origin.startsWith("http://"))
-      origin = origin.substring(7);
-
-    if (origin.startsWith("https://"))
-      origin = origin.substring(8);
-
-    pos = origin.indexOf(':');
-    if (pos > 0) origin = origin.substring(0,pos);
-
-    if (origin.equals(host))
-    {
-      this.domains.add(origin);
-      return(true);
-    }
-
-    origin = "." + origin + ".";
-    for(String pattern : corsheaders)
-    {
-      pattern = pattern.replace(".","\\.");
-      pattern = pattern.replace("*",".*");
-
-      if (origin.matches(".*"+pattern+".*"))
-      {
-        this.domains.add(origin);
-        return(true);
-      }
-    }
-
-    return(false);
   }
 }
