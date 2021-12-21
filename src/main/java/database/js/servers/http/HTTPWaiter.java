@@ -148,15 +148,10 @@ class HTTPWaiter extends Thread
 
             if (buf == null)
             {
-              if (client.attempts() > 32)
+              if (client.attempts() > 8)
               {
                 key.cancel();
-
-                if (channel.isOpen())
-                {
-                  channel.close();
-                  logger.warning("Selector keeps presenting channel as readable. But no data is available");
-                }
+                channel.close();
               }
 
               continue;

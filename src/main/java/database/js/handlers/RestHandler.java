@@ -86,6 +86,7 @@ public class RestHandler extends Handler
     {
       RESTClient client = null;
       short rsrv = getClient(config(),request);
+      logger.finest("Use RestServer "+rsrv);
 
       if (rsrv < 0) client = server.worker();
       else          client = server.worker(rsrv);
@@ -106,7 +107,9 @@ public class RestHandler extends Handler
       String host = request.remote();
       byte[] data = client.send(host,request.page());
 
-      response.setBody(data);
+      response = new HTTPResponse(data);
+      log(logger,request,response);
+
       return(response);
     }
 

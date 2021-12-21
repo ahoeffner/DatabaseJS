@@ -16,6 +16,7 @@ import database.js.admin.Client;
 import database.js.security.OAuth;
 import database.js.database.Database;
 import database.js.handlers.CrossOrigin;
+import database.js.servers.http.HTTPResponse;
 
 
 public class Statics
@@ -24,6 +25,7 @@ public class Statics
   {
     OAuth.init(config);
     Database.setUrl(config.getDatabase().url);
+    HTTPResponse.init(config.getHTTP().timeout);
     Database.setTestSQL(config.getDatabase().test);
     CrossOrigin.init(config.getHTTP().host,config.getHTTP().corsdomains);
     Client.setConfig(config.getPKIContext(),config.getHTTP().bufsize,Config.clientTimeout());

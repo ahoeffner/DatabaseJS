@@ -29,7 +29,7 @@ public class HTTPReaper extends Thread
     if (reaper == null)
     {
       HTTPReaper.timeout = timeout;
-      reaper = new HTTPReaper(logger,waiters,timeout);
+      reaper = new HTTPReaper(logger,waiters);
     }
   }
 
@@ -40,7 +40,7 @@ public class HTTPReaper extends Thread
   }
 
 
-  private HTTPReaper(Logger logger, HTTPWaiterPool waiters, int timeout)
+  private HTTPReaper(Logger logger, HTTPWaiterPool waiters)
   {
     this.logger = logger;
     this.waiters = waiters;

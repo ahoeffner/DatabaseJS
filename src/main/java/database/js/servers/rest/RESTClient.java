@@ -71,7 +71,7 @@ public class RESTClient implements RESTConnection
     if (this.wchannel == null) this.wchannel = channel;
     else                       this.rchannel = channel;
 
-    if (this.rchannel != null)
+    if (this.wchannel != null && this.rchannel != null)
     {
       this.up = true;
       this.writer.start();

@@ -25,10 +25,10 @@ public class HTTPResponse
   private String response;
   private String mimetype;
   private boolean finished;
+  private static int timeout;
 
   // Not threadsafe => allocate per response
   private final SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM YYYY hh:mm:ss z");
-
 
   private final ArrayList<String> headers =
     new ArrayList<String>();
@@ -37,12 +37,18 @@ public class HTTPResponse
   private final static String server = "database.js";
 
 
+  public static void init(int timeout)
+  {
+    HTTPResponse.timeout = timeout/1000;
+  }
+
+
   public HTTPResponse()
   {
     setHeader("server",server);
     setHeader("Date",new Date());
     setHeader("Connection","Keep-Alive");
-    setHeader("Keep-Alive","timeout="+HTTPReaper.KeepAlive());
+    setHeader("Keep-Alive","timeout="+timeout);
   }
 
 
@@ -154,6 +160,14 @@ public class HTTPResponse
     if (expires != null)
       expire = "; expires="+format.format(expires);
 
+    setHeader("Set-Cookie",cookie+"="+value+expire+"; path="+path);
+  }
+
+
+  public void setCookie(String cookie, String value, int maxage, String path)
+  {
+    if (value == null) value = "";
+    String expire = "; max-age="+maxage;
     setHeader("Set-Cookie",cookie+"="+value+expire+"; path="+path);
   }
 

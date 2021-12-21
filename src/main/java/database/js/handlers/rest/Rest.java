@@ -87,7 +87,9 @@ public class Rest
   {
     try
     {
+      System.out.println("Execute "+path);
       Request request = new Request(this,path,payload);
+      System.out.println("new request "+request);
       state.session(SessionManager.get(request.session));
 
       if (request.nvlfunc().equals("batch"))
