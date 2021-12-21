@@ -15,34 +15,34 @@ package database.js.handlers;
 import java.net.URL;
 import java.util.TreeSet;
 import java.util.ArrayList;
-import database.js.config.Config;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.handlers.rest.JSONFormatter;
 
 
-public class CorsDomains
+public class CrossOrigin
 {
-  private final ArrayList<String> corsheaders;
-
   private final static TreeSet<String> domains =
     new TreeSet<String>();
 
+  private final static ArrayList<String> allowed =
+    new ArrayList<String>();
 
-  public CorsDomains(Config config) throws Exception
+
+public static void init(String host, ArrayList<String> domains)
   {
-    String host = config.getHTTP().host;
-
     int pos = host.indexOf(':');
     if (pos > 0) host = host.substring(0,pos);
 
-    synchronized(domains)
-    {
-      if (!domains.contains(host))
-        domains.add(host);
-    }
+    CrossOrigin.domains.add(host);
 
-    this.corsheaders = config.getHTTP().corsdomains;
+    for (String pattern : domains)
+    {
+      pattern = pattern.replace(".","\\.");
+      pattern = pattern.replace("*",".*");
+
+      CrossOrigin.allowed.add(".*\\."+pattern+"\\..*");
+    }
   }
 
 
@@ -60,12 +60,9 @@ public class CorsDomains
     origin = url.getHost();
 
     origin = "." + origin + ".";
-    for(String pattern : corsheaders)
+    for(String pattern : allowed)
     {
-      pattern = pattern.replace(".","\\.");
-      pattern = pattern.replace("*",".*");
-
-      if (origin.matches(".*"+pattern+".*"))
+      if (origin.matches(pattern))
       {
         domains.add(origin);
         return(null);
@@ -81,7 +78,7 @@ public class CorsDomains
   }
 
 
-  public void addCorsHeaders(HTTPRequest request, HTTPResponse response)
+  public void addHeaders(HTTPRequest request, HTTPResponse response)
   {
     String mode = request.getHeader("Sec-Fetch-Mode");
     if (mode == null || !mode.equalsIgnoreCase("cors")) return;

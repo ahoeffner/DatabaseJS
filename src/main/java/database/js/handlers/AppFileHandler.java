@@ -26,15 +26,15 @@ import database.js.config.Handlers.HandlerProperties;
 public class AppFileHandler extends Handler
 {
   private final PathUtil path;
-  private final CorsDomains domains;
+  private final CrossOrigin cors;
   private final Logger logger = Logger.getLogger("http");
 
 
   public AppFileHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
+    this.cors = new CrossOrigin();
     this.path = new PathUtil(this);
-    this.domains = new CorsDomains(config);
   }
 
 
@@ -50,7 +50,7 @@ public class AppFileHandler extends Handler
     logger.finest("AppFile request received: "+request.path());
 
     response.setContentType(json);
-    String errm = domains.allow(request);
+    String errm = cors.allow(request);
 
     if (errm != null)
     {
@@ -58,7 +58,7 @@ public class AppFileHandler extends Handler
       return(response);
     }
 
-    domains.addCorsHeaders(request,response);
+    cors.addHeaders(request,response);
 
     String boundary = null;
     String ctype = request.getHeader("Content-Type");
@@ -85,7 +85,7 @@ public class AppFileHandler extends Handler
       }
     }
 
-    //System.out.println(new String(request.page()));
+    System.out.println(new String(request.page()));
 
     JSONFormatter jfmt = new JSONFormatter();
 

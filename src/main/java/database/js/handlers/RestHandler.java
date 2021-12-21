@@ -36,15 +36,15 @@ import database.js.config.Handlers.HandlerProperties;
 public class RestHandler extends Handler
 {
   private final PathUtil path;
-  private final CorsDomains domains;
+  private final CrossOrigin cors;
   private final static Logger logger = Logger.getLogger("rest");
 
 
   public RestHandler(Config config, HandlerProperties properties) throws Exception
   {
     super(config,properties);
+    this.cors = new CrossOrigin();
     this.path = new PathUtil(this);
-    this.domains = new CorsDomains(config);
   }
 
 
@@ -72,7 +72,7 @@ public class RestHandler extends Handler
       return(response);
     }
 
-    String errm = domains.allow(request);
+    String errm = cors.allow(request);
 
     if (errm != null)
     {
@@ -80,7 +80,7 @@ public class RestHandler extends Handler
       return(response);
     }
 
-    domains.addCorsHeaders(request,response);
+    cors.addHeaders(request,response);
 
     if (!server.embedded())
     {
