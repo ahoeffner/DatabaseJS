@@ -21,6 +21,9 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.handlers.rest.JSONFormatter;
 import database.js.config.Handlers.HandlerProperties;
+import database.js.handlers.rest.Request;
+
+import org.json.JSONObject;
 
 
 public class AppFileHandler extends Handler
@@ -133,9 +136,12 @@ public class AppFileHandler extends Handler
 
     ensure += "POST /"+session+"/status HTTP/1.1"+nl+nl;
 
-    byte[] response = client.send("localhost",ensure.getBytes());
-    System.out.println(new String(response));
-
+    byte[] data = client.send("localhost",ensure.getBytes());
+    
+    HTTPResponse response = new HTTPResponse(data);
+    JSONObject status = Request.parse(new String(response.body()));
+    
+    logger.info("status: "+status.getBoolean("success"));
     return(null);
   }
 }
