@@ -139,7 +139,7 @@ class HTTPWaiter extends Thread
           SelectionKey key = iterator.next();
           iterator.remove();
 
-          if (key.isReadable())
+          if (key.isReadable() && key.isValid())
           {
             HTTPChannel client = (HTTPChannel) key.attachment();
             SocketChannel channel = (SocketChannel) key.channel();

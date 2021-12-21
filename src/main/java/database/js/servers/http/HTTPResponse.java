@@ -164,6 +164,12 @@ public class HTTPResponse
   }
 
 
+  public void setCookie(String cookie, String value, int maxage)
+  {
+    setCookie(cookie,value,maxage,"/");
+  }
+
+
   public void setCookie(String cookie, String value, int maxage, String path)
   {
     if (value == null) value = "";

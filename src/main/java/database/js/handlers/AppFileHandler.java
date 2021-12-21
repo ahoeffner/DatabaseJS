@@ -27,7 +27,7 @@ public class AppFileHandler extends Handler
 {
   private final PathUtil path;
   private final CrossOrigin cors;
-  private final Logger logger = Logger.getLogger("http");
+  private final Logger logger = Logger.getLogger("rest");
 
 
   public AppFileHandler(Config config, HandlerProperties properties) throws Exception
@@ -44,9 +44,23 @@ public class AppFileHandler extends Handler
     request.server().request();
     Server server = request.server();
     HTTPResponse response = new HTTPResponse();
+    String path = this.path.getPath(request.path());
     String json = config().getHTTP().mimetypes.get("json");
 
+    if (path == null)
+    {
+      response.setContentType(json);
+      JSONFormatter jfmt = new JSONFormatter();
+
+      jfmt.success(false);
+      jfmt.add("message","Path not mapped to any resource");
+
+      response.setBody(jfmt.toString());
+      return(response);
+    }
+
     server.request();
+    String session = path.substring(1).split("/")[0];
     logger.finest("AppFile request received: "+request.path());
 
     response.setContentType(json);
@@ -70,7 +84,7 @@ public class AppFileHandler extends Handler
 
     if (!server.embedded())
     {
-      errm = ensure(request);
+      errm = ensure(request,session);
 
       if (errm != null)
       {
@@ -97,14 +111,13 @@ public class AppFileHandler extends Handler
   }
 
 
-  private String ensure(HTTPRequest request) throws Exception
+  private String ensure(HTTPRequest request, String session) throws Exception
   {
-    if (1 == 1) return(null);
-
-    String path = this.path.getPath(request.path());
-    if (path == null) return("Illegal path specification");
+    if (session == null || session.length() == 0)
+      return("Not connected");
 
     short rsrv = RestHandler.getClient(config(),request);
+    logger.info("Restserver = "+rsrv); rsrv = 2;
 
     if (rsrv < 0)
       return("Not connected");
@@ -116,11 +129,9 @@ public class AppFileHandler extends Handler
 
     String ensure = "";
     String nl = "\r\n";
-    String session = path.split("/")[0];
     System.out.println("Session "+session);
 
-    ensure += "POST /"+session+"/status HTTP/1.1"+nl;
-    ensure += "Host: localhost"+nl+nl+nl;
+    ensure += "POST /"+session+"/status HTTP/1.1"+nl+nl;
 
     byte[] response = client.send("localhost",ensure.getBytes());
     System.out.println(new String(response));

@@ -12,17 +12,12 @@
 
 package database.js.handlers;
 
-import java.net.URL;
 import java.util.Base64;
-import java.util.TreeSet;
-import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
-import database.js.security.OAuth;
-import database.js.database.Database;
 import database.js.handlers.rest.Rest;
 import database.js.handlers.rest.Guid;
 import database.js.handlers.file.PathUtil;
