@@ -87,9 +87,7 @@ public class Rest
   {
     try
     {
-      System.out.println("Execute "+path);
       Request request = new Request(this,path,payload);
-      System.out.println("new request "+request);
       state.session(SessionManager.get(request.session));
 
       if (request.nvlfunc().equals("batch"))
@@ -334,6 +332,7 @@ public class Rest
   private String connect(JSONObject payload)
   {
     Pool pool = null;
+    String type = null;
     String scope = null;
     String secret = null;
     String username = null;
@@ -342,6 +341,8 @@ public class Rest
 
     try
     {
+      type = config.getDatabase().type.toString();
+      
       if (payload.has("username"))
         username = payload.getString("username");
 
@@ -439,6 +440,7 @@ public class Rest
     String sesid = encode(privateses,state.session().guid(),host);
 
     json.success(true);
+    json.add("type",type);
     json.add("session",sesid);
 
     return(json.toString());
