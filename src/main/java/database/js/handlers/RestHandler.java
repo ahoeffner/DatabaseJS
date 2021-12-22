@@ -204,7 +204,7 @@ public class RestHandler extends Handler
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
 
     if (logger.getLevel() == Level.FINE)
-      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms"+req+new String(request.body())+rsp+new String(response.body())+end);
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms"+req+new String(request.nvlbody())+rsp+new String(response.nvlbody())+end);
 
     if (logger.getLevel() == Level.FINEST)
       logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms"+req+new String(request.page())+rsp+new String(response.page())+end);

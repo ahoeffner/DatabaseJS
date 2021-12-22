@@ -117,6 +117,13 @@ public class HTTPRequest
     return(request);
   }
 
+  public byte[] nvlbody()
+  {
+    byte[] body = body();
+    if (body != null) return(body);
+    else              return(new byte[0]);
+  }
+
   public byte[] body()
   {
     if (body != null) return(body);

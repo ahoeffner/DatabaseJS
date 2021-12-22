@@ -342,7 +342,7 @@ public class Rest
     try
     {
       type = config.getDatabase().type.toString();
-      
+
       if (payload.has("username"))
         username = payload.getString("username");
 

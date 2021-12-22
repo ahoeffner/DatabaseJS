@@ -12,18 +12,17 @@
 
 package database.js.handlers;
 
+import org.json.JSONObject;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
+import database.js.handlers.rest.Request;
 import database.js.handlers.file.PathUtil;
 import database.js.servers.rest.RESTClient;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.handlers.rest.JSONFormatter;
 import database.js.config.Handlers.HandlerProperties;
-import database.js.handlers.rest.Request;
-
-import org.json.JSONObject;
 
 
 public class AppFileHandler extends Handler
@@ -77,14 +76,6 @@ public class AppFileHandler extends Handler
 
     cors.addHeaders(request,response);
 
-    String boundary = null;
-    String ctype = request.getHeader("Content-Type");
-    if (ctype.startsWith("multipart/form-data"))
-    {
-      int pos = ctype.indexOf("boundary=");
-      if (pos > 0) boundary = ctype.substring(pos+9);
-    }
-
     if (!server.embedded())
     {
       errm = ensure(request,session);
@@ -102,12 +93,65 @@ public class AppFileHandler extends Handler
       }
     }
 
-    System.out.println(new String(request.page()));
+    if (request.getHeader("Content-Type").startsWith("multipart/form-data"))
+      return(upload(request,response));
 
     JSONFormatter jfmt = new JSONFormatter();
 
     jfmt.success(true);
     jfmt.add("message","file uploaded");
+
+    response.setBody(jfmt.toString());
+    return(response);
+  }
+
+
+  private HTTPResponse upload(HTTPRequest request, HTTPResponse response)
+  {
+    JSONFormatter jfmt = new JSONFormatter();
+    System.out.println(new String(request.page()));
+    System.out.println();
+    System.out.println();
+    System.out.println();
+
+    String ctype = request.getHeader("Content-Type");
+    String boundary = "--"+ctype.substring(ctype.indexOf("boundary=")+9);
+
+    int next = 0;
+    byte[] body = request.body();
+    byte[] eoh = "\r\n\r\n".getBytes();
+    byte[] pattern = boundary.getBytes();
+
+    while(true)
+    {
+      int last = next;
+      next = indexOf(body,pattern,next);
+
+      if (next > last)
+      {
+        // 1 newline (\r\n) after boundary,
+        // 2 after header and another after content
+
+        last += 2;
+        int head = indexOf(body,eoh,last+pattern.length);
+        String header = new String(body,last,head-last);
+
+        head += 4;
+        byte[] entry = new byte[next-head-2];
+        System.arraycopy(body,head,entry,0,entry.length);
+
+        Field field = new Field(header,entry);
+        System.out.println(field);
+      }
+
+      if (next == -1 || next + pattern.length + 4 == body.length)
+        break;
+
+      next += pattern.length + 1;
+    }
+
+    jfmt.success(true);
+    jfmt.add("message","Files Uploaded");
 
     response.setBody(jfmt.toString());
     return(response);
@@ -132,16 +176,84 @@ public class AppFileHandler extends Handler
 
     String ensure = "";
     String nl = "\r\n";
-    System.out.println("Session "+session);
 
-    ensure += "POST /"+session+"/status HTTP/1.1"+nl+nl;
-
+    ensure += "POST /"+session+"/status HTTP/1.1"+nl+"Host: localhost"+nl+nl;
     byte[] data = client.send("localhost",ensure.getBytes());
-    
+
     HTTPResponse response = new HTTPResponse(data);
     JSONObject status = Request.parse(new String(response.body()));
-    
+
     logger.info("status: "+status.getBoolean("success"));
     return(null);
+  }
+
+
+  public static int indexOf(byte[] data, byte[] pattern, int start)
+  {
+    for(int i = start; i < data.length - pattern.length + 1; i++)
+    {
+        boolean found = true;
+
+        for(int j = 0; j < pattern.length; ++j)
+        {
+           if (data[i+j] != pattern[j])
+           {
+               found = false;
+               break;
+           }
+        }
+
+        if (found) return(i);
+     }
+
+    return(-1);
+  }
+
+
+  private static class Field
+  {
+    final int size;
+    final String name;
+    final byte[] content;
+    final String filename;
+
+
+    Field(String header, byte[] content)
+    {
+      int pos1 = 0;
+      int pos2 = 0;
+      String name = null;
+      String filename = null;
+
+      pos1 = header.indexOf("name=");
+
+      if (pos1 >= 0)
+      {
+        pos1 += 6;
+        pos2 = header.indexOf('"',pos1);
+        if (pos2 >= 0) name = header.substring(pos1,pos2);
+      }
+
+      pos1 = header.indexOf("filename=");
+
+      if (pos1 >= 0)
+      {
+        pos1 += 10;
+        pos2 = header.indexOf('"',pos1);
+        if (pos2 >= 0) filename = header.substring(pos1,pos2);
+      }
+
+      this.name = name;
+      this.content = content;
+      this.filename = filename;
+      this.size = content.length;
+    }
+
+
+    @Override
+    public String toString()
+    {
+      return("name="+name+" filename="+filename+" size="+size+" <"+new String(content)+">");
+    }
   }
 }
