@@ -13,6 +13,7 @@
 package database.js.handlers;
 
 import org.json.JSONObject;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import database.js.config.Config;
 import database.js.servers.Server;
@@ -23,6 +24,7 @@ import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.handlers.rest.JSONFormatter;
 import database.js.config.Handlers.HandlerProperties;
+import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
 public class AppFileHandler extends Handler
@@ -109,11 +111,6 @@ public class AppFileHandler extends Handler
   private HTTPResponse upload(HTTPRequest request, HTTPResponse response)
   {
     JSONFormatter jfmt = new JSONFormatter();
-    System.out.println(new String(request.page()));
-    System.out.println();
-    System.out.println();
-    System.out.println();
-
     String ctype = request.getHeader("Content-Type");
     String boundary = "--"+ctype.substring(ctype.indexOf("boundary=")+9);
 
@@ -122,17 +119,20 @@ public class AppFileHandler extends Handler
     byte[] eoh = "\r\n\r\n".getBytes();
     byte[] pattern = boundary.getBytes();
 
+    ArrayList<Field> files = new ArrayList<Field>();
+    ArrayList<Field> fields = new ArrayList<Field>();
+
     while(true)
     {
-      int last = next;
+      int last = next + 1;
       next = indexOf(body,pattern,next);
 
       if (next > last)
       {
-        // 1 newline (\r\n) after boundary,
-        // 2 after header and another after content
+        // newline is \r\n
+        // 2 newlines after header
+        // 1 newline after content
 
-        last += 2;
         int head = indexOf(body,eoh,last+pattern.length);
         String header = new String(body,last,head-last);
 
@@ -141,7 +141,9 @@ public class AppFileHandler extends Handler
         System.arraycopy(body,head,entry,0,entry.length);
 
         Field field = new Field(header,entry);
-        System.out.println(field);
+
+        if (field.filename != null) files.add(field);
+        else                        fields.add(field);
       }
 
       if (next == -1 || next + pattern.length + 4 == body.length)
@@ -151,7 +153,34 @@ public class AppFileHandler extends Handler
     }
 
     jfmt.success(true);
-    jfmt.add("message","Files Uploaded");
+
+    if (fields.size() > 0)
+    {
+      jfmt.push("fields",ObjectArray);
+      String[] attrs = new String[] {"field","value"};
+
+      for(Field field : fields)
+      {
+        String[] values = new String[] {field.name,new String(field.content)};
+        jfmt.add(attrs,values);
+      }
+      
+      jfmt.pop();
+    }
+
+    if (files.size() > 0)
+    {
+      jfmt.push("files",ObjectArray);
+      String[] attrs = new String[] {"field","filename","size"};
+
+      for(Field field : files)
+      {
+        Object[] values = new Object[] {field.name,field.filename,field.size};
+        jfmt.add(attrs,values);
+      }
+      
+      jfmt.pop();
+    }
 
     response.setBody(jfmt.toString());
     return(response);
