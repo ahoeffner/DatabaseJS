@@ -108,17 +108,18 @@ public class AppFileHandler extends Handler
   }
 
 
-  private HTTPResponse upload(HTTPRequest request, HTTPResponse response)
+  private HTTPResponse upload(HTTPRequest request, HTTPResponse response) throws Exception
   {
     JSONFormatter jfmt = new JSONFormatter();
     String ctype = request.getHeader("Content-Type");
     String boundary = "--"+ctype.substring(ctype.indexOf("boundary=")+9);
-
+    
     int next = 0;
     byte[] body = request.body();
     byte[] eoh = "\r\n\r\n".getBytes();
     byte[] pattern = boundary.getBytes();
 
+    JSONObject options = null;
     ArrayList<Field> files = new ArrayList<Field>();
     ArrayList<Field> fields = new ArrayList<Field>();
 
@@ -141,9 +142,18 @@ public class AppFileHandler extends Handler
         System.arraycopy(body,head,entry,0,entry.length);
 
         Field field = new Field(header,entry);
-
-        if (field.filename != null) files.add(field);
-        else                        fields.add(field);
+        
+        if (field.name != null && field.name.equals("options"))
+        {
+          options = Request.parse(new String(field.content));
+          field = null;
+        }
+        
+        if (field != null)
+        {
+          if (field.filename != null) files.add(field);
+          else                        fields.add(field);
+        }
       }
 
       if (next == -1 || next + pattern.length + 4 == body.length)
@@ -153,6 +163,7 @@ public class AppFileHandler extends Handler
     }
 
     jfmt.success(true);
+    System.out.println("options="+options);
 
     if (fields.size() > 0)
     {
