@@ -12,9 +12,11 @@
 
 package database.js.handlers;
 
+import java.io.File;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.io.FileOutputStream;
 import database.js.config.Config;
 import database.js.servers.Server;
 import database.js.handlers.rest.Request;
@@ -113,11 +115,12 @@ public class AppFileHandler extends Handler
     JSONFormatter jfmt = new JSONFormatter();
     String ctype = request.getHeader("Content-Type");
     String boundary = "--"+ctype.substring(ctype.indexOf("boundary=")+9);
-    
+
     int next = 0;
     byte[] body = request.body();
     byte[] eoh = "\r\n\r\n".getBytes();
     byte[] pattern = boundary.getBytes();
+    String root = config().getREST().fileroot;
 
     JSONObject options = null;
     ArrayList<Field> files = new ArrayList<Field>();
@@ -142,17 +145,17 @@ public class AppFileHandler extends Handler
         System.arraycopy(body,head,entry,0,entry.length);
 
         Field field = new Field(header,entry);
-        
+
         if (field.name != null && field.name.equals("options"))
         {
           options = Request.parse(new String(field.content));
           field = null;
         }
-        
+
         if (field != null)
         {
-          if (field.filename != null) files.add(field);
-          else                        fields.add(field);
+          if (field.srcfile != null) files.add(field);
+          else                       fields.add(field);
         }
       }
 
@@ -163,7 +166,6 @@ public class AppFileHandler extends Handler
     }
 
     jfmt.success(true);
-    System.out.println("options="+options);
 
     if (fields.size() > 0)
     {
@@ -175,21 +177,22 @@ public class AppFileHandler extends Handler
         String[] values = new String[] {field.name,new String(field.content)};
         jfmt.add(attrs,values);
       }
-      
+
       jfmt.pop();
     }
 
     if (files.size() > 0)
     {
       jfmt.push("files",ObjectArray);
-      String[] attrs = new String[] {"field","filename","size"};
+      String[] attrs = new String[] {"field","srcfile","dstfile","size"};
 
       for(Field field : files)
       {
-        Object[] values = new Object[] {field.name,field.filename,field.size};
+        field.write(root,options);
+        Object[] values = new Object[] {field.name,field.srcfile,field.dstfile,field.size};
         jfmt.add(attrs,values);
       }
-      
+
       jfmt.pop();
     }
 
@@ -252,10 +255,13 @@ public class AppFileHandler extends Handler
 
   private static class Field
   {
-    final int size;
-    final String name;
-    final byte[] content;
-    final String filename;
+    int size = 0;
+    String name = null;
+    String folder = "/";
+    String srcfile = null;
+    String dstfile = null;
+    byte[] content = null;
+    boolean tmpfile = false;
 
 
     Field(String header, byte[] content)
@@ -285,15 +291,85 @@ public class AppFileHandler extends Handler
 
       this.name = name;
       this.content = content;
-      this.filename = filename;
+      this.srcfile = filename;
       this.size = content.length;
+    }
+
+
+    void setOptions(String root, JSONObject options) throws Exception
+    {
+      if (options == null) return;
+      if (!options.has(name)) return;
+
+      options = options.getJSONObject(name);
+
+      if (options.has("tmpfile"))
+        tmpfile = options.getBoolean("tmpfile");
+
+      if (options.has("folder"))
+        folder = options.getString("folder");
+
+      if (!folder.startsWith("/"))
+        folder = File.separator + folder;
+
+      if (!folder.endsWith("/"))
+        folder += File.separator;
+
+      if (!checkpath(root,root+folder+srcfile))
+        throw new Exception("Illegal path specification "+folder);
+    }
+
+
+    void write(String root, JSONObject options) throws Exception
+    {
+      File dest = null;
+      setOptions(root,options);
+      File folder = new File(root+this.folder);
+      
+      folder.mkdirs();
+
+      if (tmpfile)
+      {
+        String type = "";
+        int pos = srcfile.lastIndexOf('.');
+        if (pos > 0) type = srcfile.substring(pos);
+        dest = File.createTempFile("App",type,folder);
+        dstfile = this.folder + dest.getName();
+      }
+      else
+      {
+        dstfile = this.folder + srcfile;
+        dest = new File(folder+dstfile);
+      }
+
+      FileOutputStream out = new FileOutputStream(dest);
+      out.write(content);
+      out.close();
     }
 
 
     @Override
     public String toString()
     {
-      return("name="+name+" filename="+filename+" size="+size+" <"+new String(content)+">");
+      return("name="+name+" filename="+srcfile+" size="+size);
+    }
+
+
+    boolean checkpath(String root, String path)
+    {
+      try
+      {
+        File p = new File(path);
+
+        if (p.getCanonicalPath().startsWith(root))
+          return(true);
+
+        return(false);
+      }
+      catch (Exception e)
+      {
+        return(false);
+      }
     }
   }
 }

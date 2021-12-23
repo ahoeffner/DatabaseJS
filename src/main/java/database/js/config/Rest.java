@@ -20,6 +20,7 @@ public class Rest
   public final int dump;
   public final int timeout;
   public final int ssotimeout;
+  public final String fileroot;
 
 
   public Rest(JSONObject config)
@@ -27,5 +28,8 @@ public class Rest
     this.dump = Config.get(config,"ses.dump");
     this.timeout = Config.get(config,"ses.timeout");
     this.ssotimeout = Config.get(config,"sso.timeout");
+
+    String fileroot = Config.get(config,"files.root");
+    this.fileroot = Config.getPath(fileroot,Paths.apphome);
   }
 }
