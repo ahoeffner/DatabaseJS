@@ -287,7 +287,7 @@ class HTTPWaiter extends Thread
   }
 
 
-  private static byte[] err400(boolean rest)
+  public static byte[] err400(boolean rest)
   {
     String msg = "<b>Bad Request</b>";
     if (rest) msg = "{\"status\": \"failed\", \"message\": \"Bad Request\"}";
@@ -300,7 +300,7 @@ class HTTPWaiter extends Thread
   }
 
 
-  private static byte[] err500(boolean rest)
+  public static byte[] err500(boolean rest)
   {
     String msg = "<b>Internal Server Error</b>";
     if (rest) msg = "{\"status\": \"failed\", \"message\": \"Internal Server Error\"}";

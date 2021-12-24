@@ -83,8 +83,10 @@ public class HTTPWorker implements Runnable
         logger.warning("No appropiate handler mapped to path="+path+" method="+method);
 
         this.workers.done();
-        this.channel.failed();
         this.channel.stayalive(false);
+
+        try {request.respond(HTTPWaiter.err500(false));} catch (Exception ex) {;}
+        this.channel.failed();
 
         return;
       }
@@ -97,8 +99,9 @@ public class HTTPWorker implements Runnable
     catch(Throwable e)
     {
       this.workers.done();
-      this.channel.failed();
       logger.log(Level.SEVERE,e.getMessage(),e);
+      try {request.respond(HTTPWaiter.err500(false));} catch (Exception ex) {;}
+      this.channel.failed();
     }
     finally
     {

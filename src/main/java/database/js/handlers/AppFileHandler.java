@@ -325,7 +325,7 @@ public class AppFileHandler extends Handler
       File dest = null;
       setOptions(root,options);
       File folder = new File(root+this.folder);
-      
+
       folder.mkdirs();
 
       if (tmpfile)
@@ -339,7 +339,7 @@ public class AppFileHandler extends Handler
       else
       {
         dstfile = this.folder + srcfile;
-        dest = new File(folder+dstfile);
+        dest = new File(root + dstfile);
       }
 
       FileOutputStream out = new FileOutputStream(dest);
