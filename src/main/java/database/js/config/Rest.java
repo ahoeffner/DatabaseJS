@@ -21,6 +21,7 @@ public class Rest
   public final int timeout;
   public final int ssotimeout;
   public final String fileroot;
+  public final boolean tmpfiles;
 
 
   public Rest(JSONObject config)
@@ -30,6 +31,8 @@ public class Rest
     this.ssotimeout = Config.get(config,"sso.timeout");
 
     String fileroot = Config.get(config,"files.root");
+    
+    this.tmpfiles = Config.get(config,"sso.timeout");
     this.fileroot = Config.getPath(fileroot,Paths.apphome);
   }
 }

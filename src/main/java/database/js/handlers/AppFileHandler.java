@@ -121,6 +121,7 @@ public class AppFileHandler extends Handler
     byte[] eoh = "\r\n\r\n".getBytes();
     byte[] pattern = boundary.getBytes();
     String root = config().getREST().fileroot;
+    boolean tmpfiles = config().getREST().tmpfiles;
 
     JSONObject options = null;
     ArrayList<Field> files = new ArrayList<Field>();
@@ -144,7 +145,7 @@ public class AppFileHandler extends Handler
         byte[] entry = new byte[next-head-2];
         System.arraycopy(body,head,entry,0,entry.length);
 
-        Field field = new Field(header,entry);
+        Field field = new Field(tmpfiles,header,entry);
 
         if (field.name != null && field.name.equals("options"))
         {
@@ -264,7 +265,7 @@ public class AppFileHandler extends Handler
     boolean tmpfile = false;
 
 
-    Field(String header, byte[] content)
+    Field(boolean tmpfile, String header, byte[] content)
     {
       int pos1 = 0;
       int pos2 = 0;
@@ -290,6 +291,7 @@ public class AppFileHandler extends Handler
       }
 
       this.name = name;
+      this.tmpfile = tmpfile;
       this.content = content;
       this.srcfile = filename;
       this.size = content.length;
