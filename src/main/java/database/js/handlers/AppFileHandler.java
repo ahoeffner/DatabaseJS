@@ -339,7 +339,7 @@ public class AppFileHandler extends Handler
       if (dstfile != null) file = dstfile;
 
       if (!checkpath(root,root+folder+file))
-        throw new Exception("Illegal path specification "+folder);
+        throw new Exception("Illegal path specification "+folder+file);
     }
 
 
