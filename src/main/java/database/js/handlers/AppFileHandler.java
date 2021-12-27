@@ -99,6 +99,9 @@ public class AppFileHandler extends Handler
 
     if (request.getHeader("Content-Type").startsWith("multipart/form-data"))
       return(upload(request,response));
+    
+    if (request.method().equals("GET"))
+      return(get(request,response));
 
     JSONFormatter jfmt = new JSONFormatter();
 
@@ -109,6 +112,18 @@ public class AppFileHandler extends Handler
     return(response);
   }
 
+
+  private HTTPResponse get(HTTPRequest request, HTTPResponse response) throws Exception
+  {
+    String path = request.path();
+    String root = config().getREST().fileroot;
+    
+    int pos = path.indexOf('/');
+    System.out.println("Path = "+path);
+    
+    return(response);
+  }
+  
 
   private HTTPResponse upload(HTTPRequest request, HTTPResponse response) throws Exception
   {
@@ -308,6 +323,9 @@ public class AppFileHandler extends Handler
       if (options.has("tmpfile"))
         tmpfile = options.getBoolean("tmpfile");
 
+      if (options.has("dstfile"))
+        dstfile = options.getString("dstfile");
+
       if (options.has("folder"))
         folder = options.getString("folder");
 
@@ -316,8 +334,11 @@ public class AppFileHandler extends Handler
 
       if (!folder.endsWith("/"))
         folder += File.separator;
+      
+      String file = srcfile;
+      if (dstfile != null) file = dstfile;
 
-      if (!checkpath(root,root+folder+srcfile))
+      if (!checkpath(root,root+folder+file))
         throw new Exception("Illegal path specification "+folder);
     }
 
@@ -329,19 +350,27 @@ public class AppFileHandler extends Handler
       File folder = new File(root+this.folder);
 
       folder.mkdirs();
-
-      if (tmpfile)
+      
+      if (dstfile == null)
       {
-        String type = "";
-        int pos = srcfile.lastIndexOf('.');
-        if (pos > 0) type = srcfile.substring(pos);
-        dest = File.createTempFile("App",type,folder);
-        dstfile = this.folder + dest.getName();
+        if (tmpfile)
+        {
+          String type = "";
+          int pos = srcfile.lastIndexOf('.');
+          if (pos > 0) type = srcfile.substring(pos);
+          dest = File.createTempFile("App",type,folder);
+          dstfile = this.folder + dest.getName();
+        }
+        else
+        {
+          dstfile = this.folder + srcfile;
+          dest = new File(root + dstfile);
+        }
       }
       else
       {
-        dstfile = this.folder + srcfile;
-        dest = new File(root + dstfile);
+        dstfile = this.folder + dstfile;
+        dest = new File(root + dstfile);        
       }
 
       FileOutputStream out = new FileOutputStream(dest);
