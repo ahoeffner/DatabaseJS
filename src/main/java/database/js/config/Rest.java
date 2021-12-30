@@ -31,8 +31,8 @@ public class Rest
     this.ssotimeout = Config.get(config,"sso.timeout");
 
     String fileroot = Config.get(config,"files.root");
-    
-    this.tmpfiles = Config.get(config,"sso.timeout");
+
+    this.tmpfiles = Config.get(config,"files.tmpnames");
     this.fileroot = Config.getPath(fileroot,Paths.apphome);
   }
 }

@@ -15,6 +15,8 @@ package database.js.handlers;
 import java.io.File;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.FileOutputStream;
 import database.js.config.Config;
@@ -97,11 +99,14 @@ public class AppFileHandler extends Handler
       }
     }
 
-    if (request.getHeader("Content-Type").startsWith("multipart/form-data"))
-      return(upload(request,response));
-    
+    if (!request.method().equals("GET"))
+    {
+      if (request.getHeader("Content-Type").startsWith("multipart/form-data"))
+        return(upload(request,response));
+    }
+
     if (request.method().equals("GET"))
-      return(get(request,response));
+      return(get(request,response,path));
 
     JSONFormatter jfmt = new JSONFormatter();
 
@@ -113,17 +118,35 @@ public class AppFileHandler extends Handler
   }
 
 
-  private HTTPResponse get(HTTPRequest request, HTTPResponse response) throws Exception
+  private HTTPResponse get(HTTPRequest request, HTTPResponse response, String path) throws Exception
   {
-    String path = request.path();
+    String ext = "";
     String root = config().getREST().fileroot;
-    
-    int pos = path.indexOf('/');
-    System.out.println("Path = "+path);
-    
+
+    int pos = path.indexOf('/',1);
+    String fname = root + path.substring(pos);
+
+    pos = path.lastIndexOf('.');
+
+    if (pos < 0) ext = "";
+    else ext = path.substring(pos+1);
+
+    String mimetype = config().getHTTP().mimetypes.get(ext);
+    response.setContentType(mimetype);
+
+    File file = new File(fname);
+    byte[] content = new byte[(int) file.length()];
+    FileInputStream in = new FileInputStream(file);
+
+    if (in.read(content) != content.length)
+      throw new Exception("Unable to fully read "+fname);
+
+    response.setBody(content);
+    log(logger,request,response);
+
     return(response);
   }
-  
+
 
   private HTTPResponse upload(HTTPRequest request, HTTPResponse response) throws Exception
   {
@@ -269,6 +292,21 @@ public class AppFileHandler extends Handler
   }
 
 
+  private void log(Logger logger, HTTPRequest request, HTTPResponse response)
+  {
+    long time = System.nanoTime() - request.start();
+
+    if (logger.getLevel() == Level.FINE)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms");
+
+    if (logger.getLevel() == Level.FINER)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+request.header()+"\n\n"+response.header()+"\n");
+
+    if (logger.getLevel() == Level.FINEST)
+      logger.log(logger.getLevel(),request.path()+" ["+time/1000000+"]ms\n\n"+new String(request.page())+"\n\n"+new String(response.page()));
+  }
+
+
   private static class Field
   {
     int size = 0;
@@ -334,7 +372,7 @@ public class AppFileHandler extends Handler
 
       if (!folder.endsWith("/"))
         folder += File.separator;
-      
+
       String file = srcfile;
       if (dstfile != null) file = dstfile;
 
@@ -350,7 +388,7 @@ public class AppFileHandler extends Handler
       File folder = new File(root+this.folder);
 
       folder.mkdirs();
-      
+
       if (dstfile == null)
       {
         if (tmpfile)
@@ -370,7 +408,7 @@ public class AppFileHandler extends Handler
       else
       {
         dstfile = this.folder + dstfile;
-        dest = new File(root + dstfile);        
+        dest = new File(root + dstfile);
       }
 
       FileOutputStream out = new FileOutputStream(dest);
