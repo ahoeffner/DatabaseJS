@@ -138,6 +138,16 @@ public class HTTPRequest
     return(body);
   }
 
+  public String getQuery(String qstr)
+  {
+    for(Pair<String,String> entry : query)
+    {
+      if (entry.getKey().equals(qstr))
+        return(entry.getValue());
+    }
+    return(null);
+  }
+
   public String getHeader(String header)
   {
     return(headers.get(header));

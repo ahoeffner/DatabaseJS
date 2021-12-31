@@ -83,7 +83,7 @@ public class Rest
   }
 
 
-  public String execute(String path, String payload)
+  public String execute(String path, String payload, boolean returning)
   {
     try
     {
@@ -91,12 +91,12 @@ public class Rest
       state.session(SessionManager.get(request.session));
 
       if (request.nvlfunc().equals("batch"))
-        return(batch(request.payload));
+        return(batch(request.payload,returning));
 
       if (request.nvlfunc().equals("script"))
-        return(script(request.payload));
+        return(script(request.payload,returning));
 
-      return(exec(request));
+      return(exec(request,returning));
     }
     catch (Throwable e)
     {
@@ -106,7 +106,7 @@ public class Rest
   }
 
 
-  private String batch(JSONObject payload)
+  private String batch(JSONObject payload, boolean returning)
   {
     try
     {
@@ -138,7 +138,7 @@ public class Rest
           continue;
         }
 
-        result = exec(request);
+        result = exec(request,returning);
         response += result + cont;
 
         if (failed) break;
@@ -157,7 +157,7 @@ public class Rest
   }
 
 
-  private String script(JSONObject payload)
+  private String script(JSONObject payload, boolean returning)
   {
     try
     {
@@ -195,7 +195,7 @@ public class Rest
           continue;
         }
 
-        result = exec(request);
+        result = exec(request,returning);
         if (failed) break;
       }
 
@@ -214,7 +214,7 @@ public class Rest
   }
 
 
-  private String exec(Request request)
+  private String exec(Request request, boolean returning)
   {
     String response = null;
 
@@ -245,14 +245,8 @@ public class Rest
             case "ddl" :
               response = ddl(request.payload); break;
 
-            case "merge" :
-              response = update(request.payload); break;
-
-            case "insert" :
-              response = update(request.payload); break;
-
-            case "update" :
-              response = update(request.payload); break;
+            case "call" :
+              response = call(request.payload); break;
 
             case "select" :
               response = select(request.payload); break;
@@ -260,8 +254,14 @@ public class Rest
             case "fetch" :
               response = fetch(request.payload); break;
 
-            case "call" :
-              response = call(request.payload); break;
+            case "merge" :
+              response = update(request.payload,returning); break;
+
+            case "insert" :
+              response = update(request.payload,returning); break;
+
+            case "update" :
+              response = update(request.payload,returning); break;
 
             default : return(error("Unknown command "+request));
           }
@@ -609,7 +609,7 @@ public class Rest
   }
 
 
-  private String update(JSONObject payload)
+  private String update(JSONObject payload, boolean returning)
   {
     if (state.session() == null)
     {
@@ -639,18 +639,42 @@ public class Rest
       state.ensure();
       state.prepare(payload);
 
-      state.lock();
-      int rows = state.session().executeUpdate(sql,bindvalues);
-      state.unlock();
+      if (returning)
+      {
+        state.lock();
+        Cursor cursor = state.session().executeQuery(null,sql,bindvalues);
+        state.unlock();
 
-      state.release();
+        state.release();
 
-      JSONFormatter json = new JSONFormatter();
+        JSONFormatter json = new JSONFormatter();
 
-      json.success(true);
-      json.add("rows",rows);
+        String[] columns = state.session().getColumnNames(cursor);
+        ArrayList<Object[]> table = state.session().fetch(cursor,0);
 
-      return(json.toString());
+        json.success(true);
+
+        json.push("rows",ObjectArray);
+        for(Object[] row : table) json.add(columns,row);
+        json.pop();
+
+        return(json.toString());
+      }
+      else
+      {
+        state.lock();
+        int rows = state.session().executeUpdate(sql,bindvalues);
+        state.unlock();
+
+        state.release();
+
+        JSONFormatter json = new JSONFormatter();
+
+        json.success(true);
+        json.add("rows",rows);
+
+        return(json.toString());
+      }
     }
     catch (Throwable e)
     {

@@ -128,10 +128,14 @@ public class RestHandler extends Handler
     String remote = request.remote();
     String payload = new String(body);
 
+    boolean returning = false;
+    String qret = request.getQuery("returning");
+    if (qret != null) returning = Boolean.parseBoolean(qret);
+
     Rest rest = new Rest(server,modify,remote);
     response.setContentType(json);
 
-    response.setBody(rest.execute(path,payload));
+    response.setBody(rest.execute(path,payload,returning));
 
     log(logger,request,response);
     return(response);
