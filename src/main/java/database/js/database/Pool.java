@@ -103,6 +103,7 @@ public class Pool
     if (!pool.remove(database))
       return(false);
 
+    size--;
     database.disconnect();
     logger.fine("Pool["+(proxy ? "proxy" : "anonymous")+"] connection closed");
 
@@ -134,8 +135,15 @@ public class Pool
       while(pool.size() == 0 && size == max)
         this.wait();
 
-      if (pool.size() == 0) database = connect();
-      else                  database = pool.remove(0);
+      if (pool.size() == 0)
+      {
+        database = connect();
+        size++;
+      }
+      else
+      {
+        database = pool.remove(0);
+      }
     }
 
     return(database);
@@ -175,6 +183,7 @@ public class Pool
 
       for (int i = 0; i < size; i++)
       {
+        this.size--;
         Database database = this.pool.remove(0);
 
         try {database.disconnect();}
@@ -195,6 +204,8 @@ public class Pool
         Database database = this.pool.remove(0);
         if (database.validate()) this.pool.add(database);
       }
+
+      this.size = pool.size();
     }
   }
 
@@ -209,6 +220,12 @@ public class Pool
   {
     synchronized(this)
     {return(new ArrayList<Database>(pool));}
+  }
+
+
+  public String toString()
+  {
+    return("size: "+size+" ready: "+pool.size());
   }
 
 
@@ -233,6 +250,7 @@ public class Pool
           Database database = DatabaseUtils.getInstance();
           database.connect(pool.username,pool.password);
           pool.add(database);
+          pool.size++;
         }
       }
       catch (Exception e)

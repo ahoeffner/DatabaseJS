@@ -82,7 +82,16 @@ public class Session
     if (failed && !database.validate())
     {
       closeAllCursors();
-      database.disconnect();
+
+      if (method == AuthMethod.Database || scope == Scope.Dedicated)
+      {
+        database.disconnect();
+      }
+      else
+      {
+        pool.remove(database);
+      }
+
       SessionManager.remove(guid);
       return(true);
     }
@@ -138,43 +147,53 @@ public class Session
 
   public void connect(boolean keep) throws Exception
   {
-    switch(method)
+    try
     {
-      case SSO :
-        if (scope == Scope.Dedicated) database = pool.connect();
-        else                          database = pool.getConnection();
+      switch(method)
+      {
+        case SSO :
+          if (scope == Scope.Dedicated) database = pool.connect();
+          else                          database = pool.getConnection();
 
-        if (pool.proxy()) database.setProxyUser(username);
-        break;
+          if (pool.proxy()) database.setProxyUser(username);
+          break;
 
-      case OAuth :
-        if (scope == Scope.Dedicated) database = pool.connect();
-        else                          database = pool.getConnection();
+        case OAuth :
+          if (scope == Scope.Dedicated) database = pool.connect();
+          else                          database = pool.getConnection();
 
-        if (pool.proxy()) database.setProxyUser(username);
-        break;
+          if (pool.proxy()) database.setProxyUser(username);
+          break;
 
-      case Database :
-        database = DatabaseUtils.getInstance();
-        database.connect(username,secret);
-        break;
+        case Database :
+          database = DatabaseUtils.getInstance();
+          database.connect(username,secret);
+          break;
 
-      case PoolToken :
-        if (scope == Scope.Dedicated) database = pool.connect(secret);
-        else                          database = pool.getConnection(secret);
+        case PoolToken :
+          if (scope == Scope.Dedicated) database = pool.connect(secret);
+          else                          database = pool.getConnection(secret);
 
-        if (pool.proxy()) database.setProxyUser(username);
-        break;
+          if (pool.proxy()) database.setProxyUser(username);
+          break;
+      }
+
+      if (!statefull() && !keep)
+      {
+        disconnect(true,0);
+        return;
+      }
+
+      if (!statefull()) database.setAutoCommit(true);
+      else              database.setAutoCommit(false);
     }
-
-    if (!statefull() && !keep)
+    catch (Throwable e)
     {
-      disconnect(true,0);
-      return;
-    }
+      if (pool != null)
+        pool.validate();
 
-    if (!statefull()) database.setAutoCommit(true);
-    else              database.setAutoCommit(false);
+      throw e;
+    }
   }
 
 

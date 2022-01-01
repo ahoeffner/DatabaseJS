@@ -72,7 +72,7 @@ public class PoolManager extends Thread
           cleanout(ap);
 
         if (pp != null)
-          cleanout(ap);
+          cleanout(pp);
       }
     }
     catch (Exception e)
@@ -101,5 +101,7 @@ public class PoolManager extends Thread
         pool.remove(conn);
       }
     }
+
+    logger.info("Pool[proxy="+pool.proxy()+"] "+pool);
   }
 }
