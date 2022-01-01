@@ -102,6 +102,6 @@ public class PoolManager extends Thread
       }
     }
 
-    logger.info("Pool[proxy="+pool.proxy()+"] "+pool);
+    logger.finest("Pool["+(pool.proxy() ? "proxy" : "anonymous")+"] "+pool);
   }
 }
