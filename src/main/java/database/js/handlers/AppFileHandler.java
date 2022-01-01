@@ -242,30 +242,31 @@ public class AppFileHandler extends Handler
 
   private String ensure(HTTPRequest request, String session) throws Exception
   {
-    if (session == null || session.length() == 0)
+    if (session == null || session.length() < 16)
       return("Not connected");
 
     short rsrv = RestHandler.getClient(config(),request);
-    logger.info("Restserver = "+rsrv); rsrv = 2;
-
-    if (rsrv < 0)
-      return("Not connected");
+    if (rsrv < 0) rsrv = 2;
 
     RESTClient client = request.server().worker(rsrv);
 
     if (client == null)
       return("Could not connect to RESTServer");
 
-    String ensure = "";
     String nl = "\r\n";
+    String body = "{\n  \"keepalive\": true\n}";
 
-    ensure += "POST /"+session+"/status HTTP/1.1"+nl+"Host: localhost"+nl+nl;
+    String ensure = "POST /"+session+"/ping HTTP/1.1"+nl+
+                    "Host: localhost"+nl+"Content-Length: "+body.length()+nl+nl+body;
+
     byte[] data = client.send("localhost",ensure.getBytes());
 
     HTTPResponse response = new HTTPResponse(data);
     JSONObject status = Request.parse(new String(response.body()));
 
-    logger.info("status: "+status.getBoolean("success"));
+    if (!status.getBoolean("success"))
+      return("Not connected");
+
     return(null);
   }
 

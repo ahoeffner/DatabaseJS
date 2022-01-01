@@ -23,6 +23,7 @@ import database.js.database.NameValuePair;
 public class Security
 {
   private final String oaurl;
+  private final String usrattr;
   private final Keystore trust;
   private final Keystore identity;
   private final ArrayList<NameValuePair<Object>> headers;
@@ -60,6 +61,7 @@ public class Security
     JSONObject oauth = Config.getSection(config,"oauth2");
 
     this.oaurl = Config.get(oauth,"url");
+    this.usrattr = Config.get(oauth,"user.attr");
     this.headers = new ArrayList<NameValuePair<Object>>();
 
     JSONArray headers = oauth.getJSONArray("headers");
@@ -88,6 +90,11 @@ public class Security
   public String oauthurl()
   {
     return(oaurl);
+  }
+
+  public String usrattr()
+  {
+    return(usrattr);
   }
 
   public ArrayList<NameValuePair<Object>> oaheaders()

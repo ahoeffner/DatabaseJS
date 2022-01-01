@@ -36,6 +36,7 @@ import database.js.cluster.PreAuthRecord;
 import database.js.database.BindValueDef;
 import database.js.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
+import database.js.servers.http.HTTPRequest.Pair;
 import static database.js.handlers.rest.JSONFormatter.Type.*;
 
 
@@ -91,10 +92,10 @@ public class Rest
       state.session(SessionManager.get(request.session));
 
       if (request.nvlfunc().equals("batch"))
-        return(batch(request.payload,returning));
+        return(batch(request.payload));
 
       if (request.nvlfunc().equals("script"))
-        return(script(request.payload,returning));
+        return(script(request.payload));
 
       return(exec(request,returning));
     }
@@ -106,7 +107,7 @@ public class Rest
   }
 
 
-  private String batch(JSONObject payload, boolean returning)
+  private String batch(JSONObject payload)
   {
     try
     {
@@ -126,6 +127,13 @@ public class Rest
         JSONObject service = services.getJSONObject(i);
 
         String path = service.getString("path");
+
+        Command cmd = new Command(path);
+
+        path = cmd.path;
+        boolean returning = false;
+        String ropt = cmd.getQuery("returning");
+        if (ropt != null) returning = Boolean.parseBoolean(ropt);
 
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
@@ -157,7 +165,7 @@ public class Rest
   }
 
 
-  private String script(JSONObject payload, boolean returning)
+  private String script(JSONObject payload)
   {
     try
     {
@@ -177,6 +185,13 @@ public class Rest
         JSONObject service = services.getJSONObject(i);
 
         String path = service.getString("path");
+
+        Command cmd = new Command(path);
+
+        path = cmd.path;
+        boolean returning = false;
+        String ropt = cmd.getQuery("returning");
+        if (ropt != null) returning = Boolean.parseBoolean(ropt);
 
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
@@ -220,11 +235,11 @@ public class Rest
 
     switch(request.cmd)
     {
+      case "status" :
+        response = status(); break;
+
       case "ping" :
         response = ping(request.payload); break;
-
-      case "status" :
-        response = status(request.payload); break;
 
       case "connect" :
         response = connect(request.payload); break;
@@ -305,26 +320,10 @@ public class Rest
   }
 
 
-  private String status(JSONObject payload)
+  private String status()
   {
-    ArrayList<String[]> stats = new ArrayList<String[]>();
-
-    try
-    {
-      ;
-    }
-    catch (Throwable e)
-    {
-      failed = true;
-      return(error(e,false));
-    }
-
     JSONFormatter json = new JSONFormatter();
     json.success(true);
-
-    for(String[] stat : stats)
-      json.add(stat[0],stat[1]);
-
     return(json.toString());
   }
 
@@ -1145,6 +1144,46 @@ public class Rest
     json.add("message",message);
 
     return(json.toString());
+  }
+
+
+  private static class Command
+  {
+    String path = null;
+
+    ArrayList<Pair<String,String>> query =
+      new ArrayList<Pair<String,String>>();
+
+
+    Command(String path)
+    {
+      this.path = path;
+      int pos = path.indexOf('?');
+
+      if (pos >= 0)
+      {
+        String query = this.path.substring(pos+1);
+        this.path = this.path.substring(0,pos);
+        String[] parts = query.split("&");
+
+        for(String part : parts)
+        {
+          pos = part.indexOf('=');
+          if (pos < 0) this.query.add(new Pair<String,String>(part,null));
+          else this.query.add(new Pair<String,String>(part.substring(0,pos),part.substring(pos+1)));
+        }
+      }
+    }
+
+    String getQuery(String qstr)
+    {
+      for(Pair<String,String> entry : query)
+      {
+        if (entry.getKey().equals(qstr))
+          return(entry.getValue());
+      }
+      return(null);
+    }
   }
 
 

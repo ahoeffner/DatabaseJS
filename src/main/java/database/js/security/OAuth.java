@@ -14,6 +14,8 @@ package database.js.security;
 
 import java.net.URL;
 import java.util.ArrayList;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import java.util.logging.Level;
 import javax.net.ssl.SSLContext;
 import java.util.logging.Logger;
@@ -29,6 +31,7 @@ public class OAuth
   private final int port;
   private final String host;
   private final String path;
+  private final String usrattr;
   private final SSLContext ctx;
   private final ArrayList<NameValuePair<Object>> headers;
   private final static Logger logger = Logger.getLogger("rest");
@@ -51,6 +54,7 @@ public class OAuth
   private OAuth(Config config) throws Exception
   {
     String endp = config.getSecurity().oauthurl();
+    this.usrattr = config.getSecurity().usrattr();
     this.headers = config.getSecurity().oaheaders();
 
     ctx = SSLContext.getInstance("TLS");
@@ -81,10 +85,14 @@ public class OAuth
       logger.info("OAuth send request");
       byte[] bytes = client.send(request.page());
 
-      String response = new String(bytes);
-      logger.info("OAuth response \n"+response);
+      String payload = new String(bytes);
+      logger.info("OAuth response \n"+payload);
 
-      String user = "????";
+      JSONTokener tokener = new JSONTokener(payload);
+      JSONObject response = new JSONObject(tokener);
+
+
+      String user = response.getString(usrattr);
       return(user);
     }
     catch (Exception e)
