@@ -74,7 +74,7 @@ public class RESTWorker implements Runnable
 
       byte[] data = ("{\"status\": \""+e.getMessage()+"\"}").getBytes();
       RESTComm error = new RESTComm(bridge.id(),bridge.extend(),bridge.host(),data);
-      rserver.respond(bridge);
+      rserver.respond(error);
     }
   }
 }

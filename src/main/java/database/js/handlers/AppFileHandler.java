@@ -138,6 +138,15 @@ public class AppFileHandler extends Handler
     else                 response.setContentType(mimetype);
 
     File file = new File(fname);
+
+    if (!file.exists())
+    {
+      response.setResponse(404);
+      response.setContentType("text/html");
+      response.setBody("<b>Page not found</b>");
+      return(response);
+    }
+
     byte[] content = new byte[(int) file.length()];
     FileInputStream in = new FileInputStream(file);
 
@@ -256,13 +265,17 @@ public class AppFileHandler extends Handler
     if (client == null)
       return("Could not connect to RESTServer");
 
+    String prefix = config().getHTTP().handlers.getRESTHandler().properties().prefix();
+    if (!prefix.endsWith("/")) prefix += "/";
+
     String nl = "\r\n";
+    String host = request.remote();
     String body = "{\n  \"keepalive\": true\n}";
 
-    String ensure = "POST /"+session+"/ping HTTP/1.1"+nl+
-                    "Host: localhost"+nl+"Content-Length: "+body.length()+nl+nl+body;
+    String ensure = "POST "+prefix+session+"/ping HTTP/1.1"+nl+
+                    "Host: "+host+nl+"Content-Length: "+body.length()+nl+nl+body;
 
-    byte[] data = client.send("localhost",ensure.getBytes());
+    byte[] data = client.send(host,ensure.getBytes());
 
     HTTPResponse response = new HTTPResponse(data);
     JSONObject status = Request.parse(new String(response.body()));
