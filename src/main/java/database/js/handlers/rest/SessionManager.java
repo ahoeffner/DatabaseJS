@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.js.config.Config;
+import database.js.database.Pool;
 import database.js.servers.Server;
 import database.js.cluster.PreAuthTable;
 import database.js.cluster.PreAuthRecord;
@@ -242,7 +243,12 @@ public class SessionManager
 
             dmp += "--------------------------------------------------------------------------\n";
 
-            logger.info(dmp);
+            Pool pp = config.getDatabase().proxy;
+            Pool ap = config.getDatabase().anonymous;
+
+            if (pp != null) logger.info(pp.toString());
+            if (ap != null) logger.info(ap.toString());
+
             last = System.currentTimeMillis();
           }
 

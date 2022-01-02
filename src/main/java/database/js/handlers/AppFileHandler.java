@@ -131,8 +131,11 @@ public class AppFileHandler extends Handler
     if (pos < 0) ext = "";
     else ext = path.substring(pos+1);
 
+    String mimeopt = request.getQuery("mimetype");
     String mimetype = config().getHTTP().mimetypes.get(ext);
-    response.setContentType(mimetype);
+
+    if (mimeopt != null) response.setContentType(mimeopt);
+    else                 response.setContentType(mimetype);
 
     File file = new File(fname);
     byte[] content = new byte[(int) file.length()];

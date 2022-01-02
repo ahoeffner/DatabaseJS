@@ -225,7 +225,7 @@ public class Pool
 
   public String toString()
   {
-    return("size: "+size+" ready: "+pool.size());
+    return("Pool["+(proxy ? "proxy" : "anonymous")+"] "+"size: "+size+" free: "+pool.size());
   }
 
 
