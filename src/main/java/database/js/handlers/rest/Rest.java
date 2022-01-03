@@ -48,12 +48,10 @@ public class Rest
   private final Config config;
   private final SessionState state;
 
-  private final boolean compact;
   private final String dateform;
 
-  private final boolean modify;
-  private final boolean sppost;
-  private final boolean sppatch;
+  private final boolean compact;
+  private final boolean savepoint;
 
   private boolean failed = false;
 
@@ -65,10 +63,10 @@ public class Rest
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
 
-  public Rest(Server server, boolean modify, String host) throws Exception
+  public Rest(Server server, boolean savepoint, String host) throws Exception
   {
     this.host      = host;
-    this.modify    = modify;
+    this.savepoint = savepoint;
 
     this.server    = server;
     this.config    = server.config();
@@ -79,8 +77,6 @@ public class Rest
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
-    this.sppost    = config.getDatabase().savepoint("sppost");
-    this.sppatch   = config.getDatabase().savepoint("sppatch");
   }
 
 
@@ -1034,7 +1030,7 @@ public class Rest
 
   private boolean getSavepoint(JSONObject payload)
   {
-    boolean defaults = modify ? sppatch : sppost;
+    boolean defaults = savepoint;
 
     try
     {
@@ -1195,7 +1191,6 @@ public class Rest
     int dept = 0;
     int shared = 0;
     Session session;
-    boolean modify = false;
     boolean exclusive = false;
     Savepoint savepoint = null;
 
@@ -1203,7 +1198,6 @@ public class Rest
     SessionState(Rest rest)
     {
       this.rest = rest;
-      this.modify = rest.modify;
     }
 
 

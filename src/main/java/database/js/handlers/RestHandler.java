@@ -110,9 +110,15 @@ public class RestHandler extends Handler
 
     setClient(config(),request,response);
 
-    boolean modify = false;
-    if (request.method().equals("PATCH")) modify = true;
-    if (request.method().equals("DELETE")) modify = true;
+    boolean savepoint = false;
+    
+    boolean sppost = config().getDatabase().savepoint("post");
+    boolean sppatch = config().getDatabase().savepoint("patch");
+    boolean spdelete = config().getDatabase().savepoint("delete");
+
+    if (request.method().equals("POST") && sppost) savepoint = true;
+    if (request.method().equals("PATCH") && sppatch) savepoint = true;
+    if (request.method().equals("DELETE") && spdelete) savepoint = true;
 
     String session = request.getCookie("JSESSIONID");
     if (session == null) session = new Guid().toString();
@@ -132,7 +138,7 @@ public class RestHandler extends Handler
     String qret = request.getQuery("returning");
     if (qret != null) returning = Boolean.parseBoolean(qret);
 
-    Rest rest = new Rest(server,modify,remote);
+    Rest rest = new Rest(server,savepoint,remote);
     response.setContentType(json);
 
     response.setBody(rest.execute(path,payload,returning));

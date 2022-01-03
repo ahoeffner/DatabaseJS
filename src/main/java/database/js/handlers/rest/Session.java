@@ -77,7 +77,6 @@ public class Session
   public synchronized boolean release(boolean failed)
   {
     clients--;
-    boolean reuse = true;
 
     if (failed && !database.validate())
     {
@@ -96,10 +95,10 @@ public class Session
       return(true);
     }
 
-    if (!statefull() || !reuse)
-      disconnect(reuse,0);
+    if (!statefull())
+      disconnect(0);
 
-    return(!reuse);
+    return(false);
   }
 
 
@@ -131,7 +130,7 @@ public class Session
   {
     clients--;
 
-    if (disconnect(true,0))
+    if (disconnect(0))
       SessionManager.remove(guid);
   }
 
@@ -180,7 +179,7 @@ public class Session
 
       if (!statefull() && !keep)
       {
-        disconnect(true,0);
+        disconnect(0);
         return;
       }
 
@@ -197,7 +196,7 @@ public class Session
   }
 
 
-  private synchronized boolean disconnect(boolean reuse, int expected)
+  private synchronized boolean disconnect(int expected)
   {
     if (expected >= 0 && clients != expected)
     {
@@ -205,7 +204,7 @@ public class Session
       return(false);
     }
 
-    if (reuse && database != null)
+    if (database != null)
     {
       closeAllCursors();
 
@@ -226,7 +225,7 @@ public class Session
     database.commit();
 
     if (scope == Scope.Transaction)
-      disconnect(true,1);
+      disconnect(1);
 
     return(true);
   }
@@ -240,7 +239,7 @@ public class Session
     database.rollback();
 
     if (scope == Scope.Transaction)
-      disconnect(true,1);
+      disconnect(1);
 
     return(true);
   }
