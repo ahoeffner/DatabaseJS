@@ -26,7 +26,7 @@ public class Rest
 
   public Rest(JSONObject config)
   {
-    this.dump = Config.get(config,"ses.dump");
+    this.dump = Config.get(config,"ses.dump",0);
     this.timeout = Config.get(config,"ses.timeout");
     this.ssotimeout = Config.get(config,"sso.timeout");
 

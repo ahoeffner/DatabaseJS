@@ -330,6 +330,7 @@ public class Rest
 
   private String connect(JSONObject payload)
   {
+    int timeout = 0;
     Pool pool = null;
     String type = null;
     String scope = null;
@@ -340,6 +341,7 @@ public class Rest
 
     try
     {
+      timeout = config.getREST().timeout;
       type = config.getDatabase().type.toString();
 
       if (payload.has("username"))
@@ -367,7 +369,6 @@ public class Rest
 
           default: return(error("Unknown authentication method "+meth));
         }
-
 
         boolean usepool = false;
         boolean anonymous = false;
@@ -440,6 +441,7 @@ public class Rest
 
     json.success(true);
     json.add("type",type);
+    json.add("timeout",timeout);
     json.add("session",sesid);
 
     return(json.toString());
