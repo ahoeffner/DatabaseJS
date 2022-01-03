@@ -108,4 +108,14 @@ public class SQLTypes
 
     return(false);
   }
+
+  public static boolean isDate(String type)
+  {
+    type = type.toUpperCase();
+
+    if (type.startsWith("DATE") || type.equals("TIMESTAMP"))
+      return(true);
+
+    return(false);
+  }
 }

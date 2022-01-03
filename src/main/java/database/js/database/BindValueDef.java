@@ -12,6 +12,8 @@
 
 package database.js.database;
 
+import java.util.Date;
+
 
 public class BindValueDef
 {
@@ -39,8 +41,8 @@ public class BindValueDef
   public BindValueDef(String name, String type, boolean outval, Object value)
   {
     this.name = name;
-    this.value = value;
     this.outval = outval;
+    this.value = convert(type,value);
     this.type = SQLTypes.getType(type);
   }
 
@@ -52,5 +54,16 @@ public class BindValueDef
   public BindValue copy(boolean out)
   {
     return(new BindValue(this,out));
+  }
+
+  private Object convert(String type, Object value)
+  {
+    if (value == null || !(value instanceof Long))
+      return(value);
+
+    if (SQLTypes.isDate(type))
+        value = new Date((Long) value);
+
+    return(value);
   }
 }
