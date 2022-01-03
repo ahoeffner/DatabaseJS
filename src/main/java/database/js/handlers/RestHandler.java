@@ -111,7 +111,7 @@ public class RestHandler extends Handler
     setClient(config(),request,response);
 
     boolean savepoint = false;
-    
+
     boolean sppost = config().getDatabase().savepoint("post");
     boolean sppatch = config().getDatabase().savepoint("patch");
     boolean spdelete = config().getDatabase().savepoint("delete");

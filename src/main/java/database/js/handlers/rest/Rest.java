@@ -98,7 +98,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(error(e,false));
+      return(error(e,null));
     }
   }
 
@@ -307,7 +307,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(error(e,false));
+      return(error(e,null));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -429,7 +429,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(error(e,false));
+      return(error(e,null));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -460,7 +460,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      return(error(e,true));
+      return(error(e,"failed to disconnect"));
     }
 
     JSONFormatter json = new JSONFormatter();
@@ -955,7 +955,7 @@ public class Rest
     catch (Throwable e)
     {
       failed = true;
-      error(e,false);
+      error(e,null);
     }
   }
 
@@ -1043,7 +1043,7 @@ public class Rest
     }
     catch (Throwable e)
     {
-      error(e,false);
+      error(e,null);
       return(defaults);
     }
   }
@@ -1121,14 +1121,14 @@ public class Rest
   }
 
 
-  private String error(Throwable err, boolean fatal)
+  private String error(Throwable err, String message)
   {
     JSONFormatter json = new JSONFormatter();
     logger.log(Level.WARNING,err.getMessage(),err);
 
     json.set(err);
     json.success(false);
-    json.fatal(fatal,"disconnected");
+    json.fatal(message);
 
     return(json.toString());
   }
@@ -1261,7 +1261,7 @@ public class Rest
 
     String release(Throwable err)
     {
-      boolean fatal = false;
+      String fatal = null;
 
       if (session != null)
       {
@@ -1291,7 +1291,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e,false);
+        rest.error(e,null);
       }
     }
 
@@ -1316,7 +1316,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e,false);
+        rest.error(e,null);
       }
     }
 
@@ -1333,7 +1333,7 @@ public class Rest
       }
       catch (Throwable e)
       {
-        rest.error(e,false);
+        rest.error(e,null);
       }
     }
   }

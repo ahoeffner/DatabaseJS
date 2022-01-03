@@ -74,31 +74,38 @@ public class Session
   }
 
 
-  public synchronized boolean release(boolean failed)
+  public synchronized String release(boolean failed)
   {
     clients--;
 
     if (failed && !database.validate())
     {
-      closeAllCursors();
-
-      if (method == AuthMethod.Database || scope == Scope.Dedicated)
+      try
       {
-        database.disconnect();
+        this.rollback();
       }
-      else
+      catch (Exception e)
       {
-        pool.remove(database);
+        if (method == AuthMethod.Database || scope == Scope.Dedicated)
+        {
+          database.disconnect();
+        }
+        else
+        {
+          pool.remove(database);
+        }
+
+        SessionManager.remove(guid);
+        return("disconnected");
       }
 
-      SessionManager.remove(guid);
-      return(true);
+      return("transaction rolled back");
     }
 
     if (!statefull())
       disconnect(0);
 
-    return(false);
+    return(null);
   }
 
 
@@ -236,6 +243,7 @@ public class Session
     if (database == null)
       return(false);
 
+    closeAllCursors();
     database.rollback();
 
     if (scope == Scope.Transaction)

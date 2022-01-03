@@ -41,9 +41,9 @@ public class JSONFormatter
   }
 
 
-  public void fatal(boolean fatal, String message)
+  public void fatal(String message)
   {
-    if (fatal)
+    if (message != null)
       content.fatal(message);
   }
 
