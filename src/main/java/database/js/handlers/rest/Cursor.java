@@ -25,6 +25,7 @@ public class Cursor
   int rows = 0;
   boolean closed = false;
   boolean compact = false;
+  String[] columns = null;
   String dateformat = null;
 
 
@@ -33,5 +34,14 @@ public class Cursor
     this.name = name;
     this.stmt = stmt;
     this.rset = rset;
+  }
+
+
+  public Cursor(String name, PreparedStatement stmt, ResultSet rset, String[] columns)
+  {
+    this.name = name;
+    this.stmt = stmt;
+    this.rset = rset;
+    this.columns = columns;
   }
 }

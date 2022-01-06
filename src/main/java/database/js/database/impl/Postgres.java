@@ -12,8 +12,11 @@
 
 package database.js.database.impl;
 
-import java.sql.Connection;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.sql.PreparedStatement;
 import database.js.database.Database;
+import database.js.database.BindValue;
 
 
 public class Postgres extends Database
@@ -27,5 +30,17 @@ public class Postgres extends Database
   @Override
   public void releaseProxyUser() throws Exception
   {
+  }
+
+  @Override
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    return(new ReturnValueHandle(this.prepare(sql,bindvalues)));
+  }
+
+  @Override
+  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception
+  {
+    return(stmt.executeQuery());
   }
 }

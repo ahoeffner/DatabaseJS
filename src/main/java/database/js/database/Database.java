@@ -275,9 +275,15 @@ public abstract class Database
 
   public Object[] fetch(ResultSet rset, boolean timeconv, DateTimeFormatter formatter) throws Exception
   {
-    boolean conv = timeconv || formatter != null;
     ResultSetMetaData meta = rset.getMetaData();
-    Object[] values = new Object[meta.getColumnCount()];
+    return(fetch(meta.getColumnCount(),rset,timeconv,formatter));
+  }
+
+
+  public Object[] fetch(int columns, ResultSet rset, boolean timeconv, DateTimeFormatter formatter) throws Exception
+  {
+    boolean conv = timeconv || formatter != null;
+    Object[] values = new Object[columns];
 
     for (int i = 0; i < values.length; i++)
     {
@@ -303,4 +309,35 @@ public abstract class Database
 
   public abstract void releaseProxyUser() throws Exception;
   public abstract void setProxyUser(String username) throws Exception;
+  public abstract ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception;
+  public abstract ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception;
+
+
+  public static class ReturnValueHandle
+  {
+    final String[] columns;
+    final PreparedStatement stmt;
+
+    public ReturnValueHandle(PreparedStatement stmt)
+    {
+      this.stmt = stmt;
+      this.columns = null;
+    }
+
+    public ReturnValueHandle(PreparedStatement stmt, String[] columns)
+    {
+      this.stmt = stmt;
+      this.columns = columns;
+    }
+
+    public String[] columns()
+    {
+      return(columns);
+    }
+
+    public PreparedStatement stmt()
+    {
+      return(stmt);
+    }
+  }
 }

@@ -12,8 +12,11 @@
 
 package database.js.database.impl;
 
-import java.sql.Connection;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.sql.PreparedStatement;
 import database.js.database.Database;
+import database.js.database.BindValue;
 
 
 public class Generic extends Database
@@ -26,6 +29,18 @@ public class Generic extends Database
 
   @Override
   public void releaseProxyUser() throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
+
+  @Override
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    throw new Exception("Feature not supported");
+  }
+
+  @Override
+  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception
   {
     throw new Exception("Feature not supported");
   }

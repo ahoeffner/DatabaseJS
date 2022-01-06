@@ -28,6 +28,7 @@ import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
+import database.js.database.Database.ReturnValueHandle;
 
 
 public class Session
@@ -74,6 +75,12 @@ public class Session
   }
 
 
+  public Scope scope()
+  {
+    return(scope);
+  }
+
+
   public synchronized String release(boolean failed)
   {
     clients--;
@@ -102,7 +109,7 @@ public class Session
       return("transaction rolled back");
     }
 
-    if (!statefull())
+    if (!stateful())
       disconnect(0);
 
     return(null);
@@ -127,9 +134,15 @@ public class Session
   }
 
 
-  public boolean statefull()
+  public boolean stateful()
   {
     return(scope != Scope.None);
+  }
+
+
+  public boolean autocommit()
+  {
+    return(scope == Scope.None);
   }
 
 
@@ -184,13 +197,13 @@ public class Session
           break;
       }
 
-      if (!statefull() && !keep)
+      if (!stateful() && !keep)
       {
         disconnect(0);
         return;
       }
 
-      if (!statefull()) database.setAutoCommit(true);
+      if (autocommit()) database.setAutoCommit(true);
       else              database.setAutoCommit(false);
     }
     catch (Throwable e)
@@ -303,6 +316,14 @@ public class Session
   }
 
 
+  public Cursor executeUpdateWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    ReturnValueHandle hdl = database.prepareWithReturnValues(sql,bindvalues);
+    ResultSet         rset = database.executeUpdateWithReturnValues(hdl.stmt());
+    return(new Cursor(null,hdl.stmt(),rset,hdl.columns()));
+  }
+
+
   public Cursor executeQuery(String name, String sql, ArrayList<BindValue> bindvalues) throws Exception
   {
     PreparedStatement stmt = database.prepare(sql,bindvalues);
@@ -333,7 +354,9 @@ public class Session
 
   public String[] getColumnNames(Cursor cursor) throws Exception
   {
-    return(database.getColumNames(cursor.rset));
+    if (cursor.columns == null)
+      cursor.columns = database.getColumNames(cursor.rset);
+    return(cursor.columns);
   }
 
 
@@ -348,13 +371,14 @@ public class Session
       else formatter = DateTimeFormatter.ofPattern(cursor.dateformat);
     }
 
+    int columns = cursor.columns.length;
     ArrayList<Object[]> table = new ArrayList<Object[]>();
 
     for (int i = 0; i < skip && cursor.rset.next(); i++)
       database.fetch(cursor.rset,timeconv,formatter);
 
     for (int i = 0; (cursor.rows <= 0 || i < cursor.rows) && cursor.rset.next(); i++)
-      table.add(database.fetch(cursor.rset,timeconv,formatter));
+      table.add(database.fetch(columns,cursor.rset,timeconv,formatter));
 
     if (cursor.rows <= 0 || table.size() < cursor.rows)
       closeCursor(cursor);

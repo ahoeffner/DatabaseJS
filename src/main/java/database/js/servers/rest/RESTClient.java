@@ -28,6 +28,8 @@ public class RESTClient implements RESTConnection
   private final short id;
   private final long started;
 
+  private RESTWriter writer;
+  private RESTReader reader;
   private HTTPChannel rchannel;
   private HTTPChannel wchannel;
   private volatile boolean up = false;
@@ -35,8 +37,6 @@ public class RESTClient implements RESTConnection
   private final Config config;
   private final Server server;
   private final MailBox mailbox;
-  private final RESTWriter writer;
-  private final RESTReader reader;
   private final ConcurrentHashMap<Long,RESTComm> incoming;
 
   private final static Logger logger = Logger.getLogger("http");
@@ -50,8 +50,6 @@ public class RESTClient implements RESTConnection
 
     this.server = server;
     this.config = server.config();
-    this.writer = new RESTWriter(this);
-    this.reader = new RESTReader(this);
     this.mailbox = new MailBox(config,id);
     this.incoming = new ConcurrentHashMap<Long,RESTComm>();
   }
@@ -73,9 +71,13 @@ public class RESTClient implements RESTConnection
 
     if (this.wchannel != null && this.rchannel != null)
     {
+      this.writer = new RESTWriter(this);
+      this.reader = new RESTReader(this);
+
       this.up = true;
       this.writer.start();
       this.reader.start();
+
       logger.info("External RESTEngine ready");
     }
   }
