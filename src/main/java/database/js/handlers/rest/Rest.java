@@ -312,6 +312,10 @@ public class Rest
 
     JSONFormatter json = new JSONFormatter();
     json.success(true);
+
+    if (state.session() == null)
+      json.add("connected",false);
+
     return(json.toString());
   }
 
