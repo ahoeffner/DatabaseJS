@@ -228,6 +228,15 @@ public class Session
     {
       closeAllCursors();
 
+      try
+      {
+        database.rollback();
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+
       if (pool == null) database.disconnect();
       else              pool.release(database);
     }
@@ -256,11 +265,8 @@ public class Session
     if (database == null)
       return(false);
 
-    closeAllCursors();
-    database.rollback();
-
-    if (scope == Scope.Transaction)
-      disconnect(1);
+    if (scope == Scope.Transaction) disconnect(1);
+    else                            database.rollback();
 
     return(true);
   }
