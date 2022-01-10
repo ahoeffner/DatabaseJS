@@ -645,13 +645,12 @@ public class Rest
         Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues);
         state.unlock();
 
-        state.release();
-
         JSONFormatter json = new JSONFormatter();
 
         String[] columns = state.session().getColumnNames(cursor);
         ArrayList<Object[]> table = state.session().fetch(cursor,0);
 
+        state.release();
         json.success(true);
 
         json.push("rows",ObjectArray);
