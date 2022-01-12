@@ -30,6 +30,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import database.js.database.Database.ReturnValueHandle;
 
+import javax.swing.plaf.nimbus.State;
+
 
 public class Session
 {
@@ -197,7 +199,7 @@ public class Session
           break;
       }
 
-      if (!stateful() && !keep)
+      if (scope != Scope.Dedicated && !keep)
       {
         disconnect(0);
         return;
