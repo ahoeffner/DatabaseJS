@@ -150,9 +150,17 @@ public class Session
 
   public synchronized void disconnect()
   {
-    clients--;
+    disconnect(false);
+  }
 
-    if (disconnect(0))
+
+  public synchronized void disconnect(boolean force)
+  {
+    clients--;
+    int exp = 0;
+    if (force) exp = -1;
+
+    if (disconnect(exp))
       SessionManager.remove(guid);
   }
 

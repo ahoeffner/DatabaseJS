@@ -259,7 +259,7 @@ public class SessionManager
             if (time - session.touched() > timeout)
             {
               session.share();
-              session.disconnect();
+              session.disconnect(true);
               logger.fine("Session: "+session.guid()+" timed out");
             }
           }
