@@ -633,7 +633,7 @@ public class Rest
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
-      
+
       String sql = getStatement(payload);
       if (sql == null) return(error("Attribute \"sql\" is missing"));
 
