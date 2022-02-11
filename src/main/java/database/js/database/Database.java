@@ -174,7 +174,7 @@ public abstract class Database
   }
 
 
-  public PreparedStatement prepare(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public PreparedStatement prepare(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
     PreparedStatement stmt = conn.prepareStatement(sql);
 
@@ -188,7 +188,7 @@ public abstract class Database
   }
 
 
-  public CallableStatement prepareCall(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public CallableStatement prepareCall(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
     CallableStatement stmt = conn.prepareCall(sql);
 
@@ -309,8 +309,8 @@ public abstract class Database
 
   public abstract void releaseProxyUser() throws Exception;
   public abstract void setProxyUser(String username) throws Exception;
-  public abstract ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception;
-  public abstract ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception;
+  public abstract ResultSet executeUpdateWithReturnValues(PreparedStatement stmt, String dateform) throws Exception;
+  public abstract ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception;
 
 
   public static class ReturnValueHandle

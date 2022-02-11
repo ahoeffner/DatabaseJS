@@ -33,13 +33,13 @@ public class Postgres extends Database
   }
 
   @Override
-  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
-    return(new ReturnValueHandle(this.prepare(sql,bindvalues)));
+    return(new ReturnValueHandle(this.prepare(sql,bindvalues,dateform)));
   }
 
   @Override
-  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception
+  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt, String dateform) throws Exception
   {
     return(stmt.executeQuery());
   }

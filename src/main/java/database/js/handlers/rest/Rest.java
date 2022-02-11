@@ -566,7 +566,7 @@ public class Rest
       state.prepare(payload);
 
       state.lock();
-      Cursor cursor = state.session().executeQuery(curname,sql,bindvalues);
+      Cursor cursor = state.session().executeQuery(curname,sql,bindvalues,dateform);
       state.unlock();
 
       cursor.rows = rows;
@@ -623,9 +623,17 @@ public class Rest
 
     try
     {
+      String dateform = this.dateform;
+
+      if (payload.has("dateformat"))
+      {
+        if (payload.isNull("dateformat")) dateform = null;
+        else   dateform = payload.getString("dateformat");
+      }
+
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
-
+      
       String sql = getStatement(payload);
       if (sql == null) return(error("Attribute \"sql\" is missing"));
 
@@ -646,7 +654,7 @@ public class Rest
       if (returning)
       {
         state.lock();
-        Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues);
+        Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues,dateform);
         state.unlock();
 
         JSONFormatter json = new JSONFormatter();
@@ -666,7 +674,7 @@ public class Rest
       else
       {
         state.lock();
-        int rows = state.session().executeUpdate(sql,bindvalues);
+        int rows = state.session().executeUpdate(sql,bindvalues,dateform);
         state.unlock();
 
         state.release();

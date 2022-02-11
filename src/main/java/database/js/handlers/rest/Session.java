@@ -30,8 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ConcurrentHashMap;
 import database.js.database.Database.ReturnValueHandle;
 
-import javax.swing.plaf.nimbus.State;
-
 
 public class Session
 {
@@ -325,24 +323,24 @@ public class Session
   }
 
 
-  public int executeUpdate(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public int executeUpdate(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
-    PreparedStatement stmt = database.prepare(sql,bindvalues);
+    PreparedStatement stmt = database.prepare(sql,bindvalues,dateform);
     return(database.executeUpdate(stmt));
   }
 
 
-  public Cursor executeUpdateWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public Cursor executeUpdateWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
-    ReturnValueHandle hdl = database.prepareWithReturnValues(sql,bindvalues);
-    ResultSet         rset = database.executeUpdateWithReturnValues(hdl.stmt());
+    ReturnValueHandle hdl = database.prepareWithReturnValues(sql,bindvalues,dateform);
+    ResultSet         rset = database.executeUpdateWithReturnValues(hdl.stmt(),dateform);
     return(new Cursor(null,hdl.stmt(),rset,hdl.columns()));
   }
 
 
-  public Cursor executeQuery(String name, String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public Cursor executeQuery(String name, String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
-    PreparedStatement stmt = database.prepare(sql,bindvalues);
+    PreparedStatement stmt = database.prepare(sql,bindvalues,dateform);
     ResultSet         rset = database.executeQuery(stmt);
 
     Cursor cursor = new Cursor(name,stmt,rset);
@@ -363,7 +361,7 @@ public class Session
       else formatter = DateTimeFormatter.ofPattern(dateform);
     }
 
-    CallableStatement stmt = database.prepareCall(sql,bindvalues);
+    CallableStatement stmt = database.prepareCall(sql,bindvalues,dateform);
     return(database.execute(stmt,bindvalues,timeconv,formatter));
   }
 

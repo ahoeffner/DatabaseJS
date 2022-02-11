@@ -53,7 +53,7 @@ public class Oracle extends Database
 
 
   @Override
-  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
     ArrayList<String> columns = new ArrayList<String>();
     OracleConnection conn = (OracleConnection) super.connection();
@@ -81,7 +81,7 @@ public class Oracle extends Database
 
 
   @Override
-  public ResultSet executeUpdateWithReturnValues(PreparedStatement jstmt) throws Exception
+  public ResultSet executeUpdateWithReturnValues(PreparedStatement jstmt, String dateform) throws Exception
   {
     OraclePreparedStatement stmt = (OraclePreparedStatement) jstmt;
     stmt.executeUpdate();

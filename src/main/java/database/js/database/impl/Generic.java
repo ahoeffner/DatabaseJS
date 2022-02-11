@@ -34,13 +34,13 @@ public class Generic extends Database
   }
 
   @Override
-  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
     throw new Exception("Feature not supported");
   }
 
   @Override
-  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt) throws Exception
+  public ResultSet executeUpdateWithReturnValues(PreparedStatement stmt, String dateform) throws Exception
   {
     throw new Exception("Feature not supported");
   }
