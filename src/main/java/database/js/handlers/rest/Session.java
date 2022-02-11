@@ -235,10 +235,11 @@ public class Session
     if (database != null)
     {
       closeAllCursors();
-
+      
       try
       {
-        database.rollback();
+        if (!database.getAutoCommit())
+          database.rollback();
       }
       catch (Exception e)
       {
