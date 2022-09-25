@@ -15,6 +15,7 @@ package database.js.handlers;
 import java.net.URL;
 import java.util.TreeSet;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import database.js.servers.http.HTTPRequest;
 import database.js.servers.http.HTTPResponse;
 import database.js.handlers.rest.JSONFormatter;
@@ -27,6 +28,8 @@ public class CrossOrigin
 
   private final static ArrayList<String> allowed =
     new ArrayList<String>();
+
+  private final static Logger logger = Logger.getLogger("rest");
 
 
 public static void init(String host, ArrayList<String> domains)
@@ -73,7 +76,8 @@ public static void init(String host, ArrayList<String> domains)
 
     jfmt.success(false);
     jfmt.add("message","Origin \""+origin+"\" rejected by Cors");
-
+    
+    logger.severe("Origin \""+origin+"\" rejected by Cors");
     return(jfmt.toString());
   }
 

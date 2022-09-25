@@ -72,6 +72,7 @@ public class RestHandler extends Handler
     if (errm != null)
     {
       response.setBody(errm);
+      log(logger,request,response);
       return(response);
     }
 
