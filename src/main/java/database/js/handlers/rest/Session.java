@@ -235,7 +235,7 @@ public class Session
     if (database != null)
     {
       closeAllCursors();
-      
+
       try
       {
         if (!database.getAutoCommit())

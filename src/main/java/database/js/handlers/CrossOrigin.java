@@ -32,7 +32,7 @@ public class CrossOrigin
   private final static Logger logger = Logger.getLogger("rest");
 
 
-public static void init(String host, ArrayList<String> domains)
+  public static void init(String host, ArrayList<String> domains)
   {
     int pos = host.indexOf(':');
     if (pos > 0) host = host.substring(0,pos);
@@ -76,7 +76,7 @@ public static void init(String host, ArrayList<String> domains)
 
     jfmt.success(false);
     jfmt.add("message","Origin \""+origin+"\" rejected by Cors");
-    
+
     logger.severe("Origin \""+origin+"\" rejected by Cors");
     return(jfmt.toString());
   }
