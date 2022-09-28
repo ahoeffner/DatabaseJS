@@ -144,7 +144,9 @@ public class RestHandler extends Handler
 
     response.setBody(rest.execute(path,payload,returning));
 
-    log(logger,request,response);
+    if (!rest.isPing())
+      log(logger,request,response);
+    
     return(response);
   }
 
