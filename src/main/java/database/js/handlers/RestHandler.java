@@ -144,7 +144,7 @@ public class RestHandler extends Handler
 
     response.setBody(rest.execute(path,payload,returning));
 
-    if (!rest.isPing())
+    if (!rest.isPing() || logger.getLevel() == Level.FINEST)
       log(logger,request,response);
     
     return(response);
