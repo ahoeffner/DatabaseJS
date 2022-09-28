@@ -181,7 +181,9 @@ public abstract class Database
     for (int i = 0; i < bindvalues.size(); i++)
     {
       BindValue b = bindvalues.get(i);
-      stmt.setObject(i+1,b.getValue(),b.getType());
+
+      try {stmt.setObject(i+1,b.getValue(),b.getType());}
+      catch (Exception e) {logger.log(Level.WARNING,e.getMessage(),e);}
     }
 
     return(stmt);

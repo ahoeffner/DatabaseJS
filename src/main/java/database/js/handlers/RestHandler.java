@@ -146,7 +146,7 @@ public class RestHandler extends Handler
 
     if (!rest.isPing() || logger.getLevel() == Level.FINEST)
       log(logger,request,response);
-    
+
     return(response);
   }
 

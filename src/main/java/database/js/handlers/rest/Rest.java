@@ -43,7 +43,7 @@ import static database.js.handlers.rest.JSONFormatter.Type.*;
 public class Rest
 {
   private boolean ping;
-  
+
   private final String host;
   private final String repo;
   private final Server server;
@@ -68,7 +68,7 @@ public class Rest
   public Rest(Server server, boolean savepoint, String host) throws Exception
   {
     this.ping      = false;
-    
+
     this.host      = host;
     this.savepoint = savepoint;
 
@@ -105,7 +105,7 @@ public class Rest
       return(error(e));
     }
   }
-  
+
   public boolean isPing()
   {
     return(this.ping);
