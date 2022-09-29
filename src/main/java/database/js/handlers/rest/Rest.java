@@ -259,7 +259,7 @@ public class Rest
         response = disconnect(); break;
 
       case "exec" :
-        {
+      {
           switch(request.func)
           {
             case "ddl" :
@@ -287,7 +287,7 @@ public class Rest
           }
 
           break;
-        }
+      }
 
       default :
         failed = true;
