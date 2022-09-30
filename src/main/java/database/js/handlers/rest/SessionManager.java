@@ -162,6 +162,7 @@ public class SessionManager
     public void run()
     {
       logger.info("SSOReaper started");
+      ArrayList<String> remove = new ArrayList<String>();
 
       try
       {
@@ -171,7 +172,6 @@ public class SessionManager
         {
           Thread.sleep(timeout/4);
           long time = System.currentTimeMillis();
-          ArrayList<String> remove = new ArrayList<String>();
 
           for(Map.Entry<String,PreAuthRecord> entry : preauth.entrySet())
           {
@@ -183,15 +183,15 @@ public class SessionManager
               logger.fine("SSO: "+sso.guid+" timed out");
             }
           }
-
-          for(String guid : remove)
-            preauth.remove(guid);
         }
       }
       catch (Exception e)
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
+
+      for(String guid : remove)
+        preauth.remove(guid);
     }
   }
 
@@ -215,6 +215,7 @@ public class SessionManager
     public void run()
     {
       logger.info("SessionReaper started");
+      ArrayList<String> remove = new ArrayList<String>();
 
       try
       {
@@ -260,6 +261,7 @@ public class SessionManager
             {
               session.share();
               session.disconnect(true);
+              remove.add(session.guid());
               logger.fine("Session: "+session.guid()+" timed out");
             }
           }
@@ -269,6 +271,9 @@ public class SessionManager
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
+
+      for(String guid : remove)
+        SessionManager.remove(guid);
     }
   }
 }
