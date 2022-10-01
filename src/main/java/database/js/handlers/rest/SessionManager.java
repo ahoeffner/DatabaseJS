@@ -100,15 +100,19 @@ public class SessionManager
   public static boolean remove(String guid)
   {
     Session session = sessions.remove(guid);
+    logger.fine("Remove : "+guid+" clients: "+session.clients());
 
+    /*
     synchronized(session)
     {
       if (session.clients() != 0)
       {
+        logger.fine("add : "+guid+" "+session.clients());
         sessions.put(session.guid(),session);
         return(false);
       }
     }
+    */
 
     return(true);
   }
@@ -271,6 +275,8 @@ public class SessionManager
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
+
+      logger.fine("Remove: "+remove.size());
 
       for(String guid : remove)
         SessionManager.remove(guid);

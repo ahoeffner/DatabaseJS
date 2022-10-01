@@ -309,10 +309,13 @@ public class Rest
         keepalive = payload.getBoolean("keepalive");
 
       if (keepalive && state.session() == null)
-        return(error("keepalive cannot be used without a valid session"));
+        return(error("keepalive failed, session does not exist"));
 
       if (keepalive)
         state.session().touch();
+      
+      if (state.session() != null)
+        state.session().release(false);
     }
     catch (Throwable e)
     {
