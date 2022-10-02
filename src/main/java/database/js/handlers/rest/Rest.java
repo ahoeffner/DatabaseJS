@@ -315,7 +315,7 @@ public class Rest
         state.session().touch();
       
       if (state.session() != null)
-        state.session().release(false);
+        state.release();
     }
     catch (Throwable e)
     {

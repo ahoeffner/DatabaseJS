@@ -21,6 +21,8 @@ import database.js.database.Pool;
 import database.js.servers.Server;
 import database.js.cluster.PreAuthTable;
 import database.js.cluster.PreAuthRecord;
+
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -99,21 +101,7 @@ public class SessionManager
 
   public static boolean remove(String guid)
   {
-    Session session = sessions.remove(guid);
-    logger.fine("Remove : "+guid+" clients: "+session.clients());
-
-    /*
-    synchronized(session)
-    {
-      if (session.clients() != 0)
-      {
-        logger.fine("add : "+guid+" "+session.clients());
-        sessions.put(session.guid(),session);
-        return(false);
-      }
-    }
-    */
-
+    sessions.remove(guid);
     return(true);
   }
 
@@ -219,7 +207,6 @@ public class SessionManager
     public void run()
     {
       logger.info("SessionReaper started");
-      ArrayList<String> remove = new ArrayList<String>();
 
       try
       {
@@ -263,9 +250,8 @@ public class SessionManager
 
             if (time - session.touched() > timeout)
             {
-              session.share();
+              System.err.println((new Date())+" cleanout "+session.guid()+" "+session.clients());
               session.disconnect(true);
-              remove.add(session.guid());
               logger.fine("Session: "+session.guid()+" timed out");
             }
           }
@@ -275,11 +261,6 @@ public class SessionManager
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
-
-      logger.fine("Remove: "+remove.size());
-
-      for(String guid : remove)
-        SessionManager.remove(guid);
     }
   }
 }
