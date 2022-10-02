@@ -25,6 +25,7 @@ public class HTTPCodes
   {
     codes.put(200,"OK");
     codes.put(404,"Not Found");
+    codes.put(204,"No Content");
     codes.put(400,"Bad Request");
     codes.put(304,"Not Modified");
     codes.put(301,"Moved Permanently");
