@@ -250,7 +250,6 @@ public class SessionManager
 
             if (time - session.touched() > timeout)
             {
-              System.err.println((new Date())+" cleanout "+session.guid()+" "+session.clients());
               session.disconnect(true);
               logger.fine("Session: "+session.guid()+" timed out");
             }
