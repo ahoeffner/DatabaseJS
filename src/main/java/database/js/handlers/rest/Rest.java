@@ -283,6 +283,9 @@ public class Rest
             case "update" :
               response = update(request.payload,returning); break;
 
+            case "delete" :
+              response = update(request.payload,returning); break;
+
             default : return(error("Unknown command "+request));
           }
 
