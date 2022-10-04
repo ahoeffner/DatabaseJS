@@ -86,13 +86,13 @@ public class CrossOrigin
   {
     String mode = request.getHeader("Sec-Fetch-Mode");
     if (mode == null || !mode.equalsIgnoreCase("cors")) return;
-          
+
     String origin = request.getHeader("Origin");
     response.setHeader("Access-Control-Allow-Methods","*");
     response.setHeader("Access-Control-Allow-Headers","*");
     response.setHeader("Access-Control-Request-Method","*");
     response.setHeader("Access-Control-Request-Headers","*");
     response.setHeader("Access-Control-Allow-Origin",origin);
-    response.setHeader("Access-Control-Allow-Credentials","true");    
+    response.setHeader("Access-Control-Allow-Credentials","true");
   }
 }

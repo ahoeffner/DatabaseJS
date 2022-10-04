@@ -316,7 +316,7 @@ public class Rest
 
       if (keepalive)
         state.session().touch();
-      
+
       if (state.session() != null)
         state.release();
     }
@@ -544,6 +544,7 @@ public class Rest
       int rows = 0;
       int skip = 0;
       String curname = null;
+      boolean describe = false;
       boolean compact = this.compact;
       String dateform = this.dateform;
 
@@ -552,6 +553,7 @@ public class Rest
 
       if (payload.has("rows")) rows = payload.getInt("rows");
       if (payload.has("skip")) skip = payload.getInt("skip");
+      if (payload.has("describe")) describe = payload.getBoolean("describe");
 
       if (payload.has("dateformat"))
       {
@@ -589,6 +591,7 @@ public class Rest
       cursor.compact = compact;
       cursor.dateformat = dateform;
 
+      String[] types = state.session().getColumnTypes(cursor);
       String[] columns = state.session().getColumnNames(cursor);
       ArrayList<Object[]> table = state.session().fetch(cursor,skip);
 
@@ -598,6 +601,13 @@ public class Rest
 
       json.success(true);
       json.add("more",!cursor.closed);
+
+      if (describe)
+      {
+        json.push("types",SimpleArray);
+        json.add(types);
+        json.pop();
+      }
 
       if (compact)
       {

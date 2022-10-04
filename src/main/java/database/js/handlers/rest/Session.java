@@ -375,6 +375,12 @@ public class Session
   }
 
 
+  public String[] getColumnTypes(Cursor cursor) throws Exception
+  {
+    return(database.getColumTypes(cursor.rset));
+  }
+
+
   public ArrayList<Object[]> fetch(Cursor cursor, int skip) throws Exception
   {
     boolean timeconv = false;

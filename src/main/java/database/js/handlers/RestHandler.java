@@ -125,7 +125,7 @@ public class RestHandler extends Handler
     if (session == null) session = new Guid().toString();
 
     response.setCookie("JSESSIONID",session);
-    
+
     if (request.body() == null && request.method().equals("OPTIONS"))
     {
       if (request.method().equals("OPTIONS"))
@@ -133,8 +133,8 @@ public class RestHandler extends Handler
 
       if (logger.getLevel() == Level.FINE) logger.fine("/OPTIONS");
       if (logger.getLevel() == Level.FINEST) log(logger,request,response);
-      
-      return(response);      
+
+      return(response);
     }
 
     byte[] body = request.body();

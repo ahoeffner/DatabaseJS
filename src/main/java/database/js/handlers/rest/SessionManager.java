@@ -21,8 +21,6 @@ import database.js.database.Pool;
 import database.js.servers.Server;
 import database.js.cluster.PreAuthTable;
 import database.js.cluster.PreAuthRecord;
-
-import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 

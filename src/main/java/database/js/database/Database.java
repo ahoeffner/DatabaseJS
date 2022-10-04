@@ -263,6 +263,18 @@ public abstract class Database
   }
 
 
+  public String[] getColumTypes(ResultSet rset) throws Exception
+  {
+    ResultSetMetaData meta = rset.getMetaData();
+    String[] columns = new String[meta.getColumnCount()];
+
+    for (int i = 0; i < columns.length; i++)
+      columns[i] = SQLTypes.getName(meta.getColumnType(i+1));
+
+    return(columns);
+  }
+
+
   public String[] getColumNames(ResultSet rset) throws Exception
   {
     ResultSetMetaData meta = rset.getMetaData();

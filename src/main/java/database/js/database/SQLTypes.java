@@ -12,6 +12,7 @@
 
 package database.js.database;
 
+import java.util.Map;
 import java.sql.Types;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,6 +27,9 @@ public class SQLTypes
 
   public static final ConcurrentHashMap<String,Integer> types =
     new ConcurrentHashMap<String,Integer>();
+
+  public static final ConcurrentHashMap<Integer,String> names =
+    new ConcurrentHashMap<Integer,String>();
 
   static
   {
@@ -52,6 +56,25 @@ public class SQLTypes
     types.put("TEXT",Types.LONGNVARCHAR);
 
     types.put("BOOLEAN",Types.BOOLEAN);
+
+    names.put(2,"NUMERIC");
+
+    for(Map.Entry<String,Integer> entry : types.entrySet())
+      names.put(entry.getValue(),entry.getKey());
+  }
+
+
+  public static String getName(int type)
+  {
+    String name = names.get(type);
+
+    if (name == null)
+    {
+      name = "NA";
+      logger.warning("Unknow sqltype "+type);
+    }
+
+    return(name);
   }
 
 
