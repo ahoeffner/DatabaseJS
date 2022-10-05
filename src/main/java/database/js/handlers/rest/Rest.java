@@ -691,6 +691,7 @@ public class Rest
 
         state.release();
         json.success(true);
+        json.add("affected",table.size());
 
         json.push("rows",ObjectArray);
         for(Object[] row : table) json.add(columns,row);
@@ -709,7 +710,7 @@ public class Rest
         JSONFormatter json = new JSONFormatter();
 
         json.success(true);
-        json.add("rows",rows);
+        json.add("affected",rows);
 
         return(json.toString());
       }
