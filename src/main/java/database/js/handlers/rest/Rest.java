@@ -654,7 +654,7 @@ public class Rest
       if (payload.has("dateformat"))
       {
         if (payload.isNull("dateformat")) dateform = null;
-        else   dateform = payload.getString("dateformat");
+        else dateform = payload.getString("dateformat");
       }
 
       if (payload.has("bindvalues"))
@@ -683,6 +683,7 @@ public class Rest
         Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues,dateform);
         state.unlock();
 
+        cursor.dateformat = dateform;
         JSONFormatter json = new JSONFormatter();
 
         String[] columns = state.session().getColumnNames(cursor);
