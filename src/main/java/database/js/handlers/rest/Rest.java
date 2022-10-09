@@ -733,10 +733,13 @@ public class Rest
 
     try
     {
-      String dateconv = null;
+      String dateform = this.dateform;
 
-      if (payload.has("dateconversion"))
-        dateconv = payload.getString("dateconversion");
+      if (payload.has("dateformat"))
+      {
+        if (payload.isNull("dateformat")) dateform = null;
+        else dateform = payload.getString("dateformat");
+      }
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
@@ -759,7 +762,7 @@ public class Rest
       state.prepare(payload);
 
       state.lock();
-      ArrayList<NameValuePair<Object>> values = state.session().executeCall(sql,bindvalues,dateconv);
+      ArrayList<NameValuePair<Object>> values = state.session().executeCall(sql,bindvalues,dateform);
       state.unlock();
 
       state.release();
