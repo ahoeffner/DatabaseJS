@@ -228,7 +228,7 @@ public class Session
   {
     if (expected >= 0 && clients != expected)
     {
-      logger.severe("Releasing connection while other clients connected, clients: "+clients);
+      logger.severe("Releasing connection while clients connected");
       return(false);
     }
 
