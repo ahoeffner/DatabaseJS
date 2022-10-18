@@ -57,6 +57,7 @@ public class SQLTypes
 
     types.put("BOOLEAN",Types.BOOLEAN);
 
+    names.put(1,"STRING");
     names.put(2,"NUMERIC");
 
     for(Map.Entry<String,Integer> entry : types.entrySet())
