@@ -30,6 +30,7 @@ public class CrossOrigin
     new ArrayList<String>();
 
   private final static Logger logger = Logger.getLogger("rest");
+  private final static String methods = "GET, POST, PATCH, DELETE, PUT, OPTIONS, HEAD";
 
 
   public static void init(String host, ArrayList<String> domains)
@@ -85,14 +86,15 @@ public class CrossOrigin
   public void addHeaders(HTTPRequest request, HTTPResponse response)
   {
     String mode = request.getHeader("Sec-Fetch-Mode");
-    if (mode == null || !mode.equalsIgnoreCase("cors")) return;
-
+    if (mode == null || !mode.equalsIgnoreCase("cors")) return;    
+    String method = request.getHeader("Access-Control-Request-Method");
+    
     String origin = request.getHeader("Origin");
-    response.setHeader("Access-Control-Allow-Methods","*");
     response.setHeader("Access-Control-Allow-Headers","*");
-    response.setHeader("Access-Control-Request-Method","*");
     response.setHeader("Access-Control-Request-Headers","*");
     response.setHeader("Access-Control-Allow-Origin",origin);
+    response.setHeader("Access-Control-Request-Method",method);
+    response.setHeader("Access-Control-Allow-Methods",methods);
     response.setHeader("Access-Control-Allow-Credentials","true");
   }
 }
