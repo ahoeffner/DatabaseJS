@@ -179,7 +179,7 @@ public class Request
 
     String sql = rest.getStatement(payload);
     if (sql == null) throw new Exception("Attribute \"sql\" is missing");
-    
+
     sql = sql.trim();
     if (sql.length() > 6)
     {

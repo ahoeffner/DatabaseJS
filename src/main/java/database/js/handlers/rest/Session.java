@@ -226,6 +226,7 @@ public class Session
 
   private synchronized boolean disconnect(int expected)
   {
+    logger.severe("disconnect expected: "+expected+" clients: "+clients);
     if (expected >= 0 && clients != expected)
     {
       logger.severe("Releasing connection while clients connected");
@@ -274,8 +275,15 @@ public class Session
     if (database == null)
       return(false);
 
-    if (scope == Scope.Transaction) disconnect(1);
-    else                            database.rollback();
+    if (scope == Scope.Transaction)
+    {
+      clients--;
+      disconnect(0);
+    }
+    else
+    {
+      database.rollback();
+    }
 
     return(true);
   }

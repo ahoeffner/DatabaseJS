@@ -86,9 +86,9 @@ public class CrossOrigin
   public void addHeaders(HTTPRequest request, HTTPResponse response)
   {
     String mode = request.getHeader("Sec-Fetch-Mode");
-    if (mode == null || !mode.equalsIgnoreCase("cors")) return;    
+    if (mode == null || !mode.equalsIgnoreCase("cors")) return;
     String method = request.getHeader("Access-Control-Request-Method");
-    
+
     String origin = request.getHeader("Origin");
     response.setHeader("Access-Control-Allow-Headers","*");
     response.setHeader("Access-Control-Request-Headers","*");
