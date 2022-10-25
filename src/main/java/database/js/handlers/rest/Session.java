@@ -266,7 +266,7 @@ public class Session
     if (scope == Scope.Transaction)
     {
       disconnect(1);
-      clients--;      
+      clients--;
     }
 
     return(true);
