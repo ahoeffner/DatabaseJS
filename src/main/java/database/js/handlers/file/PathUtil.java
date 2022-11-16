@@ -13,6 +13,8 @@
 package database.js.handlers.file;
 
 import java.io.File;
+import java.util.logging.Logger;
+import database.js.config.Config;
 import database.js.handlers.Handler;
 import database.js.config.Handlers.HandlerProperties;
 
@@ -20,6 +22,7 @@ import database.js.config.Handlers.HandlerProperties;
 public class PathUtil
 {
   private final HandlerProperties properties;
+  private final Logger logger = Logger.getLogger("http");
 
 
   public PathUtil(Handler handler) throws Exception
@@ -50,9 +53,19 @@ public class PathUtil
     {
       File p = new File("/mnt"+path);
 
-      if (p.getCanonicalPath().startsWith("/mnt"))
-        return(true);
+      if (Config.windows())
+      {
+        // Remove drive letter
+        if (p.getCanonicalPath().substring(2).startsWith("\\mnt"))
+          return(true);
+      }
+      else
+      {
+        if (p.getCanonicalPath().startsWith("/mnt"))
+          return(true);
+      }
 
+      logger.warning("Page "+path+" looks insecure");
       return(false);
     }
     catch (Exception e)

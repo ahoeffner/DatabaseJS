@@ -112,7 +112,7 @@ public class Deployment
 
   public static boolean isDirectory(String path)
   {
-    if (!sep.equals("/")) path = path.replaceAll("/",sep);
+    if (Config.windows()) path = path.replaceAll("//","\\");
     File file = new File(deployment.deploy + sep + deployment.modified + path);
     return(file.isDirectory());
   }

@@ -102,6 +102,13 @@ public class Paths
       path = path.substring(0,pos);
     }
 
+    if (path.startsWith("."))
+    {
+      path = cw.getAbsolutePath() + sep + path;
+      abs = java.nio.file.Paths.get(path).normalize();
+      path = abs.toString();
+    }
+
     return(path);
   }
 }

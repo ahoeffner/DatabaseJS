@@ -48,6 +48,7 @@ public class FileHandler extends Handler
       response.setResponse(404);
       response.setContentType("text/html");
       response.setBody("<b>Page not found</b>");
+      logger.warning(path+" is not a valid path");
       return(response);
     }
 
@@ -65,6 +66,7 @@ public class FileHandler extends Handler
       response.setResponse(400);
       response.setContentType("text/html");
       response.setBody("<b>Bad Request</b>");
+      logger.warning(path+" host header is missing");
       return(response);
     }
 
@@ -113,7 +115,6 @@ public class FileHandler extends Handler
       log(logger,request,response);
       return(response);
     }
-
 
     boolean gzip = false;
     byte[] content = null;

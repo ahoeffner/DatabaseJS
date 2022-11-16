@@ -68,7 +68,7 @@ public class Logger
       size = Integer.parseInt(lfsize.trim()) * mp;
     }
 
-    if (logdir.startsWith("."+File.separator))
+    if (logdir.startsWith("."+File.separator) || logdir.startsWith("./"))
     {
       logdir = path + File.separator + logdir;
       File logf = new File(logdir);

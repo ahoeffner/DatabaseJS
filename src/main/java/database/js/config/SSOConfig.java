@@ -68,7 +68,7 @@ public class SSOConfig
       size = Integer.parseInt(lfsize.trim()) * mp;
     }
 
-    if (logdir.startsWith("."+File.separator))
+    if (logdir.startsWith("."+File.separator) || logdir.startsWith("./"))
     {
       logdir = path + File.separator + logdir;
       File logf = new File(logdir);
@@ -108,7 +108,7 @@ public class SSOConfig
     passwd = get(identsec,"password");
     String alias = get(identsec,"alias");
 
-    if (file.startsWith("."+File.separator))
+    if (file.startsWith("."+File.separator) || file.startsWith("./"))
       file = Paths.apphome + File.separator + file;
 
     Keystore identity = new Keystore(file,type,alias,passwd);
@@ -119,7 +119,7 @@ public class SSOConfig
     file = get(trustsec,"keystore");
     passwd = get(trustsec,"password");
 
-    if (file.startsWith("."+File.separator))
+    if (file.startsWith("."+File.separator) || file.startsWith("./"))
       file = Paths.apphome + File.separator + file;
 
     Keystore trust = new Keystore(file,type,null,passwd);

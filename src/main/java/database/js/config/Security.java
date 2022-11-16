@@ -42,7 +42,7 @@ public class Security
     passwd = Config.get(identsec,"password");
     String alias = Config.get(identsec,"alias");
 
-    if (file.startsWith("."+File.separator))
+    if (file.startsWith("."+File.separator) || file.startsWith("./"))
       file = Paths.apphome + File.separator + file;
 
     identity = new Keystore(file,type,alias,passwd);
@@ -53,7 +53,7 @@ public class Security
     file = Config.get(trustsec,"keystore");
     passwd = Config.get(trustsec,"password");
 
-    if (file.startsWith("."+File.separator))
+    if (file.startsWith("."+File.separator) || file.startsWith("./"))
       file = Paths.apphome + File.separator + file;
 
     trust = new Keystore(file,type,null,passwd);
