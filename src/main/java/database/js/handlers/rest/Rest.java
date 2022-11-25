@@ -810,6 +810,7 @@ public class Rest
 
         json.success(true);
         json.add("closed",true);
+        state.release();
         return(json.toString());
       }
 
