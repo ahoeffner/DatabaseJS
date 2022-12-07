@@ -216,6 +216,8 @@ public class Session
     }
     catch (Throwable e)
     {
+      database = null;
+
       if (pool != null)
         pool.validate();
 
