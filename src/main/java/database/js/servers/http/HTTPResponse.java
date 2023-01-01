@@ -247,7 +247,7 @@ public class HTTPResponse
     if (page != null) return(page);
 
     byte[] head = header().getBytes();
-    this.page = new byte[header.length()+this.body.length];
+    this.page = new byte[head.length+this.body.length];
 
     System.arraycopy(head,0,page,0,head.length);
     System.arraycopy(this.body,0,page,head.length,this.body.length);
