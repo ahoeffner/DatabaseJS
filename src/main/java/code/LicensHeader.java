@@ -13,6 +13,7 @@
 package code;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 public class LicensHeader
@@ -74,8 +75,37 @@ public class LicensHeader
     
     if (!file.endsWith("LicensHeader.java"))
       return(null);
+
+    this.replace();    
+    return(null);
+  }
+  
+  
+  public String replace() throws Exception
+  {
+    File file = new File(this.file);
+    byte[] buf = new byte[(int) file.length()];
+
+    FileInputStream in = new FileInputStream(file);
     
-    System.out.println(file);
+    if (in.read(buf) != buf.length)
+    {
+      System.err.println("Could not read "+this.file);
+      return(null);
+    }
+    
+    String code = new String(buf).trim();
+    
+    if (!code.startsWith("/*"))
+    {
+      System.err.println("No header in "+this.file);
+      return(null);      
+    }
+    
+    int start = code.indexOf("*/") + 2;
+    code = "/*\n"+LicensHeader.header + "\n*/\n" + code.substring(start);
+    
+    System.out.println(code.substring(0,3000));
     return(null);
   }
 
