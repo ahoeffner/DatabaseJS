@@ -1,4 +1,6 @@
 /*
+  MIT License
+
   Copyright © 2023 Alex Høffner
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software
@@ -28,6 +30,7 @@ public class LicensHeader
   private String file = null;
 
   private static final String header =
+  "  MIT License\n\n"+
   "  Copyright © 2023 Alex Høffner\n\n" +
   "  Permission is hereby granted, free of charge, to any person obtaining a copy of this software\n" +
   "  and associated documentation files (the “Software”), to deal in the Software without\n"+
@@ -46,10 +49,9 @@ public class LicensHeader
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
-    //String root = "/Users/alex/Repository/forms42/core/src";
-    String root = "/Users/alex/Repository/forms42/demo/src";
-    //String root = "/Users/alex/Repository/DatabaseJS/projects/database.js/src";
-    next(new File(root));
+    next(new File("/Users/alex/Repository/forms42/core/src"));
+    next(new File("/Users/alex/Repository/forms42/demo/src"));
+    next(new File("/Users/alex/Repository/DatabaseJS/projects/database.js/src"));
   }
 
 
