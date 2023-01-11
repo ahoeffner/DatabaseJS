@@ -46,7 +46,9 @@ public class LicensHeader
   @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
-    String root = "/Users/alex/Repository/DatabaseJS/projects/database.js/src";
+    //String root = "/Users/alex/Repository/forms42/core/src";
+    String root = "/Users/alex/Repository/forms42/demo/src";
+    //String root = "/Users/alex/Repository/DatabaseJS/projects/database.js/src";
     next(new File(root));
   }
 
