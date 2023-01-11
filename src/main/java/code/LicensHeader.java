@@ -76,8 +76,7 @@ public class LicensHeader
     if (!file.endsWith("LicensHeader.java"))
       return(null);
 
-    this.replace();    
-    return(null);
+    return(this.replace());
   }
   
   
@@ -105,8 +104,7 @@ public class LicensHeader
     int start = code.indexOf("*/") + 2;
     code = "/*\n"+LicensHeader.header + "\n*/\n" + code.substring(start);
     
-    System.out.println(code.substring(0,3000));
-    return(null);
+    return(code);
   }
 
 
