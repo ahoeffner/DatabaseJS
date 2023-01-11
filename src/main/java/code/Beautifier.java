@@ -29,7 +29,6 @@ public class Beautifier
   private final String file;
   private static int lines = 0;
   private static int blanks = 0;
-  private static final String sep = File.separator;
 
 
   @SuppressWarnings("unused")
