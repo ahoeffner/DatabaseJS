@@ -33,6 +33,7 @@ import java.sql.CallableStatement;
 import database.js.database.Database;
 import database.js.database.BindValue;
 import database.js.database.AuthMethod;
+import database.js.config.DatabaseType;
 import database.js.database.DatabaseUtils;
 import database.js.database.NameValuePair;
 import java.time.format.DateTimeFormatter;
@@ -42,22 +43,38 @@ import database.js.database.Database.ReturnValueHandle;
 
 public class Session
 {
-  private final Pool pool;
   private final String guid;
   private final Scope scope;
-  private final String secret;
   private final String username;
   private final SessionLock lock;
-  private final AuthMethod method;
+
+  private Pool pool = null;
+  private String secret = null;
+  private AuthMethod method = null;
+  private Database database = null;
 
   private int clients = 0;
-  private Database database = null;
   private long touched = System.currentTimeMillis();
 
   private final ConcurrentHashMap<String,Cursor> cursors =
     new ConcurrentHashMap<String,Cursor>();
 
   private final static Logger logger = Logger.getLogger("rest");
+
+
+  public static boolean forcePool(String scope)
+  {
+    if (!scope.equalsIgnoreCase("transaction"))
+      return(false);
+
+    if (DatabaseUtils.getType() == DatabaseType.Oracle)
+      return(true);
+
+    if (DatabaseUtils.getType() == DatabaseType.Postgres)
+      return(true);
+
+    return(false);
+  }
 
 
   public Session(AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
@@ -90,6 +107,24 @@ public class Session
   }
 
 
+  public void setPool(Pool pool)
+  {
+    this.pool = pool;
+  }
+
+
+  public void setSecret(String secret)
+  {
+    this.secret = secret;
+  }
+
+
+  public void setMethod(AuthMethod method)
+  {
+    this.method = method;
+  }
+
+
   public synchronized String release(boolean failed)
   {
     clients--;
@@ -119,7 +154,7 @@ public class Session
     }
 
     if (!stateful())
-      disconnect(0);
+      disconnect(0,false);
 
     return(null);
   }
@@ -167,7 +202,7 @@ public class Session
     int exp = 0;
     if (force) exp = -1;
 
-    if (disconnect(exp))
+    if (disconnect(exp,true))
       SessionManager.remove(guid);
   }
 
@@ -216,7 +251,7 @@ public class Session
 
       if (scope != Scope.Dedicated && !keep)
       {
-        disconnect(0);
+        disconnect(0,false);
         return;
       }
 
@@ -235,7 +270,7 @@ public class Session
   }
 
 
-  private synchronized boolean disconnect(int expected)
+  private synchronized boolean disconnect(int expected, boolean rb)
   {
     if (expected >= 0 && clients != expected)
       logger.severe("Releasing connection while clients connected");
@@ -246,7 +281,7 @@ public class Session
 
       try
       {
-        if (!database.getAutoCommit())
+        if (rb && !database.getAutoCommit())
           database.rollback();
       }
       catch (Exception e)
@@ -272,7 +307,7 @@ public class Session
 
     if (scope == Scope.Transaction)
     {
-      disconnect(1);
+      disconnect(1,false);
       clients--;
     }
 
@@ -285,14 +320,12 @@ public class Session
     if (database == null)
       return(false);
 
+    database.rollback();
+
     if (scope == Scope.Transaction)
     {
+      disconnect(1,false);
       clients--;
-      disconnect(0);
-    }
-    else
-    {
-      database.rollback();
     }
 
     return(true);

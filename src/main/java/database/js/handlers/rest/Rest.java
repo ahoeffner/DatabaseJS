@@ -453,6 +453,18 @@ public class Rest
 
         state.session().connect(state.batch());
         if (state.batch()) state.session().share();
+
+        if (!usepool && Session.forcePool(scope))
+        {
+          pool = config.getDatabase().proxy;
+
+          if (pool == null)
+            return(error("Connection pool not configured"));
+
+          state.session().setPool(pool);
+          state.session().setSecret(pool.token());
+          state.session().setMethod(AuthMethod.PoolToken);
+        }
       }
     }
     catch (Throwable e)

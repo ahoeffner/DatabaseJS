@@ -39,6 +39,12 @@ public class DatabaseUtils
   }
 
 
+  public static DatabaseType getType()
+  {
+    return(DatabaseUtils.dbtype);
+  }
+
+
   public static void setUrlParts(ArrayList<String> urlparts)
   {
     DatabaseUtils.urlparts = urlparts;

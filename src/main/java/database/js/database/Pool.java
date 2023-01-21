@@ -73,6 +73,12 @@ public class Pool
   }
 
 
+  public String token()
+  {
+    return(this.token);
+  }
+
+
   public boolean proxy()
   {
     return(proxy);
