@@ -129,7 +129,7 @@ public class Session
   {
     clients--;
 
-    if (failed && !database.validate())
+    if (failed && database != null && !database.validate())
     {
       try
       {
