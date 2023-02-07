@@ -52,6 +52,7 @@ import static database.js.handlers.rest.JSONFormatter.Type.*;
 public class Rest
 {
   private boolean ping;
+  private boolean conn;
 
   private final String host;
   private final String repo;
@@ -77,6 +78,7 @@ public class Rest
   public Rest(Server server, boolean savepoint, String host) throws Exception
   {
     this.ping      = false;
+    this.conn      = false;
 
     this.host      = host;
     this.savepoint = savepoint;
@@ -115,9 +117,16 @@ public class Rest
     }
   }
 
+
   public boolean isPing()
   {
     return(this.ping);
+  }
+
+
+  public boolean isConnect()
+  {
+    return(this.conn);
   }
 
 
@@ -357,6 +366,7 @@ public class Rest
   {
     int timeout = 0;
     Pool pool = null;
+    this.conn = true;
     String type = null;
     String scope = null;
     String secret = null;

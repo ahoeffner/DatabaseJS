@@ -147,6 +147,11 @@ public class HTTPRequest
     return(body);
   }
 
+  public void scramble()
+  {
+    this.body = "*********".getBytes();
+  }
+
   public String getQuery(String qstr)
   {
     for(Pair<String,String> entry : query)

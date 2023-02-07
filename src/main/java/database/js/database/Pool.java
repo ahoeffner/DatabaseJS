@@ -34,6 +34,7 @@ public class Pool
   private final int min;
   private final int max;
   private final int idle;
+  private final int busy;
   private final String token;
   private final boolean proxy;
   private final String username;
@@ -42,10 +43,11 @@ public class Pool
   private final static Logger logger = Logger.getLogger("rest");
 
 
-  public Pool(boolean proxy, String token, String username, String password, int min, int max, int idle) throws Exception
+  public Pool(boolean proxy, String token, String username, String password, int min, int max, int idle, int busy) throws Exception
   {
     this.min = min;
     this.max = max;
+    this.busy = busy;
     this.idle = idle;
     this.proxy = proxy;
     this.token = token;
@@ -70,6 +72,12 @@ public class Pool
   public int idle()
   {
     return(idle);
+  }
+
+
+  public int busy()
+  {
+    return(busy);
   }
 
 
@@ -144,11 +152,18 @@ public class Pool
     }
 
     Database database = null;
+    long busy = this.busy() * 1000;
+    long start = System.currentTimeMillis();
 
     synchronized(this)
     {
       while(pool.size() == 0 && size == max)
-        this.wait();
+      {
+        if (System.currentTimeMillis() - start > busy)
+          throw new Exception("No more available connections in pool");
+
+        this.wait(1000);
+      }
 
       if (pool.size() == 0)
       {
@@ -258,6 +273,24 @@ public class Pool
     @Override
     public void run()
     {
+      if (pool.username == null)
+      {
+        pool.closed = true;
+        return;
+      }
+
+      if (pool.username.length() == 0)
+      {
+        pool.closed = true;
+        return;
+      }
+
+      if (pool.max <= 0)
+      {
+        pool.closed = true;
+        return;
+      }
+
       try
       {
         for (int i = 0; i < pool.min; i++)
