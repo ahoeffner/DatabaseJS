@@ -120,6 +120,11 @@ public class Rest
         if (request.session.equals(ptok))
         {
           System.out.println("proxy pool autocommit");
+          Pool pool = config.getDatabase().proxy;
+          
+          state.session().setPool(pool);
+          state.session().setSecret(pool.token());
+          state.session().setMethod(AuthMethod.PoolToken);
         }
       }
             
@@ -1313,7 +1318,7 @@ public class Rest
     Rest rest;
     int dept = 0;
     int shared = 0;
-    Session session;
+    Session session = null;
     boolean exclusive = false;
     Savepoint savepoint = null;
 

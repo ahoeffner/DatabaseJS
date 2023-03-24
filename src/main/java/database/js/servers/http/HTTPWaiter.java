@@ -114,7 +114,8 @@ class HTTPWaiter extends Thread
           
           try
           {
-            client.channel().register(selector,SelectionKey.OP_READ,client);
+            if (client.channel().isOpen())
+              client.channel().register(selector,SelectionKey.OP_READ,client);
           }
           catch (Exception e)
           {
