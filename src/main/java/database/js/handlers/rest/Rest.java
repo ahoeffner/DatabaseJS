@@ -103,40 +103,50 @@ public class Rest
 
   public String execute(String path, String payload, boolean returning)
   {
+    boolean stateless = false;
+    
     try
     {
       Request request = new Request(this,path,payload);
       Session session = SessionManager.get(request.session);
-      
+
       if (request.session != null)
       {
         if (request.session.equals(ftok))
         {
-          System.out.println("fixed pool autocommit");
+          stateless = true;
+          Pool pool = config.getDatabase().fixed;          
+          session = new Session(config,AuthMethod.PoolToken,pool,"none",null,ftok);
+          state.session(session);
         }
         
         else
           
         if (request.session.equals(ptok))
         {
-          System.out.println("proxy pool autocommit");
-          Pool pool = config.getDatabase().proxy;
-          
-          state.session().setPool(pool);
-          state.session().setSecret(pool.token());
-          state.session().setMethod(AuthMethod.PoolToken);
+          stateless = true;
+          Pool pool = config.getDatabase().proxy;          
+          session = new Session(config,AuthMethod.PoolToken,pool,"none",null,ptok);
+          state.session(session);
         }
+        
+        else
+        
+        state.session(session);
       }
             
-      state.session(session);
-
       if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
 
       if (request.nvlfunc().equals("script"))
         return(script(request.payload));
-
-      return(exec(request,returning));
+      
+      String response = exec(request,returning);
+      
+      if (stateless)
+        session.release(failed);
+      
+      return(response);
     }
     catch (Throwable e)
     {
@@ -1359,7 +1369,7 @@ public class Rest
       {
         boolean savepoint = rest.getSavepoint(payload);
 
-        if (savepoint)
+        if (savepoint && !session.autocommit())
         {
           lock(true);
           this.savepoint = session.setSavePoint();
