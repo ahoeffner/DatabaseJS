@@ -161,7 +161,7 @@ public class RestHandler extends Handler
 
     response.setBody(rest.execute(path,payload,returning));
 
-    if (rest.isConnect())
+    if (rest.isConnectRequest())
       request.scramble();
 
     if (!rest.isPing() || logger.getLevel() == Level.FINEST)

@@ -45,7 +45,7 @@ public class Database
   public final SQLValidator validator;
 
   public final Pool proxy;
-  public final Pool anonymous;
+  public final Pool fixed;
 
   public final DatabaseType type;
   public final ArrayList<String> urlparts;
@@ -120,7 +120,7 @@ public class Database
     //*********************  Pool Section  *********************
 
     this.proxy = getPool("proxy",section,true);
-    this.anonymous = getPool("anonymous",section,false);
+    this.fixed = getPool("fixed",section,false);
   }
 
 

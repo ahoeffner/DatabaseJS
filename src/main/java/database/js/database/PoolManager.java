@@ -61,24 +61,24 @@ public class PoolManager extends Thread
     try
     {
       Pool pp = config.getDatabase().proxy;
-      Pool ap = config.getDatabase().anonymous;
+      Pool fp = config.getDatabase().fixed;
 
-      if (ap == null && pp == null)
+      if (fp == null && pp == null)
         return;
 
-      if (ap != null) ap.init();
+      if (fp != null) fp.init();
       if (pp != null) pp.init();
 
       int pidle = (pp == null) ? 3600000 : pp.idle();
-      int aidle = (ap == null) ? 3600000 : ap.idle();
+      int aidle = (fp == null) ? 3600000 : fp.idle();
       int sleep = (pidle < aidle) ? pidle * 1000/4 : aidle * 1000/4;
 
       while(true)
       {
         Thread.sleep(sleep);
 
-        if (ap != null)
-          cleanout(ap);
+        if (fp != null)
+          cleanout(fp);
 
         if (pp != null)
           cleanout(pp);

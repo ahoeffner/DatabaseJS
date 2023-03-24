@@ -128,7 +128,11 @@ public class Request
       func = peek(rest,payload);
 
     if (pos > 0)
-      session = rest.decode(args[0]);
+    {
+      if (args[0].equals(rest.getFixedToken())) session = args[0];
+      else if (args[0].equals(rest.getProxyToken())) session = args[0];
+      else session = rest.decode(args[0]);      
+    }
 
     for (int i = pos+1; i < args.length; i++)
       this.args.add(args[i]);

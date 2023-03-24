@@ -27,6 +27,7 @@ import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import database.js.config.Config;
 import database.js.database.Pool;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
@@ -77,7 +78,7 @@ public class Session
   }
 
 
-  public Session(AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
+  public Session(Config config, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
   {
     this.pool = pool;
     this.method = method;
@@ -85,7 +86,7 @@ public class Session
     this.username = username;
     this.scope = getScope(scope);
     this.lock = new SessionLock();
-    this.guid = SessionManager.register(this);
+    this.guid = SessionManager.register(config, this);
   }
 
 

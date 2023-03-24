@@ -48,14 +48,24 @@ public class SessionManager
     new ConcurrentHashMap<String,Session>();
 
 
-  public static synchronized String register(Session session)
+  public static synchronized String register(Config config, Session session)
   {
+    String ftok = "";
+    String ptok = "";
     String guid = null;
+    
+    try {ftok = config.getDatabase().fixed.token();}
+    catch (Exception e) {;}
+    
+    try {ptok = config.getDatabase().proxy.token();}
+    catch (Exception e) {;}
 
     while(guid == null)
     {
       guid = new Guid().toString();
-      if (sessions.get(guid) != null) guid = null;
+      if (guid.equals(ftok)) guid = null;
+      else if (guid.equals(ptok)) guid = null;
+      else if (sessions.get(guid) != null) guid = null;
     }
 
     sessions.put(guid,session);
@@ -243,10 +253,10 @@ public class SessionManager
             dmp += "--------------------------------------------------------------------------\n";
 
             Pool pp = config.getDatabase().proxy;
-            Pool ap = config.getDatabase().anonymous;
+            Pool fp = config.getDatabase().fixed;
 
             if (pp != null) logger.info(pp.toString());
-            if (ap != null) logger.info(ap.toString());
+            if (fp != null) logger.info(fp.toString());
 
             last = System.currentTimeMillis();
           }

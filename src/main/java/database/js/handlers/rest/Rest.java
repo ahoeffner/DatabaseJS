@@ -54,6 +54,9 @@ public class Rest
   private boolean ping;
   private boolean conn;
 
+  private final String ftok;
+  private final String ptok;
+
   private final String host;
   private final String repo;
   private final Server server;
@@ -92,6 +95,9 @@ public class Rest
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
+    
+    this.ftok      = config.getDatabase().fixed.token();
+    this.ptok      = config.getDatabase().proxy.token();
   }
 
 
@@ -100,7 +106,24 @@ public class Rest
     try
     {
       Request request = new Request(this,path,payload);
-      state.session(SessionManager.get(request.session));
+      Session session = SessionManager.get(request.session);
+      
+      if (request.session != null)
+      {
+        if (request.session.equals(ftok))
+        {
+          System.out.println("fixed pool autocommit");
+        }
+        
+        else
+          
+        if (request.session.equals(ptok))
+        {
+          System.out.println("proxy pool autocommit");
+        }
+      }
+            
+      state.session(session);
 
       if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
@@ -116,6 +139,18 @@ public class Rest
       return(error(e));
     }
   }
+  
+  
+  public String getFixedToken()
+  {
+    return(this.ftok);
+  }
+  
+  
+  public String getProxyToken()
+  {
+    return(this.ptok);
+  }
 
 
   public boolean isPing()
@@ -124,7 +159,7 @@ public class Rest
   }
 
 
-  public boolean isConnect()
+  public boolean isConnectRequest()
   {
     return(this.conn);
   }
@@ -453,13 +488,13 @@ public class Rest
         if (usepool)
         {
           if (!anonymous) pool = config.getDatabase().proxy;
-          else            pool = config.getDatabase().anonymous;
+          else            pool = config.getDatabase().fixed;
 
           if (pool == null)
             return(error("Connection pool not configured"));
         }
 
-        state.session(new Session(method,pool,scope,username,secret));
+        state.session(new Session(config,method,pool,scope,username,secret));
 
         state.session().connect(state.batch());
         if (state.batch()) state.session().share();
