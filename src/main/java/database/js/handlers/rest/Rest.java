@@ -125,8 +125,16 @@ public class Rest
         if (request.session.equals(ptok))
         {
           stateless = true;
-          Pool pool = config.getDatabase().proxy;          
-          session = new Session(config,AuthMethod.PoolToken,pool,"none",null,ptok);
+          String username = null;
+          Pool pool = config.getDatabase().proxy;
+
+          if (request.payload.has("username"))
+            username = request.payload.getString("username");
+          
+          if (username == null)
+            return(state.release(new Exception("Missing username for proxy pool")));
+
+          session = new Session(config,AuthMethod.PoolToken,pool,"none",username,ptok);
           state.session(session);
         }
         
