@@ -53,10 +53,10 @@ public class SessionManager
     String ftok = "";
     String ptok = "";
     String guid = null;
-    
+
     try {ftok = config.getDatabase().fixed.token();}
     catch (Exception e) {;}
-    
+
     try {ptok = config.getDatabase().proxy.token();}
     catch (Exception e) {;}
 

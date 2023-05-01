@@ -95,7 +95,7 @@ public class Rest
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
-    
+
     this.ftok      = config.getDatabase().fixed.token();
     this.ptok      = config.getDatabase().proxy.token();
   }
@@ -104,7 +104,7 @@ public class Rest
   public String execute(String path, String payload, boolean returning)
   {
     boolean stateless = false;
-    
+
     try
     {
       Request request = new Request(this,path,payload);
@@ -115,13 +115,13 @@ public class Rest
         if (request.session.equals(ftok))
         {
           stateless = true;
-          Pool pool = config.getDatabase().fixed;          
+          Pool pool = config.getDatabase().fixed;
           session = new Session(config,AuthMethod.PoolToken,pool,"none",null,ftok);
           state.session(session);
         }
-        
+
         else
-          
+
         if (request.session.equals(ptok))
         {
           stateless = true;
@@ -130,30 +130,30 @@ public class Rest
 
           if (request.payload.has("username"))
             username = request.payload.getString("username");
-          
+
           if (username == null)
             return(state.release(new Exception("Missing username for proxy pool")));
 
           session = new Session(config,AuthMethod.PoolToken,pool,"none",username,ptok);
           state.session(session);
         }
-        
+
         else
-        
+
         state.session(session);
       }
-            
+
       if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
 
       if (request.nvlfunc().equals("script"))
         return(script(request.payload));
-      
+
       String response = exec(request,returning);
-      
+
       if (stateless)
         session.release(failed);
-      
+
       return(response);
     }
     catch (Throwable e)
@@ -162,14 +162,14 @@ public class Rest
       return(error(e));
     }
   }
-  
-  
+
+
   public String getFixedToken()
   {
     return(this.ftok);
   }
-  
-  
+
+
   public String getProxyToken()
   {
     return(this.ptok);

@@ -111,7 +111,7 @@ class HTTPWaiter extends Thread
         {
           add = true;
           connected.add(client);
-          
+
           try
           {
             if (client.channel().isOpen())
