@@ -96,8 +96,11 @@ public class Rest
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
 
-    this.ftok      = config.getDatabase().fixed.token();
-    this.ptok      = config.getDatabase().proxy.token();
+    if (config.getDatabase().fixed == null) this.ftok = null;
+    else this.ftok = config.getDatabase().fixed.token();
+
+    if (config.getDatabase().proxy == null) this.ptok = null;
+    else this.ptok = config.getDatabase().proxy.token();
   }
 
 
