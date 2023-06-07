@@ -83,7 +83,6 @@ public class Process
     logger.fine("Starting "+type+" instance "+instnm+"["+inst+"]");
     String classpath = classpath(type != Type.http || embedded) + jars;
     String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.rest.servers.Server " + instnm + " " + inst;
-    System.out.println(cmd);
 
     logger.finest(cmd);
     try {Runtime.getRuntime().exec(cmd);}
