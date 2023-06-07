@@ -101,7 +101,7 @@ public class Process
 
     for(String jar : jars)
     {
-      if (jar.startsWith("database.js"))
+      if (jar.startsWith("openrestdb"))
         classpath = path + File.separator + jar;
     }
 
