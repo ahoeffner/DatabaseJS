@@ -423,7 +423,7 @@ public class Launcher implements ILauncher
       for(String jar : jars)
         loader.load(jar);
 
-      Class Launcher = loader.getClass(Launcher.class);
+      Class<?> Launcher = loader.getClass(Launcher.class);
       launcher = (ILauncher) Launcher.getDeclaredConstructor().newInstance();
 
       return(launcher);
