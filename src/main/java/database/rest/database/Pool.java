@@ -116,6 +116,7 @@ public class Pool
 
     Database database = DatabaseUtils.getInstance();
     database.connect(username,password);
+    database.touch();
 
     return(database);
   }
