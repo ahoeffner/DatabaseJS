@@ -38,6 +38,8 @@ import database.rest.config.Topology;
 import database.rest.handlers.Handler;
 import database.rest.database.Database;
 import database.rest.cluster.Statistics;
+import database.rest.servers.rest.RESTClient;
+import database.rest.servers.rest.RESTServer;
 import database.rest.handlers.file.Deployment;
 
 
@@ -313,7 +315,7 @@ public class Launcher implements ILauncher
     // Processes
 
     out.println("Processes");
-    line = String.format("%77s"," ").replace(" ","-");
+    line = String.format("%78s"," ").replace(" ","-");
 
     out.println(line);
     out.println("|"+hid+" |"+hpid+" |"+htype+" |"+hstarted+" |"+hupdated+" |"+hhits+" |");
@@ -400,15 +402,24 @@ public class Launcher implements ILauncher
   }
 
 
-  @SuppressWarnings("unchecked")
   static ILauncher create() throws Exception
   {
     ILauncher launcher = null;
 
     try
     {
+      Class<?>[] keep = new Class<?>[]
+      {
+        Paths.class,
+        Handler.class,
+        Database.class,
+        ILauncher.class,
+        RESTClient.class,
+        RESTServer.class
+      };
+
+      Loader loader = new Loader(keep);
       String path = Paths.libdir+File.separator+"json";
-      Loader loader = new Loader(ILauncher.class, Handler.class, Database.class, Paths.class);
 
       File dir = new File(path);
       String[] jars = dir.list();

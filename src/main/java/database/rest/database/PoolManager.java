@@ -68,8 +68,8 @@ public class PoolManager extends Thread
       if (pp != null) pp.init();
 
       int pidle = (pp == null) ? 3600000 : pp.idle();
-      int aidle = (fp == null) ? 3600000 : fp.idle();
-      int sleep = (pidle < aidle) ? pidle * 1000/4 : aidle * 1000/4;
+      int fidle = (fp == null) ? 3600000 : fp.idle();
+      int sleep = (pidle < fidle) ? pidle * 1000/4 : fidle * 1000/4;
 
       while(true)
       {
@@ -101,11 +101,16 @@ public class PoolManager extends Thread
     for (int i = conns.size() - 1; i >= 0 && size > min; i--)
     {
       Database conn = conns.get(i);
-      if (time - conn.touched() > idle)
+      long touched = conn.touched();
+
+      if (time - touched > idle || !conn.validate())
       {
         size--;
-        logger.fine("connection: "+conn+" timed out");
-        pool.remove(conn);
+
+        if (time - conn.touched() <= idle) logger.fine("connection lost");
+        else                               logger.fine("connection: "+conn+" timed out");
+
+        pool.remove(conn,touched);
       }
     }
 

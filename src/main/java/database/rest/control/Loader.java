@@ -71,7 +71,7 @@ public class Loader extends ClassLoader
   }
 
 
-  public void addClass(Class<?> clazz) throws Exception
+  public void add(Class<?> clazz) throws Exception
   {
     load(clazz);
   }
@@ -180,7 +180,6 @@ public class Loader extends ClassLoader
     }
     catch (Throwable e)
     {
-      e.printStackTrace();
       return(null);
     }
   }

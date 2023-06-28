@@ -144,7 +144,7 @@ public class Session
         }
         else
         {
-          pool.remove(database);
+          pool.remove(database,-1);
         }
 
         SessionManager.remove(guid);
