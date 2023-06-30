@@ -1415,6 +1415,7 @@ public class Rest
 
         releaseAll();
         fatal = session.release(true);
+        rest.server.poolmanager().validate();
       }
 
       return(rest.error(err,fatal));

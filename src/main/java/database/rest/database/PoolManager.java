@@ -89,7 +89,49 @@ public class PoolManager extends Thread
   }
 
 
-  private void cleanout(Pool pool)
+  public void validate()
+  {
+      logger.warning("Validating pool");
+
+      try
+      {
+        Pool pp = config.getDatabase().proxy;
+        Pool fp = config.getDatabase().fixed;
+
+        if (fp != null)
+        {
+          if (!test(fp))
+            cleanout(fp);
+        }
+
+        if (pp != null)
+        {
+          if (!test(pp))
+            cleanout(pp);
+        }
+      }
+      catch (Exception e)
+      {
+        logger.log(Level.SEVERE,e.getMessage(),e);
+      }
+  }
+
+
+  private synchronized boolean test(Pool pool)
+  {
+    ArrayList<Database> conns = pool.connections();
+
+    for (int i = 0; i < conns.size() && i < 2; i++)
+    {
+      Database conn = conns.get(i);
+      if (!conn.validate()) return(false);
+    }
+
+    return(true);
+  }
+
+
+  private synchronized void cleanout(Pool pool)
   {
     long time = System.currentTimeMillis();
     ArrayList<Database> conns = pool.connections();
