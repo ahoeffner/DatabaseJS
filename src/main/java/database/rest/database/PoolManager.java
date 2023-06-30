@@ -98,17 +98,8 @@ public class PoolManager extends Thread
         Pool pp = config.getDatabase().proxy;
         Pool fp = config.getDatabase().fixed;
 
-        if (fp != null)
-        {
-          if (!test(fp))
-            cleanout(fp);
-        }
-
-        if (pp != null)
-        {
-          if (!test(pp))
-            cleanout(pp);
-        }
+        if (fp != null) checkall(fp);
+        if (pp != null) checkall(pp);
       }
       catch (Exception e)
       {
@@ -117,22 +108,26 @@ public class PoolManager extends Thread
   }
 
 
-  private synchronized boolean test(Pool pool)
+  private synchronized void checkall(Pool pool)
   {
     ArrayList<Database> conns = pool.connections();
 
-    for (int i = 0; i < conns.size() && i < 2; i++)
+    for (int i = 0; i < conns.size(); i++)
     {
       Database conn = conns.get(i);
-      if (!conn.validate()) return(false);
-    }
 
-    return(true);
+      if (!conn.validate(false))
+      {
+        logger.fine("connection lost");
+          pool.remove(conn,0);
+      }
+    }
   }
 
 
   private synchronized void cleanout(Pool pool)
   {
+    boolean checkall = false;
     long time = System.currentTimeMillis();
     ArrayList<Database> conns = pool.connections();
 
@@ -144,18 +139,21 @@ public class PoolManager extends Thread
     {
       Database conn = conns.get(i);
       long touched = conn.touched();
+      boolean timedout = (time - touched > idle);
 
-      if (time - touched > idle || !conn.validate())
+      if (timedout || !conn.validate(false))
       {
         size--;
+        if (!timedout) checkall = true;
 
-        if (time - conn.touched() <= idle) logger.fine("connection lost");
-        else                               logger.fine("connection: "+conn+" timed out");
+        if (!timedout) logger.fine("connection lost");
+        else           logger.fine("connection: "+conn+" timed out");
 
         pool.remove(conn,touched);
       }
     }
 
+    if (checkall) checkall(pool);
     logger.finest(pool.toString());
   }
 }
