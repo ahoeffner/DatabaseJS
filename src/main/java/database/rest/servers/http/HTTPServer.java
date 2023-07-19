@@ -45,7 +45,6 @@ public class HTTPServer extends Thread
   private final Config config;
   private final boolean admin;
   private final boolean embedded;
-  private final boolean redirect;
   private final Selector selector;
   private final ThreadPool workers;
   private final HTTPServerType type;
@@ -64,7 +63,6 @@ public class HTTPServer extends Thread
   {
     this.type = type;
     this.server = server;
-    this.redirect = false;
     this.embedded = embedded;
     this.config = server.config();
     this.selector = Selector.open();
@@ -161,7 +159,7 @@ public class HTTPServer extends Thread
       return;
     }
 
-    logger.info("Starting HTTPServer("+type+")");
+    logger.info("Starting HTTPServer("+type+":"+port+")");
 
     try
     {
