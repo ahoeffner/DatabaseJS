@@ -19,6 +19,12 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+/*
+ * Add API class
+ * Add pool-token-auth
+ * After database auth add connection to pool if less than max
+ */
+
 package database.rest.handlers.rest;
 
 import java.io.File;
@@ -30,11 +36,17 @@ import java.sql.Savepoint;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.io.FileInputStream;
+import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.ByteArrayOutputStream;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import database.rest.config.Config;
 import database.rest.database.Pool;
-import database.rest.security.OAuth;
 import database.rest.servers.Server;
 import database.rest.custom.SQLRewriter;
 import database.rest.database.BindValue;
@@ -54,15 +66,13 @@ public class Rest
   private boolean ping;
   private boolean conn;
 
-  private final String ftok;
-  private final String ptok;
-
   private final String host;
   private final String repo;
   private final Server server;
   private final Config config;
   private final SessionState state;
 
+  private final String secret;
   private final String dateform;
 
   private final boolean compact;
@@ -77,7 +87,6 @@ public class Rest
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
-
   public Rest(Server server, boolean savepoint, String host) throws Exception
   {
     this.ping      = false;
@@ -90,17 +99,13 @@ public class Rest
     this.config    = server.config();
     this.state     = new SessionState(this);
 
+    this.secret    = secret(config);
+
     this.compact   = config.getDatabase().compact;
     this.rewriter  = config.getDatabase().rewriter;
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
-
-    if (config.getDatabase().fixed == null) this.ftok = null;
-    else this.ftok = config.getDatabase().fixed.token();
-
-    if (config.getDatabase().proxy == null) this.ptok = null;
-    else this.ptok = config.getDatabase().proxy.token();
   }
 
 
@@ -110,40 +115,41 @@ public class Rest
 
     try
     {
+      String ftok = null;
+      String ptok = null;
+      Session session = null;
+
+      Pool fpool = config.getDatabase().fixed;
+      Pool ppool = config.getDatabase().proxy;
+
+      if (fpool != null)
+        ftok = config.getDatabase().fixed.token();
+
+      if (ppool != null)
+        ptok = config.getDatabase().proxy.token();
+
       Request request = new Request(this,path,payload);
-      Session session = SessionManager.get(request.session);
 
       if (request.session != null)
       {
-        if (request.session.equals(ftok))
+        if (request.session.startsWith("*"))
         {
           stateless = true;
-          Pool pool = config.getDatabase().fixed;
-          session = new Session(config,AuthMethod.PoolToken,pool,"none",null,ftok);
+          StatelessSession sses = null;
+          int timeout = config.getREST().timeout;
+          sses = decodeStateless(this.secret,this.host,timeout,request.session);
+
+          Pool pool = sses.proxy ? ppool : fpool;
+          String token = sses.proxy ? ptok : ftok;
+
+          session = new Session(config,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
           state.session(session);
         }
-
         else
-
-        if (request.session.equals(ptok))
         {
-          stateless = true;
-          String username = null;
-          Pool pool = config.getDatabase().proxy;
-
-          if (request.payload.has("username"))
-            username = request.payload.getString("username");
-
-          if (username == null)
-            return(state.release(new Exception("Missing username for proxy pool")));
-
-          session = new Session(config,AuthMethod.PoolToken,pool,"none",username,ptok);
+          session = SessionManager.get(request.session);
           state.session(session);
         }
-
-        else
-
-        state.session(session);
       }
 
       if (request.nvlfunc().equals("batch"))
@@ -164,18 +170,6 @@ public class Rest
       failed = true;
       return(error(e));
     }
-  }
-
-
-  public String getFixedToken()
-  {
-    return(this.ftok);
-  }
-
-
-  public String getProxyToken()
-  {
-    return(this.ptok);
   }
 
 
@@ -456,7 +450,6 @@ public class Rest
         switch(meth.toLowerCase())
         {
           case "sso"      : method = AuthMethod.SSO; break;
-          case "oauth"    : method = AuthMethod.OAuth; break;
           case "database" : method = AuthMethod.Database; break;
           case "token"    : method = AuthMethod.PoolToken; break;
 
@@ -466,14 +459,9 @@ public class Rest
         boolean usepool = false;
         boolean anonymous = false;
 
-        if (method == AuthMethod.OAuth)
+        if (method == AuthMethod.API)
         {
-          usepool = true;
-          username = OAuth.getUserName(secret);
-
-          if (username == null)
-            return(error("OAuth authentication failed"));
-
+          logger.severe("No Api");
           method = AuthMethod.PoolToken;
 
           if (payload.has("anonymous"))
@@ -541,8 +529,26 @@ public class Rest
       return(error(e));
     }
 
+    String sesid = null;
     JSONFormatter json = new JSONFormatter();
-    String sesid = encode(privateses,state.session().guid(),host);
+
+    if (state.session().stateful())
+    {
+      sesid = encode(privateses,state.session().guid(),host);
+    }
+    else
+    {
+      try
+      {
+        boolean ppool =  pool == config.getDatabase().proxy;
+        sesid = encodeStateless(this.secret,host,privateses,ppool,username);
+      }
+      catch (Throwable e)
+      {
+        failed = true;
+        return(error(e));
+      }
+    }
 
     json.success(true);
     json.add("type",type);
@@ -1226,7 +1232,10 @@ public class Rest
     int len = token.length;
     while(token[len-1] == '=') len--;
 
-    return(new String(token,0,len));
+    data = new String(token,0,len);
+    data = data.replaceAll("/","@");
+
+    return(data);
   }
 
 
@@ -1235,6 +1244,7 @@ public class Rest
     byte[] bsalt = salt.getBytes();
     while(data.length() % 4 != 0) data += "=";
 
+    data = data.replaceAll("@","/");
     byte[] bdata = Base64.getDecoder().decode(data);
 
     byte indicator = bdata[0];
@@ -1253,6 +1263,143 @@ public class Rest
     }
 
     return(new String(token));
+  }
+
+
+  static String encodeStateless(String secret, String host, boolean priv, boolean proxy, String user) throws Exception
+  {
+    byte ctrl = 0;
+
+    if (priv) ctrl |= 1 << 0;
+    if (proxy) ctrl |= 1 << 1;
+
+    long time = System.currentTimeMillis();
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    out.write(ctrl);
+    out.write(hash(host));
+    out.write(hash(time));
+    if (user != null) out.write(user.getBytes("UTF-8"));
+
+    byte[] bytes = out.toByteArray();
+    return(encrypt(secret,bytes));
+  }
+
+
+  static StatelessSession decodeStateless(String secret, String hostname, int timeout, String data) throws Exception
+  {
+    int host = 0;
+    long time = 0;
+    String user = null;
+    boolean priv = false;
+    boolean proxy = false;
+    byte[] bytes = decrypt(secret,data);
+
+    time = unHash(bytes,5,8);
+    host = (int) unHash(bytes,1,4);
+
+    priv = ((bytes[0] & (1 << 0)) != 0);
+    proxy = ((bytes[0] & (1 << 1)) != 0);
+
+    if (bytes.length > 13)
+      user = new String(bytes,13,bytes.length-13,"UTF-8");
+
+    if (hostname.hashCode() != host)
+      throw new Exception("Session origins from different host");
+
+    if (System.currentTimeMillis() - time > timeout * 1000)
+      throw new Exception("Session has timed out");
+
+    return(new StatelessSession(time,user,priv,proxy));
+  }
+
+  static byte[] hash(int data)
+  {
+    byte[] hash = BigInteger.valueOf(data).toByteArray();
+    return(hash);
+  }
+
+
+  static byte[] hash(long data)
+  {
+    byte[] hash = new byte[8];
+    byte[] hval = BigInteger.valueOf(data).toByteArray();
+    System.arraycopy(hval,0,hash,hash.length-hval.length,hval.length);
+    return(hash);
+  }
+
+
+  static byte[] hash(String data)
+  {
+    byte[] hash = new byte[4];
+    byte[] hval = BigInteger.valueOf(data.hashCode()).toByteArray();
+    System.arraycopy(hval,0,hash,0,hval.length);
+    return(hash);
+  }
+
+
+  static long unHash(byte[] data, int pos, int len)
+  {
+    return(new BigInteger(data,pos,len).longValue());
+  }
+
+
+  static String secret(Config config) throws Exception
+  {
+    String secret = config.getSecurity().secret();
+
+    if (secret.length() < 32)
+    {
+      for (int i = 0; secret.length() % 16 != 0; i++)
+        secret += (char) ('a' + i);
+    }
+
+    if (secret.length() > 32)
+      secret = secret.substring(0,32);
+
+    if (secret.length() < 32)
+      secret = secret.substring(0,16);
+
+    return(secret);
+  }
+
+
+  static String encrypt(String secret, byte[] data) throws Exception
+  {
+    byte[]    salt = secret.getBytes("UTF-8");
+    Cipher    ciph = Cipher.getInstance("AES");
+    SecretKey skey = new SecretKeySpec(salt,"AES");
+
+    ciph.init(Cipher.ENCRYPT_MODE,skey);
+    data = ciph.doFinal(data);
+
+    data = Base64.getEncoder().encode(data);
+
+    int len = data.length;
+    while(data[len-1] == '=') len--;
+
+    String encr = new String(data,0,len);
+    encr = encr.replaceAll("/","@");
+
+    return("*"+encr);
+  }
+
+
+  static byte[] decrypt(String secret, String data) throws Exception
+  {
+    byte[]    salt = secret.getBytes("UTF-8");
+    Cipher    ciph = Cipher.getInstance("AES");
+    SecretKey skey = new SecretKeySpec(salt,"AES");
+
+    data = data.substring(1);
+    ciph.init(Cipher.DECRYPT_MODE,skey);
+
+    data = data.replaceAll("@","/");
+    while(data.length() % 4 != 0) data += "=";
+    byte[] bytes = Base64.getDecoder().decode(data);
+
+    bytes = ciph.doFinal(bytes);
+    return(bytes);
   }
 
 
@@ -1482,6 +1629,28 @@ public class Rest
       {
         rest.error(e);
       }
+    }
+  }
+
+
+  private static class StatelessSession
+  {
+    private long time;
+    private String user;
+    private boolean priv;
+    private boolean proxy;
+
+    StatelessSession(long time, String user, boolean priv, boolean proxy)
+    {
+      this.time = time;
+      this.user = user;
+      this.priv = priv;
+      this.proxy = proxy;
+    }
+
+    public String toString()
+    {
+      return("age: "+(System.currentTimeMillis()-time)/1000+" user: "+user+" priv: "+priv+" proxy: "+proxy);
     }
   }
 }

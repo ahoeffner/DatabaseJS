@@ -230,7 +230,7 @@ public class Session
           if (pool.proxy()) database.setProxyUser(username);
           break;
 
-        case OAuth :
+        case API :
           if (scope == Scope.Dedicated) database = pool.connect();
           else                          database = pool.getConnection();
 

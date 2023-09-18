@@ -22,20 +22,17 @@
 package database.rest.config;
 
 import java.io.File;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.ArrayList;
 import database.rest.security.Keystore;
-import database.rest.database.NameValuePair;
 
 
 public class Security
 {
-  private final String oaurl;
-  private final String usrattr;
+  private final String api;
+  private final String clazz;
+  private final String secret;
   private final Keystore trust;
   private final Keystore identity;
-  private final ArrayList<NameValuePair<Object>> headers;
 
 
   Security(JSONObject config) throws Exception
@@ -67,24 +64,19 @@ public class Security
 
     trust = new Keystore(file,type,null,passwd);
 
-    JSONObject oauth = Config.getSection(config,"oauth2");
+    JSONObject api = Config.getSection(config,"api");
 
-    this.oaurl = Config.get(oauth,"url");
-    this.usrattr = Config.get(oauth,"user.attr");
-    this.headers = new ArrayList<NameValuePair<Object>>();
+    this.api = Config.get(api,"type");
+    this.clazz = Config.get(api,"class");
 
-    JSONArray headers = oauth.getJSONArray("headers");
-
-    for (int i = 0; i < headers.length(); i++)
-    {
-      JSONObject header = headers.getJSONObject(i);
-      String name = JSONObject.getNames(header)[0];
-
-      Object value = Config.get(header,name);
-      this.headers.add(new NameValuePair<Object>(name,value));
-    }
+    this.secret = Config.get(config,"shared_secret");
   }
 
+
+  public String secret()
+  {
+    return(secret);
+  }
 
   public Keystore getTrusted()
   {
@@ -96,18 +88,13 @@ public class Security
     return(identity);
   }
 
-  public String oauthurl()
+  public String api()
   {
-    return(oaurl);
+    return(api);
   }
 
-  public String usrattr()
+  public String apiclass()
   {
-    return(usrattr);
-  }
-
-  public ArrayList<NameValuePair<Object>> oaheaders()
-  {
-    return(headers);
+    return(clazz);
   }
 }

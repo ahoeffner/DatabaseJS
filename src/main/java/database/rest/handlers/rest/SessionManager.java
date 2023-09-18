@@ -35,8 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager
 {
-  private final Server server;
-  private final Config config;
   private final SSOReaper ssoreaper;
   private final SessionReaper sesreaper;
   private final static Logger logger = Logger.getLogger("rest");
@@ -132,8 +130,6 @@ public class SessionManager
 
   public SessionManager(Server server, boolean start)
   {
-    this.server = server;
-    this.config = server.config();
     this.ssoreaper = new SSOReaper(server);
     this.sesreaper = new SessionReaper(server);
     if (start) startSessionManager();
@@ -154,12 +150,10 @@ public class SessionManager
 
   private static class SSOReaper extends Thread
   {
-    private final Server server;
     private final Config config;
 
     SSOReaper(Server server)
     {
-      this.server = server;
       this.config = server.config();
 
       this.setDaemon(true);
@@ -207,12 +201,10 @@ public class SessionManager
 
   private static class SessionReaper extends Thread
   {
-    private final Server server;
     private final Config config;
 
     SessionReaper(Server server)
     {
-      this.server = server;
       this.config = server.config();
 
       this.setDaemon(true);
