@@ -240,6 +240,14 @@ public class Session
         case Database :
           database = DatabaseUtils.getInstance();
           database.connect(username,secret);
+
+          if (pool != null)
+          {
+            database.dangling(true);
+            setSecret(pool.token());
+            setMethod(AuthMethod.PoolToken);
+          }
+
           break;
 
         case PoolToken :

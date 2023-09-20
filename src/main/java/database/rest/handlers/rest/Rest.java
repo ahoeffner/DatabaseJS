@@ -60,6 +60,8 @@ import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.servers.http.HTTPRequest.Pair;
+import oracle.net.aso.k;
+
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
 
 
@@ -145,6 +147,8 @@ public class Rest
           String token = sses.proxy ? ptok : ftok;
 
           session = new Session(config,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
+
+          state.stateless(sses);
           state.session(session);
         }
         else
@@ -375,6 +379,8 @@ public class Rest
 
   private String ping(JSONObject payload)
   {
+    String sesid = null;
+
     try
     {
       this.ping = true;
@@ -387,7 +393,17 @@ public class Rest
         return(error("keepalive failed, session does not exist"));
 
       if (keepalive)
-        state.session().touch();
+      {
+        if (state.session().stateful())
+        {
+          state.session().touch();
+        }
+        else
+        {
+            StatelessSession sses = state.stateless();
+            sesid = encodeStateless(secret,host,sses.priv,sses.proxy,sses.user);
+        }
+      }
 
       if (state.session() != null)
         state.release();
@@ -403,6 +419,9 @@ public class Rest
 
     if (state.session() == null)
       json.add("connected",false);
+
+    if (sesid != null)
+      json.add("session",sesid);
 
     return(json.toString());
   }
@@ -459,49 +478,36 @@ public class Rest
         }
 
         boolean usepool = false;
-        boolean anonymous = false;
 
         if (method == AuthMethod.API)
         {
           logger.severe("No Api");
           method = AuthMethod.PoolToken;
-
-          if (payload.has("anonymous"))
-            anonymous = payload.getBoolean("anonymous");
         }
 
         if (method == AuthMethod.SSO)
         {
+          usepool = true;
+
           if (server.getAuthReader() != null)
             SessionManager.refresh(server.getAuthReader());
 
-          usepool = true;
           PreAuthRecord rec = SessionManager.validate(secret);
-
-          if (rec == null)
-            return(error("SSO authentication failed"));
+          if (rec == null) return(error("SSO authentication failed"));
 
           username = rec.username;
-
-          if (payload.has("anonymous"))
-            anonymous = payload.getBoolean("anonymous");
         }
 
         if (method == AuthMethod.PoolToken)
-        {
           usepool = true;
 
-          if (payload.has("anonymous"))
-            anonymous = payload.getBoolean("anonymous");
-
-          if (username == null)
-            anonymous = true;
-        }
+        if (Session.forcePool(scope))
+          usepool = true;
 
         if (usepool)
         {
-          if (!anonymous) pool = config.getDatabase().proxy;
-          else            pool = config.getDatabase().fixed;
+          if (username != null) pool = config.getDatabase().proxy;
+          else                  pool = config.getDatabase().fixed;
 
           if (pool == null)
             return(error("Connection pool not configured"));
@@ -511,18 +517,6 @@ public class Rest
 
         state.session().connect(state.batch());
         if (state.batch()) state.session().share();
-
-        if (!usepool && Session.forcePool(scope))
-        {
-          pool = config.getDatabase().proxy;
-
-          if (pool == null)
-            return(error("Connection pool not configured"));
-
-          state.session().setPool(pool);
-          state.session().setSecret(pool.token());
-          state.session().setMethod(AuthMethod.PoolToken);
-        }
       }
     }
     catch (Throwable e)
@@ -542,7 +536,7 @@ public class Rest
     {
       try
       {
-        boolean ppool =  pool == config.getDatabase().proxy;
+        boolean ppool = pool == config.getDatabase().proxy;
         sesid = encodeStateless(this.secret,host,privateses,ppool,username);
       }
       catch (Throwable e)
@@ -1488,6 +1482,7 @@ public class Rest
     Session session = null;
     boolean exclusive = false;
     Savepoint savepoint = null;
+    StatelessSession stateless = null;
 
 
     SessionState(Rest rest)
@@ -1505,6 +1500,18 @@ public class Rest
     void session(Session session)
     {
       this.session = session;
+    }
+
+
+    StatelessSession stateless()
+    {
+      return(this.stateless);
+    }
+
+
+    void stateless(StatelessSession info)
+    {
+      this.stateless = info;
     }
 
 
