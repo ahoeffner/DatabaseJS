@@ -42,12 +42,15 @@ import java.io.FileInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import database.Version;
 import database.rest.config.Config;
+import database.rest.config.Security.CustomAuthenticator;
 import database.rest.database.Pool;
 import database.rest.servers.Server;
 import database.rest.custom.SQLRewriter;
@@ -58,9 +61,7 @@ import database.rest.database.AuthMethod;
 import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
-import java.util.concurrent.ConcurrentHashMap;
 import database.rest.servers.http.HTTPRequest.Pair;
-import oracle.net.aso.k;
 
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
 
@@ -440,6 +441,7 @@ public class Rest
     int timeout = 0;
     Pool pool = null;
     this.conn = true;
+    String meth = null;
     String type = null;
     String scope = null;
     String secret = null;
@@ -465,59 +467,83 @@ public class Rest
         secret = payload.getString("auth.secret");
 
       if (payload.has("auth.method"))
+          meth = payload.getString("auth.method");
+
+      if (meth == null)
+          return(error("No authentication method specified"));
+
+      meth = meth.toLowerCase();
+
+      CustomAuthenticator custom = config.getSecurity().authenticator(meth);
+
+      if (custom != null)
       {
-        String meth = payload.getString("auth.method");
+        meth = "custom";
+        clazz = custom.clazz;
 
-        switch(meth.toLowerCase())
-        {
-          case "sso"      : method = AuthMethod.SSO; break;
-          case "database" : method = AuthMethod.Database; break;
-          case "token"    : method = AuthMethod.PoolToken; break;
+        if (!custom.enabled)
+          return(error("Authentication method "+custom.meth+" not allowed"));
 
-          default: return(error("Unknown authentication method "+meth));
-        }
-
-        boolean usepool = false;
-
-        if (method == AuthMethod.API)
-        {
-          logger.severe("No Api");
-          method = AuthMethod.PoolToken;
-        }
-
-        if (method == AuthMethod.SSO)
-        {
-          usepool = true;
-
-          if (server.getAuthReader() != null)
-            SessionManager.refresh(server.getAuthReader());
-
-          PreAuthRecord rec = SessionManager.validate(secret);
-          if (rec == null) return(error("SSO authentication failed"));
-
-          username = rec.username;
-        }
-
-        if (method == AuthMethod.PoolToken)
-          usepool = true;
-
-        if (Session.forcePool(scope))
-          usepool = true;
-
-        if (usepool)
-        {
-          if (username != null) pool = config.getDatabase().proxy;
-          else                  pool = config.getDatabase().fixed;
-
-          if (pool == null)
-            return(error("Connection pool not configured"));
-        }
-
-        state.session(new Session(config,method,pool,scope,username,secret));
-
-        state.session().connect(state.batch());
-        if (state.batch()) state.session().share();
+        Class.forName(custom.clazz);
       }
+
+      switch(meth)
+      {
+        case "sso"      : method = AuthMethod.SSO; break;
+        case "custom"   : method = AuthMethod.Custom; break;
+        case "database" : method = AuthMethod.Database; break;
+        case "token"    : method = AuthMethod.PoolToken; break;
+
+        default: return(error("Unknown authentication method "+meth));
+      }
+
+      if (method == AuthMethod.PoolToken && !config.getSecurity().tokens())
+        return(error("Authentication method "+meth+" not allowed"));
+
+      if (method == AuthMethod.Database && !config.getSecurity().database())
+        return(error("Authentication method "+meth+" not allowed"));
+
+      boolean usepool = false;
+
+      if (method == AuthMethod.Custom)
+      {
+        logger.severe("No Api");
+        method = AuthMethod.PoolToken;
+      }
+
+      if (method == AuthMethod.SSO)
+      {
+        usepool = true;
+
+        if (server.getAuthReader() != null)
+          SessionManager.refresh(server.getAuthReader());
+
+        PreAuthRecord rec = SessionManager.validate(secret);
+        if (rec == null) return(error("SSO authentication failed"));
+
+        if (rec.username != null && rec.username.length() > 0)
+          username = rec.username;
+      }
+
+      if (method == AuthMethod.PoolToken)
+        usepool = true;
+
+      if (Session.forcePool(scope))
+        usepool = true;
+
+      if (usepool)
+      {
+        if (username != null) pool = config.getDatabase().proxy;
+        else                  pool = config.getDatabase().fixed;
+
+        if (pool == null)
+          return(error("Connection pool not configured"));
+      }
+
+      state.session(new Session(config,method,pool,scope,username,secret));
+
+      state.session().connect(state.batch());
+      if (state.batch()) state.session().share();
     }
     catch (Throwable e)
     {
@@ -553,6 +579,7 @@ public class Rest
     json.add("autocommit",state.session().autocommit());
     json.add("scope",state.session().scope());
     json.add("session",sesid);
+    json.add("version",Version.number);
 
     return(json.toString());
   }

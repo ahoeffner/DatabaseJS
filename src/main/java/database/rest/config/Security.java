@@ -22,17 +22,21 @@
 package database.rest.config;
 
 import java.io.File;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
 import database.rest.security.Keystore;
 
 
 public class Security
 {
-  private final String api;
-  private final String clazz;
   private final String secret;
   private final Keystore trust;
   private final Keystore identity;
+
+  private final boolean tokens;
+  private final boolean database;
+  private final ArrayList<CustomAuthenticator> authenticators;
 
 
   Security(JSONObject config) throws Exception
@@ -63,11 +67,34 @@ public class Security
       file = Paths.apphome + File.separator + file;
 
     trust = new Keystore(file,type,null,passwd);
+    authenticators = new ArrayList<CustomAuthenticator>();
 
-    JSONObject api = Config.getSection(config,"api");
+    if (Config.has(config,"authenticators"))
+    {
+      JSONObject auth = Config.getSection(config,"authenticators");
 
-    this.api = Config.get(api,"type");
-    this.clazz = Config.get(api,"class");
+      this.database = Config.get(auth,"database",true);
+      this.tokens = Config.get(auth,"pool-tokens",false);
+
+      JSONArray custom = Config.getArray(auth,"custom");
+
+      for (int i = 0; i < custom.length(); i++)
+      {
+        JSONObject method = custom.getJSONObject(i);
+
+        String name = Config.get(method,"name");
+        String clazz = Config.get(method,"class");
+        boolean enabled = Config.get(method,"enabled");
+
+        if (name != null) name = name.toLowerCase();
+        authenticators.add(new CustomAuthenticator(name,clazz,enabled));
+      }
+    }
+    else
+    {
+      this.tokens = false;
+      this.database = true;
+    }
 
     this.secret = Config.get(config,"shared_secret");
   }
@@ -88,13 +115,49 @@ public class Security
     return(identity);
   }
 
-  public String api()
+  public boolean tokens()
   {
-    return(api);
+    return(tokens);
   }
 
-  public String apiclass()
+  public boolean database()
   {
-    return(clazz);
+    return(database);
+  }
+
+  public ArrayList<CustomAuthenticator> authenticators()
+  {
+    return(authenticators);
+  }
+
+  public CustomAuthenticator authenticator(String meth)
+  {
+    for (CustomAuthenticator auth : authenticators)
+    {
+      if (auth.meth.equals(meth))
+        return(auth);
+    }
+
+    return(null);
+  }
+
+
+  public class CustomAuthenticator
+  {
+    public final String meth;
+    public final String clazz;
+    public final boolean enabled;
+
+    CustomAuthenticator(String name, String clazz, boolean enabled)
+    {
+      this.meth = name;
+      this.clazz = clazz;
+      this.enabled = enabled;
+    }
+
+    public String toString()
+    {
+      return("Authenticator: "+meth+" Implementation: "+clazz+" enabled: "+enabled);
+    }
   }
 }
