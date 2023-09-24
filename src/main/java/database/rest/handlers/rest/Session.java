@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
 import database.rest.database.Pool;
+import database.rest.config.Config;
 import database.rest.database.Database;
 import database.rest.database.BindValue;
 import database.rest.config.DatabaseType;
@@ -43,7 +44,7 @@ import database.rest.database.Database.ReturnValueHandle;
 
 public class Session
 {
-  private Rest last;
+  private String sesid;
 
   private final String guid;
   private final Scope scope;
@@ -79,22 +80,15 @@ public class Session
   }
 
 
-  public Session(Rest rest, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
+  public Session(Config config, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
   {
-    this.last = rest;
     this.pool = pool;
     this.method = method;
     this.secret = secret;
     this.username = username;
     this.scope = getScope(scope);
     this.lock = new SessionLock();
-    this.guid = SessionManager.register(rest.config(),this);
-  }
-
-
-  public void last(Rest rest)
-  {
-    this.last = rest;
+    this.guid = SessionManager.register(config,this);
   }
 
 
@@ -189,7 +183,13 @@ public class Session
 
   public String sesid()
   {
-    return(last.sesid());
+    return(sesid);
+  }
+
+
+  public void sesid(String sesid)
+  {
+    this.sesid = sesid;
   }
 
 

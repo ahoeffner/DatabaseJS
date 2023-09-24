@@ -94,6 +94,7 @@ public class Rest
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
+
   public Rest(Server server, boolean savepoint, String host) throws Exception
   {
     this.ping      = false;
@@ -113,19 +114,6 @@ public class Rest
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
-  }
-
-
-  public Config config()
-  {
-    return(config);
-  }
-
-
-  public String sesid()
-  {
-    if (request == null) return(null);
-    else                 return(request.sesid);
   }
 
 
@@ -162,7 +150,7 @@ public class Rest
           Pool pool = sses.proxy ? ppool : fpool;
           String token = sses.proxy ? ptok : ftok;
 
-          session = new Session(this,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
+          session = new Session(this.config,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
 
           state.stateless(sses);
           state.session(session);
@@ -170,11 +158,12 @@ public class Rest
         else
         {
           session = SessionManager.get(request.session);
-
-          session.last(this);
           state.session(session);
         }
       }
+
+      if (session != null)
+        session.sesid(request.sesid);
 
       if (request.nvlfunc().equals("batch"))
         return(batch(request.payload));
@@ -560,7 +549,7 @@ public class Rest
           return(error("Connection pool not configured"));
       }
 
-      state.session(new Session(this,method,pool,scope,username,secret));
+      state.session(new Session(this.config,method,pool,scope,username,secret));
 
       state.session().connect(state.batch());
       if (state.batch()) state.session().share();
