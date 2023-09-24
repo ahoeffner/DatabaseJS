@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
-import database.rest.config.Config;
 import database.rest.database.Pool;
 import database.rest.database.Database;
 import database.rest.database.BindValue;
@@ -44,7 +43,7 @@ import database.rest.database.Database.ReturnValueHandle;
 
 public class Session
 {
-  private final Rest rest;
+  private Rest rest;
 
   private final String guid;
   private final Scope scope;
@@ -90,6 +89,12 @@ public class Session
     this.scope = getScope(scope);
     this.lock = new SessionLock();
     this.guid = SessionManager.register(rest.config(),this);
+  }
+
+
+  public void rest(Rest rest)
+  {
+    this.rest = rest;
   }
 
 

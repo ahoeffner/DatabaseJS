@@ -164,12 +164,15 @@ public class Rest
 
           session = new Session(this,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
 
+          session.rest(this);
           state.stateless(sses);
           state.session(session);
         }
         else
         {
           session = SessionManager.get(request.session);
+
+          session.rest(this);
           state.session(session);
         }
       }
