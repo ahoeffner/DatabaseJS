@@ -43,7 +43,7 @@ import database.rest.database.Database.ReturnValueHandle;
 
 public class Session
 {
-  private Rest rest;
+  private Rest last;
 
   private final String guid;
   private final Scope scope;
@@ -81,7 +81,7 @@ public class Session
 
   public Session(Rest rest, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
   {
-    this.rest = rest;
+    this.last = rest;
     this.pool = pool;
     this.method = method;
     this.secret = secret;
@@ -92,9 +92,9 @@ public class Session
   }
 
 
-  public void rest(Rest rest)
+  public void last(Rest rest)
   {
-    this.rest = rest;
+    this.last = rest;
   }
 
 
@@ -189,7 +189,7 @@ public class Session
 
   public String sesid()
   {
-    return(rest.sesid());
+    return(last.sesid());
   }
 
 
