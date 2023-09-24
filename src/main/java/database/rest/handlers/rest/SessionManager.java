@@ -23,6 +23,7 @@ package database.rest.handlers.rest;
 
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.rest.config.Config;
@@ -38,6 +39,12 @@ public class SessionManager
   private final SSOReaper ssoreaper;
   private final SessionReaper sesreaper;
   private final static Logger logger = Logger.getLogger("rest");
+
+  private final static ArrayList<History> connhist =
+    new ArrayList<History>();
+
+  private final static ArrayList<History> dischist =
+    new ArrayList<History>();
 
   private final static ConcurrentHashMap<String,PreAuthRecord> preauth =
     new ConcurrentHashMap<String,PreAuthRecord>();
@@ -68,6 +75,72 @@ public class SessionManager
 
     sessions.put(guid,session);
     return(guid);
+  }
+
+
+  public static Date[] trace(String sesid)
+  {
+    Date conntime = null;
+    Date disctime = null;
+
+    synchronized(connhist)
+    {
+      for (History entry : connhist)
+      {
+        if (entry.sesid.equals(sesid))
+        {
+          conntime = entry.time;
+          break;
+        }
+      }
+    }
+
+    synchronized(dischist)
+    {
+      for (History entry : dischist)
+      {
+        if (entry.sesid.equals(sesid))
+        {
+          disctime = entry.time;
+          break;
+        }
+      }
+    }
+
+    return(new Date[] {conntime, disctime});
+  }
+
+
+  public static void history(Session session, boolean conn)
+  {
+    history(session.guid(),session.sesid(),conn);
+  }
+
+  
+  public static void history(String guid, String sesid, boolean conn)
+  {
+    if (conn)
+    {
+      synchronized(connhist)
+      {
+        connhist.add(0,new History(guid,sesid));
+        logger.warning("connect "+connhist.get(0));
+
+        if (connhist.size() > 128)
+          connhist.remove(127);
+      }
+    }
+    else
+    {
+      synchronized(dischist)
+      {
+        dischist.add(0,new History(guid,sesid));
+        logger.warning("disconnect "+dischist.get(0));
+
+        if (dischist.size() > 128)
+          dischist.remove(127);
+      }
+    }
   }
 
 
@@ -260,6 +333,7 @@ public class SessionManager
             if (time - session.touched() > timeout)
             {
               session.disconnect(true);
+              SessionManager.history(session,false);
               logger.fine("Session: "+session.guid()+" timed out");
             }
           }
@@ -269,6 +343,26 @@ public class SessionManager
       {
         logger.log(Level.SEVERE,e.getMessage(),e);
       }
+    }
+  }
+
+
+  private static class History
+  {
+    Date time;
+    String guid;
+    String sesid;
+
+    History(String guid, String sesid)
+    {
+      this.guid = guid;
+      this.sesid = sesid;
+      this.time = new Date();
+    }
+
+    public String toString()
+    {
+      return("guid: '"+guid+"' session: '"+sesid+"' "+time);
     }
   }
 }

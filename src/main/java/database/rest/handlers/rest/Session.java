@@ -44,6 +44,8 @@ import database.rest.database.Database.ReturnValueHandle;
 
 public class Session
 {
+  private final Rest rest;
+
   private final String guid;
   private final Scope scope;
   private final String username;
@@ -78,15 +80,16 @@ public class Session
   }
 
 
-  public Session(Config config, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
+  public Session(Rest rest, AuthMethod method, Pool pool, String scope, String username, String secret) throws Exception
   {
+    this.rest = rest;
     this.pool = pool;
     this.method = method;
     this.secret = secret;
     this.username = username;
     this.scope = getScope(scope);
     this.lock = new SessionLock();
-    this.guid = SessionManager.register(config,this);
+    this.guid = SessionManager.register(rest.config(),this);
   }
 
 
@@ -176,6 +179,12 @@ public class Session
   public String guid()
   {
     return(guid);
+  }
+
+
+  public String sesid()
+  {
+    return(rest.sesid());
   }
 
 

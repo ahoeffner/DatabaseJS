@@ -42,6 +42,7 @@ import java.io.FileInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Constructor;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
@@ -50,7 +51,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import database.Version;
 import database.rest.config.Config;
-import database.rest.config.Security.CustomAuthenticator;
 import database.rest.database.Pool;
 import database.rest.servers.Server;
 import database.rest.custom.SQLRewriter;
@@ -58,11 +58,12 @@ import database.rest.database.BindValue;
 import database.rest.database.SQLParser;
 import database.rest.custom.SQLValidator;
 import database.rest.database.AuthMethod;
+import database.rest.custom.Authenticator;
 import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
 import database.rest.servers.http.HTTPRequest.Pair;
-
+import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
 
 
@@ -83,6 +84,7 @@ public class Rest
   private final boolean compact;
   private final boolean savepoint;
 
+  private Request request = null;
   private boolean failed = false;
 
   private final SQLRewriter rewriter;
@@ -114,6 +116,19 @@ public class Rest
   }
 
 
+  public Config config()
+  {
+    return(config);
+  }
+
+
+  public String sesid()
+  {
+    if (request == null) return(null);
+    else                 return(request.sesid);
+  }
+
+
   public String execute(String path, String payload, boolean returning)
   {
     boolean stateless = false;
@@ -133,7 +148,7 @@ public class Rest
       if (ppool != null)
         ptok = config.getDatabase().proxy.token();
 
-      Request request = new Request(this,path,payload);
+      request = new Request(this,path,payload);
 
       if (request.session != null)
       {
@@ -147,7 +162,7 @@ public class Rest
           Pool pool = sses.proxy ? ppool : fpool;
           String token = sses.proxy ? ptok : ftok;
 
-          session = new Session(config,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
+          session = new Session(this,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
 
           state.stateless(sses);
           state.session(session);
@@ -479,12 +494,15 @@ public class Rest
       if (custom != null)
       {
         meth = "custom";
-        clazz = custom.clazz;
 
         if (!custom.enabled)
           return(error("Authentication method "+custom.meth+" not allowed"));
 
-        Class.forName(custom.clazz);
+        Constructor<?> contructor = Class.forName(custom.clazz).getDeclaredConstructor();
+        Authenticator auth = (Authenticator) contructor.newInstance();
+
+        if (!auth.authenticate(payload))
+          return(error(custom.meth+" authentication failed"));
       }
 
       switch(meth)
@@ -540,7 +558,7 @@ public class Rest
           return(error("Connection pool not configured"));
       }
 
-      state.session(new Session(config,method,pool,scope,username,secret));
+      state.session(new Session(this,method,pool,scope,username,secret));
 
       state.session().connect(state.batch());
       if (state.batch()) state.session().share();
@@ -581,6 +599,7 @@ public class Rest
     json.add("session",sesid);
     json.add("version",Version.number);
 
+    SessionManager.history(state.session().guid(),sesid,true);
     return(json.toString());
   }
 
@@ -590,11 +609,12 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
     {
+      SessionManager.history(state.session(),false);
       state.session().disconnect();
       state.session(null);
     }
@@ -620,7 +640,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -654,7 +674,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -762,7 +782,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -846,7 +866,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -907,7 +927,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -977,7 +997,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -1008,7 +1028,7 @@ public class Rest
     if (state.session() == null)
     {
       failed = true;
-      return(error("not connected"));
+      return(ncerror());
     }
 
     try
@@ -1456,6 +1476,25 @@ public class Rest
 
     json.success(false);
     json.add("message",message);
+
+    return(json.toString());
+  }
+
+
+  private String ncerror()
+  {
+    JSONFormatter json = new JSONFormatter();
+    Date[] hist = SessionManager.trace(request.sesid);
+
+    json.success(false);
+    json.add("message","Not connected");
+
+    json.add("path",request.path);
+    json.add("sesid",request.sesid);
+
+    json.add("connected",hist[0]);
+    json.add("disconnected",hist[1]);
+
 
     return(json.toString());
   }
