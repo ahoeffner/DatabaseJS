@@ -590,7 +590,9 @@ public class Rest
     json.add("session",sesid);
     json.add("version",Version.number);
 
-    SessionManager.history(state.session().guid(),sesid,true);
+    state.session().sesid(sesid);
+    SessionManager.history(state.session(),true);
+    
     return(json.toString());
   }
 

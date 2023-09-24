@@ -113,18 +113,14 @@ public class SessionManager
 
   public static void history(Session session, boolean conn)
   {
-    history(session.guid(),session.sesid(),conn);
-  }
+    String guid = session.guid();
+    String sesid = session.sesid();
 
-  
-  public static void history(String guid, String sesid, boolean conn)
-  {
     if (conn)
     {
       synchronized(connhist)
       {
         connhist.add(0,new History(guid,sesid));
-        logger.warning("connect "+connhist.get(0));
 
         if (connhist.size() > 128)
           connhist.remove(127);
@@ -135,7 +131,6 @@ public class SessionManager
       synchronized(dischist)
       {
         dischist.add(0,new History(guid,sesid));
-        logger.warning("disconnect "+dischist.get(0));
 
         if (dischist.size() > 128)
           dischist.remove(127);
@@ -334,7 +329,7 @@ public class SessionManager
             {
               session.disconnect(true);
               SessionManager.history(session,false);
-              logger.fine("Session: "+session.guid()+" timed out");
+              logger.fine("Session: "+session.sesid()+" timed out");
             }
           }
         }
