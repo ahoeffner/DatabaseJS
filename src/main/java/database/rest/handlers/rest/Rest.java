@@ -479,7 +479,6 @@ public class Rest
           return(error("No authentication method specified"));
 
       meth = meth.toLowerCase();
-
       CustomAuthenticator custom = config.getSecurity().authenticator(meth);
 
       if (custom != null)
@@ -494,6 +493,8 @@ public class Rest
 
         if (!auth.authenticate(payload))
           return(error(custom.meth+" authentication failed"));
+
+        username = auth.user();
       }
 
       switch(meth)
@@ -516,7 +517,7 @@ public class Rest
 
       if (method == AuthMethod.Custom)
       {
-        logger.severe("No Api");
+        usepool = true;
         method = AuthMethod.PoolToken;
       }
 
@@ -592,7 +593,7 @@ public class Rest
 
     state.session().sesid(sesid);
     SessionManager.history(state.session(),true);
-    
+
     return(json.toString());
   }
 
