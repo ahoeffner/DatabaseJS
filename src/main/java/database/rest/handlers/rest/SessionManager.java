@@ -22,8 +22,8 @@
 package database.rest.handlers.rest;
 
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.rest.config.Config;
