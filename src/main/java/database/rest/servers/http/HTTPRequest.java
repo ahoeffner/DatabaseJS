@@ -67,6 +67,7 @@ public class HTTPRequest
   {
     this.key = null;
     this.host = host;
+    this.remote = host;
     this.waiter = null;
     this.channel = null;
     this.server = server;
