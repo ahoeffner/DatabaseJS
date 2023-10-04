@@ -184,6 +184,12 @@ public class Rest
       return(error(e));
     }
   }
+  
+  
+  public boolean failed()
+  {
+    return(failed);
+  }
 
 
   public boolean isPing()
