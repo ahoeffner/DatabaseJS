@@ -93,6 +93,18 @@ public class Rest
   private final static Logger logger = Logger.getLogger("rest");
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
+  
+  
+  public static void main(String[] args) throws Exception
+  {
+    String user = "alex";
+    String client = "127.0.0.3";
+    String secret = "e448a598-9833-4732-8616-e6960a83";
+    
+    String sesid = Rest.encodeStateless(secret,client,true,true,user);
+    StatelessSession ses = Rest.decodeStateless(secret,client,600,sesid);
+    System.out.println(ses.toString());
+  }
 
 
   public Rest(Server server, boolean savepoint, String host) throws Exception
@@ -1311,11 +1323,13 @@ public class Rest
 
   static String encodeStateless(String secret, String host, boolean priv, boolean proxy, String user) throws Exception
   {
-    byte ctrl = 0;
+    byte[] ctrl = new byte[4];
 
-    if (priv) ctrl |= 1 << 0;
-    if (proxy) ctrl |= 1 << 1;
-
+    if (priv) ctrl[0] |= 1 << 0;
+    if (proxy) ctrl[0] |= 1 << 1;
+    
+    System.arraycopy(secret.getBytes(),1,ctrl,1,3);
+    
     long time = System.currentTimeMillis();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -1338,14 +1352,22 @@ public class Rest
     boolean proxy = false;
     byte[] bytes = decrypt(secret,data);
 
-    time = unHash(bytes,5,8);
-    host = (int) unHash(bytes,1,4);
+    time = unHash(bytes,8,8);
+    host = (int) unHash(bytes,4,4);
 
     priv = ((bytes[0] & (1 << 0)) != 0);
     proxy = ((bytes[0] & (1 << 1)) != 0);
+    
+    byte[] hello = secret.getBytes();
+    
+    for (int i = 1; i < 4; i++)
+    {
+      if (bytes[i] != hello[i])
+        throw new Exception("Session has been tampered with");
+    }
 
-    if (bytes.length > 13)
-      user = new String(bytes,13,bytes.length-13,"UTF-8");
+    if (bytes.length > 16)
+      user = new String(bytes,16,bytes.length-16,"UTF-8");
 
     if (hostname.hashCode() != host)
       throw new Exception("Session origins from different host");
@@ -1391,17 +1413,8 @@ public class Rest
   {
     String secret = config.getSecurity().secret();
 
-    if (secret.length() < 32)
-    {
-      for (int i = 0; secret.length() % 16 != 0; i++)
-        secret += (char) ('a' + i);
-    }
-
-    if (secret.length() > 32)
-      secret = secret.substring(0,32);
-
-    if (secret.length() < 32)
-      secret = secret.substring(0,16);
+    for (int i = 0; secret.length() % 16 != 0; i++)
+      secret += (char) ('a' + i);
 
     return(secret);
   }
