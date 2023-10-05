@@ -18,15 +18,6 @@
   DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
-/*
-
-
- * Add API class
- * Add pool-token-auth
- * After database auth add connection to pool if less than max
- */
-
 package database.rest.handlers.rest;
 
 import java.io.File;
@@ -93,18 +84,6 @@ public class Rest
   private final static Logger logger = Logger.getLogger("rest");
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
-  
-  
-  public static void main(String[] args) throws Exception
-  {
-    String user = "alex";
-    String client = "127.0.0.3";
-    String secret = "e448a598-9833-4732-8616-e6960a83";
-    
-    String sesid = Rest.encodeStateless(secret,client,true,true,user);
-    StatelessSession ses = Rest.decodeStateless(secret,client,600,sesid);
-    System.out.println(ses.toString());
-  }
 
 
   public Rest(Server server, boolean savepoint, String host) throws Exception
@@ -196,8 +175,8 @@ public class Rest
       return(error(e));
     }
   }
-  
-  
+
+
   public boolean failed()
   {
     return(failed);
@@ -1327,9 +1306,9 @@ public class Rest
 
     if (priv) ctrl[0] |= 1 << 0;
     if (proxy) ctrl[0] |= 1 << 1;
-    
+
     System.arraycopy(secret.getBytes(),1,ctrl,1,3);
-    
+
     long time = System.currentTimeMillis();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -1357,9 +1336,9 @@ public class Rest
 
     priv = ((bytes[0] & (1 << 0)) != 0);
     proxy = ((bytes[0] & (1 << 1)) != 0);
-    
+
     byte[] hello = secret.getBytes();
-    
+
     for (int i = 1; i < 4; i++)
     {
       if (bytes[i] != hello[i])
@@ -1413,8 +1392,11 @@ public class Rest
   {
     String secret = config.getSecurity().secret();
 
-    for (int i = 0; secret.length() % 16 != 0; i++)
-      secret += (char) ('a' + i);
+    for (int i = 0; secret.length() < 32; i++)
+      secret += (char) ('a' + (i%26));
+
+    if (secret.length() > 32)
+      secret = secret.substring(0,32);
 
     return(secret);
   }
