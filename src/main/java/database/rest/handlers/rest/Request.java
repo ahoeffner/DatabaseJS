@@ -130,7 +130,7 @@ public class Request
     if (func == null && cmd.equals("exec"))
       func = peek(rest,payload);
     
-    if (func == null)
+    if (func == null && cmd.equals("exec"))
       throw new Exception("Unknown rest path: '/"+path+"'");
 
     if (pos > 0) sesid = args[0];
