@@ -195,7 +195,7 @@ public class Request
   private String get(JSONObject payload, String entry)
   {
     if (!payload.has(entry)) return(null);
-    return(payload.getString(entry));
+    return(payload.get(entry)+"");
   }
 
 
