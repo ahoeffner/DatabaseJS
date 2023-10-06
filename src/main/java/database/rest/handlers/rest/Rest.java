@@ -436,8 +436,41 @@ public class Rest
 
   private String status()
   {
+    String message = null;
+
+    try
+    {
+      Pool fpool = config.getDatabase().fixed;
+      Pool ppool = config.getDatabase().proxy;
+      
+      if (fpool != null)
+      {
+        if (!fpool.test())
+          message = "Fixed pool test failed";
+      }
+      
+      if (ppool != null)
+      {
+        if (!ppool.test())
+          message = "Proxy pool test failed";
+      }
+    }
+    catch (Throwable e)
+    {
+      message = e.getMessage();
+      
+      if (message == null) 
+        message = "An unexpected error occured";
+    }
+    
+    boolean success = (message == null);
+
     JSONFormatter json = new JSONFormatter();
-    json.success(true);
+    json.success(success);
+    
+    if (message != null)
+      json.add("cause",message);
+    
     return(json.toString());
   }
 
