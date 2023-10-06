@@ -128,6 +128,9 @@ public class Rest
         ptok = config.getDatabase().proxy.token();
 
       request = new Request(this,path,payload);
+      
+      if (request.returning != null)
+        returning = Boolean.parseBoolean(request.returning);
 
       if (request.session != null)
       {
