@@ -98,8 +98,8 @@ public class Pool
     Initiator init = new Initiator(this);
     init.start();
   }
-  
-  
+
+
   public boolean test()
   {
     try

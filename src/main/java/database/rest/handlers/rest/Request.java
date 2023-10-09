@@ -129,17 +129,17 @@ public class Request
 
     if (func == null && cmd.equals("exec"))
       func = peek(rest,payload);
-    
+
     if (func == null && cmd.equals("exec"))
       throw new Exception("Unknown rest path: '/"+path+"'");
 
     if (pos > 0) sesid = args[0];
     else sesid = get(payload,"session");
-    
+
     if (sesid != null)
     {
       if (sesid.startsWith("*")) session = sesid;
-      else                       session = rest.decode(sesid);      
+      else                       session = rest.decode(sesid);
     }
 
     for (int i = pos+1; i < args.length; i++)
@@ -190,8 +190,8 @@ public class Request
     for(String arg : args) str += " <" + arg + ">";
     return(str);
   }
-  
-  
+
+
   private String get(JSONObject payload, String entry)
   {
     if (!payload.has(entry)) return(null);
