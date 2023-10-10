@@ -164,7 +164,7 @@ public class Rest
 
       String response = exec(request,returning);
 
-      if (!state.session.stateful())
+      if (state.session != null && !state.session.stateful())
         state.session.disconnect(true);        
 
       return(response);
