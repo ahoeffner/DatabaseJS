@@ -109,8 +109,6 @@ public class Rest
 
   public String execute(String path, String payload, boolean returning)
   {
-    boolean stateless = false;
-
     try
     {
       String ftok = null;
@@ -135,7 +133,6 @@ public class Rest
       {
         if (request.session.startsWith("*"))
         {
-          stateless = true;
           StatelessSession sses = null;
           int timeout = config.getREST().timeout;
           sses = decodeStateless(this.secret,this.host,timeout,request.session);
@@ -167,8 +164,8 @@ public class Rest
 
       String response = exec(request,returning);
 
-      if (stateless)
-        session.disconnect(true);        
+      if (!state.session.stateful())
+        state.session.disconnect(true);        
 
       return(response);
     }
@@ -549,10 +546,7 @@ public class Rest
       boolean usepool = false;
 
       if (method == AuthMethod.Custom)
-      {
         usepool = true;
-        method = AuthMethod.PoolToken;
-      }
 
       if (method == AuthMethod.SSO)
       {

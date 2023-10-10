@@ -23,9 +23,20 @@ package database.rest.custom;
 
 import org.json.JSONObject;
 
-
-public interface Authenticator
+public class CustomAuthenticator implements Authenticator
 {
-   String user();
-   boolean authenticate(JSONObject payload) throws Exception;
+  private String user = null;
+  
+  @Override
+  public String user()
+  {
+    return(user);
+  }
+
+  @Override
+  public boolean authenticate(JSONObject payload) throws Exception
+  {
+    this.user = payload.getString(("username"));
+    return(true);
+  }
 }
