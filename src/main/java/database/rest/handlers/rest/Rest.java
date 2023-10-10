@@ -145,6 +145,7 @@ public class Rest
 
           session = new Session(this.config,AuthMethod.PoolToken,pool,"stateless",sses.user,token);
 
+          session.share();
           state.stateless(sses);
           state.session(session);
         }
@@ -167,7 +168,7 @@ public class Rest
       String response = exec(request,returning);
 
       if (stateless)
-        session.release(failed);
+        session.disconnect();        
 
       return(response);
     }
