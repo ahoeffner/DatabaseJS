@@ -37,6 +37,6 @@ public class CustomAuthenticator implements Authenticator
   public boolean authenticate(JSONObject payload) throws Exception
   {
     this.user = payload.getString(("username"));
-    return(true);
+    return(false);
   }
 }
