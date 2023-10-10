@@ -29,7 +29,7 @@ public class CustomAuthenticator implements Authenticator
 {
   private String user = null;
   private final static Logger logger = Logger.getLogger("rest");
-  
+
   @Override
   public String user()
   {

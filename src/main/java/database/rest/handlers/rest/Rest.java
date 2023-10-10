@@ -165,7 +165,7 @@ public class Rest
       String response = exec(request,returning);
 
       if (state.session != null && !state.session.stateful())
-        state.session.disconnect(true);        
+        state.session.disconnect(true);
 
       return(response);
     }
@@ -1341,20 +1341,20 @@ public class Rest
 
     long time = System.currentTimeMillis();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    
+
     //Scramble user to harden hacking
-    
+
     if (user != null)
     {
       byte[] salt = (time+"").getBytes();
       byte[] scrambled = user.getBytes("UTF-8");
-      
+
       for (int i = 0; i < scrambled.length; i++)
       {
         byte s = salt[i % salt.length];
         scrambled[i] = (byte) (scrambled[i] ^ s);
       }
-      
+
       user = new String(scrambled);
     }
 
@@ -1394,16 +1394,16 @@ public class Rest
     if (bytes.length > 16)
     {
       user = new String(bytes,16,bytes.length-16);
-      
+
       byte[] salt = (time+"").getBytes();
       byte[] scrambled = user.getBytes();
-      
+
       for (int i = 0; i < scrambled.length; i++)
       {
         byte s = salt[i % salt.length];
         scrambled[i] = (byte) (scrambled[i] ^ s);
       }
-      
+
       user = new String(scrambled,"UTF-8");
     }
 
