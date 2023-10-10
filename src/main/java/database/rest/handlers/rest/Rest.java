@@ -1341,11 +1341,27 @@ public class Rest
 
     long time = System.currentTimeMillis();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
+    
+    //scramble user with time to harden hacking
+    
+    if (user != null)
+    {
+      byte[] salt = (time+"").getBytes();
+      byte[] scrambled = user.getBytes("UTF-8");
+      
+      for (int i = 0; i < scrambled.length; i++)
+      {
+        byte s = salt[i % salt.length];
+        scrambled[i] = (byte) (scrambled[i] ^ s);
+      }
+      
+      user = new String(scrambled);
+    }
 
     out.write(ctrl);
     out.write(hash(host));
     out.write(hash(time));
-    if (user != null) out.write(user.getBytes("UTF-8"));
+    if (user != null) out.write(user.getBytes());
 
     byte[] bytes = out.toByteArray();
     return(encrypt(secret,bytes));
@@ -1376,7 +1392,20 @@ public class Rest
     }
 
     if (bytes.length > 16)
-      user = new String(bytes,16,bytes.length-16,"UTF-8");
+    {
+      user = new String(bytes,16,bytes.length-16);
+      
+      byte[] salt = (time+"").getBytes();
+      byte[] scrambled = user.getBytes();
+      
+      for (int i = 0; i < scrambled.length; i++)
+      {
+        byte s = salt[i % salt.length];
+        scrambled[i] = (byte) (scrambled[i] ^ s);
+      }
+      
+      user = new String(scrambled,"UTF-8");
+    }
 
     if (hostname.hashCode() != host)
       throw new Exception("Session origins from different host");
