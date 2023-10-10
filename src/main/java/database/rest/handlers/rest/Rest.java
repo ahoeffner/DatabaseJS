@@ -1342,7 +1342,7 @@ public class Rest
     long time = System.currentTimeMillis();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     
-    //scramble user with time to harden hacking
+    //Scramble user to harden hacking
     
     if (user != null)
     {
