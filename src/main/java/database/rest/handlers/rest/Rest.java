@@ -136,6 +136,9 @@ public class Rest
           StatelessSession sses = null;
           int timeout = config.getREST().timeout;
           sses = decodeStateless(this.secret,this.host,timeout,request.session);
+          
+          if (sses.time < 0)
+            return(error("Session has timed out"));
 
           Pool pool = sses.proxy ? ppool : fpool;
           String token = sses.proxy ? ptok : ftok;
@@ -1411,7 +1414,7 @@ public class Rest
       throw new Exception("Session origins from different host");
 
     if (System.currentTimeMillis() - time > timeout * 1000)
-      throw new Exception("Session has timed out");
+      time = -1;
 
     return(new StatelessSession(time,user,priv,proxy));
   }
