@@ -168,7 +168,7 @@ public class Rest
       String response = exec(request,returning);
 
       if (stateless)
-        session.disconnect();        
+        session.disconnect(true);        
 
       return(response);
     }
