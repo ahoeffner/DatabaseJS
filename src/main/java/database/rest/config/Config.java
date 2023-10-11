@@ -229,7 +229,7 @@ public class Config
   {
     try
     {
-      if (path.startsWith("." + File.separator) || path.startsWith("./"))
+      if (path.startsWith("." + File.separator) || path.startsWith("./") || path.startsWith(".."))
       {
         path = parent + File.separator + path;
         File appf = new File(path);
