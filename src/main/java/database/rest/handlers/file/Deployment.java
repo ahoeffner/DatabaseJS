@@ -175,10 +175,10 @@ public class Deployment
 
     Date modified = new Date();
     File home = new File(this.home);
-    
+
     if (!home.exists())
       throw new Exception(this.home+" does not exist");
-    
+
     modified.setTime(home.lastModified());
 
     String dep = this.deploy + sep + home.lastModified();
@@ -326,7 +326,7 @@ public class Deployment
   {
     if (!folder.exists())
       throw new Exception(folder+" does not exist");
-    
+
     long latest = folder.lastModified();
     File[] content = folder.listFiles();
 
@@ -351,7 +351,7 @@ public class Deployment
     long latest = modified;
 
     File deployed = new File(this.deploy);
-    
+
     if (!deployed.exists()) return(0);
     File[] deployments = deployed.listFiles();
 

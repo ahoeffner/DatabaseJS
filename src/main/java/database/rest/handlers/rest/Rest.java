@@ -139,7 +139,7 @@ public class Rest
           StatelessSession sses = null;
           int timeout = config.getREST().timeout;
           sses = decodeStateless(this.secret,this.host,timeout,request.session);
-          
+
           if (sses.time < 0)
             return(error("Session has timed out"));
 
@@ -457,7 +457,7 @@ public class Rest
       {
         if (!fpool.test())
         {
-          fp = false;          
+          fp = false;
           message = "Fixed pool test failed";
         }
       }
@@ -466,7 +466,7 @@ public class Rest
       {
         if (!ppool.test())
         {
-          pp = false;          
+          pp = false;
           message = "Proxy pool test failed";
         }
       }
@@ -483,10 +483,10 @@ public class Rest
 
     JSONFormatter json = new JSONFormatter();
     json.success(success);
-        
+
     if (ppool != null)
       json.add("proxy-pool",pp);
-    
+
     if (fpool != null)
       json.add("fixed-pool",fp);
 
@@ -1587,7 +1587,7 @@ public class Rest
 
     json.add("connected",hist[0]);
     json.add("disconnected",hist[1]);
-    
+
     json.add("instance",instance);
 
     return(json.toString());
