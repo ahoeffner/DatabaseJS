@@ -226,6 +226,7 @@ public class Pool
     {
       if (database.dangling())
       {
+        database.dangling(false);
         if (size >= max) return;
         size++;
       }
