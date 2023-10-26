@@ -293,7 +293,7 @@ public class SessionManager
         int timeout = config.getREST().timeout * 1000;
 
         int sleep = timeout/4;
-        if (sleep > dump) sleep = dump;
+        if (dump > 0 && sleep > dump) sleep = dump;
 
         long last = System.currentTimeMillis();
 
@@ -313,6 +313,8 @@ public class SessionManager
               dmp += entry.getValue()+"\n";
 
             dmp += "--------------------------------------------------------------------------\n";
+
+            logger.info(dmp);
 
             Pool pp = config.getDatabase().proxy;
             Pool fp = config.getDatabase().fixed;

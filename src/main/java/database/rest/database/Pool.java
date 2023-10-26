@@ -141,11 +141,15 @@ public class Pool
   public synchronized boolean remove(Database database, long touched)
   {
     if (!pool.remove(database))
+    {
+      logger.warning("Unable to remove connection "+database);
       return(false);
+    }
 
     if (touched > 0 && touched != database.touched())
     {
       this.add(database);
+      logger.warning("Last minut connection reuse "+database);
       return(false);
     }
 
