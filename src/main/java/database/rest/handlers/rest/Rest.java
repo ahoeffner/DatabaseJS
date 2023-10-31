@@ -338,6 +338,9 @@ public class Rest
       case "commit" :
         response = commit(); break;
 
+      case "release" :
+        response = release(); break;
+
       case "rollback" :
         response = rollback(); break;
 
@@ -1104,6 +1107,38 @@ public class Rest
 
     if (!success)
       json.add("message","Transaction already rolled back");
+
+    json.add("instance",instance);
+    return(json.toString());
+  }
+
+
+  private String release()
+  {
+    boolean success = true;
+
+    if (state.session() == null)
+    {
+      failed = true;
+      return(ncerror());
+    }
+
+    try
+    {
+      success = state.session().release();
+    }
+    catch (Exception e)
+    {
+      failed = true;
+      return(state.release(e));
+    }
+
+    JSONFormatter json = new JSONFormatter();
+
+    json.success(success);
+
+    if (!success)
+      json.add("message","Unable to release connection");
 
     json.add("instance",instance);
     return(json.toString());
