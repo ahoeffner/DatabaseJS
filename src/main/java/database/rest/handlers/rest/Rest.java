@@ -1125,7 +1125,7 @@ public class Rest
 
     try
     {
-      success = state.session().release();
+      success = state.session().releaseConnection();
     }
     catch (Exception e)
     {

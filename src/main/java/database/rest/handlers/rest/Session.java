@@ -361,7 +361,7 @@ public class Session
   }
 
 
-  public boolean release() throws Exception
+  public boolean releaseConnection() throws Exception
   {
     if (database == null)
       return(false);
