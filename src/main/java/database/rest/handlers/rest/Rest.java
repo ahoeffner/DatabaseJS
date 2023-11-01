@@ -1744,6 +1744,9 @@ public class Rest
 
     void release() throws Exception
     {
+      if (session == null)
+        return;
+
       if (--dept > 0)
         return;
 
