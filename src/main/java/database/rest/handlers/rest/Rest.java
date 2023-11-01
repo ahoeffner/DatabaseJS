@@ -1755,6 +1755,7 @@ public class Rest
         if (!session.releaseSavePoint(savepoint))
           throw new Exception("Could not release savepoint");
 
+        savepoint = null;
         unlock(true);
       }
 
