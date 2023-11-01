@@ -1724,6 +1724,9 @@ public class Rest
 
     void prepare(JSONObject payload) throws Exception
     {
+      if (session == null)
+        return;
+
       if (dept == 0)
       {
         boolean savepoint = rest.getSavepoint(payload);
