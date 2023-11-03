@@ -255,7 +255,7 @@ public class Rest
         Request request = new Request(this,path,spload);
 
         // Reset default connection
-        if (request.nvlfunc().equals("connect"))
+        if (request.nvlfunc().equals("connect") && state.session() != null)
         {
             if (connected && autocommit)
               state.session().autocommit(true);
@@ -280,7 +280,7 @@ public class Rest
 
         if (failed) break;
 
-        if (request.nvlfunc().equals("connect"))
+        if (request.nvlfunc().equals("connect") && state.session() != null)
         {
           connected = true;
 
@@ -363,7 +363,7 @@ public class Rest
         Request request = new Request(this,path,spload);
 
         // Reset default connection
-        if (request.nvlfunc().equals("connect"))
+        if (request.nvlfunc().equals("connect") && state.session() != null)
         {
             if (connected && autocommit)
               state.session().autocommit(true);
@@ -386,7 +386,7 @@ public class Rest
         result = exec(request,returning);
         if (failed) break;
 
-        if (request.nvlfunc().equals("connect"))
+        if (request.nvlfunc().equals("connect") && state.session() != null)
         {
           connected = true;
 
