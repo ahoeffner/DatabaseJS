@@ -143,6 +143,8 @@ public class Session
       try
       {
         this.rollback();
+        if (autocommit()) database.setAutoCommit(true);
+        else              database.setAutoCommit(false);
       }
       catch (Exception e)
       {
@@ -208,6 +210,12 @@ public class Session
   public boolean autocommit()
   {
     return(scope == Scope.Stateless);
+  }
+
+
+  public void autocommit(boolean flag) throws Exception
+  {
+    database.setAutoCommit(flag);
   }
 
 
@@ -302,7 +310,7 @@ public class Session
   private synchronized boolean disconnect(int expected, boolean rb)
   {
     if (expected >= 0 && clients != expected)
-      logger.severe("Releasing connection while clients connected");
+      logger.severe("Releasing connection while clients connected ("+clients+")");
 
     if (database != null)
     {

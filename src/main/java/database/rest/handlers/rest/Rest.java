@@ -61,6 +61,7 @@ public class Rest
 {
   private boolean ping;
   private boolean conn;
+  private boolean batch;
 
   private final String host;
   private final String repo;
@@ -91,6 +92,7 @@ public class Rest
   {
     this.ping      = false;
     this.conn      = false;
+    this.batch     = false;
 
     this.host      = host;
     this.savepoint = savepoint;
@@ -205,12 +207,30 @@ public class Rest
   {
     try
     {
+      this.batch = true;
       JSONArray services = payload.getJSONArray("batch");
+
+      if (state.session() != null)
+        state.session().ensure();
+
+      state.prepare(payload);
 
       String result = null;
       String response = "[\n";
+      boolean connect = false;
+      boolean connected = false;
+      boolean autocommit = false;
 
-      state.prepare(payload);
+      if (state.session() != null)
+      {
+        connected = true;
+
+        if (state.session().autocommit())
+        {
+          autocommit = true;
+          state.session().autocommit(false);
+        }
+      }
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -234,21 +254,57 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
+        // Reset default connection
+        if (request.nvlfunc().equals("connect"))
+        {
+            if (connected && autocommit)
+              state.session().autocommit(true);
+
+            connect = true;
+            connected = false;
+            autocommit = false;
+            state.session().release(false);
+        }
+
         if (request.nvlfunc().equals("map"))
         {
           map(result,spload);
           continue;
         }
 
+        if (state.session() != null && state.session().clients() == 0)
+          state.session().share();
+
         result = exec(request,returning);
         response += result + cont;
 
         if (failed) break;
+
+        if (request.nvlfunc().equals("connect"))
+        {
+          connected = true;
+
+          if (state.session().autocommit())
+          {
+            autocommit = true;
+            state.session().autocommit(false);
+          }
+        }
       }
 
       response += "]";
 
+      if (autocommit)
+          state.session().autocommit(true);
+
       state.release();
+
+      if (connect && state.session() != null)
+      {
+        state.session().share();
+        state.session().disconnect();
+      }
+
       return(response);
     }
     catch (Throwable e)
@@ -263,12 +319,29 @@ public class Rest
   {
     try
     {
+      this.batch = true;
       JSONArray services = payload.getJSONArray("script");
+
+      if (state.session() != null)
+        state.session().ensure();
 
       state.prepare(payload);
 
       String result = null;
       boolean connect = false;
+      boolean connected = false;
+      boolean autocommit = false;
+
+      if (state.session() != null)
+      {
+        connected = true;
+
+        if (state.session().autocommit())
+        {
+          autocommit = true;
+          state.session().autocommit(false);
+        }
+      }
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -289,10 +362,16 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
+        // Reset default connection
         if (request.nvlfunc().equals("connect"))
         {
-          if (i < services.length() - 1)
+            if (connected && autocommit)
+              state.session().autocommit(true);
+
             connect = true;
+            connected = false;
+            autocommit = false;
+            state.session().release(false);
         }
 
         if (request.nvlfunc().equals("map"))
@@ -301,14 +380,34 @@ public class Rest
           continue;
         }
 
+        if (state.session() != null && state.session().clients() == 0)
+          state.session().share();
+
         result = exec(request,returning);
         if (failed) break;
+
+        if (request.nvlfunc().equals("connect"))
+        {
+          connected = true;
+
+          if (state.session().autocommit())
+          {
+            autocommit = true;
+            state.session().autocommit(false);
+          }
+        }
       }
+
+      if (autocommit)
+          state.session().autocommit(true);
 
       state.release();
 
       if (connect && state.session() != null)
+      {
+        state.session().share();
         state.session().disconnect();
+      }
 
       return(result);
     }
@@ -608,8 +707,8 @@ public class Rest
 
       state.session(new Session(this.config,method,pool,scope,username,secret));
 
-      state.session().connect(state.batch());
-      if (state.batch()) state.session().share();
+      state.session().connect(batch);
+      if (batch) state.session().share();
     }
     catch (Throwable e)
     {
@@ -1707,12 +1806,6 @@ public class Rest
     void stateless(StatelessSession info)
     {
       this.stateless = info;
-    }
-
-
-    boolean batch()
-    {
-      return(dept > 0);
     }
 
 

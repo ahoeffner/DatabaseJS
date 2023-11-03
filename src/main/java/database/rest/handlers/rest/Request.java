@@ -173,7 +173,7 @@ public class Request
 
   public String nvlfunc()
   {
-    if (func == null) return("");
+    if (func == null) return(cmd);
     else              return(func);
   }
 
