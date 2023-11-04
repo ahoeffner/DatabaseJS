@@ -32,6 +32,7 @@ import org.json.JSONObject;
 import javax.crypto.Cipher;
 import java.util.ArrayList;
 import java.math.BigInteger;
+import java.io.StringWriter;
 import javax.crypto.SecretKey;
 import java.io.FileInputStream;
 import java.util.logging.Level;
@@ -200,6 +201,41 @@ public class Rest
   public boolean isConnectRequest()
   {
     return(this.conn);
+  }
+
+
+  public String removeSecrets()
+  {
+    JSONArray services = null;
+    String func = request.nvlfunc();
+    StringWriter out = new StringWriter();
+
+    if (func.equals("script"))
+      services = request.payload.getJSONArray("script");
+
+    if (func.equals("batch"))
+      services = request.payload.getJSONArray("batch");
+
+    if (services != null)
+    {
+      for (int i = 0; i < services.length(); i++)
+      {
+        JSONObject service = services.getJSONObject(i);
+        if (service.has("payload"))
+        {
+          JSONObject payload = service.getJSONObject("payload");
+          payload.remove("auth.secret");
+        }
+      }
+    }
+
+    request.payload.remove("auth.secret");
+    request.payload.write(out,2,2);
+
+    String formatted = out.toString();
+    formatted = formatted.substring(0,formatted.length()-3);
+
+    return(formatted+"}");
   }
 
 
@@ -400,8 +436,6 @@ public class Rest
 
       if (autocommit)
           state.session().autocommit(true);
-
-      state.release();
 
       if (connect && state.session() != null)
       {
@@ -666,10 +700,10 @@ public class Rest
       }
 
       if (method == AuthMethod.PoolToken && !config.getSecurity().tokens())
-        return(error("Authentication method "+meth+" not allowed"));
+        throw new Exception("Authentication method "+meth+" not allowed");
 
       if (method == AuthMethod.Database && !config.getSecurity().database())
-        return(error("Authentication method "+meth+" not allowed"));
+        throw new Exception("Authentication method "+meth+" not allowed");
 
       boolean usepool = false;
 
@@ -684,7 +718,7 @@ public class Rest
           SessionManager.refresh(server.getAuthReader());
 
         PreAuthRecord rec = SessionManager.validate(secret);
-        if (rec == null) return(error("SSO authentication failed"));
+        if (rec == null) throw new Exception("SSO authentication failed");
 
         if (rec.username != null && rec.username.length() > 0)
           username = rec.username;
@@ -702,7 +736,7 @@ public class Rest
         else                  pool = config.getDatabase().fixed;
 
         if (pool == null)
-          return(error("Connection pool not configured"));
+          throw new Exception("Connection pool not configured");
       }
 
       state.session(new Session(this.config,method,pool,scope,username,secret));

@@ -163,7 +163,7 @@ public class RestHandler extends Handler
     if (rest.failed()) response.setResponse(500);
 
     if (rest.isConnectRequest())
-      request.scramble();
+      request.setBody(rest.removeSecrets());
 
     if (!rest.isPing() || logger.getLevel() == Level.FINEST)
       log(logger,request,response);
