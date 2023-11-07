@@ -47,10 +47,10 @@ public class Session
   private String sesid;
 
   private final String guid;
-  private final Scope scope;
   private final String username;
   private final SessionLock lock;
 
+  private Scope scope;
   private Pool pool = null;
   private String secret = null;
   private AuthMethod method = null;
@@ -107,6 +107,12 @@ public class Session
   public Scope scope()
   {
     return(scope);
+  }
+
+
+  public void scope(Scope scope)
+  {
+    this.scope = scope;
   }
 
 
@@ -588,7 +594,7 @@ public class Session
   }
 
 
-  private static enum Scope
+  public static enum Scope
   {
     Dedicated,
     Stateless,

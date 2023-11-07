@@ -53,6 +53,7 @@ import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
+import database.rest.handlers.rest.Session.Scope;
 import database.rest.servers.http.HTTPRequest.Pair;
 import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
@@ -363,8 +364,8 @@ public class Rest
 
       state.prepare(payload);
 
+      Scope scope = null;
       String result = null;
-      boolean connect = false;
       boolean connected = false;
       boolean autocommit = false;
 
@@ -377,10 +378,16 @@ public class Rest
           autocommit = true;
           state.session().autocommit(false);
         }
+
+        scope = state.session().scope();
+        state.session().scope(Scope.Dedicated);
+
+        state.prepare(payload);
       }
 
       for (int i = 0; i < services.length(); i++)
       {
+        boolean connect = false;
         JSONObject spload = null;
         JSONObject service = services.getJSONObject(i);
 
@@ -398,17 +405,11 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
-        // Reset default connection
-        if (request.nvlfunc().equals("connect") && state.session() != null)
-        {
-            if (connected && autocommit)
-              state.session().autocommit(true);
+        if (request.nvlfunc().equals("connect"))
+          connect = true;
 
-            connect = true;
-            connected = false;
-            autocommit = false;
-            state.session().release(false);
-        }
+        if (connect && state.session() != null)
+          throw new Exception("Already connected");
 
         if (request.nvlfunc().equals("map"))
         {
@@ -416,32 +417,27 @@ public class Rest
           continue;
         }
 
-        if (state.session() != null && state.session().clients() == 0)
-          state.session().share();
-
         result = exec(request,returning);
         if (failed) break;
 
-        if (request.nvlfunc().equals("connect") && state.session() != null)
+        if (connect && state.session() != null)
         {
-          connected = true;
-
           if (state.session().autocommit())
           {
             autocommit = true;
             state.session().autocommit(false);
           }
+
+          scope = state.session().scope();
+          state.session().scope(Scope.Dedicated);
+
+          state.prepare(payload);
         }
       }
 
-      if (autocommit)
-          state.session().autocommit(true);
-
-      if (connect && state.session() != null)
-      {
-        state.session().share();
-        state.session().disconnect();
-      }
+      // Release & remove
+      if (state.session() != null)
+        state.release(scope,autocommit,!connected);
 
       return(result);
     }
@@ -708,6 +704,9 @@ public class Rest
       boolean usepool = false;
 
       if (method == AuthMethod.Custom)
+        usepool = true;
+
+      if (scope.equalsIgnoreCase("stateless"))
         usepool = true;
 
       if (method == AuthMethod.SSO)
@@ -1887,6 +1886,32 @@ public class Rest
       }
 
       session.release(false);
+    }
+
+
+    void release(Scope scope, boolean autocommit, boolean remove) throws Exception
+    {
+      if (session == null)
+        return;
+
+      if (--dept > 0)
+        return;
+
+      if (savepoint != null)
+      {
+        if (!session.releaseSavePoint(savepoint))
+          throw new Exception("Could not release savepoint");
+
+        savepoint = null;
+        unlock(true);
+      }
+
+      this.session().scope(scope);
+      this.session().autocommit(autocommit);
+      if (remove) SessionManager.history(this.session(),false);
+
+      session.release(false);
+      if (remove) SessionManager.remove(session().guid());
     }
 
 
