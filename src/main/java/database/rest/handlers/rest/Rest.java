@@ -316,12 +316,7 @@ public class Rest
 
         if (disconn)
         {
-          if (payload == null)
-          {
-            String body = "{\"guid\": \""+state.session().guid()+"\"}";
-            spload = Request.parse(body);
-          }
-
+          spload = Request.parse("{\"guid\": \""+state.session().guid()+"\"}");
           request = new Request(this,path,spload);
         }
 
@@ -433,12 +428,7 @@ public class Rest
 
         if (disconn)
         {
-          if (payload == null)
-          {
-            String body = "{\"guid\": \""+state.session().guid()+"\"}";
-            spload = Request.parse(body);
-          }
-
+          spload = Request.parse("{\"guid\": \""+state.session().guid()+"\"}");
           request = new Request(this,path,spload);
         }
 
