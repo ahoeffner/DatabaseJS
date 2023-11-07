@@ -252,9 +252,9 @@ public class Rest
 
       state.prepare(payload);
 
+      Scope scope = null;
       String result = null;
       String response = "[\n";
-      boolean connect = false;
       boolean connected = false;
       boolean autocommit = false;
 
@@ -267,6 +267,9 @@ public class Rest
           autocommit = true;
           state.session().autocommit(false);
         }
+
+        scope = state.session().scope();
+        state.session().scope(Scope.Dedicated);
       }
 
       for (int i = 0; i < services.length(); i++)
@@ -274,6 +277,8 @@ public class Rest
         String cont = "\n";
         if (i < services.length() - 1) cont += ",\n";
 
+        boolean connect = false;
+        boolean disconn = false;
         JSONObject spload = null;
         JSONObject service = services.getJSONObject(i);
 
@@ -291,17 +296,17 @@ public class Rest
 
         Request request = new Request(this,path,spload);
 
-        // Reset default connection
-        if (request.nvlfunc().equals("connect") && state.session() != null)
-        {
-            if (connected && autocommit)
-              state.session().autocommit(true);
+        if (request.nvlfunc().equals("connect"))
+          connect = true;
 
-            connect = true;
-            connected = false;
-            autocommit = false;
-            state.session().release(false);
-        }
+        if (connect && state.session() != null)
+          throw new Exception("Already connected");
+
+        if (request.nvlfunc().equals("disconnect"))
+          disconn = true;
+
+        if (disconn && state.session() == null)
+          throw new Exception("Not connected");
 
         if (request.nvlfunc().equals("map"))
         {
@@ -309,38 +314,42 @@ public class Rest
           continue;
         }
 
-        if (state.session() != null && state.session().clients() == 0)
-          state.session().share();
+        if (disconn)
+        {
+          if (payload == null)
+          {
+            String body = "{\"guid\": \""+state.session().guid()+"\"}";
+            spload = Request.parse(body);
+          }
+
+          request = new Request(this,path,spload);
+        }
 
         result = exec(request,returning);
         response += result + cont;
 
         if (failed) break;
 
-        if (request.nvlfunc().equals("connect") && state.session() != null)
+        if (connect && state.session() != null)
         {
-          connected = true;
-
           if (state.session().autocommit())
           {
             autocommit = true;
             state.session().autocommit(false);
           }
+
+          scope = state.session().scope();
+          state.session().scope(Scope.Dedicated);
+
+          state.prepare(payload);
         }
       }
 
       response += "]";
 
-      if (autocommit)
-          state.session().autocommit(true);
-
-      state.release();
-
-      if (connect && state.session() != null)
-      {
-        state.session().share();
-        state.session().disconnect();
-      }
+      // Release & remove
+      if (state.session() != null)
+        state.release(scope,autocommit,!connected);
 
       return(response);
     }
@@ -381,13 +390,12 @@ public class Rest
 
         scope = state.session().scope();
         state.session().scope(Scope.Dedicated);
-
-        state.prepare(payload);
       }
 
       for (int i = 0; i < services.length(); i++)
       {
         boolean connect = false;
+        boolean disconn = false;
         JSONObject spload = null;
         JSONObject service = services.getJSONObject(i);
 
@@ -411,10 +419,27 @@ public class Rest
         if (connect && state.session() != null)
           throw new Exception("Already connected");
 
+        if (request.nvlfunc().equals("disconnect"))
+          disconn = true;
+
+        if (disconn && state.session() == null)
+          throw new Exception("Not connected");
+
         if (request.nvlfunc().equals("map"))
         {
           map(result,spload);
           continue;
+        }
+
+        if (disconn)
+        {
+          if (payload == null)
+          {
+            String body = "{\"guid\": \""+state.session().guid()+"\"}";
+            spload = Request.parse(body);
+          }
+
+          request = new Request(this,path,spload);
         }
 
         result = exec(request,returning);

@@ -87,6 +87,9 @@ public class Request
     String sesid = null;
     String session = null;
 
+    if (payload == null)
+      payload = parse("{}");
+
     if (path.startsWith("/"))
       path = path.substring(1);
 
