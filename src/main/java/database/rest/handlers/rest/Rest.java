@@ -977,12 +977,41 @@ public class Rest
 
       state.release();
 
-      if (assertions != null)
+      String status = null;
+      ArrayList<String> failures = new ArrayList<String>();
+
+      if (assertions != null && table.size() > 0)
       {
-        for(String col : columns)
+        for (int i = 0; i < columns.length; i++)
         {
-          BindValueDef ch = assertions.get(col.toLowerCase());
-          logger.warning(col+" "+ch);
+          String c = columns[i].toLowerCase();
+          BindValueDef check = assertions.get(c);
+
+          if (check != null)
+          {
+            boolean failed = false;
+
+            Object b = check.value;
+            Object a = table.get(0)[i];
+
+            if (a == null && b != null) failed = true;
+            else if (a != null && b == null) failed = true;
+            else if (!a.equals(b)) failed = true;
+
+            if (failed)
+            {
+              String entry = "{";
+
+              entry += "\"name\": \""+c+"\",";
+              entry += "\"before\": \""+b+"\",";
+              entry += "\"after\": \""+a+"\"}";
+
+              status = "record changed by another user";
+
+              failures.add(entry);
+              logger.warning(entry);
+            }
+          }
         }
       }
 
