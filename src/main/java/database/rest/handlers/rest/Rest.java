@@ -1017,7 +1017,10 @@ public class Rest
       json.add("more",!cursor.closed);
 
       if (status != null)
+      {
+        this.failed = true;
         json.add("warning",status);
+      }
 
       if (failures.size() > 0)
       {
