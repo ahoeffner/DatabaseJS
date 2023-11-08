@@ -242,6 +242,12 @@ public class Rest
 
   private String batch(JSONObject payload)
   {
+    Scope scope = null;
+    String result = null;
+    String response = "[\n";
+    boolean connected = false;
+    boolean autocommit = false;
+
     try
     {
       this.batch = true;
@@ -251,12 +257,6 @@ public class Rest
         state.session().ensure();
 
       state.prepare(payload);
-
-      Scope scope = null;
-      String result = null;
-      String response = "[\n";
-      boolean connected = false;
-      boolean autocommit = false;
 
       if (state.session() != null)
       {
@@ -358,6 +358,11 @@ public class Rest
 
   private String script(JSONObject payload)
   {
+    Scope scope = null;
+    String result = null;
+    boolean connected = false;
+    boolean autocommit = false;
+
     try
     {
       this.batch = true;
@@ -367,11 +372,6 @@ public class Rest
         state.session().ensure();
 
       state.prepare(payload);
-
-      Scope scope = null;
-      String result = null;
-      boolean connected = false;
-      boolean autocommit = false;
 
       if (state.session() != null)
       {
@@ -1894,10 +1894,14 @@ public class Rest
       if (savepoint != null)
       {
         if (!session.releaseSavePoint(savepoint))
+        {
+          unlock(true);
+          savepoint = null;
           throw new Exception("Could not release savepoint");
+        }
 
-        savepoint = null;
         unlock(true);
+        savepoint = null;
       }
 
       session.release(false);
@@ -1915,10 +1919,16 @@ public class Rest
       if (savepoint != null)
       {
         if (!session.releaseSavePoint(savepoint))
+        {
+          unlock(true);
+          savepoint = null;
+          this.session().scope(scope);
+          this.session().autocommit(autocommit);
           throw new Exception("Could not release savepoint");
+        }
 
-        savepoint = null;
         unlock(true);
+        savepoint = null;
       }
 
       this.session().scope(scope);
