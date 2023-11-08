@@ -344,13 +344,13 @@ public class Rest
 
       if (!connected && autocommit && state.session() != null)
       {
-        request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
+        Request request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
         exec(request,false);
       }
 
       if (!connected && state.session() != null)
       {
-        request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        Request request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
         exec(request,false);
       }
 
@@ -474,13 +474,13 @@ public class Rest
 
       if (!connected && autocommit && state.session() != null)
       {
-        request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
+        Request request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
         exec(request,false);
       }
 
       if (!connected && state.session() != null)
       {
-        request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        Request request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
         exec(request,false);
       }
 
@@ -976,6 +976,15 @@ public class Rest
       ArrayList<Object[]> table = state.session().fetch(cursor,skip);
 
       state.release();
+
+      if (assertions != null)
+      {
+        for(String col : columns)
+        {
+          BindValueDef ch = assertions.get(col.toLowerCase());
+          logger.warning(col+" "+ch);
+        }
+      }
 
       JSONFormatter json = new JSONFormatter();
 
@@ -1506,6 +1515,8 @@ public class Rest
       Object value = bvalue.get("value");
       String name = bvalue.getString("name");
       String type = bvalue.getString("type");
+
+      if (name != null) name = name.toLowerCase();
 
       // BindValueDef is appropiate for assertions as well
       BindValueDef bindvalue = new BindValueDef(name,type,false,value);
