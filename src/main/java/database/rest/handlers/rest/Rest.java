@@ -978,7 +978,11 @@ public class Rest
       state.release();
 
       String status = null;
-      ArrayList<String> failures = new ArrayList<String>();
+      ArrayList<Object[]> failures = new ArrayList<Object[]>();
+      String[] heading = new String[] {"column","before","after"};
+
+      if (assertions != null && table.size() == 0)
+        status = "record was deleted by another user";
 
       if (assertions != null && table.size() > 0)
       {
@@ -1000,16 +1004,8 @@ public class Rest
 
             if (failed)
             {
-              String entry = "{";
-
-              entry += "\"name\": \""+c+"\",";
-              entry += "\"before\": \""+b+"\",";
-              entry += "\"after\": \""+a+"\"}";
-
-              status = "record changed by another user";
-
-              failures.add(entry);
-              logger.warning(entry);
+              status = "record was changed by another user";
+              failures.add(new Object[] {c,b,a});
             }
           }
         }
@@ -1019,6 +1015,17 @@ public class Rest
 
       json.success(true);
       json.add("more",!cursor.closed);
+
+      if (status != null)
+        json.add("warning",status);
+
+      if (failures.size() > 0)
+      {
+        json.push("violations",ObjectArray);
+        for(Object[] check : failures)
+        json.add(heading,check);
+        json.pop();
+      }
 
       if (describe)
       {
@@ -1519,15 +1526,7 @@ public class Rest
       if (!bvalue.has("value")) outval = true;
       else value = bvalue.get("value");
 
-      BindValueDef bindvalue = new BindValueDef(name,type,outval,value);
-
-      if (value != null && bindvalue.isDate())
-      {
-        if (value instanceof Long)
-          value = new Date((Long) value);
-      }
-
-      this.bindvalues.put(name,bindvalue);
+      this.bindvalues.put(name,new BindValueDef(name,type,outval,value));
     }
   }
 
@@ -1548,15 +1547,7 @@ public class Rest
       if (name != null) name = name.toLowerCase();
 
       // BindValueDef is appropiate for assertions as well
-      BindValueDef bindvalue = new BindValueDef(name,type,false,value);
-
-      if (value != null && bindvalue.isDate())
-      {
-        if (value instanceof Long)
-          value = new Date((Long) value);
-      }
-
-      assertions.put(name,bindvalue);
+      assertions.put(name,new BindValueDef(name,type,false,value));
     }
 
     return(assertions);
