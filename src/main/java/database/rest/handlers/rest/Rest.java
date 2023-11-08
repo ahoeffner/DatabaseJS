@@ -345,13 +345,13 @@ public class Rest
       if (!connected && autocommit && state.session() != null)
       {
         request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
-        result = exec(request,false);
+        exec(request,false);
       }
 
       if (!connected && state.session() != null)
       {
         request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
-        result = exec(request,false);
+        exec(request,false);
       }
 
       // Release & remove
@@ -475,13 +475,13 @@ public class Rest
       if (!connected && autocommit && state.session() != null)
       {
         request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
-        result = exec(request,false);
+        exec(request,false);
       }
 
       if (!connected && state.session() != null)
       {
         request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
-        result = exec(request,false);
+        exec(request,false);
       }
 
       // Release & remove
@@ -923,6 +923,10 @@ public class Rest
       boolean describe = false;
       boolean compact = this.compact;
       String dateform = this.dateform;
+      HashMap<String,BindValueDef> assertions = null;
+
+      if (payload.has("assert"))
+        assertions = this.getAssertions(payload.getJSONArray("assert"));
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
@@ -1487,6 +1491,35 @@ public class Rest
 
       this.bindvalues.put(name,bindvalue);
     }
+  }
+
+
+  private HashMap<String,BindValueDef> getAssertions(JSONArray values)
+  {
+    HashMap<String,BindValueDef> assertions =
+      new HashMap<String,BindValueDef>();
+
+    for (int i = 0; i < values.length(); i++)
+    {
+      JSONObject bvalue = values.getJSONObject(i);
+
+      Object value = bvalue.get("value");
+      String name = bvalue.getString("name");
+      String type = bvalue.getString("type");
+
+      // BindValueDef is appropiate for assertions as well
+      BindValueDef bindvalue = new BindValueDef(name,type,false,value);
+
+      if (value != null && bindvalue.isDate())
+      {
+        if (value instanceof Long)
+          value = new Date((Long) value);
+      }
+
+      assertions.put(name,bindvalue);
+    }
+
+    return(assertions);
   }
 
 
