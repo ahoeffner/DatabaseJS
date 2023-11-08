@@ -162,6 +162,7 @@ public class Session
           pool.remove(database,-1);
         }
 
+        database = null;
         SessionManager.remove(guid);
         String message = e.getMessage();
 
