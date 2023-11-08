@@ -149,12 +149,11 @@ public class Session
       try
       {
         this.rollback();
-        if (autocommit()) database.setAutoCommit(true);
-        else              database.setAutoCommit(false);
+        database.setAutoCommit(autocommit());
       }
       catch (Exception e)
       {
-        if (method == AuthMethod.Database || scope == Scope.Dedicated)
+        if (scope == Scope.Dedicated)
         {
           database.disconnect();
         }
@@ -164,7 +163,12 @@ public class Session
         }
 
         SessionManager.remove(guid);
-        return("disconnected");
+        String message = e.getMessage();
+
+        if (message == null)
+          message = "a fatal error occured";
+
+        return(message);
       }
 
       return("transaction rolled back");

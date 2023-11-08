@@ -256,8 +256,6 @@ public class Rest
       if (state.session() != null)
         state.session().ensure();
 
-      state.prepare(payload);
-
       if (state.session() != null)
       {
         connected = true;
@@ -271,6 +269,8 @@ public class Rest
         scope = state.session().scope();
         state.session().scope(Scope.Dedicated);
       }
+
+      state.prepare(payload);
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -342,15 +342,31 @@ public class Rest
 
       response += "]";
 
+      if (!connected && autocommit && state.session() != null)
+      {
+        request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
+        result = exec(request,false);
+      }
+
+      if (!connected && state.session() != null)
+      {
+        request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        result = exec(request,false);
+      }
+
       // Release & remove
       if (state.session() != null)
-        state.release(scope,autocommit,!connected);
+        state.release(scope,autocommit);
 
       return(response);
     }
     catch (Throwable e)
     {
       failed = true;
+
+      if (state.session() != null)
+        state.session().scope(scope);
+
       return(state.release(e));
     }
   }
@@ -371,8 +387,6 @@ public class Rest
       if (state.session() != null)
         state.session().ensure();
 
-      state.prepare(payload);
-
       if (state.session() != null)
       {
         connected = true;
@@ -386,6 +400,8 @@ public class Rest
         scope = state.session().scope();
         state.session().scope(Scope.Dedicated);
       }
+
+      state.prepare(payload);
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -426,6 +442,9 @@ public class Rest
           continue;
         }
 
+        // omit disconnect
+        String last = result;
+
         if (disconn)
         {
           spload = Request.parse("{\"guid\": \""+state.session().guid()+"\"}");
@@ -434,6 +453,9 @@ public class Rest
 
         result = exec(request,returning);
         if (failed) break;
+
+        if (disconn)
+          result = last;
 
         if (connect && state.session() != null)
         {
@@ -450,15 +472,31 @@ public class Rest
         }
       }
 
+      if (!connected && autocommit && state.session() != null)
+      {
+        request = new Request(this,"commit","{\"guid\": \""+state.session().guid()+"\"}");
+        result = exec(request,false);
+      }
+
+      if (!connected && state.session() != null)
+      {
+        request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        result = exec(request,false);
+      }
+
       // Release & remove
       if (state.session() != null)
-        state.release(scope,autocommit,!connected);
+        state.release(scope,autocommit);
 
       return(result);
     }
     catch (Throwable e)
     {
       failed = true;
+
+      if (state.session() != null)
+        state.session().scope(scope);
+
       return(state.release(e));
     }
   }
@@ -1908,7 +1946,7 @@ public class Rest
     }
 
 
-    void release(Scope scope, boolean autocommit, boolean remove) throws Exception
+    void release(Scope scope, boolean autocommit) throws Exception
     {
       if (session == null)
         return;
@@ -1933,10 +1971,8 @@ public class Rest
 
       this.session().scope(scope);
       this.session().autocommit(autocommit);
-      if (remove) SessionManager.history(this.session(),false);
 
       session.release(false);
-      if (remove) SessionManager.remove(session().guid());
     }
 
 
