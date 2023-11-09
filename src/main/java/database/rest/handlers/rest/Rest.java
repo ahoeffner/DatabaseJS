@@ -55,6 +55,7 @@ import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.handlers.rest.Session.Scope;
 import database.rest.servers.http.HTTPRequest.Pair;
+import oracle.sql.TIMESTAMP;
 import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
 
@@ -979,7 +980,7 @@ public class Rest
 
       String status = null;
       ArrayList<Object[]> failures = new ArrayList<Object[]>();
-      String[] heading = new String[] {"column","before","after"};
+      String[] asserts = new String[] {"column","assert","value"};
 
       if (assertions != null && table.size() == 0)
         status = "record was deleted by another user";
@@ -1000,7 +1001,14 @@ public class Rest
 
             if (a == null && b != null) failed = true;
             else if (a != null && b == null) failed = true;
-            else if (!a.equals(b)) failed = true;
+            else
+            {
+              if (check.isDate() && a instanceof Long)
+                b = ((Date) b).getTime();
+
+              if (!a.equals(b))
+                failed = true;
+            }
 
             if (failed)
             {
@@ -1026,7 +1034,7 @@ public class Rest
       {
         json.push("violations",ObjectArray);
         for(Object[] check : failures)
-        json.add(heading,check);
+        json.add(asserts,check);
         json.pop();
       }
 
