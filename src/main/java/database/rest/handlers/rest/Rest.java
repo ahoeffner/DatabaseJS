@@ -31,6 +31,7 @@ import java.sql.Savepoint;
 import org.json.JSONObject;
 import javax.crypto.Cipher;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.io.StringWriter;
 import javax.crypto.SecretKey;
@@ -81,6 +82,7 @@ public class Rest
 
   private Request request = null;
   private boolean failed = false;
+  private boolean warning = false;
 
   private final SQLRewriter rewriter;
   private final SQLValidator validator;
@@ -323,7 +325,7 @@ public class Rest
         result = exec(request,returning);
         response += result + cont;
 
-        if (failed) break;
+        if (failed || warning) break;
 
         if (connect && state.session() != null)
         {
@@ -452,7 +454,7 @@ public class Rest
         }
 
         result = exec(request,returning);
-        if (failed) break;
+        if (failed || warning) break;
 
         if (disconn)
           result = last;
@@ -1005,8 +1007,23 @@ public class Rest
               if (check.isDate() && a instanceof Long)
                 b = ((Date) b).getTime();
 
-              if (!a.equals(b))
-                failed = true;
+              if (a instanceof BigInteger)
+                b = new BigInteger(b+"");
+
+              if (a instanceof BigDecimal)
+                b = new BigDecimal(b+"");
+
+              if (a instanceof BigDecimal)
+              {
+                logger.warning(c+" "+(((BigDecimal) a).subtract((BigDecimal) b)));
+                if (((BigDecimal) a).compareTo((BigDecimal) b) != 0)
+                  failed = true;
+              }
+              else
+              {
+                if (!a.equals(b))
+                  failed = true;
+              }
             }
 
             if (failed)
@@ -1025,7 +1042,7 @@ public class Rest
 
       if (status != null)
       {
-        this.failed = true;
+        this.warning = true;
         json.add("warning",status);
       }
 
