@@ -55,7 +55,6 @@ import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.handlers.rest.Session.Scope;
 import database.rest.servers.http.HTTPRequest.Pair;
-import oracle.sql.TIMESTAMP;
 import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
 
