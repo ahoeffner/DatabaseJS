@@ -81,6 +81,8 @@ public class Rest
   private final boolean savepoint;
 
   private Request request = null;
+
+  private boolean fatal = false;
   private boolean failed = false;
   private boolean warning = false;
 
@@ -188,6 +190,10 @@ public class Rest
     }
   }
 
+  public boolean fatal()
+  {
+    return(fatal);
+  }
 
   public boolean failed()
   {
@@ -607,6 +613,7 @@ public class Rest
     }
     catch (Throwable e)
     {
+      fatal = true;
       failed = true;
       return(error(e));
     }
@@ -660,6 +667,7 @@ public class Rest
     }
     catch(Throwable e)
     {
+      fatal = true;
       message = e.getMessage();
 
       if (message == null)
