@@ -1009,8 +1009,9 @@ public class Rest
             Object a = table.get(0)[i];
 
             if (a == null && b != null) failed = true;
-            else if (a != null && b == null) failed = true;
-            else
+            if (a != null && b == null) failed = true;
+
+            if (a != null && b != null)
             {
               if (check.isDate() && a instanceof Long)
                 b = ((Date) b).getTime();
@@ -1575,11 +1576,12 @@ public class Rest
     {
       JSONObject bvalue = values.getJSONObject(i);
 
-      Object value = bvalue.get("value");
+      Object value = null;
       String name = bvalue.getString("name");
       String type = bvalue.getString("type");
 
       if (name != null) name = name.toLowerCase();
+      if (bvalue.has("value")) value = bvalue.get("value");
 
       // BindValueDef is appropiate for assertions as well
       assertions.put(name,new BindValueDef(name,type,false,value));
