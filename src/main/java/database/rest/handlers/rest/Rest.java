@@ -82,7 +82,7 @@ public class Rest
 
   private Request request = null;
 
-  private boolean fatal = false;
+  private int code = 200;
   private boolean failed = false;
   private boolean warning = false;
 
@@ -190,9 +190,9 @@ public class Rest
     }
   }
 
-  public boolean fatal()
+  public int response()
   {
-    return(fatal);
+    return(code);
   }
 
   public boolean failed()
@@ -613,7 +613,6 @@ public class Rest
     }
     catch (Throwable e)
     {
-      fatal = true;
       failed = true;
       return(error(e));
     }
@@ -667,7 +666,6 @@ public class Rest
     }
     catch(Throwable e)
     {
-      fatal = true;
       message = e.getMessage();
 
       if (message == null)

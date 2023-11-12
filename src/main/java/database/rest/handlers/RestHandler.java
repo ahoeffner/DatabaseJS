@@ -160,7 +160,7 @@ public class RestHandler extends Handler
 
     response.setContentType(json);
     response.setBody(rest.execute(path,payload,returning));
-    if (rest.fatal()) response.setResponse(500);
+    response.setResponse(rest.response());
 
     if (rest.isConnectRequest())
       request.setBody(rest.removeSecrets());
