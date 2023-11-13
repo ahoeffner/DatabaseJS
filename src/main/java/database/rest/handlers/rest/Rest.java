@@ -460,7 +460,12 @@ public class Rest
         }
 
         result = exec(request,returning);
-        if (failed || warning) break;
+
+        JSONObject res = Request.parse(result);
+        result = res.put("step",i).toString();
+
+        if (failed || warning)
+          break;
 
         if (disconn)
           result = last;
