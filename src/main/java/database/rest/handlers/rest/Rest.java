@@ -951,7 +951,7 @@ public class Rest
       if (payload.has("dateformat"))
       {
         if (payload.isNull("dateformat")) dateform = null;
-        else   dateform = payload.getString("dateformat");
+        else dateform = payload.getString("dateformat");
       }
 
       if (payload.has("compact")) compact = payload.getBoolean("compact");
@@ -1107,6 +1107,10 @@ public class Rest
 
   private String update(JSONObject payload, boolean returning)
   {
+    boolean prepared = false;
+    boolean autocommit = false;
+    String dateform = this.dateform;
+
     if (state.session() == null)
     {
       failed = true;
@@ -1115,7 +1119,42 @@ public class Rest
 
     try
     {
-      String dateform = this.dateform;
+      state.ensure();
+
+      if (payload.has("assert"))
+      {
+        JSONObject lock = makeAssert(payload);
+
+        if (lock != null)
+        {
+          if (state.session().autocommit())
+          {
+            autocommit = true;
+            state.session().autocommit(false);
+          }
+
+          prepared = true;
+          state.prepare(payload);
+
+          String response = select(lock);
+
+          logger.fine
+          (
+            "\n-----------------assert--------------------\n" +
+            response+
+            "\n-------------------------------------------\n"
+          );
+
+          if (autocommit)
+          {
+            autocommit = false;
+            state.session().autocommit(true);
+          }
+        }
+      }
+
+      if (!prepared)
+        state.prepare(payload);
 
       if (payload.has("dateformat"))
       {
@@ -1139,9 +1178,6 @@ public class Rest
 
       if (validator != null)
         validator.validate(sql,bindvalues);
-
-      state.ensure();
-      state.prepare(payload);
 
       if (returning)
       {
@@ -1178,14 +1214,21 @@ public class Rest
 
         json.success(true);
         json.add("affected",rows);
-
         json.add("instance",instance);
+
         return(json.toString());
       }
     }
     catch (Throwable e)
     {
       failed = true;
+
+      if (autocommit)
+      {
+        try {state.session().autocommit(true);}
+        catch (Exception ce) {;}
+      }
+
       return(state.release(e));
     }
   }
@@ -1592,6 +1635,73 @@ public class Rest
     }
 
     return(assertions);
+  }
+
+
+  private JSONObject makeAssert(JSONObject payload) throws Exception
+  {
+    String stmt = payload.getString("sql");
+    boolean nowait = this.config.getDatabase().nowait;
+
+    HashMap<String,BindValueDef> assertions =
+      this.getAssertions(payload.getJSONArray("assert"));
+
+    if (assertions.size() > 0)
+    {
+      String sql = "select ";
+      String[] columns = assertions.keySet().toArray(new String[assertions.size()]);
+
+      for (int i = 0; i < columns.length; i++)
+      {
+        sql += columns[i];
+        if (i < columns.length - 1) sql += ",";
+      }
+
+      String from = null;
+      String where = null;
+      String lstmt = stmt.toLowerCase();
+
+      int fpos = lstmt.indexOf("from");
+      int wpos = lstmt.indexOf("where");
+
+      if (wpos > 0)
+        where = stmt.substring(wpos).trim();
+
+      if (fpos > 0)
+      {
+        if (wpos > fpos)
+          from = stmt.substring(fpos,wpos).trim();
+      }
+      else
+      {
+        String[] words = lstmt.split(" ");
+        from = words[1];
+      }
+
+      if (from == null) throw new Exception("no from clause detected in "+stmt);
+      if (where == null) throw new Exception("no where clause detected in "+stmt);
+
+      sql += " from " + from + " " + where + " for update";
+      if (nowait) sql += " nowait";
+
+      JSONObject json = Request.parse("{}");
+
+      if (payload.has("dateformat"))
+        json.put("dateformat",payload.get("dateformat"));
+
+      if (payload.has("compact"))
+        json.put("compact",payload.get("compact"));
+
+      json.put("assert",payload.getJSONArray("assert"));
+
+      if (payload.has("bindvalues"))
+        json.put("bindvalues",payload.getJSONArray("bindvalues"));
+
+      json.put("sql",sql);
+      return(json);
+    }
+
+    return(null);
   }
 
 
