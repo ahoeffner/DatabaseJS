@@ -1121,7 +1121,12 @@ public class Rest
     {
       state.ensure();
 
-      if (payload.has("assert"))
+      boolean force = false;
+
+      if (payload.has("lock"))
+        force = payload.getBoolean("lock");
+
+      if (force || payload.has("assert"))
       {
         JSONObject lock = makeAssert(payload);
 
@@ -1644,64 +1649,65 @@ public class Rest
     boolean nowait = this.config.getDatabase().nowait;
 
     HashMap<String,BindValueDef> assertions =
-      this.getAssertions(payload.getJSONArray("assert"));
+      new HashMap<String,BindValueDef>();
 
-    if (assertions.size() > 0)
+    if (payload.has("assert"))
+      assertions = this.getAssertions(payload.getJSONArray("assert"));
+
+    String sql = "select ";
+    String[] columns = assertions.keySet().toArray(new String[assertions.size()]);
+
+    if (columns.length == 0)
+      sql += "'x'";
+
+    for (int i = 0; i < columns.length; i++)
     {
-      String sql = "select ";
-      String[] columns = assertions.keySet().toArray(new String[assertions.size()]);
-
-      for (int i = 0; i < columns.length; i++)
-      {
-        sql += columns[i];
-        if (i < columns.length - 1) sql += ",";
-      }
-
-      String from = null;
-      String where = null;
-      String lstmt = stmt.toLowerCase();
-
-      int fpos = lstmt.indexOf("from");
-      int wpos = lstmt.indexOf("where");
-
-      if (wpos > 0)
-        where = stmt.substring(wpos).trim();
-
-      if (fpos > 0)
-      {
-        if (wpos > fpos)
-          from = stmt.substring(fpos,wpos).trim();
-      }
-      else
-      {
-        String[] words = lstmt.split(" ");
-        from = words[1];
-      }
-
-      if (from == null) throw new Exception("no from clause detected in "+stmt);
-      if (where == null) throw new Exception("no where clause detected in "+stmt);
-
-      sql += " from " + from + " " + where + " for update";
-      if (nowait) sql += " nowait";
-
-      JSONObject json = Request.parse("{}");
-
-      if (payload.has("dateformat"))
-        json.put("dateformat",payload.get("dateformat"));
-
-      if (payload.has("compact"))
-        json.put("compact",payload.get("compact"));
-
-      json.put("assert",payload.getJSONArray("assert"));
-
-      if (payload.has("bindvalues"))
-        json.put("bindvalues",payload.getJSONArray("bindvalues"));
-
-      json.put("sql",sql);
-      return(json);
+      sql += columns[i];
+      if (i < columns.length - 1) sql += ",";
     }
 
-    return(null);
+    String from = null;
+    String where = null;
+    String lstmt = stmt.toLowerCase();
+
+    int fpos = lstmt.indexOf("from");
+    int wpos = lstmt.indexOf("where");
+
+    if (wpos > 0)
+      where = stmt.substring(wpos).trim();
+
+    if (fpos > 0)
+    {
+      if (wpos > fpos)
+        from = stmt.substring(fpos,wpos).trim();
+    }
+    else
+    {
+      String[] words = lstmt.split(" ");
+      from = words[1];
+    }
+
+    if (from == null) throw new Exception("no from clause detected in "+stmt);
+    if (where == null) throw new Exception("no where clause detected in "+stmt);
+
+    sql += " from " + from + " " + where + " for update";
+    if (nowait) sql += " nowait";
+
+    JSONObject json = Request.parse("{}");
+
+    if (payload.has("dateformat"))
+      json.put("dateformat",payload.get("dateformat"));
+
+    if (payload.has("compact"))
+      json.put("compact",payload.get("compact"));
+
+    json.put("assert",payload.getJSONArray("assert"));
+
+    if (payload.has("bindvalues"))
+      json.put("bindvalues",payload.getJSONArray("bindvalues"));
+
+    json.put("sql",sql);
+    return(json);
   }
 
 
