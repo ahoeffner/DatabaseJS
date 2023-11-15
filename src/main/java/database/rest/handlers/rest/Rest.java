@@ -1143,18 +1143,24 @@ public class Rest
 
           String response = select(lock);
 
+          if (autocommit)
+          {
+            autocommit = false;
+            state.session().autocommit(true);
+          }
+
+          if (failed)
+          {
+            state.release();
+            return(response);
+          }
+
           logger.fine
           (
             "\n-----------------assert--------------------\n" +
             response+
             "\n-------------------------------------------\n"
           );
-
-          if (autocommit)
-          {
-            autocommit = false;
-            state.session().autocommit(true);
-          }
         }
       }
 
@@ -1658,7 +1664,7 @@ public class Rest
     String[] columns = assertions.keySet().toArray(new String[assertions.size()]);
 
     if (columns.length == 0)
-      sql += "'x'";
+      sql += "'x' as locked";
 
     for (int i = 0; i < columns.length; i++)
     {
@@ -1701,7 +1707,8 @@ public class Rest
     if (payload.has("compact"))
       json.put("compact",payload.get("compact"));
 
-    json.put("assert",payload.getJSONArray("assert"));
+    if (payload.has("assert"))
+      json.put("assert",payload.getJSONArray("assert"));
 
     if (payload.has("bindvalues"))
       json.put("bindvalues",payload.getJSONArray("bindvalues"));
