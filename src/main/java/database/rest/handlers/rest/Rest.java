@@ -703,12 +703,14 @@ public class Rest
     String scope = null;
     String secret = null;
     String username = null;
+    boolean nowait = false;
     AuthMethod method = null;
     boolean privateses = true;
 
     try
     {
       timeout = config.getREST().timeout;
+      nowait = this.config.getDatabase().nowait;
       type = config.getDatabase().type.toString();
 
       if (payload.has("username"))
@@ -835,6 +837,7 @@ public class Rest
 
     json.success(true);
     json.add("type",type);
+    json.add("nowait",nowait);
     json.add("timeout",timeout);
     json.add("private",privateses);
     json.add("autocommit",state.session().autocommit());
