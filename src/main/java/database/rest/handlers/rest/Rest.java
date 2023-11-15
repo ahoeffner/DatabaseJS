@@ -84,7 +84,6 @@ public class Rest
 
   private int code = 200;
   private boolean failed = false;
-  private boolean warning = false;
 
   private final SQLRewriter rewriter;
   private final SQLValidator validator;
@@ -331,8 +330,6 @@ public class Rest
         result = exec(request,returning);
         response += result + cont;
 
-        if (failed || warning) break;
-
         if (connect && state.session() != null)
         {
           if (state.session().autocommit())
@@ -464,7 +461,7 @@ public class Rest
         JSONObject res = Request.parse(result);
         result = res.put("step",i).toString();
 
-        if (failed || warning)
+        if (failed)
           break;
 
         if (disconn)
@@ -990,12 +987,12 @@ public class Rest
 
       state.release();
 
-      String status = null;
+      String assertmsg = null;
       ArrayList<Object[]> failures = new ArrayList<Object[]>();
       String[] asserts = new String[] {"column","assert","value"};
 
       if (assertions != null && table.size() == 0)
-        status = "record was deleted by another user";
+        assertmsg = "Record was deleted by another user";
 
       if (assertions != null && table.size() > 0)
       {
@@ -1040,7 +1037,7 @@ public class Rest
 
             if (failed)
             {
-              status = "record was changed by another user";
+              assertmsg = "Record was changed by another user";
               failures.add(new Object[] {c,b,a});
             }
           }
@@ -1049,13 +1046,14 @@ public class Rest
 
       JSONFormatter json = new JSONFormatter();
 
-      json.success(true);
+      json.success(assertmsg == null);
       json.add("more",!cursor.closed);
 
-      if (status != null)
+      if (assertmsg != null)
       {
-        this.warning = true;
-        json.add("warning",status);
+        this.failed = true;
+        json.add("assert",assertmsg);
+        json.add("message","Assertion failed");
       }
 
       if (failures.size() > 0)
