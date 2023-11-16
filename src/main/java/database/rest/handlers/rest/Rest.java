@@ -291,13 +291,6 @@ public class Rest
 
         String path = service.getString("path");
 
-        Command cmd = new Command(path);
-
-        path = cmd.path;
-        boolean returning = false;
-        String ropt = cmd.getQuery("returning");
-        if (ropt != null) returning = Boolean.parseBoolean(ropt);
-
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
 
@@ -327,7 +320,7 @@ public class Rest
           request = new Request(this,path,spload);
         }
 
-        result = exec(request,returning);
+        result = exec(request,false);
         response += result + cont;
 
         if (connect && state.session() != null)
@@ -363,7 +356,7 @@ public class Rest
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      return(response);
+      return("{\"steps\":\n" + response + "\n}");
     }
     catch (Throwable e)
     {
@@ -417,13 +410,6 @@ public class Rest
 
         String path = service.getString("path");
 
-        Command cmd = new Command(path);
-
-        path = cmd.path;
-        boolean returning = false;
-        String ropt = cmd.getQuery("returning");
-        if (ropt != null) returning = Boolean.parseBoolean(ropt);
-
         if (service.has("payload"))
           spload = service.getJSONObject("payload");
 
@@ -456,7 +442,7 @@ public class Rest
           request = new Request(this,path,spload);
         }
 
-        result = exec(request,returning);
+        result = exec(request,false);
 
         JSONObject res = Request.parse(result);
         result = res.put("step",i).toString();
@@ -493,6 +479,9 @@ public class Rest
         Request request = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
         exec(request,false);
       }
+
+      JSONObject res = Request.parse(result);
+      result = res.put("success",true).toString();
 
       // Release & remove
       if (state.session() != null)
@@ -1171,6 +1160,9 @@ public class Rest
         if (payload.isNull("dateformat")) dateform = null;
         else dateform = payload.getString("dateformat");
       }
+
+      if (payload.has("returning"))
+        returning = payload.getBoolean("returning");
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
