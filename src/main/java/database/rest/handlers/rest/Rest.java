@@ -1027,7 +1027,6 @@ public class Rest
 
               if (a instanceof BigDecimal)
               {
-                logger.warning(c+" "+(((BigDecimal) a).subtract((BigDecimal) b)));
                 if (((BigDecimal) a).compareTo((BigDecimal) b) != 0)
                   failed = true;
               }
@@ -1685,7 +1684,7 @@ public class Rest
     if (fpos > 0)
     {
       if (wpos > fpos)
-        from = stmt.substring(fpos,wpos).trim();
+        from = stmt.substring(fpos+5,wpos).trim();
     }
     else
     {
