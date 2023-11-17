@@ -2053,7 +2053,7 @@ public class Rest
     json.success(false);
     json.fatal(message);
     json.add("instance",instance);
-    if (lock) json.add("lock",false);
+    if (lock) json.add("lock",true);
     if (nowait) json.add("nowait",true);
     if (path != null) json.add("path",request.path);
 
