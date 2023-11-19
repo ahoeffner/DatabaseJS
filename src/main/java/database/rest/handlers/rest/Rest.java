@@ -325,6 +325,7 @@ public class Rest
         result = exec(step,false);
         response += result + cont;
         this.request = request;
+        this.failed = false;
 
         if (connect && state.session() != null)
         {
