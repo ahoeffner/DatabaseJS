@@ -133,7 +133,6 @@ public class Rest
       if (ppool != null)
         ptok = config.getDatabase().proxy.token();
 
-      logger.warning(payload);
       request = new Request(this,path,payload);
 
       if (request.returning != null)
