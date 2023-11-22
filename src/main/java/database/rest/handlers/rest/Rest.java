@@ -253,6 +253,7 @@ public class Rest
     String result = null;
     String response = "[\n";
     boolean connected = false;
+    boolean disconnect = true;
     boolean autocommit = false;
     Request request = this.request;
 
@@ -260,6 +261,9 @@ public class Rest
     {
       this.batch = true;
       JSONArray services = payload.getJSONArray("batch");
+
+      if (payload.has("disconnect"))
+        disconnect = payload.getBoolean("disconnect");
 
       if (state.session() != null)
         state.session().ensure();
@@ -276,9 +280,9 @@ public class Rest
 
         scope = state.session().scope();
         state.session().scope(Scope.Dedicated);
-      }
 
-      state.prepare(payload);
+        state.prepare(true,false);
+      }
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -322,7 +326,22 @@ public class Rest
         }
 
         this.request = step;
+        state.setSavePoint();
+
         result = exec(step,false);
+
+        if (this.failed && state.session() != null)
+        {
+          if (state.savepoint == null)
+          {
+            state.lock(true);
+            state.session().ensure();
+
+            state.setSavePoint();
+            state.session().share();
+          }
+        }
+
         response += result + cont;
         this.request = request;
         this.failed = false;
@@ -338,7 +357,7 @@ public class Rest
           scope = state.session().scope();
           state.session().scope(Scope.Dedicated);
 
-          state.prepare(payload);
+          state.prepare(true,false);
         }
       }
 
@@ -350,10 +369,10 @@ public class Rest
         exec(commit,false);
       }
 
-      if (!connected && state.session() != null)
+      if (disconnect && !connected && state.session() != null)
       {
-        Request disconnect = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
-        exec(disconnect,false);
+        Request disconn = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        exec(disconn,false);
       }
 
       // Release & remove
@@ -380,6 +399,7 @@ public class Rest
     Request step = null;
     String result = null;
     boolean connected = false;
+    boolean disconnect = true;
     boolean autocommit = false;
     Request request = this.request;
 
@@ -387,6 +407,9 @@ public class Rest
     {
       this.batch = true;
       JSONArray services = payload.getJSONArray("script");
+
+      if (payload.has("disconnect"))
+        disconnect = payload.getBoolean("disconnect");
 
       if (state.session() != null)
         state.session().ensure();
@@ -403,9 +426,9 @@ public class Rest
 
         scope = state.session().scope();
         state.session().scope(Scope.Dedicated);
-      }
 
-      state.prepare(payload);
+        state.prepare(payload);
+      }
 
       for (int i = 0; i < services.length(); i++)
       {
@@ -482,10 +505,10 @@ public class Rest
         exec(commit,false);
       }
 
-      if (!connected && state.session() != null)
+      if (disconnect && !connected && state.session() != null)
       {
-        Request disconnect = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
-        exec(disconnect,false);
+        Request disconn = new Request(this,"disconnect","{\"guid\": \""+state.session().guid()+"\"}");
+        exec(disconn,false);
       }
 
       JSONObject res = Request.parse(result);
@@ -1526,6 +1549,15 @@ public class Rest
         {
           String bindv = bindvalues[i];
           String pointer = payload.getString(bindv).trim();
+
+          if (pointer.equals("@session"))
+          {
+            String sesid = null;
+            if (state.session() != null) sesid = state.session().sesid();
+            this.bindvalues.put(bindv,new BindValueDef(bindv,sesid));
+            continue;
+          }
+
           this.bindvalues.put(bindv,new BindValueDef(bindv,last.get(pointer)));
         }
       }
@@ -1538,6 +1570,14 @@ public class Rest
           Object value = null;
           String bindv = bindvalues[i];
           String pointer = payload.getString(bindv).trim();
+
+          if (pointer.equals("@session"))
+          {
+            String sesid = null;
+            if (state.session() != null) sesid = state.session().sesid();
+            this.bindvalues.put(bindv,new BindValueDef(bindv,sesid));
+            continue;
+          }
 
           if (pointer.endsWith("]"))
           {
@@ -2140,11 +2180,23 @@ public class Rest
     }
 
 
+    void setSavePoint() throws Exception
+    {
+      if (session == null) return;
+      this.savepoint = session.setSavePoint();
+    }
+
+
+    void prepare(boolean lock, boolean savepoint) throws Exception
+    {
+      dept++;
+      if (lock) lock(true);
+      if (savepoint) this.savepoint = session.setSavePoint();
+    }
+
+
     void prepare(JSONObject payload) throws Exception
     {
-      if (session == null)
-        return;
-
       if (dept == 0)
       {
         boolean savepoint = rest.getSavepoint(payload);
@@ -2173,7 +2225,6 @@ public class Rest
         if (!session.releaseSavePoint(savepoint))
         {
           unlock(true);
-          savepoint = null;
           throw new Exception("Could not release savepoint");
         }
 
@@ -2198,7 +2249,6 @@ public class Rest
         if (!session.releaseSavePoint(savepoint))
         {
           unlock(true);
-          savepoint = null;
           this.session().scope(scope);
           this.session().autocommit(autocommit);
           throw new Exception("Could not release savepoint");
@@ -2217,6 +2267,7 @@ public class Rest
 
     String release(Throwable err, Request request)
     {
+      dept--;
       String fatal = null;
 
       if (session != null)
@@ -2224,6 +2275,8 @@ public class Rest
         session.releaseSavePoint(savepoint,true);
 
         releaseAll();
+
+        savepoint = null;
         fatal = session.release(true);
         rest.server.poolmanager().validate();
       }
