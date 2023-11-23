@@ -1021,9 +1021,17 @@ public class Rest
       cursor.compact = compact;
       cursor.dateformat = dateform;
 
-      String[] types = state.session().getColumnTypes(cursor);
+      String[] types = null;
+      Integer[][] precs = null;
+
       String[] columns = state.session().getColumnNames(cursor);
       ArrayList<Object[]> table = state.session().fetch(cursor,skip);
+
+      if (describe)
+      {
+        types = state.session().getColumnTypes(cursor);
+        precs = state.session().getColumnPrecision(cursor);
+      }
 
       state.release();
 
@@ -1113,6 +1121,10 @@ public class Rest
       {
         json.push("types",SimpleArray);
         json.add(types);
+        json.pop();
+
+        json.push("precision",Matrix);
+        json.add(precs);
         json.pop();
       }
 
