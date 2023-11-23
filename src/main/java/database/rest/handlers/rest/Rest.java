@@ -1024,14 +1024,14 @@ public class Rest
       String[] types = null;
       Integer[][] precs = null;
 
-      String[] columns = state.session().getColumnNames(cursor);
-      ArrayList<Object[]> table = state.session().fetch(cursor,skip);
-
       if (describe)
       {
         types = state.session().getColumnTypes(cursor);
         precs = state.session().getColumnPrecision(cursor);
       }
+
+      String[] columns = state.session().getColumnNames(cursor);
+      ArrayList<Object[]> table = state.session().fetch(cursor,skip);
 
       state.release();
 
