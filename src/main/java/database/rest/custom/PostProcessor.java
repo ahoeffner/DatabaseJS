@@ -21,13 +21,13 @@
 
 package database.rest.custom;
 
-import java.util.ArrayList;
+import java.util.Map;
 import org.json.JSONObject;
 
 
 public interface PostProcessor
 {
-  ArrayList<Attribute> process(JSONObject payload) throws Exception;
+  Map<String,Object> process(JSONObject payload) throws Exception;
 
   public static class Attribute
   {

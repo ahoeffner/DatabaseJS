@@ -61,7 +61,7 @@ public class Database
 
 
   @SuppressWarnings("unchecked")
-  Database(JSONObject config) throws Exception
+  Database(JSONObject config, boolean full) throws Exception
   {
     JSONObject section = Config.getSection(config,"database");
     //********************* General Section *********************
@@ -115,28 +115,28 @@ public class Database
     String preclass = Config.get(section,"preprocessor.class",null);
     String pstclass = Config.get(section,"posprocessor.class",null);
 
-    if (rewclass == null) this.rewriter = null;
+    if (rewclass == null || !full) this.rewriter = null;
     else
     {
       Constructor<?> contructor = Class.forName(rewclass).getDeclaredConstructor();
       this.rewriter = (SQLRewriter) contructor.newInstance();
     }
 
-    if (valclass == null) this.validator = null;
+    if (valclass == null || !full) this.validator = null;
     else
     {
       Constructor<?> contructor = Class.forName(valclass).getDeclaredConstructor();
       this.validator = (SQLValidator) contructor.newInstance();
     }
 
-    if (preclass == null) this.preprocessor = null;
+    if (preclass == null || !full) this.preprocessor = null;
     else
     {
       Constructor<?> contructor = Class.forName(rewclass).getDeclaredConstructor();
       this.preprocessor = (PreProcessor) contructor.newInstance();
     }
 
-    if (pstclass == null) this.postprocessor = null;
+    if (pstclass == null || !full) this.postprocessor = null;
     else
     {
       Constructor<?> contructor = Class.forName(rewclass).getDeclaredConstructor();

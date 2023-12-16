@@ -27,7 +27,6 @@ import java.util.Date;
 import database.Version;
 import java.util.Base64;
 import java.util.HashMap;
-
 import org.json.JSONArray;
 import java.sql.Savepoint;
 import org.json.JSONObject;
@@ -59,7 +58,6 @@ import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.handlers.rest.Session.Scope;
-import database.rest.custom.PostProcessor.Attribute;
 import database.rest.custom.Authenticator.AuthResponse;
 import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
@@ -1118,13 +1116,10 @@ public class Rest
         }
       }
 
-      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+      Map<String,Object> attrs = null;
 
       if (postprocessor != null)
-      {
         attrs = postprocessor.process(payload);
-        if (attrs == null) attrs = new ArrayList<Attribute>();
-      }
 
       JSONFormatter json = new JSONFormatter();
 
@@ -1183,8 +1178,11 @@ public class Rest
       if (cursor.name == null)
         state.session().closeCursor(cursor);
 
-      for (Attribute attr : attrs)
-        json.add(attr.name,attr.value);
+      if (attrs != null)
+      {
+        for (Map.Entry<String,Object> attr : attrs.entrySet())
+          json.add(attr.getKey(),attr.getValue());
+      }
 
       json.add("instance",instance);
       return(json.toString());
@@ -1291,7 +1289,7 @@ public class Rest
       if (validator != null)
         validator.validate(payload);
 
-      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+      Map<String,Object> attrs = null;
 
       if (returning)
       {
@@ -1303,10 +1301,7 @@ public class Rest
         JSONFormatter json = new JSONFormatter();
 
         if (postprocessor != null)
-        {
           attrs = postprocessor.process(payload);
-          if (attrs == null) attrs = new ArrayList<Attribute>();
-        }
 
         String[] columns = state.session().getColumnNames(cursor);
         ArrayList<Object[]> table = state.session().fetch(cursor,0);
@@ -1319,8 +1314,11 @@ public class Rest
         for(Object[] row : table) json.add(columns,row);
         json.pop();
 
-        for (Attribute attr : attrs)
-          json.add(attr.name,attr.value);
+        if (attrs != null)
+        {
+          for (Map.Entry<String,Object> attr : attrs.entrySet())
+            json.add(attr.getKey(),attr.getValue());
+        }
 
         json.add("instance",instance);
         return(json.toString());
@@ -1335,11 +1333,17 @@ public class Rest
 
         JSONFormatter json = new JSONFormatter();
 
+        if (postprocessor != null)
+          attrs = postprocessor.process(payload);
+
         json.success(true);
         json.add("affected",rows);
 
-        for (Attribute attr : attrs)
-          json.add(attr.name,attr.value);
+        if (attrs != null)
+        {
+          for (Map.Entry<String,Object> attr : attrs.entrySet())
+            json.add(attr.getKey(),attr.getValue());
+        }
 
         json.add("instance",instance);
         return(json.toString());
@@ -1407,13 +1411,10 @@ public class Rest
 
       state.release();
 
-      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+      Map<String,Object> attrs = null;
 
       if (postprocessor != null)
-      {
         attrs = postprocessor.process(payload);
-        if (attrs == null) attrs = new ArrayList<Attribute>();
-      }
 
       JSONFormatter json = new JSONFormatter();
 
@@ -1422,8 +1423,11 @@ public class Rest
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
 
-      for (Attribute attr : attrs)
-        json.add(attr.name,attr.value);
+      if (attrs != null)
+      {
+        for (Map.Entry<String,Object> attr : attrs.entrySet())
+          json.add(attr.getKey(),attr.getValue());
+      }
 
       json.add("instance",instance);
       return(json.toString());

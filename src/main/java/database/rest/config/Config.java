@@ -158,7 +158,7 @@ public class Config
   public synchronized Database getDatabase() throws Exception
   {
     if (database != null) return(database);
-    database = new Database(sections.get("database"));
+    database = new Database(sections.get("database"),this.full);
     return(database);
   }
 

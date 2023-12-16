@@ -53,11 +53,10 @@ public class Java
       String[] jars = srvjars.split(", ;:");
 
       for(String jar : jars)
-        path += File.pathSeparator+jar;
+        path += File.pathSeparator+Paths.libdir+jar;
 
       srvjars = path;
     }
-
 
     String httpjars = Config.get(config,"http.jars","");
 
@@ -67,11 +66,10 @@ public class Java
       String[] jars = httpjars.split(", ;:");
 
       for(String jar : jars)
-        path += File.pathSeparator+jar;
+        path += File.pathSeparator+Paths.libdir+jar;
 
       httpjars = path;
     }
-
 
     String restjars = Config.get(config,"rest.jars","");
 
@@ -81,7 +79,7 @@ public class Java
       String[] jars = restjars.split(", ;:");
 
       for(String jar : jars)
-        path += File.pathSeparator+jar;
+        path += File.pathSeparator+Paths.libdir+jar;
 
       restjars = path;
     }
