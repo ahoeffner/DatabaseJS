@@ -980,10 +980,10 @@ public class Rest
       HashMap<String,BindValueDef> assertions = null;
 
       if (rewriter != null)
-        payload = rewriter.rewrite(payload);
+        rewriter.rewrite(payload);
 
       if (preprocessor != null)
-        payload = preprocessor.process(payload);
+        preprocessor.process(payload);
 
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
@@ -1116,11 +1116,6 @@ public class Rest
         }
       }
 
-      Map<String,Object> attrs = null;
-
-      if (postprocessor != null)
-        attrs = postprocessor.process(payload);
-
       JSONFormatter json = new JSONFormatter();
 
       json.success(assertmsg == null);
@@ -1178,14 +1173,17 @@ public class Rest
       if (cursor.name == null)
         state.session().closeCursor(cursor);
 
-      if (attrs != null)
+      json.add("instance",instance);
+      String response = json.toString();
+
+      if (postprocessor != null)
       {
-        for (Map.Entry<String,Object> attr : attrs.entrySet())
-          json.add(attr.getKey(),attr.getValue());
+        JSONObject rsp = Request.parse(response);
+        postprocessor.process(payload,rsp);
+        response = rsp.toString(2);
       }
 
-      json.add("instance",instance);
-      return(json.toString());
+      return(response);
     }
     catch (Throwable e)
     {
@@ -1215,10 +1213,10 @@ public class Rest
       boolean lock = false;
 
       if (rewriter != null)
-        payload = rewriter.rewrite(payload);
+        rewriter.rewrite(payload);
 
       if (preprocessor != null)
-        payload = preprocessor.process(payload);
+        preprocessor.process(payload);
 
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
@@ -1289,8 +1287,6 @@ public class Rest
       if (validator != null)
         validator.validate(payload);
 
-      Map<String,Object> attrs = null;
-
       if (returning)
       {
         state.lock();
@@ -1299,9 +1295,6 @@ public class Rest
 
         cursor.dateformat = dateform;
         JSONFormatter json = new JSONFormatter();
-
-        if (postprocessor != null)
-          attrs = postprocessor.process(payload);
 
         String[] columns = state.session().getColumnNames(cursor);
         ArrayList<Object[]> table = state.session().fetch(cursor,0);
@@ -1314,14 +1307,17 @@ public class Rest
         for(Object[] row : table) json.add(columns,row);
         json.pop();
 
-        if (attrs != null)
+        json.add("instance",instance);
+        String response = json.toString();
+
+        if (postprocessor != null)
         {
-          for (Map.Entry<String,Object> attr : attrs.entrySet())
-            json.add(attr.getKey(),attr.getValue());
+          JSONObject rsp = Request.parse(response);
+          postprocessor.process(payload,rsp);
+          response = rsp.toString(2);
         }
 
-        json.add("instance",instance);
-        return(json.toString());
+        return(response);
       }
       else
       {
@@ -1333,20 +1329,20 @@ public class Rest
 
         JSONFormatter json = new JSONFormatter();
 
-        if (postprocessor != null)
-          attrs = postprocessor.process(payload);
-
         json.success(true);
         json.add("affected",rows);
 
-        if (attrs != null)
+        json.add("instance",instance);
+        String response = json.toString();
+
+        if (postprocessor != null)
         {
-          for (Map.Entry<String,Object> attr : attrs.entrySet())
-            json.add(attr.getKey(),attr.getValue());
+          JSONObject rsp = Request.parse(response);
+          postprocessor.process(payload,rsp);
+          response = rsp.toString(2);
         }
 
-        json.add("instance",instance);
-        return(json.toString());
+        return(response);
       }
     }
     catch (Throwable e)
@@ -1377,10 +1373,10 @@ public class Rest
       String dateform = this.dateform;
 
       if (rewriter != null)
-        payload = rewriter.rewrite(payload);
+        rewriter.rewrite(payload);
 
       if (preprocessor != null)
-        payload = preprocessor.process(payload);
+        preprocessor.process(payload);
 
       if (payload.has("dateformat"))
       {
@@ -1411,11 +1407,6 @@ public class Rest
 
       state.release();
 
-      Map<String,Object> attrs = null;
-
-      if (postprocessor != null)
-        attrs = postprocessor.process(payload);
-
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
@@ -1423,14 +1414,17 @@ public class Rest
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
 
-      if (attrs != null)
+      json.add("instance",instance);
+      String response = json.toString();
+
+      if (postprocessor != null)
       {
-        for (Map.Entry<String,Object> attr : attrs.entrySet())
-          json.add(attr.getKey(),attr.getValue());
+        JSONObject rsp = Request.parse(response);
+        postprocessor.process(payload,rsp);
+        response = rsp.toString(2);
       }
 
-      json.add("instance",instance);
-      return(json.toString());
+      return(response);
     }
     catch (Throwable e)
     {

@@ -26,5 +26,5 @@ import org.json.JSONObject;
 
 public interface PreProcessor
 {
-  JSONObject process(JSONObject payload) throws Exception;
+  void process(JSONObject payload) throws Exception;
 }

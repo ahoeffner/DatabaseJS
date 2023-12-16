@@ -21,23 +21,10 @@
 
 package database.rest.custom;
 
-import java.util.Map;
 import org.json.JSONObject;
 
 
 public interface PostProcessor
 {
-  Map<String,Object> process(JSONObject payload) throws Exception;
-
-  public static class Attribute
-  {
-    public final String name;
-    public final Object value;
-
-    public Attribute(String name, Object value)
-    {
-        this.name = name;
-        this.value = value;
-    }
-  }
+  void process(JSONObject payload, JSONObject response) throws Exception;
 }
