@@ -25,8 +25,11 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import database.rest.database.Pool;
 import java.lang.reflect.Constructor;
+
 import database.rest.custom.SQLRewriter;
 import database.rest.custom.SQLValidator;
+import database.rest.custom.PreProcessor;
+import database.rest.custom.PostProcessor;
 import database.rest.database.DatabaseUtils;
 import database.rest.database.NameValuePair;
 
@@ -43,6 +46,9 @@ public class Database
 
   public final SQLRewriter rewriter;
   public final SQLValidator validator;
+
+  public final PreProcessor preprocessor;
+  public final PostProcessor postprocessor;
 
   public final Pool proxy;
   public final Pool fixed;
@@ -106,6 +112,9 @@ public class Database
     String rewclass = Config.get(section,"rewrite.class",null);
     String valclass = Config.get(section,"validator.class",null);
 
+    String preclass = Config.get(section,"preprocessor.class",null);
+    String pstclass = Config.get(section,"posprocessor.class",null);
+
     if (rewclass == null) this.rewriter = null;
     else
     {
@@ -118,6 +127,20 @@ public class Database
     {
       Constructor<?> contructor = Class.forName(valclass).getDeclaredConstructor();
       this.validator = (SQLValidator) contructor.newInstance();
+    }
+
+    if (preclass == null) this.preprocessor = null;
+    else
+    {
+      Constructor<?> contructor = Class.forName(rewclass).getDeclaredConstructor();
+      this.preprocessor = (PreProcessor) contructor.newInstance();
+    }
+
+    if (pstclass == null) this.postprocessor = null;
+    else
+    {
+      Constructor<?> contructor = Class.forName(rewclass).getDeclaredConstructor();
+      this.postprocessor = (PostProcessor) contructor.newInstance();
     }
 
     section = Config.getSection(config,"pools");

@@ -51,12 +51,15 @@ import database.rest.database.BindValue;
 import database.rest.database.SQLParser;
 import database.rest.custom.SQLValidator;
 import database.rest.database.AuthMethod;
+import database.rest.custom.PreProcessor;
 import database.rest.custom.Authenticator;
+import database.rest.custom.PostProcessor;
 import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.handlers.rest.Session.Scope;
+import database.rest.custom.PostProcessor.Attribute;
 import database.rest.custom.Authenticator.AuthResponse;
 import database.rest.config.Security.CustomAuthenticator;
 import static database.rest.handlers.rest.JSONFormatter.Type.*;
@@ -90,6 +93,9 @@ public class Rest
   private final SQLRewriter rewriter;
   private final SQLValidator validator;
 
+  private final PreProcessor preprocessor;
+  private final PostProcessor postprocessor;
+
   private final static Logger logger = Logger.getLogger("rest");
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
@@ -116,6 +122,9 @@ public class Rest
     this.validator = config.getDatabase().validator;
     this.dateform  = config.getDatabase().dateformat;
     this.repo      = config.getDatabase().repository;
+
+    this.preprocessor  = config.getDatabase().preprocessor;
+    this.postprocessor = config.getDatabase().postprocessor;
   }
 
 
@@ -975,6 +984,9 @@ public class Rest
       if (rewriter != null)
         payload = rewriter.rewrite(payload);
 
+      if (preprocessor != null)
+        payload = preprocessor.process(payload);
+
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
 
@@ -1106,6 +1118,14 @@ public class Rest
         }
       }
 
+      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+      if (postprocessor != null)
+      {
+        attrs = postprocessor.process(payload);
+        if (attrs == null) attrs = new ArrayList<Attribute>();
+      }
+
       JSONFormatter json = new JSONFormatter();
 
       json.success(assertmsg == null);
@@ -1163,6 +1183,9 @@ public class Rest
       if (cursor.name == null)
         state.session().closeCursor(cursor);
 
+      for (Attribute attr : attrs)
+        json.add(attr.name,attr.value);
+
       json.add("instance",instance);
       return(json.toString());
     }
@@ -1195,6 +1218,9 @@ public class Rest
 
       if (rewriter != null)
         payload = rewriter.rewrite(payload);
+
+      if (preprocessor != null)
+        payload = preprocessor.process(payload);
 
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
@@ -1265,6 +1291,8 @@ public class Rest
       if (validator != null)
         validator.validate(payload);
 
+      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
       if (returning)
       {
         state.lock();
@@ -1273,6 +1301,12 @@ public class Rest
 
         cursor.dateformat = dateform;
         JSONFormatter json = new JSONFormatter();
+
+        if (postprocessor != null)
+        {
+          attrs = postprocessor.process(payload);
+          if (attrs == null) attrs = new ArrayList<Attribute>();
+        }
 
         String[] columns = state.session().getColumnNames(cursor);
         ArrayList<Object[]> table = state.session().fetch(cursor,0);
@@ -1284,6 +1318,9 @@ public class Rest
         json.push("rows",ObjectArray);
         for(Object[] row : table) json.add(columns,row);
         json.pop();
+
+        for (Attribute attr : attrs)
+          json.add(attr.name,attr.value);
 
         json.add("instance",instance);
         return(json.toString());
@@ -1300,8 +1337,11 @@ public class Rest
 
         json.success(true);
         json.add("affected",rows);
-        json.add("instance",instance);
 
+        for (Attribute attr : attrs)
+          json.add(attr.name,attr.value);
+
+        json.add("instance",instance);
         return(json.toString());
       }
     }
@@ -1335,6 +1375,9 @@ public class Rest
       if (rewriter != null)
         payload = rewriter.rewrite(payload);
 
+      if (preprocessor != null)
+        payload = preprocessor.process(payload);
+
       if (payload.has("dateformat"))
       {
         if (payload.isNull("dateformat")) dateform = null;
@@ -1364,12 +1407,23 @@ public class Rest
 
       state.release();
 
+      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+      if (postprocessor != null)
+      {
+        attrs = postprocessor.process(payload);
+        if (attrs == null) attrs = new ArrayList<Attribute>();
+      }
+
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
 
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
+
+      for (Attribute attr : attrs)
+        json.add(attr.name,attr.value);
 
       json.add("instance",instance);
       return(json.toString());
