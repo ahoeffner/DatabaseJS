@@ -26,5 +26,5 @@ import org.json.JSONObject;
 
 public interface PostProcessor
 {
-  void process(JSONObject payload, JSONObject response) throws Exception;
+  void process(String user, JSONObject payload, JSONObject response) throws Exception;
 }

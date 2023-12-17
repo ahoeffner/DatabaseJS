@@ -977,13 +977,14 @@ public class Rest
       boolean describe = false;
       boolean compact = this.compact;
       String dateform = this.dateform;
+      String username = state.session().username();
       HashMap<String,BindValueDef> assertions = null;
 
       if (rewriter != null)
-        rewriter.rewrite(payload);
+        rewriter.rewrite(username,payload);
 
       if (preprocessor != null)
-        preprocessor.process(payload);
+        preprocessor.process(username,payload);
 
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
@@ -1031,7 +1032,7 @@ public class Rest
         payload.put("sql",sql);
 
       if (validator != null)
-        validator.validate(payload);
+        validator.validate(username,payload);
 
       state.ensure();
       state.session().closeCursor(curname);
@@ -1179,7 +1180,7 @@ public class Rest
       if (postprocessor != null)
       {
         JSONObject rsp = Request.parse(response);
-        postprocessor.process(payload,rsp);
+        postprocessor.process(username,payload,rsp);
         response = rsp.toString(2);
       }
 
@@ -1199,6 +1200,7 @@ public class Rest
     boolean autocommit = false;
     Request request = this.request;
     String dateform = this.dateform;
+    String username = state.session().username();
 
     if (state.session() == null)
     {
@@ -1213,10 +1215,10 @@ public class Rest
       boolean lock = false;
 
       if (rewriter != null)
-        rewriter.rewrite(payload);
+        rewriter.rewrite(username,payload);
 
       if (preprocessor != null)
-        preprocessor.process(payload);
+        preprocessor.process(username,payload);
 
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
@@ -1285,7 +1287,7 @@ public class Rest
       ArrayList<BindValue> bindvalues = parser.bindvalues();
 
       if (validator != null)
-        validator.validate(payload);
+        validator.validate(username,payload);
 
       if (returning)
       {
@@ -1313,7 +1315,7 @@ public class Rest
         if (postprocessor != null)
         {
           JSONObject rsp = Request.parse(response);
-          postprocessor.process(payload,rsp);
+          postprocessor.process(username,payload,rsp);
           response = rsp.toString(2);
         }
 
@@ -1338,7 +1340,7 @@ public class Rest
         if (postprocessor != null)
         {
           JSONObject rsp = Request.parse(response);
-          postprocessor.process(payload,rsp);
+          postprocessor.process(username,payload,rsp);
           response = rsp.toString(2);
         }
 
@@ -1371,12 +1373,13 @@ public class Rest
     try
     {
       String dateform = this.dateform;
+      String username = state.session().username();
 
       if (rewriter != null)
-        rewriter.rewrite(payload);
+        rewriter.rewrite(username,payload);
 
       if (preprocessor != null)
-        preprocessor.process(payload);
+        preprocessor.process(username,payload);
 
       if (payload.has("dateformat"))
       {
@@ -1396,7 +1399,7 @@ public class Rest
       ArrayList<BindValue> bindvalues = parser.bindvalues();
 
       if (validator != null)
-        validator.validate(payload);
+        validator.validate(username,payload);
 
       state.ensure();
       state.prepare(payload);
@@ -1420,7 +1423,7 @@ public class Rest
       if (postprocessor != null)
       {
         JSONObject rsp = Request.parse(response);
-        postprocessor.process(payload,rsp);
+        postprocessor.process(username,payload,rsp);
         response = rsp.toString(2);
       }
 

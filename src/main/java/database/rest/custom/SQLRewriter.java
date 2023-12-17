@@ -26,5 +26,5 @@ import org.json.JSONObject;
 
 public interface SQLRewriter
 {
-  void rewrite(JSONObject payload) throws Exception;
+  void rewrite(String user, JSONObject payload) throws Exception;
 }
