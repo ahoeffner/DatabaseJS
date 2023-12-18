@@ -260,7 +260,7 @@ class HTTPWaiter extends Thread
         this.connected.remove(client);
         if (timedout) logger.fine("Client KeepAlive timed out");
 
-        if (connected)
+        if (connected && !client.ssl())
         {
           try {client.channel().close();}
           catch(Exception e) {;}
