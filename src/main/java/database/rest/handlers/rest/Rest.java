@@ -259,6 +259,7 @@ public class Rest
   private String batch(JSONObject payload)
   {
     Scope scope = null;
+    String sesid = null;
     Request step = null;
     String result = null;
     String response = "[\n";
@@ -274,6 +275,9 @@ public class Rest
 
       if (payload.has("disconnect"))
         disconnect = payload.getBoolean("disconnect");
+
+      if (state.session() != null)
+        sesid = touch();
 
       if (state.session() != null)
         state.session().ensure();
@@ -389,7 +393,10 @@ public class Rest
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      return("{\"steps\":\n" + response + "\n}");
+      String resp = "{\"steps\":\n" + response + "\n}";
+      if (sesid != null) resp = "{\"session\": \""+sesid+"\", \"steps\":\n" + response + "\n}";
+
+      return(resp);
     }
     catch (Throwable e)
     {
@@ -406,6 +413,7 @@ public class Rest
   private String script(JSONObject payload)
   {
     Scope scope = null;
+    String sesid = null;
     Request step = null;
     String result = null;
     boolean connected = false;
@@ -420,6 +428,9 @@ public class Rest
 
       if (payload.has("disconnect"))
         disconnect = payload.getBoolean("disconnect");
+
+      if (state.session() != null)
+        sesid = touch();
 
       if (state.session() != null)
         state.session().ensure();
@@ -522,13 +533,15 @@ public class Rest
       }
 
       JSONObject res = Request.parse(result);
-      result = res.put("success",true).toString();
+
+      res.put("success",true);
+      if (sesid != null) res.put("session",sesid);
 
       // Release & remove
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      return(result);
+      return(res.toString());
     }
     catch (Throwable e)
     {
@@ -628,17 +641,7 @@ public class Rest
         return(error("keepalive failed, session does not exist"));
 
       if (keepalive)
-      {
-        if (state.session().stateful())
-        {
-          state.session().touch();
-        }
-        else
-        {
-            StatelessSession sses = state.stateless();
-            sesid = encodeStateless(secret,host,sses.priv,sses.proxy,sses.user);
-        }
-      }
+        sesid = touch();
 
       if (state.session() != null)
         state.release();
@@ -924,6 +927,7 @@ public class Rest
 
   private String ddl(JSONObject payload)
   {
+    String sesid = null;
     boolean success = false;
 
     if (state.session() == null)
@@ -934,6 +938,8 @@ public class Rest
 
     try
     {
+      sesid = touch();
+
       String sql = getStatement(payload);
       if (sql == null) return(error("Attribute \"sql\" is missing"));
 
@@ -954,6 +960,10 @@ public class Rest
     JSONFormatter json = new JSONFormatter();
     json.success(true);
     json.add("result",success);
+
+    if (sesid != null)
+      json.add("session",sesid);
+
     json.add("instance",instance);
     return(json.toString());
   }
@@ -971,6 +981,7 @@ public class Rest
     {
       int rows = 0;
       int skip = 0;
+      String sesid = null;
       boolean lock = false;
       boolean nowait = true;
       String curname = null;
@@ -979,6 +990,8 @@ public class Rest
       String dateform = this.dateform;
       String username = state.session().username();
       HashMap<String,BindValueDef> assertions = null;
+
+      sesid = touch();
 
       if (rewriter != null)
         rewriter.rewrite(username,payload);
@@ -1174,6 +1187,9 @@ public class Rest
       if (cursor.name == null)
         state.session().closeCursor(cursor);
 
+      if (sesid != null)
+        json.add("session",sesid);
+
       json.add("instance",instance);
       String response = json.toString();
 
@@ -1196,6 +1212,7 @@ public class Rest
 
   private String update(JSONObject payload, boolean returning)
   {
+    String sesid = null;
     boolean prepared = false;
     boolean autocommit = false;
     Request request = this.request;
@@ -1210,9 +1227,10 @@ public class Rest
 
     try
     {
-      state.ensure();
-
+      sesid = touch();
       boolean lock = false;
+
+      state.ensure();
 
       if (rewriter != null)
         rewriter.rewrite(username,payload);
@@ -1309,6 +1327,9 @@ public class Rest
         for(Object[] row : table) json.add(columns,row);
         json.pop();
 
+        if (sesid != null)
+          json.add("session",sesid);
+
         json.add("instance",instance);
         String response = json.toString();
 
@@ -1333,6 +1354,9 @@ public class Rest
 
         json.success(true);
         json.add("affected",rows);
+
+        if (sesid != null)
+          json.add("session",sesid);
 
         json.add("instance",instance);
         String response = json.toString();
@@ -1372,6 +1396,7 @@ public class Rest
 
     try
     {
+      String sesid = touch();
       String dateform = this.dateform;
       String username = state.session().username();
 
@@ -1417,6 +1442,9 @@ public class Rest
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
 
+      if (sesid != null)
+        json.add("session",sesid);
+
       json.add("instance",instance);
       String response = json.toString();
 
@@ -1448,6 +1476,7 @@ public class Rest
     try
     {
       boolean close = false;
+      String sesid = touch();
       JSONFormatter json = new JSONFormatter();
       String name = payload.getString("cursor");
 
@@ -1496,6 +1525,9 @@ public class Rest
         json.pop();
       }
 
+      if (sesid != null)
+        json.add("session",sesid);
+
       json.add("instance",instance);
       return(json.toString());
     }
@@ -1509,6 +1541,7 @@ public class Rest
 
   private String commit()
   {
+    String sesid = null;
     boolean success = true;
 
     if (state.session() == null)
@@ -1519,6 +1552,7 @@ public class Rest
 
     try
     {
+      sesid = touch();
       success = state.session().commit();
     }
     catch (Exception e)
@@ -1534,6 +1568,9 @@ public class Rest
     if (!success)
       json.add("message","Transaction already comitted");
 
+    if (sesid != null)
+      json.add("session",sesid);
+
     json.add("instance",instance);
     return(json.toString());
   }
@@ -1541,6 +1578,7 @@ public class Rest
 
   private String rollback()
   {
+    String sesid = null;
     boolean success = true;
 
     if (state.session() == null)
@@ -1551,6 +1589,7 @@ public class Rest
 
     try
     {
+      sesid = touch();
       success = state.session().rollback();
     }
     catch (Exception e)
@@ -1565,6 +1604,9 @@ public class Rest
 
     if (!success)
       json.add("message","Transaction already rolled back");
+
+    if (sesid != null)
+      json.add("session",sesid);
 
     json.add("instance",instance);
     return(json.toString());
@@ -1884,6 +1926,24 @@ public class Rest
       error(e,request);
       return(defaults);
     }
+  }
+
+
+  String touch() throws Exception
+  {
+    String sesid = null;
+
+    if (state.session().stateful())
+    {
+      state.session().touch();
+    }
+    else
+    {
+        StatelessSession sses = state.stateless();
+        sesid = encodeStateless(secret,host,sses.priv,sses.proxy,sses.user);
+    }
+
+    return(sesid);
   }
 
 
