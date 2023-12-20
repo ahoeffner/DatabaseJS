@@ -43,7 +43,6 @@ import database.rest.config.Config;
 import database.rest.database.Pool;
 import database.rest.servers.Server;
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Constructor;
 import javax.crypto.spec.SecretKeySpec;
 import database.rest.custom.SQLRewriter;
 import database.rest.database.BindValue;
@@ -51,11 +50,11 @@ import database.rest.database.SQLParser;
 import database.rest.custom.SQLValidator;
 import database.rest.database.AuthMethod;
 import database.rest.custom.PreProcessor;
-import database.rest.custom.Authenticator;
 import database.rest.custom.PostProcessor;
 import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
 import database.rest.database.NameValuePair;
+import database.rest.custom.AuthenticatorAPI;
 import java.util.concurrent.ConcurrentHashMap;
 import database.rest.handlers.rest.Session.Scope;
 import database.rest.custom.Authenticator.AuthResponse;
@@ -773,15 +772,13 @@ public class Rest
         meth = "custom";
 
         if (!custom.enabled)
-          return(error("Authentication method "+custom.meth+" not allowed"));
+          return(error("Authentication method "+custom.name+" not allowed"));
 
-        Constructor<?> contructor = Class.forName(custom.clazz).getDeclaredConstructor();
-        Authenticator auth = (Authenticator) contructor.newInstance();
-
-        custresp = auth.authenticate(payload);
+        AuthenticatorAPI api = new AuthenticatorAPI(server,host);
+        custresp = custom.authenticator.authenticate(api,payload);
 
         if (!custresp.success)
-          return(error(custom.meth+" authentication failed"));
+          return(error(custom.name+" authentication failed"));
 
         username = custresp.user;
       }
@@ -892,6 +889,24 @@ public class Rest
     }
 
     return(json.toString());
+  }
+
+
+  public String connect(String user) throws Exception
+  {
+    Pool pool = null;
+    String sesid = null;
+    AuthMethod method = AuthMethod.PoolToken;
+
+    if (user != null) pool = config.getDatabase().proxy;
+    else              pool = config.getDatabase().fixed;
+
+    state.session(new Session(this.config,method,pool,"dedicated",user,pool.token()));
+
+    state.session().connect(false);
+    sesid = encode(true,state.session().guid(),host);
+
+    return(sesid);
   }
 
 

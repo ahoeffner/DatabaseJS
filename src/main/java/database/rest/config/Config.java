@@ -166,7 +166,7 @@ public class Config
   public synchronized Security getSecurity() throws Exception
   {
     if (security != null) return(security);
-    security = new Security(sections.get("security"));
+    security = new Security(sections.get("security"),this.full);
     return(security);
   }
 

@@ -31,7 +31,7 @@ public class CustomAuthenticator implements Authenticator
 
 
   @Override
-  public AuthResponse authenticate(JSONObject payload) throws Exception
+  public AuthResponse authenticate(AuthenticatorAPI api, JSONObject payload) throws Exception
   {
     String user = payload.getString(("username"));
     logger.warning("CustomAuthenticator authentication attempt ["+user+"]");
