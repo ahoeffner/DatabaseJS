@@ -28,16 +28,16 @@ public class BindValue extends BindValueDef
 {
    public BindValue(String name, Object value)
    {
-      super(name,value);
+      super(name.toLowerCase(),value);
    }
 
    public BindValue(String name, Object value, String datatype)
    {
-      super(name,datatype,false,value);
+      super(name.toLowerCase(),datatype.toLowerCase(),false,value);
    }
 
    public BindValue(String name, Object value, String datatype, boolean out)
    {
-      super(name,datatype,false,value);
+      super(name.toLowerCase(),datatype.toLowerCase(),false,value);
    }
 }

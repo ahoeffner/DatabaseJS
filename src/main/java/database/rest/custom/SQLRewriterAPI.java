@@ -21,16 +21,16 @@
 
 package database.rest.custom;
 
+import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
-import static database.rest.handlers.rest.JSONFormatter.Type.values;
-
 import java.sql.PreparedStatement;
 import database.rest.servers.Server;
+import database.rest.database.SQLParser;
 import database.rest.handlers.rest.Request;
+import database.rest.database.BindValueDef;
 import database.rest.handlers.rest.Rest.SessionState;
 
 
@@ -104,11 +104,15 @@ public class SQLRewriterAPI
 
    public PreparedStatement parseSQL(String sql, ArrayList<BindValue> bindvalues) throws Exception
    {
-      ArrayList<database.rest.database.BindValue> binds = new ArrayList<database.rest.database.BindValue>();
+      HashMap<String,BindValueDef> binds = new HashMap<String,BindValueDef>();
 
       for(BindValue b : bindvalues)
-         binds.add(new database.rest.database.BindValue(b,b.outval));
+      {
+         BindValueDef bv = new BindValueDef(b.name,b.getType(),b.outval);
+         binds.put(bv.name,bv);
+      }
 
-      return(state.session().prepare(sql,binds));
+      SQLParser parser = new SQLParser(binds,sql);
+      return(state.session().prepare(parser.sql(),parser.bindvalues()));
    }
 }
