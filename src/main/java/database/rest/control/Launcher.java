@@ -42,6 +42,7 @@ import database.rest.cluster.Statistics;
 import database.rest.custom.SQLRewriter;
 import database.rest.custom.PreProcessor;
 import database.rest.custom.SQLValidator;
+import database.rest.custom.SQLWhiteList;
 import database.rest.custom.Authenticator;
 import database.rest.custom.PostProcessor;
 import database.rest.custom.SQLRewriterAPI;
@@ -442,6 +443,8 @@ public class Launcher implements ILauncher
         SQLValidatorAPI.class,
 
         Encryption.class,
+        SQLWhiteList.class,
+
         PreProcessor.class,
         PostProcessor.class,
 
