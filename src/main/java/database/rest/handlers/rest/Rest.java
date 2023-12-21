@@ -1013,7 +1013,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        SQLRewriterAPI api = new SQLRewriterAPI(state);
         rewriter.rewrite(api,username,payload);
       }
 
@@ -1254,7 +1254,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        SQLRewriterAPI api = new SQLRewriterAPI(state);
         rewriter.rewrite(api,username,payload);
       }
 
@@ -1427,7 +1427,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        SQLRewriterAPI api = new SQLRewriterAPI(state);
         rewriter.rewrite(api,username,payload);
       }
 

@@ -36,15 +36,13 @@ import database.rest.handlers.rest.Rest.SessionState;
 
 public class SQLRewriterAPI
 {
-   private final Server server;
    private final SessionState state;
    private final static Logger logger = Logger.getLogger("rest");
 
 
-   public SQLRewriterAPI(Server server, SessionState state)
+   public SQLRewriterAPI(SessionState state)
    {
       this.state = state;
-      this.server = server;
    }
 
    public Logger logger()
