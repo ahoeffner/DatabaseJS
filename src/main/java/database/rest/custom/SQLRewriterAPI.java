@@ -52,11 +52,6 @@ public class SQLRewriterAPI
       return(SQLRewriterAPI.logger);
    }
 
-   public String secret() throws Exception
-   {
-      return(server.config().getSecurity().secret());
-   }
-
    public JSONObject parse(String payload) throws Exception
    {
       return(Request.parse(payload));
@@ -95,6 +90,13 @@ public class SQLRewriterAPI
       }
 
       return(bindvalues);
+   }
+
+   public PreparedStatement parseSQL(JSONObject payload) throws Exception
+   {
+      String sql = getSQL(payload);
+      ArrayList<BindValue> bindValues = getBindValues(payload);
+      return(parseSQL(sql,bindValues));
    }
 
    public PreparedStatement parseSQL(String sql) throws Exception
