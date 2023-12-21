@@ -127,6 +127,12 @@ public class Rest
   }
 
 
+  public SessionState state()
+  {
+    return(state);
+  }
+
+
   public String execute(String path, String payload, boolean returning)
   {
     try
@@ -1013,7 +1019,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(state);
+        SQLRewriterAPI api = new SQLRewriterAPI(this);
         rewriter.rewrite(api,username,payload);
       }
 
@@ -1254,7 +1260,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(state);
+        SQLRewriterAPI api = new SQLRewriterAPI(this);
         rewriter.rewrite(api,username,payload);
       }
 
@@ -1427,7 +1433,7 @@ public class Rest
 
       if (rewriter != null)
       {
-        SQLRewriterAPI api = new SQLRewriterAPI(state);
+        SQLRewriterAPI api = new SQLRewriterAPI(this);
         rewriter.rewrite(api,username,payload);
       }
 
@@ -1781,7 +1787,7 @@ public class Rest
   }
 
 
-  String getStatement(JSONObject payload) throws Exception
+  public String getStatement(JSONObject payload) throws Exception
   {
     if (!payload.has("sql"))
       return(null);

@@ -27,8 +27,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.sql.PreparedStatement;
-import database.rest.servers.Server;
 import database.rest.database.SQLParser;
+import database.rest.handlers.rest.Rest;
 import database.rest.handlers.rest.Request;
 import database.rest.database.BindValueDef;
 import database.rest.handlers.rest.Rest.SessionState;
@@ -36,13 +36,15 @@ import database.rest.handlers.rest.Rest.SessionState;
 
 public class SQLRewriterAPI
 {
+   private final Rest rest;
    private final SessionState state;
    private final static Logger logger = Logger.getLogger("rest");
 
 
-   public SQLRewriterAPI(SessionState state)
+   public SQLRewriterAPI(Rest rest)
    {
-      this.state = state;
+      this.rest = rest;
+      this.state = rest.state();
    }
 
    public Logger logger()
@@ -50,17 +52,57 @@ public class SQLRewriterAPI
       return(SQLRewriterAPI.logger);
    }
 
+   public String getType(JSONObject payload) throws Exception
+   {
+      if (payload.has("batch"))
+         return("batch");
+
+      if (payload.has("script"))
+      return("script");
+
+      String sql = rest.getStatement(payload);
+      if (sql == null) return(null);
+
+      sql = sql.trim();
+      if (sql.length() > 6)
+      {
+         String cmd = sql.substring(0,7).toLowerCase();
+
+         if (cmd.equals("merge " )) return("merge");
+         if (cmd.equals("upsert ")) return("upsert");
+         if (cmd.equals("select ")) return("select");
+         if (cmd.equals("insert ")) return("insert");
+         if (cmd.equals("update ")) return("update");
+         if (cmd.equals("delete ")) return("delete");
+      }
+
+      if (SQLParser.function(sql)) return("function");
+      if (SQLParser.procedure(sql)) return("procedure");
+
+      return("ddl");
+   }
+
    public JSONObject parse(String payload) throws Exception
    {
       return(Request.parse(payload));
    }
 
-   public String getSQL(JSONObject payload)
+   public String getSQL(JSONObject payload) throws Exception
    {
-      if (payload.has("sql"))
-         return(payload.getString("sql"));
+      return(rest.getStatement(payload));
+   }
 
-      return(null);
+   public ArrayList<String> getTables(PreparedStatement stmt) throws Exception
+   {
+      ArrayList<String> tables = new ArrayList<String>();
+
+      for (int i = 0; i < stmt.getMetaData().getColumnCount(); i++)
+      {
+         String table = stmt.getMetaData().getTableName(i+1);
+         if (!tables.contains(table)) tables.add(table);
+      }
+
+      return(tables);
    }
 
    public ArrayList<BindValue> getBindValues(JSONObject payload)
