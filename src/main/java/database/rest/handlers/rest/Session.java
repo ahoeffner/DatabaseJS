@@ -443,6 +443,14 @@ public class Session
   }
 
 
+  public CallableStatement prepareCall(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    if (bindvalues == null) bindvalues = new ArrayList<BindValue>();
+    CallableStatement stmt = database.prepareCall(sql,bindvalues,null);
+    return(stmt);
+  }
+
+
   public boolean execute(String sql) throws Exception
   {
     return(database.execute(sql));

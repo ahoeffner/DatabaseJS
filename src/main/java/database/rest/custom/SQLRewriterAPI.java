@@ -26,6 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import database.rest.database.SQLParser;
 import database.rest.handlers.rest.Rest;
@@ -156,5 +157,31 @@ public class SQLRewriterAPI
 
       SQLParser parser = new SQLParser(binds,sql);
       return(state.session().prepare(parser.sql(),parser.bindvalues()));
+   }
+
+   public CallableStatement parseCall(JSONObject payload) throws Exception
+   {
+      String sql = getSQL(payload);
+      ArrayList<BindValue> bindValues = getBindValues(payload);
+      return(parseCall(sql,bindValues));
+   }
+
+   public CallableStatement parseCall(String sql) throws Exception
+   {
+      return(state.session().prepareCall(sql,null));
+   }
+
+   public CallableStatement parseCall(String sql, ArrayList<BindValue> bindvalues) throws Exception
+   {
+      HashMap<String,BindValueDef> binds = new HashMap<String,BindValueDef>();
+
+      for(BindValue b : bindvalues)
+      {
+         BindValueDef bv = new BindValueDef(b.name,b.getType(),b.outval);
+         binds.put(bv.name,bv);
+      }
+
+      SQLParser parser = new SQLParser(binds,sql);
+      return(state.session().prepareCall(parser.sql(),parser.bindvalues()));
    }
 }
