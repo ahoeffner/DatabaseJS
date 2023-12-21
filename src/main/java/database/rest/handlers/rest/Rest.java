@@ -39,6 +39,7 @@ import javax.crypto.SecretKey;
 import java.io.FileInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.sql.PreparedStatement;
 import database.rest.config.Config;
 import database.rest.database.Pool;
 import database.rest.servers.Server;
@@ -53,6 +54,7 @@ import database.rest.custom.PreProcessor;
 import database.rest.custom.PostProcessor;
 import database.rest.cluster.PreAuthRecord;
 import database.rest.database.BindValueDef;
+import database.rest.custom.SQLRewriterAPI;
 import database.rest.database.NameValuePair;
 import database.rest.custom.AuthenticatorAPI;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1006,10 +1008,14 @@ public class Rest
       String username = state.session().username();
       HashMap<String,BindValueDef> assertions = null;
 
+      state.ensure();
       sesid = touch();
 
       if (rewriter != null)
-        rewriter.rewrite(username,payload);
+      {
+        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        rewriter.rewrite(api,username,payload);
+      }
 
       if (preprocessor != null)
         preprocessor.process(username,payload);
@@ -1062,7 +1068,6 @@ public class Rest
       if (validator != null)
         validator.validate(username,payload);
 
-      state.ensure();
       state.session().closeCursor(curname);
 
       state.prepare(payload);
@@ -1242,13 +1247,16 @@ public class Rest
 
     try
     {
+      state.ensure();
       sesid = touch();
+
       boolean lock = false;
 
-      state.ensure();
-
       if (rewriter != null)
-        rewriter.rewrite(username,payload);
+      {
+        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        rewriter.rewrite(api,username,payload);
+      }
 
       if (preprocessor != null)
         preprocessor.process(username,payload);
@@ -1411,12 +1419,17 @@ public class Rest
 
     try
     {
+      state.ensure();
       String sesid = touch();
+
       String dateform = this.dateform;
       String username = state.session().username();
 
       if (rewriter != null)
-        rewriter.rewrite(username,payload);
+      {
+        SQLRewriterAPI api = new SQLRewriterAPI(server,state);
+        rewriter.rewrite(api,username,payload);
+      }
 
       if (preprocessor != null)
         preprocessor.process(username,payload);
@@ -1441,7 +1454,6 @@ public class Rest
       if (validator != null)
         validator.validate(username,payload);
 
-      state.ensure();
       state.prepare(payload);
 
       state.lock();
@@ -2290,7 +2302,7 @@ public class Rest
   }
 
 
-  private static class SessionState
+  public static class SessionState
   {
     Rest rest;
     int dept = 0;
@@ -2307,7 +2319,7 @@ public class Rest
     }
 
 
-    Session session()
+    public Session session()
     {
       return(this.session);
     }
@@ -2366,6 +2378,12 @@ public class Rest
       }
 
       dept++;
+    }
+
+
+    public PreparedStatement prepare(String sql) throws Exception
+    {
+      return(session.prepare(sql,null));
     }
 
 

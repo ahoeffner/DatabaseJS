@@ -21,10 +21,7 @@
 
 package database.rest.custom;
 
-import org.json.JSONObject;
-
-
-public interface SQLRewriter
+public class SQLValidatorAPI
 {
-  void rewrite(SQLRewriterAPI api, String user, JSONObject payload) throws Exception;
+
 }

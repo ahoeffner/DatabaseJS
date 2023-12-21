@@ -21,20 +21,23 @@
 
 package database.rest.custom;
 
-import org.json.JSONObject;
-import java.util.logging.Logger;
+import database.rest.database.BindValueDef;
 
 
-public class CustomAuthenticator implements Authenticator
+public class BindValue extends BindValueDef
 {
-  private final static Logger logger = Logger.getLogger("rest");
+   public BindValue(String name, Object value)
+   {
+      super(name,value);
+   }
 
+   public BindValue(String name, Object value, String datatype)
+   {
+      super(name,datatype,false,value);
+   }
 
-  @Override
-  public AuthResponse authenticate(AuthenticatorAPI api, JSONObject payload) throws Exception
-  {
-    String user = payload.getString(("username"));
-    logger.warning("CustomAuthenticator authentication attempt ["+user+"]");
-    return(new AuthResponse(false,user,null));
-  }
+   public BindValue(String name, Object value, String datatype, boolean out)
+   {
+      super(name,datatype,false,value);
+   }
 }

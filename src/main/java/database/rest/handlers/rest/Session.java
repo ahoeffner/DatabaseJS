@@ -435,6 +435,14 @@ public class Session
   }
 
 
+  public PreparedStatement prepare(String sql, ArrayList<BindValue> bindvalues) throws Exception
+  {
+    if (bindvalues == null) bindvalues = new ArrayList<BindValue>();
+    PreparedStatement stmt = database.prepare(sql,bindvalues,null);
+    return(stmt);
+  }
+
+
   public boolean execute(String sql) throws Exception
   {
     return(database.execute(sql));

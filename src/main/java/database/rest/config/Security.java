@@ -88,8 +88,11 @@ public class Security
         String clazz = Config.get(method,"class");
         boolean enabled = Config.get(method,"enabled");
 
-        if (name != null) name = name.toLowerCase();
-        authenticators.put(name,new CustomAuthenticator(name,clazz,enabled));
+        if (name != null)
+          name = name.toLowerCase();
+
+        if (enabled)
+          authenticators.put(name,new CustomAuthenticator(name,clazz,enabled));
       }
     }
     else
