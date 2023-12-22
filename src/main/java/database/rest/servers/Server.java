@@ -86,8 +86,13 @@ public class Server extends Thread
 
   Server(short id) throws Exception
   {
+    Config config = null;
+
+    try {config = new Config();}
+    catch (Exception e) {bailout(e);}
+
     this.id = id;
-    this.config = new Config();
+    this.config = config;
 
     PrintStream out = stdout();
     this.setName("Server Main");
@@ -471,6 +476,23 @@ public class Server extends Thread
   private PrintStream stdout() throws Exception
   {
     String srvout = config.getLogger().getServerOut(id);
-    return(new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)), true));
+    return(new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)),true));
+  }
+
+
+  private void bailout(Exception e)
+  {
+    try
+    {
+      String srvout = database.rest.config.Logger.getEmergencyOut();
+      PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)),true);
+      e.printStackTrace(out);
+      out.close();
+    } catch (Exception ex)
+    {
+      e.printStackTrace();
+    }
+
+    System.exit(-1);
   }
 }
