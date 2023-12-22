@@ -21,6 +21,7 @@
 
 package database.rest.servers;
 
+import java.util.Date;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -486,7 +487,9 @@ public class Server extends Thread
     {
       String srvout = database.rest.config.Logger.getEmergencyOut();
       PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)),true);
+      out.println(new Date());
       e.printStackTrace(out);
+      out.println();
       out.close();
     } catch (Exception ex)
     {
