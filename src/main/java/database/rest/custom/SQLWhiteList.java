@@ -22,6 +22,8 @@
 package database.rest.custom;
 
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.ArrayList;
 
 
@@ -75,29 +77,8 @@ public class SQLWhiteList
       return(allowed.contains(sql));
    }
 
-   public ArrayList<String> split(String sql)
-   {
-      return(split(sql,true));
-   }
-
-   public ArrayList<String> split(String sql, boolean normalize)
-   {
-      if (normalize) sql = normalize(sql);
-      ArrayList<String> sections = new ArrayList<String>();
-
-      return(sections);
-   }
-
    public String normalize(String sql)
    {
-      sql = sql.replaceAll("\n"," ");
-      sql = sql.replaceAll("\\s+"," ");
-      sql = sql.replaceAll("\\s+,",",");
-      sql = sql.replaceAll(",\\s+",", ");
-
-      if (ignorecase)
-         sql = sql.toLowerCase();
-
-      return(sql.trim());
+      return(SQLStringParser.normalize(sql,ignorecase));
    }
 }
