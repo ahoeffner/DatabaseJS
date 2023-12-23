@@ -32,6 +32,17 @@ public class SQLStringParser
       return(split(sql,true));
    }
 
+   public static boolean embedded(String sql)
+   {
+      int fromclauses = 0;
+
+      Pattern pattern = Pattern.compile("\\.* from ");
+      Matcher matcher = pattern.matcher(sql);
+
+      while(matcher.find()) fromclauses++;
+      return(fromclauses == 1);
+   }
+
    public static ArrayList<String> split(String sql, boolean normalize)
    {
       if (normalize) sql = normalize(sql,true);
@@ -43,6 +54,14 @@ public class SQLStringParser
       {
          case "select":
             sections = parseSelect(sql);
+            break;
+
+         case "update":
+            sections = parseUpdate(sql);
+            break;
+
+         case "delete":
+            sections = parseDelete(sql);
             break;
 
          default:
@@ -111,9 +130,8 @@ public class SQLStringParser
       group = find(lower,"group by");
       order = find(lower,"order by");
 
-      // select col, col, ...
-
       if (from > 0) end = from;
+      else if (where > 0) end = where;
       else if (group > 0) end = group;
       else if (order > 0) end = order;
       else end = sql.length() + 1;
@@ -161,6 +179,76 @@ public class SQLStringParser
       return(sections);
    }
 
+   private static ArrayList<String> parseUpdate(String sql)
+   {
+      int end = 0;
+      int set = -1;
+      int where = -1;
+
+      String lower = null;
+      String section = null;
+
+      lower = sql.toLowerCase();
+      ArrayList<String> sections = new ArrayList<String>();
+
+      set = find(lower,"set");
+      where = find(lower,"where");
+
+      if (set > 0) end = set;
+      else if (where > 0) end = where;
+      else end = sql.length() + 1;
+
+      section = sql.substring(0,end-1);
+      sections.add(section);
+
+      if (set > 0)
+      {
+         if (where > 0) end = where;
+         else end = sql.length() + 1;
+
+         section = sql.substring(set,end-1);
+         sections.add(section);
+      }
+
+      if (where > 0)
+      {
+         end = sql.length() + 1;
+         section = sql.substring(where,end-1);
+         sections.add(section);
+      }
+
+      return(sections);
+   }
+
+   private static ArrayList<String> parseDelete(String sql)
+   {
+      int end = 0;
+      int where = -1;
+
+      String lower = null;
+      String section = null;
+
+      lower = sql.toLowerCase();
+      ArrayList<String> sections = new ArrayList<String>();
+
+      where = find(lower,"where");
+
+      if (where > 0) end = where;
+      else end = sql.length() + 1;
+
+      section = sql.substring(0,end-1);
+      sections.add(section);
+
+      if (where > 0)
+      {
+         end = sql.length() + 1;
+         section = sql.substring(where,end-1);
+         sections.add(section);
+      }
+
+      return(sections);
+   }
+
    private static int find(String sql, String word)
    {
       int pos = -1;
@@ -171,5 +259,4 @@ public class SQLStringParser
       if (matcher.find()) pos = matcher.start() + 1;
       return(pos);
    }
-
 }
