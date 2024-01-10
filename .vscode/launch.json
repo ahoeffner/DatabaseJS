@@ -4,7 +4,13 @@
    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
    "version": "0.2.0",
    "configurations": [
-
+      {
+         "type": "java",
+         "name": "Proxy",
+         "request": "launch",
+         "mainClass": "test.Proxy",
+         "projectName": "openrestdb"
+      },
       {
          "type": "java",
          "name": "Current File",
@@ -44,7 +50,10 @@
          "name": "Server",
          "request": "launch",
          "mainClass": "database.rest.servers.Server",
-         "args": ["ordb01","0"],
+         "args": [
+            "ordb01",
+            "0"
+         ],
          "projectName": "openrestdb"
       },
       {

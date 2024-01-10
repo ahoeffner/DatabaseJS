@@ -38,7 +38,8 @@ public class Oracle extends Database
   public void setProxyUser(String username) throws Exception
   {
     Properties props = new Properties();
-    props.put(OracleConnection.PROXY_USER_NAME, username);
+    props.put(OracleConnection.PROXY_USER_NAME,username);
+    //props.put(OracleConnection.PROXY_USER_PASSWORD,username.toLowerCase());
 
     OracleConnection conn = (OracleConnection) super.connection();
     conn.openProxySession(OracleConnection.PROXYTYPE_USER_NAME,props);
