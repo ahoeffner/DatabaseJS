@@ -39,7 +39,6 @@ public class Oracle extends Database
   {
     Properties props = new Properties();
     props.put(OracleConnection.PROXY_USER_NAME,username);
-    //props.put(OracleConnection.PROXY_USER_PASSWORD,username.toLowerCase());
 
     OracleConnection conn = (OracleConnection) super.connection();
     conn.openProxySession(OracleConnection.PROXYTYPE_USER_NAME,props);
@@ -97,5 +96,30 @@ public class Oracle extends Database
     stmt.executeUpdate();
     ResultSet rset = stmt.getReturnResultSet();
     return(rset);
+  }
+
+
+  public boolean validate(OracleConnection conn)
+  {
+    try
+    {
+      String sql = getTestSQL();
+
+      PreparedStatement stmt =
+        conn.prepareStatement(sql);
+
+      ResultSet rset =
+        stmt.executeQuery();
+
+      rset.next();
+      rset.close();
+      stmt.close();
+
+      return(true);
+    }
+    catch (Exception e)
+    {
+      return(false);
+    }
   }
 }

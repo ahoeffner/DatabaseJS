@@ -282,12 +282,21 @@ public class Session
 
           if (pool != null)
           {
-            database.dangling(true);
             setSecret(pool.token());
             setMethod(AuthMethod.PoolToken);
-          }
 
-          break;
+            // Reuse the connection ?
+            if (pool.username().equals(username))
+            {
+              database.dangling(true);
+              break;
+            }
+            else
+            {
+              // Or drop it
+              database.disconnect();
+            }
+          }
 
         case PoolToken :
           if (scope == Scope.Dedicated) database = pool.connect(secret);
