@@ -297,6 +297,10 @@ public class Session
               database.disconnect();
             }
           }
+          else
+          {
+            break;
+          }
 
         case PoolToken :
           if (scope == Scope.Dedicated) database = pool.connect(secret);
