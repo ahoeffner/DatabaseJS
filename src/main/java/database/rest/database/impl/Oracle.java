@@ -30,6 +30,7 @@ import database.rest.database.Database;
 import database.rest.database.SQLTypes;
 import database.rest.database.BindValue;
 import oracle.jdbc.OraclePreparedStatement;
+import oracle.jdbc.OracleTypes;
 import oracle.jdbc.driver.OracleConnection;
 
 
@@ -69,7 +70,11 @@ public class Oracle extends Database
     int pos = sql.lastIndexOf(keyword);
 
     String clause = sql.substring(pos+keyword.length());
+
     String[] retcols = clause.split(",");
+
+    for (int i = 0; i < retcols.length; i++)
+      retcols[i] = retcols[i].trim().toLowerCase();
 
     sql += " into ";
 
@@ -102,12 +107,13 @@ public class Oracle extends Database
       }
     }
 
-    for (int i = 0; i < retcols.length; i++)
+    int done = bindvalues.size();
+    int pars = stmt.getParameterMetaData().getParameterCount();
+
+    for (int i = 0; i < pars - done; i++)
     {
-      int ix = bindvalues.size() + i;
-      String col = retcols[i].trim();
-      if (col.length() == 0) continue;
-      stmt.registerReturnParameter(ix+1,SQLTypes.getType(bindvalues));
+      int ix = done + i;
+      stmt.registerReturnParameter(ix+1,SQLTypes.getType(""));
     }
 
     ReturnValueHandle handle = new ReturnValueHandle(stmt,retcols);
