@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.sql.PreparedStatement;
 import database.rest.database.Database;
+import database.rest.database.SQLTypes;
 import database.rest.database.BindValue;
 import oracle.jdbc.OraclePreparedStatement;
 import oracle.jdbc.driver.OracleConnection;
@@ -64,6 +65,23 @@ public class Oracle extends Database
   @Override
   public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
   {
+    String keyword = " returning ";
+    int pos = sql.lastIndexOf(keyword);
+
+    String clause = sql.substring(pos+keyword.length());
+    String[] retcols = clause.split(",");
+
+    sql += " into ";
+
+    for (int i = 0; i < retcols.length; i++)
+    {
+      String col = retcols[i].trim();
+      if (col.length() == 0) continue;
+      sql += "?,";
+    }
+
+    sql = sql.substring(0,sql.length()-1);
+
     ArrayList<String> columns = new ArrayList<String>();
     OracleConnection conn = (OracleConnection) super.connection();
     OraclePreparedStatement stmt = (OraclePreparedStatement) conn.prepareStatement(sql);
@@ -84,7 +102,15 @@ public class Oracle extends Database
       }
     }
 
-    ReturnValueHandle handle = new ReturnValueHandle(stmt,columns.toArray(new String[0]));
+    for (int i = 0; i < retcols.length; i++)
+    {
+      int ix = bindvalues.size() + i;
+      String col = retcols[i].trim();
+      if (col.length() == 0) continue;
+      stmt.registerReturnParameter(ix+1,SQLTypes.getType(bindvalues));
+    }
+
+    ReturnValueHandle handle = new ReturnValueHandle(stmt,retcols);
     return(handle);
   }
 
