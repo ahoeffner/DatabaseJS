@@ -21,16 +21,17 @@
 
 package database.rest.database.impl;
 
+import java.util.HashMap;
 import java.sql.Savepoint;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Properties;
+import oracle.jdbc.OracleTypes;
 import java.sql.PreparedStatement;
 import database.rest.database.Database;
-import database.rest.database.SQLTypes;
 import database.rest.database.BindValue;
+import database.rest.database.BindValueDef;
 import oracle.jdbc.OraclePreparedStatement;
-import oracle.jdbc.OracleTypes;
 import oracle.jdbc.driver.OracleConnection;
 
 
@@ -64,11 +65,10 @@ public class Oracle extends Database
 
 
   @Override
-  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
+  public ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, HashMap<String,BindValueDef> alltypes, String dateform) throws Exception
   {
     String keyword = " returning ";
     int pos = sql.lastIndexOf(keyword);
-
     String clause = sql.substring(pos+keyword.length());
 
     String[] retcols = clause.split(",");
@@ -79,11 +79,7 @@ public class Oracle extends Database
     sql += " into ";
 
     for (int i = 0; i < retcols.length; i++)
-    {
-      String col = retcols[i].trim();
-      if (col.length() == 0) continue;
       sql += "?,";
-    }
 
     sql = sql.substring(0,sql.length()-1);
 
@@ -107,13 +103,15 @@ public class Oracle extends Database
       }
     }
 
-    int done = bindvalues.size();
-    int pars = stmt.getParameterMetaData().getParameterCount();
-
-    for (int i = 0; i < pars - done; i++)
+    for (int i = 0; i < retcols.length; i++)
     {
-      int ix = done + i;
-      stmt.registerReturnParameter(ix+1,SQLTypes.getType(""));
+      int ix = bindvalues.size() + i;
+      int type = OracleTypes.VARCHAR;
+
+      BindValueDef b = alltypes.get(retcols[i]);
+      if (b != null) type = b.type;
+
+      stmt.registerReturnParameter(ix+1,type);
     }
 
     ReturnValueHandle handle = new ReturnValueHandle(stmt,retcols);

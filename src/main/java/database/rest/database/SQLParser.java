@@ -118,19 +118,6 @@ public class SQLParser
       }
     }
 
-    for(String name : bindvalues.keySet())
-    {
-      boolean found = false;
-      for (int i = 0; i < bindings.size(); i++)
-      {
-        if (bindings.get(i).getName().equals(name))
-          found = true;
-      }
-
-      if (!found)
-        bindings.add(bindvalues.get(name).copy(true));
-    }
-
     if (procedure)
     {
       String proc = nsql.toString();

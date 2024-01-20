@@ -1339,7 +1339,7 @@ public class Rest
       if (returning)
       {
         state.lock();
-        Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues,dateform);
+        Cursor cursor = state.session().executeUpdateWithReturnValues(sql,bindvalues,this.bindvalues,dateform);
         state.unlock();
 
         cursor.dateformat = dateform;

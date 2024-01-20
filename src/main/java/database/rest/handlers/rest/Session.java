@@ -25,6 +25,7 @@ import java.util.Map;
 import java.sql.ResultSet;
 import java.sql.Savepoint;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.PreparedStatement;
@@ -33,6 +34,7 @@ import database.rest.database.Pool;
 import database.rest.config.Config;
 import database.rest.database.Database;
 import database.rest.database.BindValue;
+import database.rest.database.BindValueDef;
 import database.rest.config.DatabaseType;
 import database.rest.database.AuthMethod;
 import java.time.format.DateTimeFormatter;
@@ -477,9 +479,9 @@ public class Session
   }
 
 
-  public Cursor executeUpdateWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception
+  public Cursor executeUpdateWithReturnValues(String sql, ArrayList<BindValue> bindvalues, HashMap<String,BindValueDef> alltypes, String dateform) throws Exception
   {
-    ReturnValueHandle hdl = database.prepareWithReturnValues(sql,bindvalues,dateform);
+    ReturnValueHandle hdl = database.prepareWithReturnValues(sql,bindvalues,alltypes,dateform);
     ResultSet         rset = database.executeUpdateWithReturnValues(hdl.stmt(),dateform);
     return(new Cursor(null,hdl.stmt(),rset,hdl.columns()));
   }

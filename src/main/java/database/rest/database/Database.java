@@ -26,6 +26,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.sql.DriverManager;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -374,7 +375,7 @@ public abstract class Database
   public abstract void releaseProxyUser() throws Exception;
   public abstract void setProxyUser(String username) throws Exception;
   public abstract ResultSet executeUpdateWithReturnValues(PreparedStatement stmt, String dateform) throws Exception;
-  public abstract ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, String dateform) throws Exception;
+  public abstract ReturnValueHandle prepareWithReturnValues(String sql, ArrayList<BindValue> bindvalues, HashMap<String,BindValueDef> alltypes, String dateform) throws Exception;
 
 
   public static class ReturnValueHandle
