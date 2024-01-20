@@ -60,6 +60,7 @@ public class Session
 
   private int clients = 0;
   private long touched = System.currentTimeMillis();
+  private ArrayList<NameValuePair<Object>> clientinfo = null;
 
   private final ConcurrentHashMap<String,Cursor> cursors =
     new ConcurrentHashMap<String,Cursor>();
@@ -139,6 +140,12 @@ public class Session
   public void setMethod(AuthMethod method)
   {
     this.method = method;
+  }
+
+
+  public void setClientInfo(ArrayList<NameValuePair<Object>> clientinfo)
+  {
+    this.clientinfo = clientinfo;
   }
 
 
@@ -317,6 +324,8 @@ public class Session
         disconnect(0,false);
         return;
       }
+
+      database.setClientInfo(clientinfo);
 
       if (autocommit()) database.setAutoCommit(true);
       else              database.setAutoCommit(false);
