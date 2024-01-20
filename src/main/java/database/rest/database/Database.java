@@ -154,6 +154,16 @@ public abstract class Database
   }
 
 
+  public void clearClientInfo(ArrayList<NameValuePair<Object>> clientinfo) throws Exception
+  {
+    if (clientinfo != null)
+    {
+      for(NameValuePair<Object> entry : clientinfo)
+        conn.setClientInfo(entry.getName(),"");
+    }
+  }
+
+
   public void commit() throws Exception
   {
     conn.commit();

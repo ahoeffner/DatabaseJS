@@ -355,6 +355,8 @@ public class Session
       {
         if (rb && !database.getAutoCommit())
           database.rollback();
+
+        database.clearClientInfo(clientinfo);
       }
       catch (Exception e)
       {
