@@ -1855,7 +1855,19 @@ public class Rest
       if (!bvalue.has("value")) outval = true;
       else value = bvalue.get("value");
 
-      this.bindvalues.put(name,new BindValueDef(name,type,outval,value));
+      BindValueDef curr = this.bindvalues.get(name);
+      BindValueDef next = new BindValueDef(name,type,outval,value);
+
+      if (curr != null)
+      {
+        if (curr.type != next.type)
+          logger.warning("Bindvalue '"+name+"' is sent twice, with different types");
+
+        if (curr.value != null)
+          continue;
+      }
+
+      this.bindvalues.put(name,next);
     }
   }
 
