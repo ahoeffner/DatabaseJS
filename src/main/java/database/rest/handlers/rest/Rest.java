@@ -1365,6 +1365,13 @@ public class Rest
         json.success(true);
         json.add("affected",table.size());
 
+        if (columns != null)
+        {
+          json.push("columns",SimpleArray);
+          json.add(columns);
+          json.pop();
+        }
+
         json.push("rows",ObjectArray);
         for(Object[] row : table) json.add(columns,row);
         json.pop();
