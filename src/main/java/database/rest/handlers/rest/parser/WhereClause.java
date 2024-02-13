@@ -23,6 +23,10 @@ package database.rest.handlers.rest.parser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import database.rest.database.BindValue;
+import database.rest.database.filters.Filter;
+
 import java.util.ArrayList;
 
 
@@ -30,8 +34,33 @@ public class WhereClause implements SQLObject, Filter
 {
   private String operator = "and";
 
+  private ArrayList<BindValue> bindvals =
+    new ArrayList<BindValue>();
+
   private ArrayList<FilterEntry> entries =
     new ArrayList<FilterEntry>();
+
+
+  @Override
+  public String sql()
+  {
+    return(null);
+  }
+
+
+  @Override
+  public BindValue[] getBindValues(String prefix)
+  {
+    return(this.bindvals.toArray(new BindValue[0]));
+  }
+
+
+  @Override
+  public void parse(JSONObject definition) throws Exception
+  {
+    throw new UnsupportedOperationException("Unimplemented method 'parse'");
+  }
+
 
   public WhereClause(JSONArray filters) throws Exception
   {
@@ -50,8 +79,7 @@ public class WhereClause implements SQLObject, Filter
         if (entry.has(Parser.CLASS))
         {
           String clazz = entry.getString(Parser.CLASS);
-          entries.add(new FilterEntry(operator,null));
-          System.out.println(clazz);
+          entries.add(new FilterEntry(operator,Filters.get(clazz)));
         }
       }
       else if (entry.has(Parser.FILTERS))
@@ -62,12 +90,6 @@ public class WhereClause implements SQLObject, Filter
       }
     }
   }
-
-  public boolean or()
-  {
-    return(false);
-  }
-
 
   private static class FilterEntry
   {

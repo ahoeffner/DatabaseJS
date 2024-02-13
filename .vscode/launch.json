@@ -6,6 +6,13 @@
    "configurations": [
       {
          "type": "java",
+         "name": "Parser",
+         "request": "launch",
+         "mainClass": "database.rest.handlers.rest.parser.Parser",
+         "projectName": "openrestdb"
+      },
+      {
+         "type": "java",
          "name": "Proxy",
          "request": "launch",
          "mainClass": "test.Proxy",

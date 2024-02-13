@@ -19,30 +19,32 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package database.rest.handlers.rest.parser;
+package database.rest.database.filters;
 
-import java.util.HashMap;
-import database.rest.database.filters.Filter;
+import org.json.JSONObject;
+import database.rest.database.BindValue;
 
-
-public class Filters
+public class Equals implements Filter
 {
-   private static HashMap<String,String> filters =
-      new HashMap<String,String>();
-
-   static
+   public Equals() throws Exception
    {
-      Filters.filters.put("equals","database.rest.database.filters.Equals");
    }
 
-   @SuppressWarnings("unchecked")
-   public static Filter get(String name) throws Exception
+   @Override
+   public String sql()
    {
-      if (name == null) throw new Exception("Lookup null?");
-      String clazz = Filters.filters.get(name.toLowerCase());
-      if (clazz == null)  throw new Exception("Unknown filter '"+name+"'");
+      throw new UnsupportedOperationException("Unimplemented method 'sql'");
+   }
 
-      Class<Filter> impl = (Class<Filter>) Class.forName(clazz);
-      return(impl.getDeclaredConstructor().newInstance());
+   @Override
+   public BindValue[] getBindValues(String prefix)
+   {
+      throw new UnsupportedOperationException("Unimplemented method 'getBindValues'");
+   }
+
+   @Override
+   public void parse(JSONObject definition) throws Exception
+   {
+      throw new UnsupportedOperationException("Unimplemented method 'parse'");
    }
 }

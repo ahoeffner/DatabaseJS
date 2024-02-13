@@ -19,8 +19,15 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package database.rest.handlers.rest.parser;
+package database.rest.database.filters;
+
+import org.json.JSONObject;
+import database.rest.database.BindValue;
+
 
 public interface Filter
 {
+  String sql();
+  BindValue[] getBindValues(String prefix);
+  void parse(JSONObject definition) throws Exception;
 }
