@@ -37,7 +37,7 @@ public class Equals implements Filter
    }
 
    @Override
-   public BindValue[] getBindValues(String prefix)
+   public BindValue[] getBindValues()
    {
       throw new UnsupportedOperationException("Unimplemented method 'getBindValues'");
    }

@@ -49,7 +49,7 @@ public class WhereClause implements SQLObject, Filter
 
 
   @Override
-  public BindValue[] getBindValues(String prefix)
+  public BindValue[] getBindValues()
   {
     return(this.bindvals.toArray(new BindValue[0]));
   }
@@ -63,6 +63,12 @@ public class WhereClause implements SQLObject, Filter
 
 
   public WhereClause(JSONArray filters) throws Exception
+  {
+    this(filters,null);
+  }
+
+
+  public WhereClause(JSONArray filters, String prefix) throws Exception
   {
     for (int i = 0; i < filters.length(); i++)
     {
@@ -84,7 +90,8 @@ public class WhereClause implements SQLObject, Filter
       }
       else if (entry.has(Parser.FILTERS))
       {
-        WhereClause whcl = new WhereClause(entry.getJSONArray(Parser.FILTERS));
+        String next = prefix != null ? prefix+"" : "";
+        WhereClause whcl = new WhereClause(entry.getJSONArray(Parser.FILTERS),next);
         if (entry.has(Parser.OPERATOR)) whcl.operator = entry.getString(Parser.OPERATOR);
         entries.add(new FilterEntry(whcl));
       }

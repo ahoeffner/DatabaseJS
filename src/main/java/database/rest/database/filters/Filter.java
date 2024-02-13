@@ -28,6 +28,6 @@ import database.rest.database.BindValue;
 public interface Filter
 {
   String sql();
-  BindValue[] getBindValues(String prefix);
+  BindValue[] getBindValues();
   void parse(JSONObject definition) throws Exception;
 }
