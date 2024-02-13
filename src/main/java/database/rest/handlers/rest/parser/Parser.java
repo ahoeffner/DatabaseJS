@@ -28,8 +28,8 @@ import java.io.FileInputStream;
 public class Parser
 {
    static final String CLASS = "type";
-   static final String SWITCH = "object";
    static final String FILTER = "filter";
+   static final String SWITCH = "function";
    static final String FILTERS = "filters";
    static final String OPERATOR = "operator";
 
