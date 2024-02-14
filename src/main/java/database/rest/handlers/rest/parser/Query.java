@@ -21,8 +21,11 @@
 
 package database.rest.handlers.rest.parser;
 
+import java.util.Arrays;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
+import database.rest.database.BindValue;
 
 
 public class Query implements SQLObject
@@ -31,6 +34,7 @@ public class Query implements SQLObject
    public final String source;
    public final String[] columns;
    public final WhereClause whcl;
+   public final BindValue[] bindvalues;
 
    public Query(JSONObject json) throws Exception
    {
@@ -38,6 +42,9 @@ public class Query implements SQLObject
       String source = null;
       WhereClause whcl = null;
       String[] columns = new String[0];
+
+      ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
+      bindvalues.addAll(Arrays.asList(Parser.getBindValues(json)));
 
       if (json.has(Parser.ORDER))
          order = json.getString(Parser.ORDER);
@@ -56,15 +63,31 @@ public class Query implements SQLObject
 
       if (json.has(Parser.FILTERS))
       {
-         whcl = new WhereClause();
-         whcl.parse(json);
+         whcl = new WhereClause(); whcl.parse(json);
+         bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
       this.whcl = whcl;
       this.order = order;
       this.source = source;
       this.columns = columns;
+      this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
+
+
+   @Override
+   public String sql()
+   {
+      return("xxx");
+   }
+
+
+   @Override
+   public BindValue[] getBindValues()
+   {
+      return(bindvalues);
+   }
+
 
    public String toString()
    {

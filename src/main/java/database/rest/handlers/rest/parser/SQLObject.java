@@ -21,6 +21,11 @@
 
 package database.rest.handlers.rest.parser;
 
+import database.rest.database.BindValue;
+
+
 public interface SQLObject
 {
+  String sql();
+  BindValue[] getBindValues();
 }
