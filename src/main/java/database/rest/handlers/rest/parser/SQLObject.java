@@ -23,5 +23,4 @@ package database.rest.handlers.rest.parser;
 
 public interface SQLObject
 {
-
 }

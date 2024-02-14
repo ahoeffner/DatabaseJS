@@ -23,11 +23,9 @@ package database.rest.handlers.rest.parser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import java.util.ArrayList;
 import database.rest.database.BindValue;
 import database.rest.database.filters.Filter;
-
-import java.util.ArrayList;
 
 
 public class WhereClause implements SQLObject, Filter
@@ -58,12 +56,11 @@ public class WhereClause implements SQLObject, Filter
   @Override
   public void parse(JSONObject definition) throws Exception
   {
-    throw new UnsupportedOperationException("Unimplemented method 'parse'");
-  }
+    if (definition.has(Parser.OPERATOR))
+      this.operator = definition.getString(Parser.OPERATOR);
 
+    JSONArray filters = definition.getJSONArray(Parser.FILTERS);
 
-  public WhereClause(JSONArray filters) throws Exception
-  {
     for (int i = 0; i < filters.length(); i++)
     {
       String operator = "and";
@@ -79,19 +76,24 @@ public class WhereClause implements SQLObject, Filter
         if (entry.has(Parser.CLASS))
         {
           String clazz = entry.getString(Parser.CLASS);
-          entries.add(new FilterEntry(operator,Filters.get(clazz)));
+
+          Filter filter = Filters.get(clazz);
+          filter.parse(entry);
+
+          entries.add(new FilterEntry(operator,filter));
         }
       }
       else if (entry.has(Parser.FILTERS))
       {
-        WhereClause whcl = new WhereClause(entry.getJSONArray(Parser.FILTERS));
-        if (entry.has(Parser.OPERATOR)) whcl.operator = entry.getString(Parser.OPERATOR);
+        WhereClause whcl = new WhereClause();
+
+        whcl.parse(entry);
         entries.add(new FilterEntry(whcl));
       }
     }
   }
 
-  
+
   private static class FilterEntry
   {
     final Filter filter;

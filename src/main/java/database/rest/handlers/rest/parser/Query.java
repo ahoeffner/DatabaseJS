@@ -30,29 +30,37 @@ public class Query implements SQLObject
    public final String order;
    public final String source;
    public final String[] columns;
-
+   public final WhereClause whcl;
 
    public Query(JSONObject json) throws Exception
    {
       String order = null;
       String source = null;
+      WhereClause whcl = null;
       String[] columns = new String[0];
 
-      if (json.has("order"))
-         order = json.getString("order");
+      if (json.has(Parser.ORDER))
+         order = json.getString(Parser.ORDER);
 
-      if (json.has("source"))
-         source = json.getString("source");
+      if (json.has(Parser.SOURCE))
+         source = json.getString(Parser.SOURCE);
 
-      if (json.has("columns"))
+      if (json.has(Parser.COLUMNS))
       {
-         JSONArray jarr = json.getJSONArray("columns");
+         JSONArray jarr = json.getJSONArray(Parser.COLUMNS);
          columns = new String[jarr.length()];
 
          for (int i = 0; i < jarr.length(); i++)
             columns[i] = jarr.getString(i);
       }
 
+      if (json.has(Parser.FILTERS))
+      {
+         whcl = new WhereClause();
+         whcl.parse(json);
+      }
+
+      this.whcl = whcl;
       this.order = order;
       this.source = source;
       this.columns = columns;

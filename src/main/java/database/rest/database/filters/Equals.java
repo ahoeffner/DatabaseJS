@@ -23,28 +23,32 @@ package database.rest.database.filters;
 
 import org.json.JSONObject;
 import database.rest.database.BindValue;
+import database.rest.handlers.rest.parser.Parser;
+
 
 public class Equals implements Filter
 {
-   public Equals() throws Exception
-   {
-   }
+   private String column = null;
+   private BindValue[] bindvalues = null;
 
    @Override
    public String sql()
    {
-      throw new UnsupportedOperationException("Unimplemented method 'sql'");
+      return(column+" = :"+bindvalues[0].getName());
    }
 
    @Override
    public BindValue[] getBindValues()
    {
-      throw new UnsupportedOperationException("Unimplemented method 'getBindValues'");
+      return(bindvalues);
    }
 
    @Override
    public void parse(JSONObject definition) throws Exception
    {
-      throw new UnsupportedOperationException("Unimplemented method 'parse'");
+      if (definition.has(Parser.COLUMN))
+         column = definition.getString(Parser.COLUMN);
+
+      this.bindvalues = Parser.getBindValues(definition);
    }
 }
