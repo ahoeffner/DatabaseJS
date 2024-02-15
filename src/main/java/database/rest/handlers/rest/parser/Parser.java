@@ -57,10 +57,11 @@ public class Parser
       read = in.read(buf); in.close();
       String json = new String(buf,0,read);
 
-      new Source("countries");
+      //new Source("countries");
+      new Source("countries","select * from countries");
 
       SQLObject parsed = Parser.parse(json);
-      if (!parsed.validate()) throw new Exception("Permission denied");
+      //if (!parsed.validate()) throw new Exception("Permission denied");
       System.out.println(parsed.sql());
    }
 

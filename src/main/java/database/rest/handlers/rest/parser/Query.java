@@ -91,13 +91,13 @@ public class Query implements SQLObject
       String sql = "";
       Source source = Source.getSource(this.source);
 
+      sql += "select "+columns[0];
+
+      for (int i = 1; i < columns.length; i++)
+         sql += ","+columns[i];
+
       if (source.type == SourceType.table)
       {
-         sql += "select "+columns[0];
-
-         for (int i = 1; i < columns.length; i++)
-            sql += ","+columns[i];
-
          sql += " from "+source.table;
 
          if (whcl != null)
@@ -105,6 +105,18 @@ public class Query implements SQLObject
 
          if (order != null)
             sql += " order by "+order;
+      }
+      else if (source.type == SourceType.query)
+      {
+         sql += " from ("+source.sql;
+
+         if (whcl != null)
+            sql += " where " + whcl.sql();
+
+         if (order != null)
+            sql += " order by "+order;
+
+         sql += ") "+source.id;
       }
 
       return(sql);
