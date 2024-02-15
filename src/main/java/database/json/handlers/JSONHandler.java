@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import database.json.config.Config;
 import database.json.servers.Server;
 import database.json.handlers.json.Guid;
-import database.json.handlers.json.Rest;
+import database.json.handlers.json.JSONApi;
 import database.json.handlers.file.PathUtil;
 import database.json.servers.rest.RESTClient;
 import database.json.servers.http.HTTPRequest;
@@ -156,7 +156,7 @@ public class JSONHandler extends Handler
     String qret = request.getQuery("returning");
     if (qret != null) returning = Boolean.parseBoolean(qret);
 
-    Rest rest = new Rest(server,savepoint,remote);
+    JSONApi rest = new JSONApi(server,savepoint,remote);
 
     response.setContentType(json);
     response.setBody(rest.execute(path,payload,returning));

@@ -26,7 +26,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import database.json.servers.Server;
-import database.json.handlers.json.Rest;
+import database.json.handlers.json.JSONApi;
 import database.json.handlers.json.Request;
 
 
@@ -88,13 +88,13 @@ public class AuthenticatorAPI
 
    public String connect(String user) throws Exception
    {
-      Rest rest = new Rest(server,true,host);
+      JSONApi rest = new JSONApi(server,true,host);
       return(rest.connect(user));
    }
 
    public boolean disconnect(String sesid) throws Exception
    {
-      Rest rest = new Rest(server,true,host);
+      JSONApi rest = new JSONApi(server,true,host);
       String response = rest.execute("disconnect","{\"session\": \""+sesid+"\"}",false);
 
       JSONObject rsp = parse(response);
@@ -108,7 +108,7 @@ public class AuthenticatorAPI
 
    public JSONObject execute(String payload) throws Exception
    {
-      Rest rest = new Rest(server,true,host);
+      JSONApi rest = new JSONApi(server,true,host);
       String response = rest.execute("exec",payload,false);
       return(parse(response));
    }

@@ -29,20 +29,20 @@ import java.util.logging.Logger;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import database.json.database.SQLParser;
-import database.json.handlers.json.Rest;
+import database.json.handlers.json.JSONApi;
 import database.json.database.BindValueDef;
 import database.json.handlers.json.Request;
-import database.json.handlers.json.Rest.SessionState;
+import database.json.handlers.json.JSONApi.SessionState;
 
 
 public class SQLRewriterAPI
 {
-   private final Rest rest;
+   private final JSONApi rest;
    private final SessionState state;
    private final static Logger logger = Logger.getLogger("rest");
 
 
-   public SQLRewriterAPI(Rest rest)
+   public SQLRewriterAPI(JSONApi rest)
    {
       this.rest = rest;
       this.state = rest.state();

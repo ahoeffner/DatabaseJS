@@ -64,7 +64,7 @@ import database.json.config.Security.CustomAuthenticator;
 import static database.json.handlers.json.JSONFormatter.Type.*;
 
 
-public class Rest
+public class JSONApi
 {
   private boolean ping;
   private boolean conn;
@@ -100,7 +100,7 @@ public class Rest
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 
 
-  public Rest(Server server, boolean savepoint, String host) throws Exception
+  public JSONApi(Server server, boolean savepoint, String host) throws Exception
   {
     this.ping      = false;
     this.conn      = false;
@@ -2342,7 +2342,7 @@ public class Rest
 
   public static class SessionState
   {
-    Rest rest;
+    JSONApi rest;
     int dept = 0;
     int shared = 0;
     Session session = null;
@@ -2351,7 +2351,7 @@ public class Rest
     StatelessSession stateless = null;
 
 
-    SessionState(Rest rest)
+    SessionState(JSONApi rest)
     {
       this.rest = rest;
     }

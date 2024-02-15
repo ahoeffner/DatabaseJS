@@ -70,13 +70,13 @@ public class Request
   }
 
 
-  public Request(Rest rest, String path, String payload) throws Exception
+  public Request(JSONApi rest, String path, String payload) throws Exception
   {
     this(rest,path,parse(payload));
   }
 
 
-  public Request(Rest rest, String path, JSONObject payload) throws Exception
+  public Request(JSONApi rest, String path, JSONObject payload) throws Exception
   {
     this.path = path;
     this.payload = payload;
@@ -203,7 +203,7 @@ public class Request
   }
 
 
-  private String peek(Rest rest, JSONObject payload) throws Exception
+  private String peek(JSONApi rest, JSONObject payload) throws Exception
   {
     if (payload.has("batch"))
       return("batch");
