@@ -23,11 +23,9 @@ package database.rest.handlers.rest.parser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import java.io.FileInputStream;
 import database.rest.database.BindValue;
 import database.rest.database.BindValueDef;
-
-import java.io.FileInputStream;
 
 
 public class Parser
@@ -59,7 +57,10 @@ public class Parser
       read = in.read(buf); in.close();
       String json = new String(buf,0,read);
 
-      Parser.parse(json);
+      new Source("countries");
+
+      SQLObject parsed = Parser.parse(json);
+      System.out.println(parsed.sql());
    }
 
    public static SQLObject parse(String request) throws Exception

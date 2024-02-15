@@ -21,11 +21,57 @@
 
 package database.rest.handlers.rest.parser;
 
-import database.rest.database.BindValue;
+import java.util.HashMap;
 
 
-public interface SQLObject
+public class Source
 {
-  String sql() throws Exception;
-  BindValue[] getBindValues() throws Exception;
+   private final static HashMap<String,Source> sources =
+      new HashMap<String,Source>();
+
+   public static Source getSource(String id)
+   {
+      return(Source.sources.get(id.toLowerCase()));
+   }
+
+
+   public final String id;
+   public final String sql;
+   public final String table;
+   public final SourceType type;
+
+
+   public Source(String table)
+   {
+      this.sql = null;
+      this.table = table;
+      this.type = SourceType.table;
+      this.id = table.toLowerCase();
+
+      Source.sources.put(id,this);
+   }
+
+
+   public Source(String id, String sql)
+   {
+      id = id.toLowerCase();
+      SourceType type = SourceType.table;
+
+      if (sql.length() > 6 && sql.charAt(6) == ' ')
+      {
+         String start = sql.substring(0,6).toLowerCase();
+
+         switch(start)
+         {
+            case "select": type = SourceType.query;
+         }
+      }
+
+      this.id = id;
+      this.sql = sql;
+      this.type = type;
+      this.table = null;
+
+      Source.sources.put(id,this);
+   }
 }

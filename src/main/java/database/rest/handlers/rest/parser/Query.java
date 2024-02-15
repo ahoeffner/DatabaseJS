@@ -76,9 +76,31 @@ public class Query implements SQLObject
 
 
    @Override
-   public String sql()
+   public String sql() throws Exception
    {
-      return("xxx");
+      String sql = "";
+      Source source = Source.getSource(this.source);
+
+      if (source == null) throw new Exception("Permission denied");
+      if (columns.length == 0) throw new Exception("Permission denied");
+
+      if (source.type == SourceType.table)
+      {
+         sql += "select "+columns[0];
+
+         for (int i = 1; i < columns.length; i++)
+            sql += ","+columns[i];
+
+         sql += " from "+source.table;
+
+         if (whcl != null)
+            sql += " where " + whcl.sql();
+
+         if (order != null)
+            sql += " order by "+order;
+      }
+
+      return(sql);
    }
 
 

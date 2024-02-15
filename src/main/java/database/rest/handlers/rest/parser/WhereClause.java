@@ -30,8 +30,6 @@ import database.rest.database.filters.Filter;
 
 public class WhereClause implements SQLObject, Filter
 {
-  private String operator = "and";
-
   private ArrayList<BindValue> bindvals =
     new ArrayList<BindValue>();
 
@@ -42,7 +40,15 @@ public class WhereClause implements SQLObject, Filter
   @Override
   public String sql()
   {
-    return(null);
+    String sql = "(";
+    sql += entries.get(0).filter.sql();
+
+    for (int i = 1; i < entries.size(); i++)
+      sql += " "+entries.get(i).operator + " " + entries.get(i).filter.sql();
+
+    sql += ")";
+
+    return(sql);
   }
 
 
@@ -56,9 +62,6 @@ public class WhereClause implements SQLObject, Filter
   @Override
   public void parse(JSONObject definition) throws Exception
   {
-    if (definition.has(Parser.OPERATOR))
-      this.operator = definition.getString(Parser.OPERATOR);
-
     JSONArray filters = definition.getJSONArray(Parser.FILTERS);
 
     for (int i = 0; i < filters.length(); i++)
@@ -88,7 +91,7 @@ public class WhereClause implements SQLObject, Filter
         WhereClause whcl = new WhereClause();
 
         whcl.parse(entry);
-        entries.add(new FilterEntry(whcl));
+        entries.add(new FilterEntry(operator,whcl));
       }
     }
   }
@@ -98,12 +101,6 @@ public class WhereClause implements SQLObject, Filter
   {
     final Filter filter;
     final String operator;
-
-    FilterEntry(WhereClause whcl)
-    {
-      this.filter = whcl;
-      this.operator = whcl.operator;
-    }
 
     FilterEntry(String operator, Filter filter)
     {
