@@ -26,6 +26,7 @@ import database.rest.database.BindValue;
 
 public interface SQLObject
 {
+  boolean validate();
   String sql() throws Exception;
   BindValue[] getBindValues() throws Exception;
 }

@@ -76,13 +76,20 @@ public class Query implements SQLObject
 
 
    @Override
+   public boolean validate()
+   {
+      Source source = Source.getSource(this.source);
+      if (source == null || columns.length == 0) return(false);
+      if (whcl != null) return(whcl.validate());
+      return(true);
+   }
+
+
+   @Override
    public String sql() throws Exception
    {
       String sql = "";
       Source source = Source.getSource(this.source);
-
-      if (source == null) throw new Exception("Permission denied");
-      if (columns.length == 0) throw new Exception("Permission denied");
 
       if (source.type == SourceType.table)
       {

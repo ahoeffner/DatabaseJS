@@ -60,6 +60,19 @@ public class WhereClause implements SQLObject, Filter
 
 
   @Override
+  public boolean validate()
+  {
+    for (int i = 0; i < entries.size(); i++)
+    {
+      if (entries.get(i).operator.equals("or"))
+        return(false);
+    }
+
+    return(true);
+  }
+
+
+  @Override
   public void parse(JSONObject definition) throws Exception
   {
     JSONArray filters = definition.getJSONArray(Parser.FILTERS);
@@ -69,11 +82,11 @@ public class WhereClause implements SQLObject, Filter
       String operator = "and";
       JSONObject entry = filters.getJSONObject(i);
 
+      if (entry.has(Parser.OPERATOR))
+        operator = entry.getString(Parser.OPERATOR);
+
       if (entry.has(Parser.FILTER))
       {
-        if (entry.has(Parser.OPERATOR))
-          operator = entry.getString(Parser.OPERATOR);
-
         entry = entry.getJSONObject(Parser.FILTER);
 
         if (entry.has(Parser.CLASS))

@@ -60,6 +60,7 @@ public class Parser
       new Source("countries");
 
       SQLObject parsed = Parser.parse(json);
+      if (!parsed.validate()) throw new Exception("Permission denied");
       System.out.println(parsed.sql());
    }
 
