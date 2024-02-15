@@ -28,7 +28,7 @@ import database.json.database.BindValue;
 import database.json.database.filters.Filter;
 
 
-public class WhereClause implements SQLObject, Filter
+public class WhereClause implements Filter
 {
   private ArrayList<BindValue> bindvals =
     new ArrayList<BindValue>();
@@ -59,7 +59,6 @@ public class WhereClause implements SQLObject, Filter
   }
 
 
-  @Override
   public boolean validate()
   {
     for (int i = 0; i < entries.size(); i++)
