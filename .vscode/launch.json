@@ -8,6 +8,13 @@
          "type": "java",
          "name": "Parser",
          "request": "launch",
+         "mainClass": "database.json.handlers.json.parser.Parser",
+         "projectName": "openrestdb"
+      },
+      {
+         "type": "java",
+         "name": "Parser",
+         "request": "launch",
          "mainClass": "database.rest.handlers.rest.parser.Parser",
          "projectName": "openrestdb"
       },

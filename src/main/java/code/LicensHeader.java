@@ -102,7 +102,7 @@ public class LicensHeader
       System.err.println("Could not read "+this.file);
       return(null);
     }
-    
+
     in.close();
 
     String code = new String(buf).trim();

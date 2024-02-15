@@ -97,11 +97,11 @@ public class Beautifier
       if (line.trim().length() > 0) break;
     }
 
-    in.close();
-
     if (!line.trim().startsWith("/*"))
     {
       System.out.println("No open-source header "+file);
+
+      in.close();
       return(null);
     }
 
