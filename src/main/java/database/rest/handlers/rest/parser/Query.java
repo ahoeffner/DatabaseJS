@@ -34,9 +34,10 @@ public class Query implements SQLObject
    public final String source;
    public final String[] columns;
    public final WhereClause whcl;
+   public final BindValue[] assertions;
    public final BindValue[] bindvalues;
 
-   public Query(JSONObject json) throws Exception
+   public Query(JSONObject definition) throws Exception
    {
       String order = null;
       String source = null;
@@ -44,26 +45,26 @@ public class Query implements SQLObject
       String[] columns = new String[0];
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
-      bindvalues.addAll(Arrays.asList(Parser.getBindValues(json)));
+      bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
 
-      if (json.has(Parser.ORDER))
-         order = json.getString(Parser.ORDER);
+      if (definition.has(Parser.ORDER))
+         order = definition.getString(Parser.ORDER);
 
-      if (json.has(Parser.SOURCE))
-         source = json.getString(Parser.SOURCE);
+      if (definition.has(Parser.SOURCE))
+         source = definition.getString(Parser.SOURCE);
 
-      if (json.has(Parser.COLUMNS))
+      if (definition.has(Parser.COLUMNS))
       {
-         JSONArray jarr = json.getJSONArray(Parser.COLUMNS);
+         JSONArray jarr = definition.getJSONArray(Parser.COLUMNS);
          columns = new String[jarr.length()];
 
          for (int i = 0; i < jarr.length(); i++)
             columns[i] = jarr.getString(i);
       }
 
-      if (json.has(Parser.FILTERS))
+      if (definition.has(Parser.FILTERS))
       {
-         whcl = new WhereClause(); whcl.parse(json);
+         whcl = new WhereClause(); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
@@ -71,6 +72,7 @@ public class Query implements SQLObject
       this.order = order;
       this.source = source;
       this.columns = columns;
+      this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 

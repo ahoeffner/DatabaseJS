@@ -43,6 +43,7 @@ public class Parser
    static final public String COLUMNS = "columns";
    static final public String BINDVALUE = "bindvalue";
    static final public String BINDVALUES = "bindvalues";
+   static final public String ASSERTIONS = "assertions";
 
    static String fld = "/Users/alhof/Repository/Test/";
 
@@ -85,9 +86,9 @@ public class Parser
       JSONArray bindings = null;
       BindValue[] bindvalues = new BindValue[0];
 
-      if (definition.has(Parser.BINDVALUES))
+      if (definition.has(BINDVALUES))
       {
-         bindings = definition.getJSONArray(Parser.BINDVALUES);
+         bindings = definition.getJSONArray(BINDVALUES);
          bindvalues = new BindValue[bindings.length()];
 
          for (int i = 0; i < bindvalues.length; i++)
@@ -105,6 +106,36 @@ public class Parser
             if (bdef.has("value")) value = bdef.get("value");
 
             bindvalues[i] = new BindValue(new BindValueDef(name,type,out,value),out);
+         }
+      }
+
+      return(bindvalues);
+   }
+
+
+   public static BindValue[] getAssertions(JSONObject definition)
+   {
+      JSONArray asserts = null;
+      BindValue[] bindvalues = new BindValue[0];
+
+      if (definition.has(ASSERTIONS))
+      {
+         asserts = definition.getJSONArray(ASSERTIONS);
+         bindvalues = new BindValue[asserts.length()];
+
+         for (int i = 0; i < bindvalues.length; i++)
+         {
+            String type = null;
+            Object value = null;
+            String column = null;
+
+            JSONObject adef = asserts.getJSONObject(i);
+
+            if (adef.has("value")) value = adef.get("value");
+            if (adef.has("type")) type = adef.getString("type");
+            if (adef.has("name")) column = adef.getString("name");
+
+            bindvalues[i] = new BindValue(new BindValueDef(column,type,false,value),false);
          }
       }
 
