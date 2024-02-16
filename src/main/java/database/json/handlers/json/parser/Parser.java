@@ -63,7 +63,8 @@ public class Parser
 
       SQLObject parsed = Parser.parse(json);
       //if (!parsed.validate()) throw new Exception("Permission denied");
-      System.out.println(parsed.sql());
+      String request = Parser.toApi(parsed);
+      System.out.println(request);
    }
 
    public static SQLObject parse(String request) throws Exception
@@ -78,6 +79,37 @@ public class Parser
       }
 
       return(object);
+   }
+
+
+   public static String toApi(SQLObject func)
+   {
+      JSONObject binding = null;
+      BindValue[] bindvalues = null;
+
+      JSONArray bindings = new JSONArray();
+      JSONObject request = new JSONObject();
+
+      request.put("sql",func.sql());
+
+      bindvalues = func.getBindValues();
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+         binding = new JSONObject();
+         binding.put("name",bindvalues[i].getName());
+         binding.put("type",bindvalues[i].getType());
+         binding.put("value",bindvalues[i].getValue());
+
+         if (bindvalues[i].InOut() || bindvalues[i].OutOnly())
+            binding.put("out",true);
+
+         bindings.put(binding);
+      }
+
+      if (bindings.length() > 0)
+         request.put("bindvalues",bindings);
+
+      return(request.toString(2));
    }
 
 

@@ -30,12 +30,12 @@ import database.json.database.BindValue;
 
 public class Query implements SQLObject
 {
-   public final String order;
-   public final String source;
-   public final String[] columns;
-   public final WhereClause whcl;
-   public final BindValue[] assertions;
-   public final BindValue[] bindvalues;
+   private final String order;
+   private final String source;
+   private final String[] columns;
+   private final WhereClause whcl;
+   private final BindValue[] assertions;
+   private final BindValue[] bindvalues;
 
    public Query(JSONObject definition) throws Exception
    {
@@ -74,6 +74,7 @@ public class Query implements SQLObject
       this.columns = columns;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+      System.out.println("Query: "+bindvalues.size()+" "+this.bindvalues.length);
    }
 
 
@@ -88,7 +89,7 @@ public class Query implements SQLObject
 
 
    @Override
-   public String sql() throws Exception
+   public String sql()
    {
       String sql = "";
       Source source = Source.getSource(this.source);
@@ -129,6 +130,13 @@ public class Query implements SQLObject
    public BindValue[] getBindValues()
    {
       return(bindvalues);
+   }
+
+
+   @Override
+   public BindValue[] getAssertions()
+   {
+      return(assertions);
    }
 
 
