@@ -97,7 +97,7 @@ public class Parser
       {
          binding = new JSONObject();
          binding.put("name",bindvalues[i].getName());
-         binding.put("type",bindvalues[i].getType());
+         binding.put("type",bindvalues[i].getTypeName());
          binding.put("value",bindvalues[i].getValue());
 
          if (bindvalues[i].InOut() || bindvalues[i].OutOnly())

@@ -23,7 +23,11 @@ package database.json.handlers.json.parser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import database.json.database.BindValue;
 import database.json.database.filters.Filter;
 
@@ -93,7 +97,9 @@ public class WhereClause implements Filter
           String clazz = entry.getString(Parser.CLASS);
 
           Filter filter = Filters.get(clazz);
+
           filter.parse(entry);
+          this.bindvals.addAll(Arrays.asList(filter.getBindValues()));
 
           entries.add(new FilterEntry(operator,filter));
         }
@@ -103,6 +109,8 @@ public class WhereClause implements Filter
         WhereClause whcl = new WhereClause();
 
         whcl.parse(entry);
+        this.bindvals.addAll(Arrays.asList(whcl.getBindValues()));
+
         entries.add(new FilterEntry(operator,whcl));
       }
     }

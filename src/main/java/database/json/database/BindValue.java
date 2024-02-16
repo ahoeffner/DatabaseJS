@@ -58,6 +58,11 @@ public class BindValue
     return(bindvalue.value);
   }
 
+  public String getTypeName()
+  {
+    return(bindvalue.getType());
+  }
+
 
   @Override
   public String toString()

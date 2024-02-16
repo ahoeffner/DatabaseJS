@@ -74,7 +74,6 @@ public class Query implements SQLObject
       this.columns = columns;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
-      System.out.println("Query: "+bindvalues.size()+" "+this.bindvalues.length);
    }
 
 
