@@ -147,9 +147,9 @@ public class Server extends Thread
       if (this.embedded) this.loadblcr = null;
       else this.loadblcr = new LoadBalancer(config);
 
-      this.ssl = new HTTPServer(this,HTTPServerType.ssl,embedded);
-      this.plain = new HTTPServer(this,HTTPServerType.plain,embedded);
-      this.admin = new HTTPServer(this,HTTPServerType.admin,embedded);
+      if (config.getPorts().ssl > 0) this.ssl = new HTTPServer(this,HTTPServerType.ssl,embedded); else this.ssl = null;
+      if (config.getPorts().plain > 0) this.plain = new HTTPServer(this,HTTPServerType.plain,embedded); else this.plain = null;
+      if (config.getPorts().admin > 0) this.admin = new HTTPServer(this,HTTPServerType.admin,embedded); else this.admin = null;
 
       sowner = this.startup();
     }
@@ -196,9 +196,10 @@ public class Server extends Thread
 
     logger.info("Open http sockets");
 
-    ssl.start();
-    plain.start();
-    admin.start();
+    if (ssl != null) ssl.start();
+    if (plain != null) plain.start();
+    if (admin != null) admin.start();
+
     smgr.startSSOManager();
 
     if (embedded)
@@ -375,14 +376,23 @@ public class Server extends Thread
     {
       ServerSocket socket = null;
 
-      socket = new ServerSocket(ssl.port());
-      socket.close();
+      if (ssl != null)
+      {
+        socket = new ServerSocket(ssl.port());
+        socket.close();
+      }
 
-      socket = new ServerSocket(plain.port());
-      socket.close();
+      if (plain != null)
+      {
+        socket = new ServerSocket(plain.port());
+        socket.close();
+      }
 
-      socket = new ServerSocket(admin.port());
-      socket.close();
+      if (admin != null)
+      {
+        socket = new ServerSocket(admin.port());
+        socket.close();
+      }
 
       return(true);
     }
@@ -485,6 +495,7 @@ public class Server extends Thread
   {
     try
     {
+      e.printStackTrace();
       String srvout = database.json.config.Logger.getEmergencyOut();
       PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(srvout)),true);
       out.println(new Date());

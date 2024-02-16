@@ -33,9 +33,10 @@ public class Ports
 
   public Ports(JSONObject config)
   {
-    this.ssl = Config.get(config,"ssl");
-    this.plain = Config.get(config,"plain");
-    this.admin = Config.get(config,"admin");
+    System.out.println("remove changes in "+this.getClass().getName());
+    this.ssl = -1; //Config.get(config,"ssl");
+    this.plain = 6001; //Config.get(config,"plain");
+    this.admin = 6002; //Config.get(config,"admin");
     this.sslredirect = Config.get(config,"ssl.redirect");
   }
 }

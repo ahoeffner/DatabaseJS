@@ -47,7 +47,6 @@ public class LicensHeader
   "  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.";
 
 
-  @SuppressWarnings("unused")
   public static void main(String[] args) throws Exception
   {
     next(new File("/Users/alex/Repository/forms42/core/src"));

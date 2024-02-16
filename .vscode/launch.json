@@ -49,21 +49,21 @@
          "type": "java",
          "name": "Launcher",
          "request": "launch",
-         "mainClass": "database.rest.control.Launcher",
+         "mainClass": "database.json.control.Launcher",
          "projectName": "openrestdb"
       },
       {
          "type": "java",
          "name": "Service",
          "request": "launch",
-         "mainClass": "database.rest.control.Service",
+         "mainClass": "database.json.control.Service",
          "projectName": "openrestdb"
       },
       {
          "type": "java",
          "name": "Server",
          "request": "launch",
-         "mainClass": "database.rest.servers.Server",
+         "mainClass": "database.json.servers.Server",
          "args": [
             "ordb01",
             "0"
@@ -74,7 +74,7 @@
          "type": "java",
          "name": "SSOAuthenticater",
          "request": "launch",
-         "mainClass": "database.rest.sso.SSOAuthenticater",
+         "mainClass": "database.json.sso.SSOAuthenticater",
          "projectName": "openrestdb"
       },
       {

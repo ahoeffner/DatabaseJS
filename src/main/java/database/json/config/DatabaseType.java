@@ -24,9 +24,9 @@ package database.json.config;
 
 public enum DatabaseType
 {
-  Oracle("database.rest.database.impl.Oracle"),
-  Postgres("database.rest.database.impl.Postgres"),
-  Generic("database.rest.database.impl.Generic");
+  Oracle("database.json.database.impl.Oracle"),
+  Postgres("database.json.database.impl.Postgres"),
+  Generic("database.json.database.impl.Generic");
 
 
   public final Class<?> clazz;
