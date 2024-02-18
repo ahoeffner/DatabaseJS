@@ -21,13 +21,10 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.Arrays;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import database.json.database.BindValue;
 import database.json.database.filters.Filter;
 

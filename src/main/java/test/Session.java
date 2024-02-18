@@ -34,7 +34,6 @@ import database.json.security.FakeTrustManager;
 
 public class Session
 {
-  private final int port;
   private final int psize;
   private final String host;
   private final Socket socket;
@@ -43,7 +42,6 @@ public class Session
   public Session(String host, int port, boolean ssl) throws Exception
   {
     this.host = host;
-    this.port = port;
     Socket socket = null;
 
     try
@@ -74,6 +72,7 @@ public class Session
   }
 
 
+  @SuppressWarnings("unused")
   public void invoke(String url, String message) throws Exception
   {
     HTTPRequest request = new HTTPRequest(host,url);

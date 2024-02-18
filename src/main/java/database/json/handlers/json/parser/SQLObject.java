@@ -26,8 +26,9 @@ import database.json.database.BindValue;
 
 public interface SQLObject extends APIObject
 {
-  String sql();
-  boolean validate();
-  BindValue[] getAssertions();
-  BindValue[] getBindValues();
+  String sql() throws Exception;
+  String session() throws Exception;
+  boolean validate() throws Exception;
+  BindValue[] getAssertions() throws Exception;
+  BindValue[] getBindValues() throws Exception;
 }

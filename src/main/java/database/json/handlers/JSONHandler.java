@@ -64,7 +64,6 @@ public class JSONHandler extends Handler
 
     server.request();
     response.setContentType(json);
-    String path = this.path.getPath(request.path());
 
     logger.finest("REST request received: "+path);
 
@@ -160,7 +159,7 @@ public class JSONHandler extends Handler
     JSONObject sql = func.toApi();
     JSONApi api = new JSONApi(server,savepoint,remote);
 
-    response.setBody(api.execute(path,sql,false));
+    response.setBody(api.execute(func.path(),sql,false));
     response.setContentType(json);
     response.setResponse(api.response());
 

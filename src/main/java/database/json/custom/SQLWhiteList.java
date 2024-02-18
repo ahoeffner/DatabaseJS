@@ -22,9 +22,6 @@
 package database.json.custom;
 
 import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class SQLWhiteList

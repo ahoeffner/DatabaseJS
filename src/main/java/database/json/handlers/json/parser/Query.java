@@ -32,6 +32,7 @@ public class Query implements SQLObject
 {
    private final String order;
    private final String source;
+   private final String session;
    private final String[] columns;
    private final WhereClause whcl;
    private final BindValue[] assertions;
@@ -41,6 +42,7 @@ public class Query implements SQLObject
    {
       String order = null;
       String source = null;
+      String session = null;
       WhereClause whcl = null;
       String[] columns = new String[0];
 
@@ -52,6 +54,9 @@ public class Query implements SQLObject
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
+
+      if (definition.has(Parser.SESSION))
+         session = definition.getString(Parser.SESSION);
 
       if (definition.has(Parser.COLUMNS))
       {
@@ -71,9 +76,17 @@ public class Query implements SQLObject
       this.whcl = whcl;
       this.order = order;
       this.source = source;
+      this.session = session;
       this.columns = columns;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+   }
+
+
+   @Override
+   public String session()
+   {
+      return(session);
    }
 
 
@@ -88,10 +101,11 @@ public class Query implements SQLObject
 
 
    @Override
-   public String sql()
+   public String sql() throws Exception
    {
       String sql = "";
       Source source = Source.getSource(this.source);
+      if (source == null) throw new Exception("Unknow datasource '"+this.source+"'");
 
       sql += "select "+columns[0];
 
@@ -145,7 +159,7 @@ public class Query implements SQLObject
    }
 
    @Override
-   public JSONObject toApi()
+   public JSONObject toApi() throws Exception
    {
       return(Parser.toApi(this));
    }

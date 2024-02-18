@@ -50,7 +50,6 @@ public class RESTServer implements RESTConnection
   private ByteBuffer buffer = ByteBuffer.allocate(10);
 
   private final int port;
-  private final short rid;
   private final Server server;
   private final Config config;
   private final MailBox mailbox;
@@ -67,11 +66,7 @@ public class RESTServer implements RESTConnection
 
     logger.info("RESTServer starting ...");
 
-    int http = 1;
     this.port = config.getPorts().admin;
-    if (config.getTopology().hot) http++;
-
-    this.rid = (short) (server.id() - http);
     this.workers = new ThreadPool(config.getTopology().workers);
 
     serve();

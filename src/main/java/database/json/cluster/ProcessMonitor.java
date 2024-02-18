@@ -47,6 +47,7 @@ public class ProcessMonitor
   private final static Logger logger = Logger.getLogger("internal");
 
 
+  @SuppressWarnings("resource")
   ProcessMonitor(Server server) throws Exception
   {
     this.server = server;

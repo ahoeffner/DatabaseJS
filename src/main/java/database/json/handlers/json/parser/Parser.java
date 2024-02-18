@@ -33,6 +33,7 @@ public class Parser
    static final public String CLASS = "type";
    static final public String SOURCE = "source";
    static final public String SWITCH = "function";
+   static final public String SESSION = "session";
 
    static final public String FILTER = "filter";
    static final public String FILTERS = "filters";
@@ -61,7 +62,7 @@ public class Parser
       //new Source("countries");
       new Source("countries","select * from countries");
 
-      APIObject parsed = Parser.parse(json);
+      Parser.parse(json);
       //if (!parsed.validate()) throw new Exception("Permission denied");
    }
 
@@ -81,7 +82,7 @@ public class Parser
    }
 
 
-   public static JSONObject toApi(SQLObject func)
+   public static JSONObject toApi(SQLObject func) throws Exception
    {
       JSONObject binding = null;
       BindValue[] bindvalues = null;
@@ -90,6 +91,7 @@ public class Parser
       JSONObject request = new JSONObject();
 
       request.put("sql",func.sql());
+      request.put("session",func.session());
 
       bindvalues = func.getBindValues();
       for (int i = 0; i < bindvalues.length; i++)

@@ -30,12 +30,12 @@ public class TestThread extends Thread
 {
   private long avg;
   private int failed;
-  private long elapsed;
   private final int ips;
   private final int loops;
   private final String url;
   private final String payload;
-  private static final int cores = Runtime.getRuntime().availableProcessors();
+
+  @SuppressWarnings("unused")
   private static final TrustManager[] tmgrs = new TrustManager[] {new FakeTrustManager()};
 
 
@@ -73,7 +73,7 @@ public class TestThread extends Thread
 
   public void run()
   {
-    long time = System.currentTimeMillis();
+    //long time = System.currentTimeMillis();
 
     try
     {
@@ -114,6 +114,6 @@ public class TestThread extends Thread
       e.printStackTrace();
     }
 
-    this.elapsed = System.currentTimeMillis() - time;
+    //this.elapsed = System.currentTimeMillis() - time;
   }
 }
