@@ -138,20 +138,15 @@ public class Query implements SQLObject
       return(assertions);
    }
 
-
-   public String toString()
+   @Override
+   public String path()
    {
-      String str = source;
+      return("select");
+   }
 
-      for (int i = 0; i < columns.length; i++)
-      {
-         str += " " + columns[i];
-         if (i < columns.length - 1) str += ",";
-      }
-
-      if (order != null)
-         str += " "+order;
-
-      return(str);
+   @Override
+   public JSONObject toApi()
+   {
+      return(Parser.toApi(this));
    }
 }

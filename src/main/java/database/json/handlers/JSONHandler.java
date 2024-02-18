@@ -25,6 +25,9 @@ import java.util.Base64;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
+
 import database.json.config.Config;
 import database.json.servers.Server;
 import database.json.handlers.json.Guid;
@@ -34,6 +37,8 @@ import database.json.servers.rest.RESTClient;
 import database.json.servers.http.HTTPRequest;
 import database.json.servers.http.HTTPResponse;
 import database.json.handlers.json.JSONFormatter;
+import database.json.handlers.json.parser.Parser;
+import database.json.handlers.json.parser.APIObject;
 import database.json.config.Handlers.HandlerProperties;
 
 
@@ -152,21 +157,36 @@ public class JSONHandler extends Handler
     String remote = request.remote();
     String payload = new String(body);
 
+    APIObject func = Parser.parse(payload);
+
+    JSONObject sql = func.toApi();
+    JSONApi api = new JSONApi(server,savepoint,remote);
+
+    response.setBody(api.execute(path,sql,false));
+    response.setContentType(json);
+    response.setResponse(api.response());
+
+    if (!api.isPing() || logger.getLevel() == Level.FINEST)
+      log(logger,request,response);
+
+
+/*
     boolean returning = false;
     String qret = request.getQuery("returning");
     if (qret != null) returning = Boolean.parseBoolean(qret);
 
-    JSONApi rest = new JSONApi(server,savepoint,remote);
+    JSONApi api = new JSONApi(server,savepoint,remote);
 
     response.setContentType(json);
-    response.setBody(rest.execute(path,payload,returning));
-    response.setResponse(rest.response());
+    response.setBody(api.execute(path,payload,returning));
+    response.setResponse(api.response());
 
-    if (rest.isConnectRequest())
-      request.setBody(rest.removeSecrets());
+    if (api.isConnectRequest())
+      request.setBody(api.removeSecrets());
 
-    if (!rest.isPing() || logger.getLevel() == Level.FINEST)
+    if (!api.isPing() || logger.getLevel() == Level.FINEST)
       log(logger,request,response);
+ */
 
     return(response);
   }
@@ -222,7 +242,7 @@ public class JSONHandler extends Handler
     buffer.put(instance);
 
     byte[] cookie = Base64.getEncoder().encode(buffer.array());
-    response.setCookie("RESTSRVID",new String(cookie));
+    response.setCookie("JSONSRVID",new String(cookie));
   }
 
 

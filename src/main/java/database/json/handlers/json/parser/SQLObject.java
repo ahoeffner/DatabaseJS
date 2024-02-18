@@ -24,7 +24,7 @@ package database.json.handlers.json.parser;
 import database.json.database.BindValue;
 
 
-public interface SQLObject
+public interface SQLObject extends APIObject
 {
   String sql();
   boolean validate();

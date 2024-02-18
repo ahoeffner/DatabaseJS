@@ -157,11 +157,6 @@ public class Handlers
           this.methods.add(m.toUpperCase());
       }
 
-      System.out.println("remove changes in "+this.getClass().getName());
-
-      clazz = clazz.replace("rest","json");
-      clazz = clazz.replace("RestHandler","JSONHandler");
-
       HandlerProperties properties = new HandlerProperties(prefix,this.methods);
       Constructor<?> contructor = Class.forName(clazz).getDeclaredConstructor(Config.class,HandlerProperties.class);
 

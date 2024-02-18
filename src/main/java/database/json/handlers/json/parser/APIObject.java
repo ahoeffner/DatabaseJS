@@ -19,23 +19,13 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package database.json.config;
+package database.json.handlers.json.parser;
 
 import org.json.JSONObject;
 
 
-public class Ports
+public interface APIObject
 {
-  public final int ssl;
-  public final int admin;
-  public final int plain;
-  public final boolean sslredirect;
-
-  public Ports(JSONObject config)
-  {
-    this.ssl = Config.get(config,"ssl");
-    this.plain = Config.get(config,"plain");
-    this.admin = Config.get(config,"admin");
-    this.sslredirect = Config.get(config,"ssl.redirect");
-  }
+   String path();
+   JSONObject toApi();
 }

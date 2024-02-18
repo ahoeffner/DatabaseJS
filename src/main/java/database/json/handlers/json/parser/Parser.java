@@ -61,28 +61,27 @@ public class Parser
       //new Source("countries");
       new Source("countries","select * from countries");
 
-      SQLObject parsed = Parser.parse(json);
+      APIObject parsed = Parser.parse(json);
       //if (!parsed.validate()) throw new Exception("Permission denied");
-      String request = Parser.toApi(parsed);
-      System.out.println(request);
    }
 
-   public static SQLObject parse(String request) throws Exception
+   public static APIObject parse(String request) throws Exception
    {
-      SQLObject object = null;
+      APIObject object = null;
       JSONObject json = new JSONObject(request);
       if (!json.has(SWITCH)) throw new Exception("Unknown request type");
 
       switch(json.getString(SWITCH).toLowerCase())
       {
          case "retrieve" : object = new Query(json); break;
+         case "authenticate": object = new Authenticator(json);
       }
 
       return(object);
    }
 
 
-   public static String toApi(SQLObject func)
+   public static JSONObject toApi(SQLObject func)
    {
       JSONObject binding = null;
       BindValue[] bindvalues = null;
@@ -109,7 +108,7 @@ public class Parser
       if (bindings.length() > 0)
          request.put("bindvalues",bindings);
 
-      return(request.toString(2));
+      return(request);
    }
 
 

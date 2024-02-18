@@ -135,6 +135,12 @@ public class JSONApi
 
   public String execute(String path, String payload, boolean returning)
   {
+    return(execute(path,new JSONObject(payload),returning));
+  }
+
+
+  public String execute(String path, JSONObject payload, boolean returning)
+  {
     try
     {
       String ftok = null;
