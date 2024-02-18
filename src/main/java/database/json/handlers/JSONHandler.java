@@ -154,17 +154,33 @@ public class JSONHandler extends Handler
     String remote = request.remote();
     String payload = new String(body);
 
-    APIObject func = Parser.parse(payload);
+    try
+    {
+      APIObject func = Parser.parse(payload);
 
-    JSONObject sql = func.toApi();
-    JSONApi api = new JSONApi(server,savepoint,remote);
+      JSONObject sql = func.toApi();
+      JSONApi api = new JSONApi(server,savepoint,remote);
 
-    response.setBody(api.execute(func.path(),sql,false));
-    response.setContentType(json);
-    response.setResponse(api.response());
+      response.setContentType(json);
+      response.setBody(api.execute(func.path(),sql,false));
+      response.setResponse(api.response());
 
-    if (!api.isPing() || logger.getLevel() == Level.FINEST)
-      log(logger,request,response);
+      if (!api.isPing() || logger.getLevel() == Level.FINEST)
+        log(logger,request,response);
+
+    }
+    catch (Exception e)
+    {
+      JSONObject err = new JSONObject();
+
+      err.put("success","false");
+      err.put("message",e.getMessage());
+      err.put("instance",config().instance());
+
+      response.setResponse(500);
+      response.setContentType(json);
+      response.setBody(err.toString(2));
+    }
 
 
 /*
