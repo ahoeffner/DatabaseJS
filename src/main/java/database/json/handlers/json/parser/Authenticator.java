@@ -26,10 +26,13 @@ import org.json.JSONObject;
 
 public class Authenticator implements APIObject
 {
+   private final JSONObject definition;
+
    public Authenticator(JSONObject definition)
    {
-
+      this.definition = definition;
    }
+
 
    @Override
    public String path()
@@ -37,9 +40,24 @@ public class Authenticator implements APIObject
       return("connect");
    }
 
+
    @Override
    public JSONObject toApi()
    {
-      return(null);
+      JSONObject request = new JSONObject();
+
+      if (definition.has("scope"))
+         request.put("scope",definition.get("scope"));
+
+      if (definition.has("method"))
+         request.put("method",definition.get("method"));
+
+      if (definition.has("username"))
+         request.put("username",definition.get("username"));
+
+      if (definition.has("password"))
+         request.put("secret",definition.get("password"));
+
+      return(request);
    }
 }

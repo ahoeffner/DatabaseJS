@@ -770,11 +770,11 @@ public class JSONApi
       if (payload.has("scope"))
         scope = payload.getString("scope");
 
-      if (payload.has("auth.secret"))
-        secret = payload.getString("auth.secret");
+      if (payload.has("secret"))
+        secret = payload.getString("secret");
 
-      if (payload.has("auth.method"))
-          meth = payload.getString("auth.method");
+      if (payload.has("method"))
+          meth = payload.getString("method");
 
       if (meth == null)
           return(error("No authentication method specified"));
