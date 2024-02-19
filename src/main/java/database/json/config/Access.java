@@ -76,8 +76,6 @@ public class Access extends Thread
    {
       for (int i = 0; i < files.length; i++)
       {
-         logger.info(files[i].file);
-
          File file = new File(files[i].file);
          long mod = file.lastModified();
 
