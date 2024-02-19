@@ -240,7 +240,7 @@ public class SessionManager
 
       try
       {
-        int timeout = config.getREST().ssotimeout * 1000;
+        int timeout = config.getSession().ssotimeout * 1000;
 
         while(true)
         {
@@ -292,8 +292,8 @@ public class SessionManager
 
       try
       {
-        int dump = config.getREST().dump * 1000;
-        int timeout = config.getREST().timeout * 1000;
+        int dump = config.getSession().dump * 1000;
+        int timeout = config.getSession().timeout * 1000;
 
         int sleep = timeout/4;
         if (dump > 0 && sleep > dump) sleep = dump;

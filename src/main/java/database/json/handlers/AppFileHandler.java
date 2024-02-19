@@ -130,7 +130,7 @@ public class AppFileHandler extends Handler
   private HTTPResponse get(HTTPRequest request, HTTPResponse response, String path) throws Exception
   {
     String ext = "";
-    String root = config().getREST().fileroot;
+    String root = config().getFiles().fileroot;
 
     int pos = path.indexOf('/',1);
     String fname = root + path.substring(pos);
@@ -183,8 +183,8 @@ public class AppFileHandler extends Handler
     byte[] body = request.body();
     byte[] eoh = "\r\n\r\n".getBytes();
     byte[] pattern = boundary.getBytes();
-    String root = config().getREST().fileroot;
-    boolean tmpfiles = config().getREST().tmpfiles;
+    String root = config().getFiles().fileroot;
+    boolean tmpfiles = config().getFiles().tmpfiles;
 
     JSONObject options = null;
     ArrayList<Field> files = new ArrayList<Field>();

@@ -32,8 +32,10 @@ import database.json.custom.Authenticator;
 
 public class Security
 {
+  private final int reload;
   private final String secret;
   private final Keystore trust;
+  private final String[] files;
   private final Keystore identity;
 
   private final boolean tokens;
@@ -46,6 +48,25 @@ public class Security
     String type = null;
     String file = null;
     String passwd = null;
+
+    if (Config.has(config,"access") && full)
+    {
+      JSONObject access = Config.get(config,"access");
+
+      if (!Config.has(access,"check")) reload = 0;
+      else reload = Config.get(access,"check");
+
+      JSONArray files = Config.get(access,"files");
+      this.files = new String[files.length()];
+
+      for (int i = 0; i < files.length(); i++)
+        this.files[i] = files.getString(i);
+    }
+    else
+    {
+      reload = 0;
+      this.files = null;
+    }
 
     JSONObject identsec = Config.getSection(config,"identity");
 
@@ -105,9 +126,19 @@ public class Security
   }
 
 
+  public int reload()
+  {
+    return(reload);
+  }
+
   public String secret()
   {
     return(secret);
+  }
+
+  public String[] access()
+  {
+    return(files);
   }
 
   public Keystore getTrusted()

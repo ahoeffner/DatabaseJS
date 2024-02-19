@@ -24,24 +24,17 @@ package database.json.config;
 import org.json.JSONObject;
 
 
-public class Rest
+public class Session
 {
   public final int dump;
   public final int timeout;
   public final int ssotimeout;
-  public final String fileroot;
-  public final boolean tmpfiles;
 
 
-  public Rest(JSONObject config)
+  public Session(JSONObject config)
   {
     this.dump = Config.get(config,"ses.dump",0);
     this.timeout = Config.get(config,"ses.timeout");
     this.ssotimeout = Config.get(config,"sso.timeout");
-
-    String fileroot = Config.get(config,"files.root");
-
-    this.tmpfiles = Config.get(config,"files.tmpnames");
-    this.fileroot = Config.getPath(fileroot,Paths.apphome);
   }
 }

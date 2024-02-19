@@ -105,7 +105,7 @@ public class Query implements SQLObject
    {
       String sql = "";
       Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Unknow datasource '"+this.source+"'");
+      if (source == null) throw new Exception("Unknown datasource '"+this.source+"'");
 
       sql += "select "+columns[0];
 

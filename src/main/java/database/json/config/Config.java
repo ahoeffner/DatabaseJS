@@ -38,9 +38,10 @@ public class Config
   private final JSONObject config;
 
   private Java java = null;
-  private Rest rest = null;
   private HTTP http = null;
   private Ports ports = null;
+  private Files files = null;
+  private Session sess = null;
   private Logger logger = null;
   private Handlers handlers = null;
   private PKIContext pkictx = null;
@@ -89,8 +90,9 @@ public class Config
     this.dataconf = get("database");
 
     sections.put("http",getSection("http"));
-    sections.put("rest",getSection("rest"));
+    sections.put("files",getSection("files"));
     sections.put("logger",getSection("logger"));
+    sections.put("session",getSection("session"));
     sections.put("security",getSection("security"));
     sections.put("topology",getSection("topology",topconf));
     sections.put("database",getSection("database",dataconf));
@@ -139,11 +141,19 @@ public class Config
   }
 
 
-  public synchronized Rest getREST() throws Exception
+  public synchronized Session getSession() throws Exception
   {
-    if (rest != null) return(rest);
-    rest = new Rest(sections.get("rest"));
-    return(rest);
+    if (sess != null) return(sess);
+    sess = new Session(sections.get("session"));
+    return(sess);
+  }
+
+
+  public synchronized Files getFiles() throws Exception
+  {
+    if (files != null) return(files);
+    files = new Files(sections.get("files"));
+    return(files);
   }
 
 

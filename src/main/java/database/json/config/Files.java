@@ -21,21 +21,19 @@
 
 package database.json.config;
 
-import database.json.admin.Client;
-import database.json.database.Database;
-import database.json.handlers.CrossOrigin;
-import database.json.servers.http.HTTPResponse;
+import org.json.JSONObject;
 
 
-public class Statics
+public class Files
 {
-  static void init(Config config) throws Exception
+  public final String fileroot;
+  public final boolean tmpfiles;
+
+
+  public Files(JSONObject config)
   {
-    Access.load(config);
-    Database.setUrl(config.getDatabase().url);
-    HTTPResponse.init(config.getHTTP().timeout);
-    Database.setTestSQL(config.getDatabase().test);
-    CrossOrigin.init(config.getHTTP().host,config.getHTTP().corsdomains);
-    Client.setConfig(config.getPKIContext(),config.getHTTP().bufsize,Config.clientTimeout());
+    String fileroot = Config.get(config,"files.root");
+    this.tmpfiles = Config.get(config,"files.tmpnames");
+    this.fileroot = Config.getPath(fileroot,Paths.apphome);
   }
 }

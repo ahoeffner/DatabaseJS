@@ -166,7 +166,7 @@ public class JSONApi
         if (request.session.startsWith("*"))
         {
           StatelessSession sses = null;
-          int timeout = config.getREST().timeout;
+          int timeout = config.getSession().timeout;
           sses = decodeStateless(this.secret,this.host,timeout,request.session);
 
           if (sses.time < 0)
@@ -757,7 +757,7 @@ public class JSONApi
 
     try
     {
-      timeout = config.getREST().timeout;
+      timeout = config.getSession().timeout;
       nowait = this.config.getDatabase().nowait;
       type = config.getDatabase().type.toString();
 
