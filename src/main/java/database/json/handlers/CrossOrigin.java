@@ -38,7 +38,7 @@ public class CrossOrigin
   private final static ArrayList<String> allowed =
     new ArrayList<String>();
 
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
   private final static String methods = "GET, POST, PATCH, DELETE, PUT, OPTIONS, HEAD";
 
 

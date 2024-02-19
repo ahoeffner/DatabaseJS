@@ -39,7 +39,7 @@ public class SQLRewriterAPI
 {
    private final JSONApi rest;
    private final SessionState state;
-   private final static Logger logger = Logger.getLogger("rest");
+   private final static Logger logger = Logger.getLogger("json");
 
 
    public SQLRewriterAPI(JSONApi rest)

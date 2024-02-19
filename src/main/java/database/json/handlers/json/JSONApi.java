@@ -95,7 +95,7 @@ public class JSONApi
   private final PreProcessor preprocessor;
   private final PostProcessor postprocessor;
 
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
   private final HashMap<String,BindValueDef> bindvalues = new HashMap<String,BindValueDef>();
   private static final ConcurrentHashMap<String,String> sqlfiles = new ConcurrentHashMap<String,String>();
 

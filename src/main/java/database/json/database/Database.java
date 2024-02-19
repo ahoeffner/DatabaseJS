@@ -49,7 +49,7 @@ public abstract class Database
   private static String url;
   private static String teststmt;
   private static AtomicInteger next = new AtomicInteger(0);
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public static String getUrl()

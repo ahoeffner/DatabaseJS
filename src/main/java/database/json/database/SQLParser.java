@@ -34,7 +34,7 @@ public class SQLParser
   private final boolean func;
   private final ArrayList<BindValue> bindings;
   private final HashMap<String,BindValueDef> bindvalues;
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
   private final static Pattern procedure = Pattern.compile("(\\w*\\.)?\\w*\\s*\\(.*\\)");
   private final static Pattern function = Pattern.compile("\\w*\\s*=\\s*(\\w*\\.)?\\w*\\s*\\(.*\\)");

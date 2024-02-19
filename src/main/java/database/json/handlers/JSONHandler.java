@@ -44,7 +44,7 @@ public class JSONHandler extends Handler
 {
   private final PathUtil path;
   private final CrossOrigin cors;
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public JSONHandler(Config config, HandlerProperties properties) throws Exception

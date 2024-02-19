@@ -60,7 +60,7 @@ public class PreAuthTable
 
   public static final int EXTENDS = 128;
   public static final int EXTENDSIZE = 2048;
-  private final Logger logger = Logger.getLogger("rest");
+  private final Logger logger = Logger.getLogger("json");
 
 
   public PreAuthTable(Config config) throws Exception

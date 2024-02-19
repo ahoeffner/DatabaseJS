@@ -32,7 +32,7 @@ import database.json.logger.Formatter;
 public class Logger
 {
   private final java.util.logging.Logger http = java.util.logging.Logger.getLogger("http");
-  private final java.util.logging.Logger rest = java.util.logging.Logger.getLogger("rest");
+  private final java.util.logging.Logger json = java.util.logging.Logger.getLogger("json");
   private final java.util.logging.Logger admin = java.util.logging.Logger.getLogger("admin");
   private final java.util.logging.Logger intern = java.util.logging.Logger.getLogger("internal");
 
@@ -40,7 +40,7 @@ public class Logger
   private final int count;
   private final String itlevel;
   private final String htlevel;
-  private final String rtlevel;
+  private final String jslevel;
   private final Formatter formatter = new Formatter();
 
   private boolean open = false;
@@ -67,7 +67,7 @@ public class Logger
     String path = Paths.apphome;
 
     htlevel = Config.get(config,"http");
-    rtlevel = Config.get(config,"rest");
+    jslevel = Config.get(config,"json");
     itlevel = Config.get(config,"internal");
 
     count = Config.get(config,"files",1);
@@ -180,10 +180,10 @@ public class Logger
 
     http.addHandler(handler);
 
-    rest.setUseParentHandlers(false);
-    rest.setLevel(Level.parse(rtlevel.toUpperCase()));
+    json.setUseParentHandlers(false);
+    json.setLevel(Level.parse(jslevel.toUpperCase()));
 
-    rest.addHandler(handler);
+    json.addHandler(handler);
 
     admin.setUseParentHandlers(false);
     admin.setLevel(Level.parse(itlevel.toUpperCase()));

@@ -55,7 +55,7 @@ public class RESTServer implements RESTConnection
   private final MailBox mailbox;
   private final ThreadPool workers;
 
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public RESTServer(Server server) throws Exception

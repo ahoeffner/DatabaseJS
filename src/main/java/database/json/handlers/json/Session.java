@@ -65,7 +65,7 @@ public class Session
   private final ConcurrentHashMap<String,Cursor> cursors =
     new ConcurrentHashMap<String,Cursor>();
 
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public static boolean forcePool(String scope)

@@ -44,7 +44,7 @@ public class AppFileHandler extends Handler
 {
   private final PathUtil path;
   private final CrossOrigin cors;
-  private final Logger logger = Logger.getLogger("rest");
+  private final Logger logger = Logger.getLogger("json");
 
 
   public AppFileHandler(Config config, HandlerProperties properties) throws Exception

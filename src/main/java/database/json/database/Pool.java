@@ -40,7 +40,7 @@ public class Pool
   private final String username;
   private final String password;
   private final ArrayList<Database> pool;
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public Pool(boolean proxy, String token, String username, String password, int min, int max, int idle, int busy) throws Exception

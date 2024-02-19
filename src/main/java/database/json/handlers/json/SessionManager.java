@@ -38,7 +38,7 @@ public class SessionManager
 {
   private final SSOReaper ssoreaper;
   private final SessionReaper sesreaper;
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
   private final static ArrayList<History> connhist =
     new ArrayList<History>();

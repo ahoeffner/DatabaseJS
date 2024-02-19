@@ -31,7 +31,7 @@ import database.json.servers.Server;
 public class PoolManager extends Thread
 {
   private final Config config;
-  private final static Logger logger = Logger.getLogger("rest");
+  private final static Logger logger = Logger.getLogger("json");
 
 
   public PoolManager(Server server)

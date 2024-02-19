@@ -118,7 +118,7 @@ public class Launcher implements ILauncher
 
   private static void usage()
   {
-    System.out.println("usage openrestdb start|stop|deploy|status [url]");
+    System.out.println("usage openjsondb start|stop|deploy|status [url]");
     System.exit(-1);
   }
 
@@ -143,7 +143,7 @@ public class Launcher implements ILauncher
 
     if (Cluster.isRunning((short) 0))
     {
-      logger.info("OpenRestDB instance "+config.instance()+" is already running");
+      logger.info("OpenJsonDB instance "+config.instance()+" is already running");
       return;
     }
 
@@ -347,7 +347,7 @@ public class Launcher implements ILauncher
       String pid = String.format("%8s ",stats.pid());
       String hits = String.format("%12s ",stats.requests());
 
-      String type = stats.http() ? "http" : "rest";
+      String type = stats.http() ? "http" : "json";
       if (stats.http() && !stats.httpmgr()) type += "(-)";
       type = String.format(" %-8s",type);
 

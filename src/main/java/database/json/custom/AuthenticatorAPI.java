@@ -34,7 +34,7 @@ public class AuthenticatorAPI
 {
    private final String host;
    private final Server server;
-   private final static Logger logger = Logger.getLogger("rest");
+   private final static Logger logger = Logger.getLogger("json");
 
 
    public AuthenticatorAPI(Server server, String host)

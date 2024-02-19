@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SQLTypes
 {
   private final static Logger logger =
-    Logger.getLogger("rest");
+    Logger.getLogger("json");
 
   public static final ConcurrentHashMap<String,Integer> types =
     new ConcurrentHashMap<String,Integer>();
