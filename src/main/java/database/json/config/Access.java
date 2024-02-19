@@ -29,7 +29,7 @@ public class Access extends Thread
 {
    private final int reload;
    private final AccessFile[] files;
-   private final static Logger logger = Logger.getLogger("http");
+   private final static Logger logger = Logger.getLogger("rest");
 
 
    public static void load(Config config) throws Exception
