@@ -21,6 +21,7 @@
 
 package database.json.config;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,6 +77,15 @@ public class Access extends Thread
       for (int i = 0; i < files.length; i++)
       {
          logger.info(files[i].file);
+
+         File file = new File(files[i].file);
+         long mod = file.lastModified();
+
+         if (mod > files[i].mod)
+         {
+            files[i].mod = mod;
+            logger.info("Reload "+files[i].file);
+         }
       }
    }
 
@@ -87,7 +97,7 @@ public class Access extends Thread
 
       AccessFile(String file)
       {
-         this.file = file;
+         this.file = Config.getPath(file,Paths.apphome);
       }
    }
 }
