@@ -254,12 +254,16 @@ public class JSONApi
         if (service.has("payload"))
         {
           JSONObject payload = service.getJSONObject("payload");
-          payload.remove("auth.secret");
+          
+          payload.remove("secret");
+          payload.remove("password");
         }
       }
     }
 
-    request.payload.remove("auth.secret");
+    request.payload.remove("secret");
+    request.payload.remove("password");
+
     request.payload.write(out,2,2);
 
     String formatted = out.toString();
@@ -772,6 +776,9 @@ public class JSONApi
 
       if (payload.has("secret"))
         secret = payload.getString("secret");
+
+      if (payload.has("password"))
+        secret = payload.getString("password");
 
       if (payload.has("method"))
           meth = payload.getString("method");

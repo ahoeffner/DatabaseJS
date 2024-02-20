@@ -165,6 +165,9 @@ public class JSONHandler extends Handler
       response.setBody(api.execute(func.path(),sql,false));
       response.setResponse(api.response());
 
+      if (api.isConnectRequest())
+        request.setBody(api.removeSecrets());
+
       if (!api.isPing() || logger.getLevel() == Level.FINEST)
         log(logger,request,response);
 

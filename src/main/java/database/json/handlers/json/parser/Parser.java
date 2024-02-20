@@ -50,9 +50,11 @@ public class Parser
    {
       APIObject object = null;
       JSONObject json = new JSONObject(request);
-      if (!json.has(SWITCH)) throw new Exception("Unknown request type");
 
-      switch(json.getString(SWITCH).toLowerCase())
+      if (!json.has(SWITCH))
+         throw new Exception("Unknown request type");
+
+      switch(((String) json.remove(SWITCH)).toLowerCase())
       {
          case "retrieve" : object = new Query(json); break;
          case "authenticate": object = new Authenticator(json);

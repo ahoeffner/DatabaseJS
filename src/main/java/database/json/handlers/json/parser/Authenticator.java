@@ -21,12 +21,18 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import org.json.JSONObject;
 
 
 public class Authenticator implements APIObject
 {
    private final JSONObject definition;
+
+   private static final HashSet<String> attrs =
+      new HashSet<>(Arrays.asList("scope","token","method","username","password","secret"));
+
 
    public Authenticator(JSONObject definition)
    {
@@ -44,19 +50,21 @@ public class Authenticator implements APIObject
    @Override
    public JSONObject toApi()
    {
+      JSONObject custom = new JSONObject();
       JSONObject request = new JSONObject();
 
-      if (definition.has("scope"))
-         request.put("scope",definition.get("scope"));
+      String[] props = JSONObject.getNames(definition);
 
-      if (definition.has("method"))
-         request.put("method",definition.get("method"));
+      for (int i = 0; i < props.length; i++)
+      {
+         String name = props[i].toLowerCase();
 
-      if (definition.has("username"))
-         request.put("username",definition.get("username"));
+         if (attrs.contains(name)) request.put(name,definition.get(name));
+         else custom.put(props[i],definition.get(props[i]));
+      }
 
-      if (definition.has("password"))
-         request.put("secret",definition.get("password"));
+      if (!custom.isEmpty())
+         request.put("custom",custom);
 
       return(request);
    }

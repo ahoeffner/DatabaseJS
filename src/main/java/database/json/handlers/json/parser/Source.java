@@ -57,8 +57,12 @@ public class Source
 
       this.id = definition.getString("id");
 
+      if (definition.has("table"))
+         table = definition.getString("table");
+
       if (definition.has("sql"))
       {
+         table = null;
          Object obj = definition.get("sql");
          if (obj instanceof String) sql = (String) obj;
 
@@ -73,9 +77,6 @@ public class Source
             sql = sql.trim();
          }
       }
-
-      if (definition.has("table"))
-         table = definition.getString("table");
 
       this.sql = sql;
       this.table = table;
