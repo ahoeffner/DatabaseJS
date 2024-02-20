@@ -92,6 +92,9 @@ public class Parser
       if (bindings.length() > 0)
          request.put("bindvalues",bindings);
 
+      if (func.custom() != null)
+         request.put("custom",func.custom());
+
       return(request);
    }
 

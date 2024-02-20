@@ -22,6 +22,7 @@
 package database.json.handlers.json.parser;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -32,11 +33,25 @@ public class Query implements SQLObject
 {
    private final String order;
    private final String source;
+   private final Object custom;
    private final String session;
    private final String[] columns;
    private final WhereClause whcl;
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
+
+   private static final HashSet<String> attrs =
+      new HashSet<>(Arrays.asList
+      (
+         Parser.SESSION,
+         Parser.SOURCE,
+         Parser.COLUMNS,
+         Parser.FILTERS,
+         Parser.BINDVALUE,
+         Parser.BINDVALUES,
+         Parser.ASSERTIONS,
+         Parser.ORDER
+      ));
 
    public Query(JSONObject definition) throws Exception
    {
@@ -73,9 +88,15 @@ public class Query implements SQLObject
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
+      Object custom = null;
+
+      if (definition.has("custom"))
+         custom = definition.get("custom");
+
       this.whcl = whcl;
       this.order = order;
       this.source = source;
+      this.custom = custom;
       this.session = session;
       this.columns = columns;
       this.assertions = Parser.getAssertions(definition);
@@ -136,6 +157,13 @@ public class Query implements SQLObject
       }
 
       return(sql);
+   }
+
+
+   @Override
+   public Object custom()
+   {
+      return(custom);
    }
 
 

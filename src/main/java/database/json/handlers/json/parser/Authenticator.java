@@ -31,7 +31,7 @@ public class Authenticator implements APIObject
    private final JSONObject definition;
 
    private static final HashSet<String> attrs =
-      new HashSet<>(Arrays.asList("scope","token","method","username","password","secret"));
+      new HashSet<>(Arrays.asList("scope","token","method","username","password","secret","custom"));
 
 
    public Authenticator(JSONObject definition)
@@ -50,21 +50,14 @@ public class Authenticator implements APIObject
    @Override
    public JSONObject toApi()
    {
-      JSONObject custom = new JSONObject();
       JSONObject request = new JSONObject();
-
       String[] props = JSONObject.getNames(definition);
 
       for (int i = 0; i < props.length; i++)
       {
          String name = props[i].toLowerCase();
-
          if (attrs.contains(name)) request.put(name,definition.get(name));
-         else custom.put(props[i],definition.get(props[i]));
       }
-
-      if (!custom.isEmpty())
-         request.put("custom",custom);
 
       return(request);
    }
