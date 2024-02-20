@@ -21,9 +21,14 @@
 
 package database.json.config;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
 
 
 public class Access extends Thread
@@ -81,10 +86,41 @@ public class Access extends Thread
 
          if (mod > files[i].mod)
          {
-            files[i].mod = mod;
             logger.info("Reload "+files[i].file);
+
+            load(files[i]);
+            files[i].mod = mod;
          }
       }
+   }
+
+
+   private JSONObject load(AccessFile file)
+   {
+      JSONObject sources = null;
+
+      try
+      {
+         String line = "";
+         ByteArrayOutputStream out = new ByteArrayOutputStream();
+         BufferedReader in = new BufferedReader(new FileReader(file.file));
+
+         while (line != null)
+         {
+            line = in.readLine();
+
+            if (line != null && !line.trim().startsWith("//"))
+               out.write((line+System.lineSeparator()).getBytes());
+         }
+
+         sources = new JSONObject(out.toString());
+         logger.info(sources.toString(2));
+      }
+      catch (Exception e)
+      {
+      }
+
+      return(sources);
    }
 
 
