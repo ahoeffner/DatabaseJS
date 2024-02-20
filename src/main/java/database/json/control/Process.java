@@ -36,9 +36,9 @@ public class Process
   private final String instnm;
   private final String javaexe;
   private final String httpopts;
-  private final String restopts;
+  private final String jsonopts;
   private final String httpjars;
-  private final String restjars;
+  private final String jsonjars;
   private final static String psep = File.pathSeparator;
   private final Logger logger = Logger.getLogger("internal");
 
@@ -53,9 +53,9 @@ public class Process
     this.jars = config.getJava().getClassPath();
 
     this.httpopts = config.getJava().getHttpOptions();
-    this.restopts = config.getJava().getRestOptions();
+    this.jsonopts = config.getJava().getRestOptions();
     this.httpjars = config.getJava().getHTTPClassPath();
-    this.restjars = config.getJava().getRESTClassPath();
+    this.jsonjars = config.getJava().getRESTClassPath();
   }
 
 
@@ -65,10 +65,10 @@ public class Process
     String options = null;
 
     if (type == Type.http) jars = httpjars;
-    else                   jars = restjars;
+    else                   jars = jsonjars;
 
     if (type == Type.http) options = httpopts;
-    else                   options = restopts;
+    else                   options = jsonopts;
 
     boolean embedded = servers <= 0;
 
@@ -80,7 +80,7 @@ public class Process
 
     logger.fine("Starting "+type+" instance "+instnm+"["+inst+"]");
     String classpath = classpath(type != Type.http || embedded) + jars;
-    String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.rest.servers.Server " + instnm + " " + inst;
+    String cmd = this.javaexe + " -cp " + classpath + " " + options + " database.json.servers.Server " + instnm + " " + inst;
 
     logger.finest(cmd);
     try {Runtime.getRuntime().exec(cmd);}

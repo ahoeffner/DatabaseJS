@@ -27,6 +27,7 @@ import database.json.database.BindValue;
 public interface SQLObject extends APIObject
 {
   String sql() throws Exception;
+  boolean lock() throws Exception;
   Object custom() throws Exception;
   String session() throws Exception;
   boolean validate() throws Exception;

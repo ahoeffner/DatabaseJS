@@ -147,6 +147,8 @@ public class JSONApi
       String ptok = null;
       Session session = null;
 
+      logger.info(payload.toString(2));
+
       Pool fpool = config.getDatabase().fixed;
       Pool ppool = config.getDatabase().proxy;
 
@@ -254,7 +256,7 @@ public class JSONApi
         if (service.has("payload"))
         {
           JSONObject payload = service.getJSONObject("payload");
-          
+
           payload.remove("secret");
           payload.remove("password");
         }

@@ -49,7 +49,11 @@ public class Access extends Thread
    public static void load(Config config) throws Exception
    {
       Security sec = config.getSecurity();
-      new Access(sec.access(),sec.reload());
+
+      int reload = sec.reload();
+      String[] files = sec.access();
+
+      if (files != null) new Access(files,reload);
    }
 
 
@@ -64,6 +68,7 @@ public class Access extends Thread
       this.setDaemon(true);
       this.setName("Access Monitor");
 
+      reload();
       if (reload > 0) this.start();
    }
 

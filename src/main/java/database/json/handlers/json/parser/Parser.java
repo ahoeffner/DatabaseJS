@@ -38,6 +38,7 @@ public class Parser
    static final public String FILTERS = "filters";
    static final public String OPERATOR = "operator";
 
+   static final public String LOCK = "lock";
    static final public String ORDER = "order";
    static final public String COLUMN = "column";
    static final public String COLUMNS = "columns";
@@ -57,6 +58,7 @@ public class Parser
       switch(((String) json.remove(SWITCH)).toLowerCase())
       {
          case "retrieve" : object = new Query(json); break;
+         case "describe" : object = Query.describe(json); break;
          case "authenticate": object = new Authenticator(json);
       }
 
@@ -67,9 +69,13 @@ public class Parser
    public static JSONObject toApi(SQLObject func) throws Exception
    {
       JSONObject binding = null;
+
+      BindValue[] assertions = null;
       BindValue[] bindvalues = null;
 
+      JSONArray asserts = new JSONArray();
       JSONArray bindings = new JSONArray();
+
       JSONObject request = new JSONObject();
 
       request.put("sql",func.sql());
@@ -92,8 +98,26 @@ public class Parser
       if (bindings.length() > 0)
          request.put("bindvalues",bindings);
 
+      bindings = new JSONArray();
+      assertions = func.getAssertions();
+
+      for (int i = 0; i < assertions.length; i++)
+      {
+         binding = new JSONObject();
+         binding.put("name",assertions[i].getName());
+         binding.put("type",assertions[i].getTypeName());
+         binding.put("value",assertions[i].getValue());
+         bindings.put(binding);
+      }
+
+      if (bindings.length() > 0)
+         request.put("assert",bindings);
+
       if (func.custom() != null)
          request.put("custom",func.custom());
+
+      if (func.lock())
+         request.put("lock",true);
 
       return(request);
    }

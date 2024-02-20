@@ -50,7 +50,9 @@ import database.json.custom.SQLValidatorAPI;
 import database.json.custom.AuthenticatorAPI;
 import database.json.servers.rest.RESTClient;
 import database.json.servers.rest.RESTServer;
+import database.json.database.filters.Filter;
 import database.json.handlers.file.Deployment;
+import database.json.handlers.json.parser.SQLObject;
 
 
 /**
@@ -435,6 +437,9 @@ public class Launcher implements ILauncher
 
         RESTClient.class,
         RESTServer.class,
+
+        Filter.class,
+        SQLObject.class,
 
         SQLRewriter.class,
         SQLRewriterAPI.class,

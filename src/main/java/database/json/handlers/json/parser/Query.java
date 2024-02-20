@@ -22,7 +22,6 @@
 package database.json.handlers.json.parser;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import database.json.database.BindValue;
 
 public class Query implements SQLObject
 {
+   private final boolean lock;
    private final String order;
    private final String source;
    private final Object custom;
@@ -40,29 +40,42 @@ public class Query implements SQLObject
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
 
-   private static final HashSet<String> attrs =
-      new HashSet<>(Arrays.asList
-      (
-         Parser.SESSION,
-         Parser.SOURCE,
-         Parser.COLUMNS,
-         Parser.FILTERS,
-         Parser.BINDVALUE,
-         Parser.BINDVALUES,
-         Parser.ASSERTIONS,
-         Parser.ORDER
-      ));
+   public static Query describe(JSONObject definition) throws Exception
+   {
+      JSONObject whcl = new JSONObject();
+      JSONObject filter = new JSONObject();
+      JSONObject describe = new JSONObject();
+
+      JSONArray filters = new JSONArray();
+      JSONArray columns = new JSONArray().put("*");
+
+      String source = definition.getString(Parser.SOURCE);
+
+      filters.put(whcl);
+      whcl.put("filter",filter);
+      filter.put("type","False");
+
+      describe.put("source",source);
+      describe.put("columns",columns);
+      describe.put("filters",filters);
+
+      return(new Query(describe));
+   }
 
    public Query(JSONObject definition) throws Exception
    {
       String order = null;
       String source = null;
+      boolean lock = false;
       String session = null;
       WhereClause whcl = null;
       String[] columns = new String[0];
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
+
+      if (definition.has(Parser.LOCK))
+         lock = definition.getBoolean(Parser.LOCK);
 
       if (definition.has(Parser.ORDER))
          order = definition.getString(Parser.ORDER);
@@ -94,6 +107,7 @@ public class Query implements SQLObject
          custom = definition.get("custom");
 
       this.whcl = whcl;
+      this.lock = lock;
       this.order = order;
       this.source = source;
       this.custom = custom;
@@ -190,5 +204,11 @@ public class Query implements SQLObject
    public JSONObject toApi() throws Exception
    {
       return(Parser.toApi(this));
+   }
+
+   @Override
+   public boolean lock()
+   {
+      return(lock);
    }
 }

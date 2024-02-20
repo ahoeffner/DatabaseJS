@@ -19,56 +19,28 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package database.json.handlers.json.parser;
+package database.json.database.filters;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import org.json.JSONObject;
+import database.json.database.BindValue;
 
 
-public class Authenticator implements APIObject
+public class False implements Filter
 {
-   private final JSONObject definition;
-
-   private static final HashSet<String> attrs =
-      new HashSet<String>(Arrays.asList
-      (
-         "scope",
-         "token",
-         "method",
-         "secret",
-         "username",
-         "password",
-         "clientinfo",
-         "custom"
-      ));
-
-
-   public Authenticator(JSONObject definition)
+   @Override
+   public String sql()
    {
-      this.definition = definition;
+      return("1 = 2");
    }
 
-
    @Override
-   public String path()
+   public BindValue[] getBindValues()
    {
-      return("connect");
+      return(new BindValue[0]);
    }
 
-
    @Override
-   public JSONObject toApi()
+   public void parse(JSONObject definition) throws Exception
    {
-      JSONObject request = new JSONObject();
-      String[] props = JSONObject.getNames(definition);
-
-      for (int i = 0; i < props.length; i++)
-      {
-         String name = props[i].toLowerCase();
-         if (attrs.contains(name)) request.put(name,definition.get(name));
-      }
-
-      return(request);
    }
 }

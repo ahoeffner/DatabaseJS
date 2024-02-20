@@ -28,13 +28,13 @@ import database.json.database.filters.Filter;
 public class Filters
 {
    private static HashMap<String,String> filters =
-      new HashMap<String,String>();
+      new HashMap<String,String>()
+      {{
+         put("false","database.json.database.filters.False");
+         put("equals","database.json.database.filters.Equals");
+      }};
 
-   static
-   {
-      Filters.filters.put("equals","database.json.database.filters.Equals");
-   }
-
+      
    @SuppressWarnings("unchecked")
    public static Filter get(String name) throws Exception
    {

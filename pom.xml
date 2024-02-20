@@ -69,7 +69,7 @@
           </includes>
           <archive>
             <manifest>
-              <mainClass>database.rest.control.Launcher</mainClass>
+              <mainClass>database.json.control.Launcher</mainClass>
             </manifest>
             <addMavenDescriptor>false</addMavenDescriptor>
           </archive>
