@@ -21,7 +21,10 @@
 
 package database.json.handlers.json.parser;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -55,7 +58,21 @@ public class Source
       this.id = definition.getString("id");
 
       if (definition.has("sql"))
-         sql = definition.getString("sql");
+      {
+         Object obj = definition.get("sql");
+         if (obj instanceof String) sql = (String) obj;
+
+         else if (obj instanceof JSONArray)
+         {
+            sql = "";
+            JSONArray lines = (JSONArray) obj;
+
+            for (int i = 0; i < lines.length(); i++)
+               sql += lines.getString(i) + " ";
+
+            sql = sql.trim();
+         }
+      }
 
       if (definition.has("table"))
          table = definition.getString("table");
