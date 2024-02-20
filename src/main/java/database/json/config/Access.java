@@ -21,20 +21,28 @@
 
 package database.json.config;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.HashMap;
 import java.io.FileReader;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.BufferedReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.json.JSONObject;
+import java.io.ByteArrayOutputStream;
+import database.json.handlers.json.parser.Source;
 
 
 public class Access extends Thread
 {
    private final int reload;
    private final AccessFile[] files;
+
+   private boolean unsigned = false;
+
+   private HashMap<String,Trustee> trustees =
+      new HashMap<String,Trustee>();
+
    private final static Logger logger = Logger.getLogger("json");
 
 
@@ -60,6 +68,20 @@ public class Access extends Thread
    }
 
 
+   public boolean acceptUnsigned()
+   {
+      return(unsigned);
+   }
+
+
+   public Trustee getTrustee(JSONObject msg)
+   {
+      if (!msg.has("signature")) return(null);
+      String sign = msg.getString("signature");
+      return(trustees.get(sign));
+   }
+
+
    @Override
    public void run()
    {
@@ -79,6 +101,14 @@ public class Access extends Thread
 
    private void reload()
    {
+      boolean changed = false;
+
+      HashMap<String,Source> sources =
+         new HashMap<String,Source>();
+
+      HashMap<String,Trustee> trustees =
+         new HashMap<String,Trustee>();
+
       for (int i = 0; i < files.length; i++)
       {
          File file = new File(files[i].file);
@@ -87,11 +117,60 @@ public class Access extends Thread
          if (mod > files[i].mod)
          {
             logger.info("Reload "+files[i].file);
+            JSONObject entries = load(files[i]);
 
-            load(files[i]);
-            files[i].mod = mod;
+            if (entries != null)
+            {
+               if (entries.has("access"))
+               {
+                  JSONObject access = entries.getJSONObject("access");
+
+                  if (access.has("unsigned"))
+                     this.unsigned = access.getBoolean("unsigned");
+
+                  if (access.has("trustees"))
+                  {
+                     JSONArray trust = access.getJSONArray("trustees");
+                     for (int t = 0; t < trust.length(); t++)
+                     {
+                        JSONObject trustee = trust.getJSONObject(t);
+
+                        String name = trustee.getString("name");
+                        String sign = trustee.getString("signature");
+                        trustees.put(sign,new Trustee(name,sign));
+                     }
+                  }
+               }
+
+               if (entries.has("datasources"))
+               {
+                  JSONArray ds = entries.getJSONArray("datasources");
+
+                  for (int s = 0; s < ds.length(); s++)
+                  {
+                     JSONObject definition = ds.getJSONObject(s);
+
+                     try
+                     {
+                        Source source = new Source(definition);
+                        sources.put(source.id,source);
+                     }
+                     catch (Exception e)
+                     {
+                        logger.log(Level.SEVERE,files[i].file,e);
+                        continue;
+                     }
+                  }
+               }
+
+               changed = true;
+               files[i].mod = mod;
+            }
          }
       }
+
+      if (changed)
+         Source.setSources(sources);
    }
 
 
@@ -99,11 +178,15 @@ public class Access extends Thread
    {
       JSONObject sources = null;
 
+      BufferedReader in = null;
+      ByteArrayOutputStream out = null;
+
       try
       {
          String line = "";
-         ByteArrayOutputStream out = new ByteArrayOutputStream();
-         BufferedReader in = new BufferedReader(new FileReader(file.file));
+
+         out = new ByteArrayOutputStream();
+         in = new BufferedReader(new FileReader(file.file));
 
          while (line != null)
          {
@@ -113,11 +196,13 @@ public class Access extends Thread
                out.write((line+System.lineSeparator()).getBytes());
          }
 
+         in.close();
          sources = new JSONObject(out.toString());
-         logger.info(sources.toString(2));
       }
       catch (Exception e)
       {
+         try {in.close();}
+         catch(Exception c) {};
       }
 
       return(sources);

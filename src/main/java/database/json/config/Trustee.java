@@ -19,49 +19,16 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package database.json.handlers.json.parser;
+package database.json.config;
 
-import java.util.HashMap;
-import org.json.JSONObject;
-
-
-public class Source
+public class Trustee
 {
-   private static HashMap<String,Source> sources =
-      new HashMap<String,Source>();
+   public final String name;
+   public final String signature;
 
-   public static Source getSource(String id)
+   public Trustee(String name, String signature)
    {
-      return(Source.sources.get(id.toLowerCase()));
-   }
-
-   public static void setSources(HashMap<String,Source> sources)
-   {
-      Source.sources = sources;
-   }
-
-
-   public final String id;
-   public final String sql;
-   public final String table;
-   public final SourceType type;
-
-
-   public Source(JSONObject definition) throws Exception
-   {
-      String sql = null;
-      String table = null;
-
-      this.id = definition.getString("id");
-
-      if (definition.has("sql"))
-         sql = definition.getString("sql");
-
-      if (definition.has("table"))
-         table = definition.getString("table");
-
-      this.sql = sql;
-      this.table = table;
-      this.type = table != null ? SourceType.table : SourceType.query;
+      this.name = name;
+      this.signature = signature;
    }
 }

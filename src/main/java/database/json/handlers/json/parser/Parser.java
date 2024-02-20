@@ -23,7 +23,6 @@ package database.json.handlers.json.parser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.FileInputStream;
 import database.json.database.BindValue;
 import database.json.database.BindValueDef;
 
@@ -46,25 +45,6 @@ public class Parser
    static final public String BINDVALUES = "bindvalues";
    static final public String ASSERTIONS = "assertions";
 
-   static String fld = "/Users/alhof/Repository/Test/";
-
-   public static void main(String[] args) throws Exception
-   {
-      int read = 0;
-      byte[] buf = new byte[8192];
-
-      String file = "test2.json";
-
-      FileInputStream in = new FileInputStream(Parser.fld+file);
-      read = in.read(buf); in.close();
-      String json = new String(buf,0,read);
-
-      //new Source("countries");
-      new Source("countries","select * from countries");
-
-      Parser.parse(json);
-      //if (!parsed.validate()) throw new Exception("Permission denied");
-   }
 
    public static APIObject parse(String request) throws Exception
    {
