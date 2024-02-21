@@ -50,12 +50,14 @@ public class Query implements SQLObject
       JSONArray columns = new JSONArray().put("*");
 
       String source = definition.getString(Parser.SOURCE);
+      String session = definition.getString(Parser.SESSION);
 
       filters.put(whcl);
       whcl.put("filter",filter);
       filter.put("type","False");
 
       describe.put("source",source);
+      describe.put("session",session);
       describe.put("columns",columns);
       describe.put("filters",filters);
 
