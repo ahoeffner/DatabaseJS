@@ -33,6 +33,8 @@ public class Parser
    static final public String SOURCE = "source";
    static final public String SWITCH = "function";
    static final public String SESSION = "session";
+   
+   static final public String DESCRIBE = "describe";
 
    static final public String FILTER = "filter";
    static final public String FILTERS = "filters";

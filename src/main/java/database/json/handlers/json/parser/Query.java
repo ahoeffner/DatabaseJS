@@ -31,6 +31,8 @@ import database.json.database.BindValue;
 public class Query implements SQLObject
 {
    private final boolean lock;
+   private final boolean describe;
+
    private final String order;
    private final String source;
    private final Object custom;
@@ -60,6 +62,7 @@ public class Query implements SQLObject
       describe.put("session",session);
       describe.put("columns",columns);
       describe.put("filters",filters);
+      describe.put(Parser.DESCRIBE,true);
 
       return(new Query(describe));
    }
@@ -71,6 +74,7 @@ public class Query implements SQLObject
       boolean lock = false;
       String session = null;
       WhereClause whcl = null;
+      boolean describe = false;
       String[] columns = new String[0];
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
@@ -87,6 +91,9 @@ public class Query implements SQLObject
 
       if (definition.has(Parser.SESSION))
          session = definition.getString(Parser.SESSION);
+
+      if (definition.has(Parser.DESCRIBE))
+         describe = definition.getBoolean(Parser.DESCRIBE);
 
       if (definition.has(Parser.COLUMNS))
       {
@@ -115,6 +122,7 @@ public class Query implements SQLObject
       this.custom = custom;
       this.session = session;
       this.columns = columns;
+      this.describe = describe;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
@@ -205,7 +213,9 @@ public class Query implements SQLObject
    @Override
    public JSONObject toApi() throws Exception
    {
-      return(Parser.toApi(this));
+      JSONObject parsed = Parser.toApi(this);
+      if (describe) parsed.put(Parser.DESCRIBE,describe);
+      return(parsed);
    }
 
    @Override
