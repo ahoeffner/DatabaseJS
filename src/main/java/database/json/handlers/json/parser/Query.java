@@ -214,7 +214,10 @@ public class Query implements SQLObject
    public JSONObject toApi() throws Exception
    {
       JSONObject parsed = Parser.toApi(this);
+
+      parsed.put(Parser.COMPACT,true);
       if (describe) parsed.put(Parser.DESCRIBE,describe);
+
       return(parsed);
    }
 
