@@ -37,6 +37,12 @@ public class WhereClause implements Filter
   private ArrayList<FilterEntry> entries =
     new ArrayList<FilterEntry>();
 
+    
+  public boolean isEmpty()
+  {
+    return(entries.size() == 0);
+  }
+
 
   @Override
   public String sql()

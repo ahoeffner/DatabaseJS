@@ -161,7 +161,7 @@ public class Query implements SQLObject
       {
          sql += " from "+source.table;
 
-         if (whcl != null)
+         if (whcl != null && !whcl.isEmpty())
             sql += " where " + whcl.sql();
 
          if (order != null)
