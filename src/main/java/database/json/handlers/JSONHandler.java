@@ -176,7 +176,7 @@ public class JSONHandler extends Handler
           Source source = Source.getSource(((Query) func).source());
 
           if (source.order != null)
-            response.setBody(rsp.toString(2));
+            rsp.put("order",source.order);
 
           if (source.primary != null)
             rsp.put("primarykey",source.primary);
