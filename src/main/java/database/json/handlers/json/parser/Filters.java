@@ -21,11 +21,9 @@
 
 package database.json.handlers.json.parser;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
-
 import org.json.JSONObject;
-
+import java.lang.reflect.Constructor;
 import database.json.database.filters.Filter;
 
 
@@ -37,6 +35,7 @@ public class Filters
          put("like","database.json.database.filters.Like");
          put("false","database.json.database.filters.False");
          put("equals","database.json.database.filters.Equals");
+         put("lessthan","database.json.database.filters.LessThan");
          put("greaterthan","database.json.database.filters.GreaterThan");
       }};
 
