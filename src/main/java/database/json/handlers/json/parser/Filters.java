@@ -21,7 +21,11 @@
 
 package database.json.handlers.json.parser;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
+
+import org.json.JSONObject;
+
 import database.json.database.filters.Filter;
 
 
@@ -30,19 +34,36 @@ public class Filters
    private static HashMap<String,String> filters =
       new HashMap<String,String>()
       {{
+         put("like","database.json.database.filters.Like");
          put("false","database.json.database.filters.False");
          put("equals","database.json.database.filters.Equals");
+         put("greaterthan","database.json.database.filters.GreaterThan");
       }};
 
-      
+
    @SuppressWarnings("unchecked")
-   public static Filter get(String name) throws Exception
+   public static Filter get(String name, JSONObject definition) throws Exception
    {
       if (name == null) throw new Exception("Lookup null?");
       String clazz = Filters.filters.get(name.toLowerCase());
       if (clazz == null)  throw new Exception("Unknown filter '"+name+"'");
 
       Class<Filter> impl = (Class<Filter>) Class.forName(clazz);
-      return(impl.getDeclaredConstructor().newInstance());
+
+      Constructor<Filter> def = null;
+      Constructor<?>[] constrs = impl.getDeclaredConstructors();
+
+      for (int i = 0; i < constrs.length; i++)
+      {
+         Class<?>[] pars = constrs[i].getParameterTypes();
+         Constructor<Filter> constr = (Constructor<Filter>) constrs[i];
+
+         if (pars.length == 0) def = constr;
+
+         else if (pars.length == 1 && pars[0] == JSONObject.class)
+            return(constr.newInstance(definition));
+      }
+
+      return(def.newInstance());
    }
 }

@@ -37,7 +37,7 @@ public class WhereClause implements Filter
   private ArrayList<FilterEntry> entries =
     new ArrayList<FilterEntry>();
 
-    
+
   public boolean isEmpty()
   {
     return(entries.size() == 0);
@@ -98,8 +98,7 @@ public class WhereClause implements Filter
         if (entry.has(Parser.CLASS))
         {
           String clazz = entry.getString(Parser.CLASS);
-
-          Filter filter = Filters.get(clazz);
+          Filter filter = Filters.get(clazz,entry);
 
           filter.parse(entry);
           this.bindvals.addAll(Arrays.asList(filter.getBindValues()));
