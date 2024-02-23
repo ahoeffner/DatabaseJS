@@ -22,6 +22,7 @@
 package database.json.handlers.json.parser;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.json.JSONArray;
@@ -47,18 +48,34 @@ public class Source
    public final String id;
    public final String sql;
    public final String table;
+   public final String order;
    public final SourceType type;
+   public final String[] primary;
 
 
    public Source(JSONObject definition) throws Exception
    {
       String sql = null;
       String table = null;
+      String order = null;
+      String[] primary = null;
 
       this.id = definition.getString("id");
 
       if (definition.has("table"))
          table = definition.getString("table");
+
+      if (definition.has("order"))
+         order = definition.getString("order");
+
+      if (definition.has("primarykey"))
+      {
+         String pkey = definition.getString("primarykey");
+
+         primary = pkey.split((","));
+         for (int i = 0; i < primary.length; i++)
+            primary[i] = primary[i].trim();
+      }
 
       if (definition.has("sql"))
       {
@@ -80,6 +97,8 @@ public class Source
 
       this.sql = sql;
       this.table = table;
+      this.order = order;
+      this.primary = primary;
       this.type = table != null ? SourceType.table : SourceType.query;
    }
 }

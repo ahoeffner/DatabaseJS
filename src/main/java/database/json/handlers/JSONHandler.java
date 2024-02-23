@@ -36,6 +36,8 @@ import database.json.servers.http.HTTPRequest;
 import database.json.servers.http.HTTPResponse;
 import database.json.handlers.json.JSONFormatter;
 import database.json.handlers.json.parser.Parser;
+import database.json.handlers.json.parser.Query;
+import database.json.handlers.json.parser.Source;
 import database.json.handlers.json.parser.APIObject;
 import database.json.config.Handlers.HandlerProperties;
 
@@ -164,6 +166,25 @@ public class JSONHandler extends Handler
       response.setContentType(json);
       response.setBody(api.execute(func.path(),sql,false));
       response.setResponse(api.response());
+
+      if (func instanceof Query && ((Query) func).describe())
+      {
+        JSONObject rsp = new JSONObject(new String(response.body()));
+
+        if (rsp.getBoolean("success"))
+        {
+          Source source = Source.getSource(((Query) func).source());
+
+          if (source.order != null)
+            response.setBody(rsp.toString(2));
+
+          if (source.primary != null)
+            rsp.put("primarykey",source.primary);
+
+          response.setBody(rsp.toString(2));
+
+        }
+      }
 
       if (api.isConnectRequest())
         request.setBody(api.removeSecrets());

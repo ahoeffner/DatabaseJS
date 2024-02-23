@@ -67,6 +67,7 @@ public class Query implements SQLObject
       return(new Query(describe));
    }
 
+
    public Query(JSONObject definition) throws Exception
    {
       String order = null;
@@ -125,6 +126,18 @@ public class Query implements SQLObject
       this.describe = describe;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+   }
+
+
+   public String source()
+   {
+      return(source);
+   }
+
+
+   public boolean describe()
+   {
+      return(describe);
    }
 
 
