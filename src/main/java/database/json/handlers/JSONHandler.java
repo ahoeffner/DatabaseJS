@@ -176,7 +176,7 @@ public class JSONHandler extends Handler
     {
       JSONObject err = new JSONObject();
 
-      err.put("success","false");
+      err.put("success",false);
       err.put("message",e.getMessage());
       err.put("instance",config().instance());
 
