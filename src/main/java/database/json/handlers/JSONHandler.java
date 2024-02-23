@@ -183,6 +183,8 @@ public class JSONHandler extends Handler
       response.setResponse(500);
       response.setContentType(json);
       response.setBody(err.toString(2));
+
+      log(logger,request,response);
     }
 
 
