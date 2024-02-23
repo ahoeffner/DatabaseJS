@@ -42,6 +42,7 @@ public class Parser
    static final public String OPERATOR = "operator";
 
    static final public String LOCK = "lock";
+   static final public String QUERY = "query";
    static final public String ORDER = "order";
    static final public String COLUMN = "column";
    static final public String COLUMNS = "columns";
