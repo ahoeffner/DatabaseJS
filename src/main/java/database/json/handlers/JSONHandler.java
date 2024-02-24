@@ -160,11 +160,11 @@ public class JSONHandler extends Handler
     {
       APIObject func = Parser.parse(payload);
 
-      JSONObject sql = func.toApi();
+      JSONObject call = func.toApi();
       JSONApi api = new JSONApi(server,savepoint,remote);
 
       response.setContentType(json);
-      response.setBody(api.execute(func.path(),sql,false));
+      response.setBody(api.execute(func.path(),call,false));
       response.setResponse(api.response());
 
       if (func instanceof Query && ((Query) func).describe())
@@ -182,7 +182,6 @@ public class JSONHandler extends Handler
             rsp.put("primarykey",source.primary);
 
           response.setBody(rsp.toString(2));
-
         }
       }
 
@@ -197,6 +196,7 @@ public class JSONHandler extends Handler
     {
       JSONObject err = new JSONObject();
 
+      err.put("fatal",true);
       err.put("success",false);
       err.put("message",e.getMessage());
       err.put("instance",config().instance());
@@ -205,6 +205,7 @@ public class JSONHandler extends Handler
       response.setContentType(json);
       response.setBody(err.toString(2));
 
+      logger.log(Level.SEVERE,e.getMessage(),e);
       log(logger,request,response);
     }
 

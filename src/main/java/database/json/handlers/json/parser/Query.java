@@ -33,8 +33,10 @@ public class Query implements SQLObject
    private final boolean lock;
    private final boolean describe;
 
+   private final int skip;
    private final String order;
    private final String source;
+   private final String cursor;
    private final Object custom;
    private final String session;
    private final String[] columns;
@@ -70,8 +72,10 @@ public class Query implements SQLObject
 
    public Query(JSONObject definition) throws Exception
    {
+      int skip = 0;
       String order = null;
       String source = null;
+      String cursor = null;
       boolean lock = false;
       String session = null;
       WhereClause whcl = null;
@@ -84,11 +88,17 @@ public class Query implements SQLObject
       if (definition.has(Parser.LOCK))
          lock = definition.getBoolean(Parser.LOCK);
 
+      if (definition.has(Parser.SKIP))
+         skip = definition.getInt(Parser.SKIP);
+
       if (definition.has(Parser.ORDER))
          order = definition.getString(Parser.ORDER);
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
+
+      if (definition.has(Parser.CURSOR))
+         cursor = definition.getString(Parser.CURSOR);
 
       if (definition.has(Parser.SESSION))
          session = definition.getString(Parser.SESSION);
@@ -118,8 +128,10 @@ public class Query implements SQLObject
 
       this.whcl = whcl;
       this.lock = lock;
+      this.skip = skip;
       this.order = order;
       this.source = source;
+      this.cursor = cursor;
       this.custom = custom;
       this.session = session;
       this.columns = columns;
