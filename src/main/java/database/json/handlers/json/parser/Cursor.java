@@ -34,8 +34,8 @@ public class Cursor implements APIObject
       if (definition.has("name"))
          name = definition.getString("name");
 
-      if (definition.has("operation"))
-         type = definition.getString("operation").toLowerCase();
+      if (definition.has("request"))
+         type = definition.getString("request").toLowerCase();
    }
 
    @Override
@@ -48,6 +48,12 @@ public class Cursor implements APIObject
    public JSONObject toApi() throws Exception
    {
       JSONObject request = new JSONObject();
+
+      if (name == null)
+         throw new Exception("Cursor name missing");
+
+      if (type == null)
+         throw new Exception("Cursor request missing");
 
       request.put("cursor",name);
       if (type.equals("close")) request.put("close",true);
