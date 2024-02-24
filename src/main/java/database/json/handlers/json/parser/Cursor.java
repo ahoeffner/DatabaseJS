@@ -28,11 +28,15 @@ public class Cursor implements APIObject
 {
    private String name = null;
    private String type = null;
+   private String session = null;
 
    public Cursor(JSONObject definition)
    {
       if (definition.has("name"))
          name = definition.getString("name");
+
+      if (definition.has(Parser.SESSION))
+         session = definition.getString(Parser.SESSION);
 
       if (definition.has("request"))
          type = definition.getString("request").toLowerCase();
@@ -56,7 +60,10 @@ public class Cursor implements APIObject
          throw new Exception("Cursor request missing");
 
       request.put("cursor",name);
-      if (type.equals("close")) request.put("close",true);
+      request.put("session",session);
+
+      if (type.equals("close"))
+         request.put("close",true);
 
       return(request);
    }
