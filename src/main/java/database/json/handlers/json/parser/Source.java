@@ -21,10 +21,7 @@
 
 package database.json.handlers.json.parser;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
