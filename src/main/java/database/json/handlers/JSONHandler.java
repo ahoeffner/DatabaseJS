@@ -163,6 +163,9 @@ public class JSONHandler extends Handler
       JSONObject call = func.toApi();
       JSONApi api = new JSONApi(server,savepoint,remote);
 
+      // See what's passed on
+      // request.setBody(call.toString(2));
+
       response.setContentType(json);
       response.setBody(api.execute(func.path(),call,false));
       response.setResponse(api.response());
@@ -201,7 +204,7 @@ public class JSONHandler extends Handler
       err.put("message",e.getMessage());
       err.put("instance",config().instance());
 
-      response.setResponse(500);
+      response.setResponse(405);
       response.setContentType(json);
       response.setBody(err.toString(2));
 

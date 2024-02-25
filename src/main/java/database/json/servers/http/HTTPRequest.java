@@ -149,9 +149,9 @@ public class HTTPRequest
     return(body);
   }
 
-  public void setBody(String scrambled)
+  public void setBody(String body)
   {
-    this.body = scrambled.getBytes();
+    this.body = body.getBytes();
   }
 
   public String getQuery(String qstr)

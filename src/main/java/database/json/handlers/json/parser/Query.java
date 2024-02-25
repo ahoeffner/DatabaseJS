@@ -34,6 +34,7 @@ public class Query implements SQLObject
    private final boolean describe;
 
    private final int skip;
+   private final int rows;
    private final String order;
    private final String source;
    private final String cursor;
@@ -73,6 +74,7 @@ public class Query implements SQLObject
    public Query(JSONObject definition) throws Exception
    {
       int skip = 0;
+      int rows = 0;
       String order = null;
       String source = null;
       String cursor = null;
@@ -90,6 +92,9 @@ public class Query implements SQLObject
 
       if (definition.has(Parser.SKIP))
          skip = definition.getInt(Parser.SKIP);
+
+      if (definition.has(Parser.ROWS))
+         rows = definition.getInt(Parser.ROWS);
 
       if (definition.has(Parser.ORDER))
          order = definition.getString(Parser.ORDER);
@@ -127,8 +132,9 @@ public class Query implements SQLObject
          custom = definition.get("custom");
 
       this.whcl = whcl;
-      this.lock = lock;
       this.skip = skip;
+      this.rows = rows;
+      this.lock = lock;
       this.order = order;
       this.source = source;
       this.cursor = cursor;
@@ -243,8 +249,9 @@ public class Query implements SQLObject
       parsed.put(Parser.COMPACT,true);
 
       if (lock) parsed.put(Parser.LOCK,lock);
-      if (describe) parsed.put(Parser.DESCRIBE,describe);
       if (skip > 0) parsed.put(Parser.SKIP,skip);
+      if (rows > 0) parsed.put(Parser.ROWS,rows);
+      if (describe) parsed.put(Parser.DESCRIBE,describe);
       if (cursor != null) parsed.put(Parser.CURSOR,cursor);
 
       return(parsed);
