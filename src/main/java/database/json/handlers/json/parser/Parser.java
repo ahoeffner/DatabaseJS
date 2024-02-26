@@ -187,7 +187,7 @@ public class Parser
 
             if (adef.has("value")) value = adef.get("value");
             if (adef.has("type")) type = adef.getString("type");
-            if (adef.has("name")) column = adef.getString("name");
+            if (adef.has("column")) column = adef.getString("column");
 
             bindvalues[i] = new BindValue(new BindValueDef(column,type,false,value),false);
          }
