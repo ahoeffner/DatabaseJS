@@ -55,7 +55,10 @@ public class Session implements APIObject
    public JSONObject toApi() throws Exception
    {
       JSONObject request = new JSONObject();
+
       request.put("session",session);
+      if (keepalive) request.put("keepalive",true);
+      
       return(request);
    }
 }
