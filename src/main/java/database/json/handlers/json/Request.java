@@ -48,6 +48,7 @@ public class Request
     function.add("map");
     function.add("call");
     function.add("batch");
+    function.add("query");
     function.add("merge");
     function.add("fetch");
     function.add("script");

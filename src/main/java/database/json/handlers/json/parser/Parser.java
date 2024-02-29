@@ -31,8 +31,13 @@ public class Parser
 {
    static final public String CLASS = "type";
    static final public String SOURCE = "source";
+   static final public String CUSTOM = "custom";
    static final public String SWITCH = "function";
    static final public String SESSION = "session";
+
+   static final public String QUERY = "query";
+   static final public String BATCH = "batch";
+   static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
    static final public String DESCRIBE = "describe";
@@ -40,11 +45,13 @@ public class Parser
    static final public String FILTER = "filter";
    static final public String FILTERS = "filters";
    static final public String OPERATOR = "operator";
+   static final public String PRIMARYKEY = "primarykey";
 
+   static final public String SQL = "sql";
    static final public String ROWS = "rows";
    static final public String SKIP = "skip";
    static final public String LOCK = "lock";
-   static final public String QUERY = "query";
+   static final public String STEPS = "steps";
    static final public String ORDER = "order";
    static final public String CURSOR = "cursor";
    static final public String COLUMN = "column";
@@ -56,19 +63,24 @@ public class Parser
 
    public static APIObject parse(String request) throws Exception
    {
-      APIObject object = null;
-      JSONObject json = new JSONObject(request);
+      return(Parser.parse(new JSONObject(request)));
+   }
 
-      if (!json.has(SWITCH))
+   public static APIObject parse(JSONObject request) throws Exception
+   {
+      APIObject object = null;
+
+      if (!request.has(SWITCH))
          throw new Exception("Permission denied, Unknown request");
 
-      switch(((String) json.remove(SWITCH)).toLowerCase())
+      switch(((String) request.remove(SWITCH)).toLowerCase())
       {
-         case "cursor" : object = new Cursor(json);               break;
-         case "session" : object = new Session(json);             break;
-         case "retrieve" : object = new Query(json);              break;
-         case "describe" : object = Query.describe(json);         break;
-         case "authenticate" : object = new Authenticator(json);  break;
+         case Parser.QUERY : object = new Query(request);                  break;
+         case Parser.BATCH : object = new Batch(request);                  break;
+         case Parser.CURSOR : object = new Cursor(request);                break;
+         case Parser.SESSION : object = new Session(request);              break;
+         case Parser.DESCRIBE : object = Query.describe(request);          break;
+         case Parser.AUTHENTICATE : object = new Authenticator(request);   break;
       }
 
       if (object == null)
@@ -85,13 +97,11 @@ public class Parser
       BindValue[] assertions = null;
       BindValue[] bindvalues = null;
 
-      JSONArray asserts = new JSONArray();
       JSONArray bindings = new JSONArray();
-
       JSONObject request = new JSONObject();
 
-      request.put("sql",func.sql());
-      request.put("session",func.session());
+      request.put(Parser.SQL,func.sql());
+      request.put(Parser.SESSION,func.session());
 
       bindvalues = func.getBindValues();
       for (int i = 0; i < bindvalues.length; i++)
@@ -108,7 +118,7 @@ public class Parser
       }
 
       if (bindings.length() > 0)
-         request.put("bindvalues",bindings);
+         request.put(Parser.BINDVALUES,bindings);
 
       bindings = new JSONArray();
       assertions = func.getAssertions();
@@ -123,13 +133,13 @@ public class Parser
       }
 
       if (bindings.length() > 0)
-         request.put("assert",bindings);
+         request.put(Parser.ASSERTIONS,bindings);
 
       if (func.custom() != null)
-         request.put("custom",func.custom());
+         request.put(Parser.CUSTOM,func.custom());
 
       if (func.lock())
-         request.put("lock",true);
+         request.put(Parser.LOCK,true);
 
       return(request);
    }

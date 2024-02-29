@@ -105,10 +105,10 @@ public class JSONHandler extends Handler
         JSONFormatter jfmt = new JSONFormatter();
 
         jfmt.success(false);
-        jfmt.add("message","No RESTServer's connected");
+        jfmt.add("message","No JSONServer's connected");
 
         response.setBody(jfmt.toString());
-        logger.warning("No RESTServer's connected");
+        logger.warning("No JSONServer's connected");
 
         return(response);
       }
@@ -179,10 +179,10 @@ public class JSONHandler extends Handler
           Source source = Source.getSource(((Query) func).source());
 
           if (source.order != null)
-            rsp.put("order",source.order);
+            rsp.put(Parser.ORDER,source.order);
 
           if (source.primary != null)
-            rsp.put("primarykey",source.primary);
+            rsp.put(Parser.PRIMARYKEY,source.primary);
 
           response.setBody(rsp.toString(2));
         }

@@ -58,13 +58,13 @@ public class Query implements SQLObject
       String session = definition.getString(Parser.SESSION);
 
       filters.put(whcl);
-      whcl.put("filter",filter);
+      whcl.put(Parser.FILTER,filter);
       filter.put("type","False");
 
-      describe.put("source",source);
-      describe.put("session",session);
-      describe.put("columns",columns);
-      describe.put("filters",filters);
+      describe.put(Parser.SOURCE,source);
+      describe.put(Parser.SESSION,session);
+      describe.put(Parser.COLUMNS,columns);
+      describe.put(Parser.FILTERS,filters);
       describe.put(Parser.DESCRIBE,true);
 
       return(new Query(describe));
@@ -79,6 +79,7 @@ public class Query implements SQLObject
       String source = null;
       String cursor = null;
       boolean lock = false;
+      Object custom = null;
       String session = null;
       WhereClause whcl = null;
       boolean describe = false;
@@ -126,10 +127,8 @@ public class Query implements SQLObject
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
-      Object custom = null;
-
-      if (definition.has("custom"))
-         custom = definition.get("custom");
+      if (definition.has(Parser.CUSTOM))
+         custom = definition.get(Parser.CUSTOM);
 
       this.whcl = whcl;
       this.skip = skip;
@@ -238,7 +237,7 @@ public class Query implements SQLObject
    @Override
    public String path()
    {
-      return("select");
+      return(Parser.QUERY);
    }
 
    @Override

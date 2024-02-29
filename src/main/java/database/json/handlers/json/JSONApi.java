@@ -611,6 +611,9 @@ public class JSONApi
             case "call" :
               response = call(request.payload); break;
 
+            case "query" :
+              response = select(request.payload); break;
+
             case "select" :
               response = select(request.payload); break;
 
@@ -1060,8 +1063,8 @@ public class JSONApi
       if (payload.has("nowait"))
         nowait = payload.getBoolean("nowait");
 
-      if (payload.has("assert"))
-        assertions = this.getAssertions(payload.getJSONArray("assert"));
+      if (payload.has("assertions"))
+        assertions = this.getAssertions(payload.getJSONArray("assertions"));
 
       if (payload.has("bindvalues"))
         this.getBindValues(payload.getJSONArray("bindvalues"));
@@ -1298,7 +1301,7 @@ public class JSONApi
       if (payload.has("lock"))
         lock = payload.getBoolean("lock");
 
-      if (lock || payload.has("assert"))
+      if (lock || payload.has("assertions"))
       {
         JSONObject sel4upd = makeAssert(payload);
 
@@ -1925,8 +1928,8 @@ public class JSONApi
     HashMap<String,BindValueDef> assertions =
       new HashMap<String,BindValueDef>();
 
-    if (payload.has("assert"))
-      assertions = this.getAssertions(payload.getJSONArray("assert"));
+    if (payload.has("assertions"))
+      assertions = this.getAssertions(payload.getJSONArray("assertions"));
 
     String sql = "select ";
     String[] columns = assertions.keySet().toArray(new String[assertions.size()]);
@@ -1977,8 +1980,8 @@ public class JSONApi
     if (payload.has("compact"))
       json.put("compact",payload.get("compact"));
 
-    if (payload.has("assert"))
-      json.put("assert",payload.getJSONArray("assert"));
+    if (payload.has("assertions"))
+      json.put("assertions",payload.getJSONArray("assertions"));
 
     if (payload.has("bindvalues"))
       json.put("bindvalues",payload.getJSONArray("bindvalues"));
