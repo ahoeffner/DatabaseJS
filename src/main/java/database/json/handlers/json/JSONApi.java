@@ -412,7 +412,7 @@ public class JSONApi
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      String resp = "{\"steps\":\n" + response + "\n}";
+      String resp = "{\"success\":true, \"steps\":\n" + response + "\n}";
       if (sesid != null) resp = "{\"session\": \""+sesid+"\", \"steps\":\n" + response + "\n}";
 
       return(resp);
