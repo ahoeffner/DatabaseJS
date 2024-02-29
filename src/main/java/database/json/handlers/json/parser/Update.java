@@ -55,7 +55,6 @@ public class Update implements SQLObject
       String[] columns = new String[0];
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
-      bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
 
       if (definition.has(Parser.LOCK))
          lock = definition.getBoolean(Parser.LOCK);
@@ -72,14 +71,13 @@ public class Update implements SQLObject
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
-      String prefix = System.currentTimeMillis()+"";
-
       if (definition.has(Parser.UPDATE))
       {
          JSONArray jarr = definition.getJSONArray(Parser.UPDATE);
 
          for (int i = 0; i < jarr.length(); i++)
          {
+            String name = null;
             String type = null;
             Object value = null;
             String column = null;
@@ -87,10 +85,10 @@ public class Update implements SQLObject
             JSONObject bdef = jarr.optJSONObject(i);
 
             if (bdef.has("value")) value = bdef.get("value");
+            if (bdef.has("name")) name = bdef.getString("name");
             if (bdef.has("type")) type = bdef.getString("type");
             if (bdef.has("column")) column = bdef.getString("column");
 
-            String name = "b"+prefix+"_"+i;
             BindValue bval = new BindValue(new BindValueDef(name,type,false,value),false);
 
             bindvalues.add(bval);
@@ -98,8 +96,8 @@ public class Update implements SQLObject
          }
       }
 
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
+      bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
+      if (definition.has(Parser.CUSTOM)) custom = definition.get(Parser.CUSTOM);
 
       this.whcl = whcl;
       this.lock = lock;

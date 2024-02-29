@@ -281,6 +281,7 @@ public class JSONApi
     String sesid = null;
     Request step = null;
     String result = null;
+    boolean success = true;
     String response = "[\n";
     boolean connected = false;
     boolean disconnect = true;
@@ -365,6 +366,8 @@ public class JSONApi
 
         if (this.failed && state.session() != null)
         {
+          success = false;
+
           if (state.savepoint == null)
           {
             state.lock(true);
@@ -412,8 +415,8 @@ public class JSONApi
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      String resp = "{\"success\":true, \"steps\":\n" + response + "\n}";
-      if (sesid != null) resp = "{\"session\": \""+sesid+"\", \"steps\":\n" + response + "\n}";
+      String resp = "{\"success\": "+success+", \"steps\":\n" + response + "\n}";
+      if (sesid != null) resp = "{\"success\": "+success+", \"session\": \""+sesid+"\", \"steps\":\n" + response + "\n}";
 
       return(resp);
     }
