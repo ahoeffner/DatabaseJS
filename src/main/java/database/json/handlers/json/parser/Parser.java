@@ -29,14 +29,17 @@ import database.json.database.BindValueDef;
 
 public class Parser
 {
+   static final public String PATH = "path";
    static final public String CLASS = "type";
    static final public String SOURCE = "source";
    static final public String CUSTOM = "custom";
    static final public String SWITCH = "function";
    static final public String SESSION = "session";
+   static final public String PAYLOAD = "payload";
 
    static final public String QUERY = "query";
    static final public String BATCH = "batch";
+   static final public String UPDATE = "update";
    static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
@@ -73,10 +76,13 @@ public class Parser
       if (!request.has(SWITCH))
          throw new Exception("Permission denied, Unknown request");
 
-      switch(((String) request.remove(SWITCH)).toLowerCase())
+      String type = ((String) request.remove(SWITCH)).toLowerCase();
+
+      switch(type)
       {
          case Parser.QUERY : object = new Query(request);                  break;
          case Parser.BATCH : object = new Batch(request);                  break;
+         case Parser.UPDATE : object = new Update(request);                break;
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
@@ -84,7 +90,7 @@ public class Parser
       }
 
       if (object == null)
-         throw new Exception("Permission denied, Unknown request");
+         throw new Exception("Permission denied, Unknown request '"+type+"'");
 
       return(object);
    }

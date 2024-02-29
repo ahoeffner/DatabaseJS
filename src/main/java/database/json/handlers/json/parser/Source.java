@@ -76,7 +76,6 @@ public class Source
 
       if (definition.has("sql"))
       {
-         table = null;
          Object obj = definition.get("sql");
          if (obj instanceof String) sql = (String) obj;
 

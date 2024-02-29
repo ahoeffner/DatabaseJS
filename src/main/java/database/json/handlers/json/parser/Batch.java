@@ -80,10 +80,15 @@ public class Batch implements SQLObject
       for (int i = 0; i < this.steps.length(); i++)
       {
          APIObject step = Parser.parse(this.steps.getJSONObject(i));
-         System.out.println(step+"");
-         steps.put(step.toApi());
+
+         JSONObject next = new JSONObject();
+         next.put(Parser.PATH,step.path());
+         next.put(Parser.PAYLOAD,step.toApi());
+
+         steps.put(next);
       }
 
+      parsed.put(Parser.BATCH,steps);
       return(parsed);
    }
 
