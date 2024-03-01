@@ -39,7 +39,9 @@ public class Parser
 
    static final public String QUERY = "query";
    static final public String BATCH = "batch";
+   static final public String INSERT = "insert";
    static final public String UPDATE = "update";
+   static final public String DELETE = "delete";
    static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
@@ -56,8 +58,10 @@ public class Parser
    static final public String LOCK = "lock";
    static final public String STEPS = "steps";
    static final public String ORDER = "order";
+   static final public String VALUE = "value";
    static final public String CURSOR = "cursor";
    static final public String COLUMN = "column";
+   static final public String VALUES = "values";
    static final public String COLUMNS = "columns";
    static final public String BINDVALUE = "bindvalue";
    static final public String BINDVALUES = "bindvalues";
@@ -82,7 +86,9 @@ public class Parser
       {
          case Parser.QUERY : object = new Query(request);                  break;
          case Parser.BATCH : object = new Batch(request);                  break;
+         case Parser.INSERT : object = new Insert(request);                break;
          case Parser.UPDATE : object = new Update(request);                break;
+         case Parser.DELETE : object = new Delete(request);                break;
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
