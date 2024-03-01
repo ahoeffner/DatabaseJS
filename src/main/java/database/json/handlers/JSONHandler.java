@@ -37,6 +37,7 @@ import database.json.servers.http.HTTPResponse;
 import database.json.handlers.json.JSONFormatter;
 import database.json.handlers.json.parser.Parser;
 import database.json.handlers.json.parser.Query;
+import database.json.handlers.json.parser.SQLObject;
 import database.json.handlers.json.parser.Source;
 import database.json.handlers.json.parser.APIObject;
 import database.json.config.Handlers.HandlerProperties;
@@ -162,6 +163,12 @@ public class JSONHandler extends Handler
 
       JSONObject call = func.toApi();
       JSONApi api = new JSONApi(server,savepoint,remote);
+
+      if (func instanceof SQLObject)
+      {
+        if (!((SQLObject) func).validate())
+          throw new Exception("'"+func.path()+"' is invalid");
+      }
 
       // See what's passed on
       // request.setBody(call.toString(2));

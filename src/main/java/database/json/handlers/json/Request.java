@@ -60,13 +60,13 @@ public class Request
 
   static
   {
-    commands.add("ping");
     commands.add("exec");
     commands.add("status");
     commands.add("commit");
     commands.add("connect");
     commands.add("release");
     commands.add("rollback");
+    commands.add("keepalive");
     commands.add("disconnect");
   }
 

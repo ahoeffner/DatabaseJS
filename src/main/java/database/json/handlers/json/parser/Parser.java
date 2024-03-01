@@ -86,7 +86,6 @@ public class Parser
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
-         case Parser.AUTHENTICATE : object = new Authenticator(request);   break;
       }
 
       if (object == null)

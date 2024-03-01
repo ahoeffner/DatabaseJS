@@ -66,7 +66,7 @@ public class WhereClause implements Filter
   }
 
 
-  public boolean validate()
+  public boolean validate(Source source)
   {
     for (int i = 0; i < entries.size(); i++)
     {

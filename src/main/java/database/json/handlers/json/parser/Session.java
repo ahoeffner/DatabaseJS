@@ -21,34 +21,61 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.json.JSONObject;
 
 
 public class Session implements APIObject
 {
-   boolean release = false;
-   boolean keepalive = false;
+   private String type = null;
    private String session = null;
+   private boolean keepalive = false;
+
+   private HashMap<String,Object> attrs =
+      new HashMap<String,Object>();
+
+   private static final HashSet<String> tokens =
+      new HashSet<String>(Arrays.asList
+      (
+         "scope",
+         "token",
+         "method",
+         "secret",
+         "username",
+         "password",
+         "clientinfo",
+         "custom"
+      ));
+
 
    public Session(JSONObject definition)
    {
+      type = "ping";
+
+      if (definition.has("request"))
+         type = definition.getString("request").toLowerCase();
+
       if (definition.has(Parser.SESSION))
          session = definition.getString(Parser.SESSION);
 
-      if (definition.has("release"))
-         release = true;
-
-      else
-
       if (definition.has("keepalive"))
-         keepalive = true;
+         keepalive = definition.getBoolean("keepalive");
+
+      String[] props = JSONObject.getNames(definition);
+
+      for (int i = 0; i < props.length; i++)
+      {
+         String name = props[i].toLowerCase();
+         if (tokens.contains(name)) attrs.put(name,definition.get(name));
+      }
    }
 
    @Override
    public String path()
    {
-      if (release) return("release");
-      else return("ping");
+      return(type);
    }
 
    @Override
@@ -58,7 +85,10 @@ public class Session implements APIObject
 
       request.put("session",session);
       if (keepalive) request.put("keepalive",true);
-      
+
+      for (String attr : attrs.keySet())
+         request.put(attr,attrs.get(attr));
+
       return(request);
    }
 }

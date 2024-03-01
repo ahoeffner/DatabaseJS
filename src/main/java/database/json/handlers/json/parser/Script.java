@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import database.json.database.BindValue;
 
 
-public class Batch implements SQLObject
+public class Script implements SQLObject
 {
    private final Object custom;
    private final String session;
@@ -37,7 +37,7 @@ public class Batch implements SQLObject
       new ArrayList<SQLObject>();
 
 
-   public Batch(JSONObject definition) throws Exception
+   public Script(JSONObject definition) throws Exception
    {
       Object custom = null;
       String session = null;

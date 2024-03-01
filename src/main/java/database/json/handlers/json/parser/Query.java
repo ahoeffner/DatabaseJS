@@ -170,7 +170,7 @@ public class Query implements SQLObject
    {
       Source source = Source.getSource(this.source);
       if (source == null || columns.length == 0) return(false);
-      if (whcl != null) return(whcl.validate());
+      if (whcl != null) return(whcl.validate(source));
       return(true);
    }
 

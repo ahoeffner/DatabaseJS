@@ -36,7 +36,6 @@ public class Update implements SQLObject
    private final String source;
    private final Object custom;
    private final String session;
-   private final String[] columns;
    private final WhereClause whcl;
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
@@ -52,7 +51,6 @@ public class Update implements SQLObject
       Object custom = null;
       String session = null;
       WhereClause whcl = null;
-      String[] columns = new String[0];
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
 
@@ -104,7 +102,6 @@ public class Update implements SQLObject
       this.source = source;
       this.custom = custom;
       this.session = session;
-      this.columns = columns;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
@@ -121,8 +118,13 @@ public class Update implements SQLObject
    public boolean validate()
    {
       Source source = Source.getSource(this.source);
-      if (source == null || columns.length == 0) return(false);
-      if (whcl != null) return(whcl.validate());
+
+      if (source == null || values.keySet().size() == 0)
+         return(false);
+
+      if (whcl != null)
+         return(whcl.validate(source));
+
       return(true);
    }
 

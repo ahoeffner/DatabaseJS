@@ -586,7 +586,7 @@ public class JSONApi
       case "status" :
         response = status(); break;
 
-      case "ping" :
+      case "keepalive" :
         response = ping(request.payload); break;
 
       case "connect" :
