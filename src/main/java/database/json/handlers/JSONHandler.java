@@ -34,11 +34,11 @@ import database.json.handlers.file.PathUtil;
 import database.json.servers.rest.RESTClient;
 import database.json.servers.http.HTTPRequest;
 import database.json.servers.http.HTTPResponse;
+import database.json.handlers.json.parser.Query;
 import database.json.handlers.json.JSONFormatter;
 import database.json.handlers.json.parser.Parser;
-import database.json.handlers.json.parser.Query;
-import database.json.handlers.json.parser.SQLObject;
 import database.json.handlers.json.parser.Source;
+import database.json.handlers.json.parser.SQLObject;
 import database.json.handlers.json.parser.APIObject;
 import database.json.config.Handlers.HandlerProperties;
 
