@@ -182,12 +182,14 @@ public class Query implements SQLObject
       Source source = Source.getSource(this.source);
       if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
 
+      boolean table = source.sql != null;
+
       sql += "select "+columns[0];
 
       for (int i = 1; i < columns.length; i++)
          sql += ","+columns[i];
 
-      if (source.type == SourceType.table)
+      if (table)
       {
          sql += " from "+source.table;
 
@@ -197,7 +199,7 @@ public class Query implements SQLObject
          if (order != null)
             sql += " order by "+order;
       }
-      else if (source.type == SourceType.query)
+      else
       {
          sql += " from ("+source.sql;
 
