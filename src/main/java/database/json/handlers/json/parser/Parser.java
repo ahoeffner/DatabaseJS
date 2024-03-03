@@ -42,6 +42,7 @@ public class Parser
    static final public String INSERT = "insert";
    static final public String UPDATE = "update";
    static final public String DELETE = "delete";
+   static final public String FUNCTION = "function";
    static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
@@ -91,6 +92,7 @@ public class Parser
          case Parser.DELETE : object = new Delete(request);                break;
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
+         case Parser.FUNCTION : object = new Function(request);            break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
       }
 
