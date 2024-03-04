@@ -127,14 +127,22 @@ public class Function implements SQLObject
    @Override
    public String sql() throws Exception
    {
+      Source source = Source.getSource(this.source);
+      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
+
       String sql = "";
       if (retval != null) sql += retval+" = ";
 
+      sql += source.function + "(";
+
       for (int i = 0; i < bindvalues.length; i++)
       {
-
+         if (i > 0) sql += ",";
+         String bind = bindvalues[i].InOut() ? "?" : ":";
+         sql += bind + bindvalues[i].getName();
       }
 
+      sql += ")";
       return(sql);
    }
 
@@ -142,6 +150,7 @@ public class Function implements SQLObject
    @Override
    public JSONObject toApi() throws Exception
    {
-      return(null);
+      JSONObject parsed = Parser.toApi(this);
+      return(parsed);
    }
 }

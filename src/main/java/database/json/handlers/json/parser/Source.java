@@ -53,19 +53,24 @@ public class Source
 
    public Source(JSONObject definition) throws Exception
    {
+      String id = null;
       String sql = null;
       String table = null;
       String order = null;
       String function = null;
       String[] primary = null;
 
-      this.id = definition.getString("id");
+      id = definition.getString("id");
+      this.id = (id+"").toLowerCase();
 
       if (definition.has("table"))
          table = definition.getString("table");
 
       if (definition.has("order"))
          order = definition.getString("order");
+
+      if (definition.has("function"))
+         function = definition.getString("function");
 
       if (definition.has("primarykey"))
       {
