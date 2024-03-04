@@ -46,11 +46,11 @@ public class Request
   {
     function.add("ddl");
     function.add("map");
-    function.add("call");
     function.add("batch");
     function.add("query");
     function.add("merge");
     function.add("fetch");
+    function.add("invoke");
     function.add("script");
     function.add("select");
     function.add("insert");
