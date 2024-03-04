@@ -42,7 +42,7 @@ public class Parser
    static final public String INSERT = "insert";
    static final public String UPDATE = "update";
    static final public String DELETE = "delete";
-   static final public String FUNCTION = "function";
+   static final public String INVOKE = "invoke";
    static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
@@ -64,8 +64,10 @@ public class Parser
    static final public String COLUMN = "column";
    static final public String VALUES = "values";
    static final public String COLUMNS = "columns";
+   static final public String RETURNING = "returning";
    static final public String BINDVALUE = "bindvalue";
    static final public String BINDVALUES = "bindvalues";
+   static final public String PARAMETERS = "parameters";
    static final public String ASSERTIONS = "assertions";
 
 
@@ -92,7 +94,7 @@ public class Parser
          case Parser.DELETE : object = new Delete(request);                break;
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
-         case Parser.FUNCTION : object = new Function(request);            break;
+         case Parser.INVOKE : object = new Function(request);            break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
       }
 
@@ -161,11 +163,13 @@ public class Parser
    public static BindValue[] getBindValues(JSONObject definition)
    {
       JSONArray bindings = null;
+      String keyword = BINDVALUES;
       BindValue[] bindvalues = new BindValue[0];
+      if (!definition.has(BINDVALUES)) keyword = PARAMETERS;
 
-      if (definition.has(BINDVALUES))
+      if (definition.has(keyword))
       {
-         bindings = definition.getJSONArray(BINDVALUES);
+         bindings = definition.getJSONArray(keyword);
          bindvalues = new BindValue[bindings.length()];
 
          for (int i = 0; i < bindvalues.length; i++)

@@ -611,7 +611,7 @@ public class JSONApi
             case "ddl" :
               response = ddl(request.payload); break;
 
-            case "call" :
+            case "invoke" :
               response = call(request.payload); break;
 
             case "query" :

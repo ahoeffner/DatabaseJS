@@ -46,6 +46,7 @@ public class Source
    public final String sql;
    public final String table;
    public final String order;
+   public final String function;
    public final SourceType type;
    public final String[] primary;
 
@@ -55,6 +56,7 @@ public class Source
       String sql = null;
       String table = null;
       String order = null;
+      String function = null;
       String[] primary = null;
 
       this.id = definition.getString("id");
@@ -95,6 +97,7 @@ public class Source
       this.table = table;
       this.order = order;
       this.primary = primary;
+      this.function = function;
       this.type = table != null ? SourceType.table : SourceType.query;
    }
 }

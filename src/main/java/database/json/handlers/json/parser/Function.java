@@ -21,69 +21,127 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.Arrays;
+import java.util.ArrayList;
 import org.json.JSONObject;
-
 import database.json.database.BindValue;
+import database.json.database.BindValueDef;
 
 
 public class Function implements SQLObject
 {
+   private final String source;
+   private final String retval;
+   private final Object custom;
+   private final String session;
+   private final BindValue[] bindvalues;
+
+
    public Function(JSONObject definition) throws Exception
    {
+      String source = null;
+      String retval = null;
+      Object custom = null;
+      String session = null;
 
+      if (definition.has(Parser.SOURCE))
+         source = definition.getString(Parser.SOURCE);
+
+      if (definition.has(Parser.SESSION))
+         session = definition.getString(Parser.SESSION);
+
+      if (definition.has(Parser.CUSTOM))
+         custom = definition.get(Parser.CUSTOM);
+
+      ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
+      bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
+
+      if (definition.has(Parser.RETURNING))
+      {
+         JSONObject ret = definition.getJSONObject(Parser.RETURNING);
+
+         retval = ret.getString("name");
+         String rtype = ret.getString("type");
+
+         bindvalues.add(new BindValue(new BindValueDef(retval,rtype,true),true));
+      }
+
+      this.source = source;
+      this.retval = retval;
+      this.custom = custom;
+      this.session = session;
+      this.bindvalues = bindvalues.toArray(new BindValue[0]);
+   }
+
+
+   @Override
+   public String path() throws Exception
+   {
+      return(Parser.INVOKE);
+   }
+
+
+   @Override
+   public boolean lock() throws Exception
+   {
+      return(false);
+   }
+
+
+   @Override
+   public Object custom() throws Exception
+   {
+      return(custom);
+   }
+
+
+   @Override
+   public String session() throws Exception
+   {
+      return(session);
+   }
+
+
+   @Override
+   public boolean validate() throws Exception
+   {
+      Source source = Source.getSource(this.source);
+      if (source == null) return(false);
+      return(true);
    }
 
    @Override
-   public String path() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'path'");
+   public BindValue[] getAssertions() throws Exception
+   {
+      return(new BindValue[0]);
    }
 
-   @Override
-   public JSONObject toApi() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'toApi'");
-   }
 
    @Override
-   public String sql() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'sql'");
+   public BindValue[] getBindValues() throws Exception
+   {
+      return(bindvalues);
    }
 
-   @Override
-   public boolean lock() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'lock'");
-   }
 
    @Override
-   public Object custom() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'custom'");
+   public String sql() throws Exception
+   {
+      String sql = "";
+      if (retval != null) sql += retval+" = ";
+
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+
+      }
+
+      return(sql);
    }
 
-   @Override
-   public String session() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'session'");
-   }
 
    @Override
-   public boolean validate() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'validate'");
-   }
-
-   @Override
-   public BindValue[] getAssertions() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'getAssertions'");
-   }
-
-   @Override
-   public BindValue[] getBindValues() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'getBindValues'");
+   public JSONObject toApi() throws Exception
+   {
+      return(null);
    }
 }
