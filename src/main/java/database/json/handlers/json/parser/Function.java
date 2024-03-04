@@ -44,8 +44,6 @@ public class Function implements SQLObject
       Object custom = null;
       String session = null;
 
-      System.out.println(definition.toString(2));
-
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
