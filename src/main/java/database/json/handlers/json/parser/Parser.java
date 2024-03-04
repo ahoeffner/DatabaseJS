@@ -177,16 +177,19 @@ public class Parser
             String name = null;
             String type = null;
             Object value = null;
-            boolean out = false;
+            String ptype = "in";
 
             JSONObject bdef = bindings.getJSONObject(i);
 
-            if (bdef.has("out")) out = bdef.getBoolean("out");
+            if (bdef.has("value")) value = bdef.get("value");
             if (bdef.has("name")) name = bdef.getString("name");
             if (bdef.has("type")) type = bdef.getString("type");
-            if (bdef.has("value")) value = bdef.get("value");
+            if (bdef.has("inout")) ptype = bdef.getString("inout");
 
-            bindvalues[i] = new BindValue(new BindValueDef(name,type,out,value),out);
+            boolean out = ptype.equals("out");
+            boolean inout = !ptype.equals("in");
+
+            bindvalues[i] = new BindValue(new BindValueDef(name,type,out,value),inout);
          }
       }
 

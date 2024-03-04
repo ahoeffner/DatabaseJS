@@ -44,6 +44,8 @@ public class Function implements SQLObject
       Object custom = null;
       String session = null;
 
+      System.out.println(definition.toString(2));
+
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
@@ -138,7 +140,7 @@ public class Function implements SQLObject
       for (int i = 0; i < bindvalues.length; i++)
       {
          if (i > 0) sql += ",";
-         String bind = bindvalues[i].InOut() ? "?" : ":";
+         String bind = bindvalues[i].InOut() ? "&" : ":";
          sql += bind + bindvalues[i].getName();
       }
 
