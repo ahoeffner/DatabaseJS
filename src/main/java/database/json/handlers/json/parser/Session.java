@@ -54,8 +54,8 @@ public class Session implements APIObject
    {
       type = "ping";
 
-      if (definition.has("request"))
-         type = definition.getString("request").toLowerCase();
+      if (definition.has("type"))
+         type = definition.getString("type").toLowerCase();
 
       if (definition.has(Parser.SESSION))
          session = definition.getString(Parser.SESSION);

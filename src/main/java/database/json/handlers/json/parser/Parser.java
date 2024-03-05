@@ -33,7 +33,7 @@ public class Parser
    static final public String CLASS = "type";
    static final public String SOURCE = "source";
    static final public String CUSTOM = "custom";
-   static final public String SWITCH = "function";
+   static final public String SWITCH = "request";
    static final public String SESSION = "session";
    static final public String PAYLOAD = "payload";
 

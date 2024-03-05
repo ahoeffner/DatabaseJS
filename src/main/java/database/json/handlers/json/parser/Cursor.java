@@ -38,8 +38,8 @@ public class Cursor implements APIObject
       if (definition.has(Parser.SESSION))
          session = definition.getString(Parser.SESSION);
 
-      if (definition.has("request"))
-         type = definition.getString("request").toLowerCase();
+      if (definition.has("type"))
+         type = definition.getString("type").toLowerCase();
    }
 
    @Override

@@ -82,7 +82,7 @@ public class SQLParser
     this.bindings = new ArrayList<BindValue>();
 
     if (!procedure) func = false;
-    else   func = function(stmt);
+    else func = function(stmt);
 
     if (func && !stmt.startsWith("&"))
     {

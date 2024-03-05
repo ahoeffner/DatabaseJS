@@ -159,31 +159,28 @@ public class JSONHandler extends Handler
 
     try
     {
-      APIObject func = Parser.parse(payload);
+      APIObject apiobj = Parser.parse(payload);
 
-      JSONObject call = func.toApi();
+      JSONObject apireq = apiobj.toApi();
       JSONApi api = new JSONApi(server,savepoint,remote);
 
-      if (func instanceof SQLObject)
+      if (apiobj instanceof SQLObject)
       {
-        if (!((SQLObject) func).validate())
-          throw new Exception(func.path()+" is invalid");
+        if (!((SQLObject) apiobj).validate())
+          throw new Exception(apiobj.path()+" is invalid");
       }
 
-      // See what's passed on
-      // request.setBody(call.toString(2));
-
       response.setContentType(json);
-      response.setBody(api.execute(func.path(),call,false));
+      response.setBody(api.execute(apiobj.path(),apireq,false));
       response.setResponse(api.response());
 
-      if (func instanceof Query && ((Query) func).describe())
+      if (apiobj instanceof Query && ((Query) apiobj).describe())
       {
         JSONObject rsp = new JSONObject(new String(response.body()));
 
         if (rsp.getBoolean("success"))
         {
-          Source source = Source.getSource(((Query) func).source());
+          Source source = Source.getSource(((Query) apiobj).source());
 
           if (source.order != null)
             rsp.put(Parser.ORDER,source.order);
