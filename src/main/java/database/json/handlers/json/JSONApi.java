@@ -363,6 +363,7 @@ public class JSONApi
         state.setSavePoint();
 
         result = exec(step,false);
+        bindvalues.clear();
 
         if (this.failed && state.session() != null)
         {
@@ -415,7 +416,7 @@ public class JSONApi
       if (state.session() != null)
         state.release(scope,autocommit);
 
-      String resp = "{\"success\": "+success+", \"steps\":\n" + response + "\n}";
+      String resp = "{\"success\": "+success+", \"request\": \"batch\", \"steps\":\n" + response + "\n}";
       if (sesid != null) resp = "{\"success\": "+success+", \"session\": \""+sesid+"\", \"steps\":\n" + response + "\n}";
 
       return(resp);
@@ -518,6 +519,8 @@ public class JSONApi
         result = exec(step,false);
         this.request = request;
 
+        bindvalues.clear();
+
         JSONObject res = Request.parse(result);
         result = res.put("step",i).toString();
 
@@ -557,6 +560,7 @@ public class JSONApi
       JSONObject res = Request.parse(result);
 
       res.put("success",true);
+      res.put("request","script");
       if (sesid != null) res.put("session",sesid);
 
       // Release & remove
@@ -679,6 +683,7 @@ public class JSONApi
 
     JSONFormatter json = new JSONFormatter();
     json.success(true);
+    json.add("request",request.nvlfunc());
 
     if (state.session() == null)
       json.add("connected",false);
@@ -735,7 +740,9 @@ public class JSONApi
     boolean success = (message == null);
 
     JSONFormatter json = new JSONFormatter();
+
     json.success(success);
+    json.add("request",request.nvlfunc());
 
     if (ppool != null)
       json.add("proxy-pool",pp);
@@ -911,6 +918,7 @@ public class JSONApi
     }
 
     json.success(true);
+    json.add("request",request.nvlfunc());
     json.add("type",type);
     json.add("nowait",nowait);
     json.add("timeout",timeout);
@@ -975,8 +983,9 @@ public class JSONApi
     JSONFormatter json = new JSONFormatter();
 
     json.success(true);
-    json.add("disconnected",true);
+    json.add("request",request.nvlfunc());
 
+    json.add("disconnected",true);
     json.add("instance",instance);
     return(json.toString());
   }
@@ -1016,6 +1025,7 @@ public class JSONApi
 
     JSONFormatter json = new JSONFormatter();
     json.success(true);
+    json.add("request",request.nvlfunc());
     json.add("result",success);
 
     if (sesid != null)
@@ -1193,6 +1203,8 @@ public class JSONApi
       JSONFormatter json = new JSONFormatter();
 
       json.success(assertmsg == null);
+
+      json.add("request",request.nvlfunc());
       json.add("more",!cursor.closed);
 
       if (lock && assertmsg != null)
@@ -1384,6 +1396,7 @@ public class JSONApi
 
         state.release();
         json.success(true);
+        json.add("request",request.nvlfunc());
         json.add("affected",table.size());
 
         if (columns != null)
@@ -1423,6 +1436,7 @@ public class JSONApi
         JSONFormatter json = new JSONFormatter();
 
         json.success(true);
+        json.add("request",request.nvlfunc());
         json.add("affected",rows);
 
         if (sesid != null)
@@ -1512,6 +1526,7 @@ public class JSONApi
       JSONFormatter json = new JSONFormatter();
 
       json.success(true);
+      json.add("request",request.nvlfunc());
 
       for(NameValuePair<Object> nvp : values)
         json.add(nvp.getName(),nvp.getValue());
@@ -1566,6 +1581,7 @@ public class JSONApi
 
         json.success(true);
         json.add("closed",true);
+        json.add("request","cursor");
         state.release();
         json.add("instance",instance);
         return(json.toString());
@@ -1580,6 +1596,7 @@ public class JSONApi
       state.release();
 
       json.success(true);
+      json.add("request","cursor");
       json.add("more",!cursor.closed);
 
       if (cursor.compact)
@@ -1638,6 +1655,7 @@ public class JSONApi
     JSONFormatter json = new JSONFormatter();
 
     json.success(success);
+    json.add("request",request.nvlfunc());
 
     if (!success)
       json.add("message","Transaction already comitted");
@@ -1675,6 +1693,7 @@ public class JSONApi
     JSONFormatter json = new JSONFormatter();
 
     json.success(success);
+    json.add("request",request.nvlfunc());
 
     if (!success)
       json.add("message","Transaction already rolled back");
@@ -1710,6 +1729,7 @@ public class JSONApi
     JSONFormatter json = new JSONFormatter();
 
     json.success(success);
+    json.add("request",request.nvlfunc());
 
     if (!success)
       json.add("message","Unable to release connection");
@@ -2321,6 +2341,7 @@ public class JSONApi
     json.success(false);
     json.fatal(message);
     json.add("instance",instance);
+    json.add("request",request.nvlfunc());
     if (lock) json.add("lock",true);
     if (nowait) json.add("nowait",true);
     if (path != null) json.add("path",request.path);
@@ -2334,6 +2355,7 @@ public class JSONApi
     JSONFormatter json = new JSONFormatter();
 
     json.success(false);
+    json.add("request",request.nvlfunc());
     json.add("message",message);
     json.add("instance",instance);
 
