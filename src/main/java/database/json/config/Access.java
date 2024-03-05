@@ -190,6 +190,27 @@ public class Access extends Thread
                   }
                }
 
+               if (entries.has("procedures"))
+               {
+                  JSONArray ds = entries.getJSONArray("procedures");
+
+                  for (int f = 0; f < ds.length(); f++)
+                  {
+                     JSONObject definition = ds.getJSONObject(f);
+
+                     try
+                     {
+                        Source source = new Source(SourceType.function,definition);
+                        sources.put(source.id,source);
+                     }
+                     catch (Exception e)
+                     {
+                        logger.log(Level.SEVERE,files[i].file,e);
+                        continue;
+                     }
+                  }
+               }
+
                changed = true;
                files[i].mod = mod;
             }
