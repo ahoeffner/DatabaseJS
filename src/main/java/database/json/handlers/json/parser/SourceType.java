@@ -24,6 +24,7 @@ package database.json.handlers.json.parser;
 
 public enum SourceType
 {
+   sql,
    table,
-   query,
+   function,
 }

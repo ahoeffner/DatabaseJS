@@ -187,7 +187,7 @@ public class Query implements SQLObject
       for (int i = 1; i < columns.length; i++)
          sql += ","+columns[i];
 
-      if (source.sql == null)
+      if (source.query == null)
       {
          sql += " from "+source.table;
 
@@ -199,7 +199,7 @@ public class Query implements SQLObject
       }
       else
       {
-         sql += " from ("+source.sql;
+         sql += " from ("+source.query;
 
          if (whcl != null)
             sql += " where " + whcl.sql();

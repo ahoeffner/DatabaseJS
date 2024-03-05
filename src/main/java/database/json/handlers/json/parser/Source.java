@@ -43,18 +43,18 @@ public class Source
 
 
    public final String id;
-   public final String sql;
+   public final String query;
    public final String table;
    public final String order;
-   public final String function;
    public final SourceType type;
+   public final String function;
    public final String[] primary;
 
 
-   public Source(JSONObject definition) throws Exception
+   public Source(SourceType type, JSONObject definition) throws Exception
    {
       String id = null;
-      String sql = null;
+      String query = null;
       String table = null;
       String order = null;
       String function = null;
@@ -63,46 +63,53 @@ public class Source
       id = definition.getString("id");
       this.id = (id+"").toLowerCase();
 
-      if (definition.has("table"))
+      if (type == SourceType.table)
+      {
+         if (definition.has("table"))
          table = definition.getString("table");
 
-      if (definition.has("order"))
-         order = definition.getString("order");
+         if (definition.has("order"))
+            order = definition.getString("order");
 
-      if (definition.has("function"))
-         function = definition.getString("function");
-
-      if (definition.has("primarykey"))
-      {
-         String pkey = definition.getString("primarykey");
-
-         primary = pkey.split((","));
-         for (int i = 0; i < primary.length; i++)
-            primary[i] = primary[i].trim();
-      }
-
-      if (definition.has("sql"))
-      {
-         Object obj = definition.get("sql");
-         if (obj instanceof String) sql = (String) obj;
-
-         else if (obj instanceof JSONArray)
+         if (definition.has("primarykey"))
          {
-            sql = "";
-            JSONArray lines = (JSONArray) obj;
+            String pkey = definition.getString("primarykey");
 
-            for (int i = 0; i < lines.length(); i++)
-               sql += lines.getString(i) + " ";
+            primary = pkey.split((","));
+            for (int i = 0; i < primary.length; i++)
+               primary[i] = primary[i].trim();
+         }
 
-            sql = sql.trim();
+         if (definition.has("query"))
+         {
+            Object obj = definition.get("query");
+            if (obj instanceof String) query = (String) obj;
+
+            else if (obj instanceof JSONArray)
+            {
+               query = "";
+               JSONArray lines = (JSONArray) obj;
+
+               for (int i = 0; i < lines.length(); i++)
+                  query += lines.getString(i) + " ";
+
+               query = query.trim();
+            }
          }
       }
+      else if (type == SourceType.function)
+      {
+         function = id;
 
-      this.sql = sql;
+         if (definition.has("name"))
+            function = definition.getString("name");
+      }
+
+      this.type = type;
+      this.query = query;
       this.table = table;
       this.order = order;
       this.primary = primary;
       this.function = function;
-      this.type = table != null ? SourceType.table : SourceType.query;
    }
 }
