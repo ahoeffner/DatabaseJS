@@ -36,7 +36,9 @@ public class Parser
    static final public String SWITCH = "request";
    static final public String SESSION = "session";
    static final public String PAYLOAD = "payload";
+   static final public String MAPPING = "mapping";
 
+   static final public String MAP = "map";
    static final public String QUERY = "query";
    static final public String BATCH = "batch";
    static final public String SCRIPT = "script";
@@ -45,12 +47,10 @@ public class Parser
    static final public String DELETE = "delete";
    static final public String INVOKE = "invoke";
    static final public String EXECUTE = "execute";
-   static final public String AUTHENTICATE = "authenticate";
-
-   static final public String COMPACT = "compact";
    static final public String DESCRIBE = "describe";
 
    static final public String FILTER = "filter";
+   static final public String COMPACT = "compact";
    static final public String FILTERS = "filters";
    static final public String OPERATOR = "operator";
    static final public String PRIMARYKEY = "primarykey";
@@ -89,6 +89,7 @@ public class Parser
 
       switch(type)
       {
+         case Parser.MAP      : object = new Map(request);                 break;
          case Parser.QUERY    : object = new Query(request);               break;
          case Parser.BATCH    : object = new Batch(request);               break;
          case Parser.SCRIPT   : object = new Script(request);              break;
