@@ -39,6 +39,7 @@ public class Parser
 
    static final public String QUERY = "query";
    static final public String BATCH = "batch";
+   static final public String SCRIPT = "script";
    static final public String INSERT = "insert";
    static final public String UPDATE = "update";
    static final public String DELETE = "delete";
@@ -90,6 +91,7 @@ public class Parser
       {
          case Parser.QUERY    : object = new Query(request);               break;
          case Parser.BATCH    : object = new Batch(request);               break;
+         case Parser.SCRIPT   : object = new Script(request);              break;
          case Parser.INSERT   : object = new Insert(request);              break;
          case Parser.UPDATE   : object = new Update(request);              break;
          case Parser.DELETE   : object = new Delete(request);              break;
