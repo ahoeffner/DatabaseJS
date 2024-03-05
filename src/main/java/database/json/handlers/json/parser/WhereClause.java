@@ -66,12 +66,12 @@ public class WhereClause implements Filter
   }
 
 
-  public boolean validate(Source source)
+  public boolean validate(Source source) throws Exception
   {
     for (int i = 0; i < entries.size(); i++)
     {
       if (entries.get(i).operator.equals("or"))
-        return(false);
+        throw new Exception("Where clause too relaxed");
     }
 
     return(true);

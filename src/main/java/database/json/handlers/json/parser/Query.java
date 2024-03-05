@@ -166,7 +166,7 @@ public class Query implements SQLObject
 
 
    @Override
-   public boolean validate()
+   public boolean validate() throws Exception
    {
       Source source = Source.getSource(this.source);
       if (source == null || columns.length == 0) return(false);

@@ -84,7 +84,7 @@ public class Delete implements SQLObject
 
 
    @Override
-   public boolean validate()
+   public boolean validate() throws Exception
    {
       Source source = Source.getSource(this.source);
 
