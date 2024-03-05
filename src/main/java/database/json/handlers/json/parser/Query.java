@@ -207,7 +207,7 @@ public class Query implements SQLObject
          if (order != null)
             sql += " order by "+order;
 
-         sql += ") "+source.id;
+         sql += ") "+clean(source.id);
       }
 
       return(sql);
@@ -260,5 +260,13 @@ public class Query implements SQLObject
    public boolean lock()
    {
       return(lock);
+   }
+
+
+   private String clean(String syn)
+   {
+      syn = syn.replace(" ","_");
+      syn = syn.replace("-","_");
+      return(syn);
    }
 }

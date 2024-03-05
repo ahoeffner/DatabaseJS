@@ -167,7 +167,7 @@ public class JSONHandler extends Handler
       if (func instanceof SQLObject)
       {
         if (!((SQLObject) func).validate())
-          throw new Exception("'"+func.path()+"' is invalid");
+          throw new Exception(func.path()+" is invalid");
       }
 
       // See what's passed on
