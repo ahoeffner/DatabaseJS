@@ -197,7 +197,6 @@ public class JSONHandler extends Handler
 
       if (!api.isPing() || logger.getLevel() == Level.FINEST)
         log(logger,request,response);
-
     }
     catch (Exception e)
     {
