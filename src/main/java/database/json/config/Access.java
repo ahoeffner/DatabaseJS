@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
 import database.json.handlers.json.parser.Source;
+import database.json.handlers.json.parser.SourceType;
 
 
 public class Access extends Thread
@@ -157,7 +158,28 @@ public class Access extends Thread
 
                      try
                      {
-                        Source source = new Source(definition);
+                        Source source = new Source(SourceType.table,definition);
+                        sources.put(source.id,source);
+                     }
+                     catch (Exception e)
+                     {
+                        logger.log(Level.SEVERE,files[i].file,e);
+                        continue;
+                     }
+                  }
+               }
+
+               if (entries.has("functions"))
+               {
+                  JSONArray ds = entries.getJSONArray("functions");
+
+                  for (int f = 0; f < ds.length(); f++)
+                  {
+                     JSONObject definition = ds.getJSONObject(f);
+
+                     try
+                     {
+                        Source source = new Source(SourceType.function,definition);
                         sources.put(source.id,source);
                      }
                      catch (Exception e)

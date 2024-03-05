@@ -94,7 +94,7 @@ public class Parser
          case Parser.DELETE : object = new Delete(request);                break;
          case Parser.CURSOR : object = new Cursor(request);                break;
          case Parser.SESSION : object = new Session(request);              break;
-         case Parser.INVOKE : object = new Function(request);            break;
+         case Parser.INVOKE : object = new Function(request);              break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
       }
 
