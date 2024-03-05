@@ -43,6 +43,7 @@ public class Source
 
 
    public final String id;
+   public final String stmt;
    public final String query;
    public final String table;
    public final String order;
@@ -54,6 +55,7 @@ public class Source
    public Source(SourceType type, JSONObject definition) throws Exception
    {
       String id = null;
+      String stmt = null;
       String query = null;
       String table = null;
       String order = null;
@@ -104,8 +106,28 @@ public class Source
          if (definition.has("name"))
             function = definition.getString("name");
       }
+      else if (type == SourceType.sql)
+      {
+         if (definition.has("sql"))
+         {
+            Object obj = definition.get("sql");
+            if (obj instanceof String) stmt = (String) obj;
+
+            else if (obj instanceof JSONArray)
+            {
+               stmt = "";
+               JSONArray lines = (JSONArray) obj;
+
+               for (int i = 0; i < lines.length(); i++)
+                  stmt += lines.getString(i) + " ";
+
+               stmt = stmt.trim();
+            }
+         }
+      }
 
       this.type = type;
+      this.stmt = stmt;
       this.query = query;
       this.table = table;
       this.order = order;

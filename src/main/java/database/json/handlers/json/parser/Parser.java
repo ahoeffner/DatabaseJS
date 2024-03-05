@@ -43,6 +43,7 @@ public class Parser
    static final public String UPDATE = "update";
    static final public String DELETE = "delete";
    static final public String INVOKE = "invoke";
+   static final public String EXECUTE = "execute";
    static final public String AUTHENTICATE = "authenticate";
 
    static final public String COMPACT = "compact";
@@ -87,15 +88,16 @@ public class Parser
 
       switch(type)
       {
-         case Parser.QUERY : object = new Query(request);                  break;
-         case Parser.BATCH : object = new Batch(request);                  break;
-         case Parser.INSERT : object = new Insert(request);                break;
-         case Parser.UPDATE : object = new Update(request);                break;
-         case Parser.DELETE : object = new Delete(request);                break;
-         case Parser.CURSOR : object = new Cursor(request);                break;
-         case Parser.SESSION : object = new Session(request);              break;
-         case Parser.INVOKE : object = new Function(request);              break;
+         case Parser.QUERY    : object = new Query(request);               break;
+         case Parser.BATCH    : object = new Batch(request);               break;
+         case Parser.INSERT   : object = new Insert(request);              break;
+         case Parser.UPDATE   : object = new Update(request);              break;
+         case Parser.DELETE   : object = new Delete(request);              break;
+         case Parser.CURSOR   : object = new Cursor(request);              break;
+         case Parser.SESSION  : object = new Session(request);             break;
+         case Parser.INVOKE   : object = new Function(request);            break;
          case Parser.DESCRIBE : object = Query.describe(request);          break;
+         case Parser.EXECUTE  : object = new SQLStatement(request);        break;
       }
 
       if (object == null)
