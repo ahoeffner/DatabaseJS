@@ -53,6 +53,7 @@ public class Query implements SQLObject
       JSONArray filters = new JSONArray();
       JSONArray columns = new JSONArray().put("*");
 
+      Parser.setAttributes(definition,describe);
       String source = definition.getString(Parser.SOURCE);
 
       filters.put(whcl);
