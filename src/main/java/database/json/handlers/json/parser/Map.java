@@ -21,85 +21,109 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.HashMap;
+import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.ArrayList;
 import database.json.database.BindValue;
 
 
 public class Map implements SQLObject
 {
-   private final ArrayList<String[]> mapping =
-      new ArrayList<String[]>();
+   private final Object custom;
+
+   private final HashMap<String,String> mapping =
+      new HashMap<String,String>();
 
 
    public Map(JSONObject definition) throws Exception
    {
+      Object custom = null;
+
+      if (definition.has(Parser.CUSTOM))
+         custom = definition.get(Parser.CUSTOM);
+
       if (definition.has(Parser.MAPPING))
       {
+         JSONArray map = definition.getJSONArray(Parser.MAPPING);
 
+         for (int i = 0; i < map.length(); i++)
+         {
+            JSONObject def = map.getJSONObject(i);
+            String[] keys = JSONObject.getNames(def);
+
+            for (int m = 0; m < keys.length; m++)
+               mapping.put(keys[m],def.getString(keys[m]));
+         }
       }
+
+      this.custom = custom;
    }
 
 
    @Override
-   public String path() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'path'");
+   public String path() throws Exception
+   {
+      return("map");
    }
 
 
    @Override
-   public JSONObject toApi() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'toApi'");
+   public JSONObject toApi() throws Exception
+   {
+      JSONObject json = new JSONObject();
+
+      for (String key : mapping.keySet())
+         json.put(key,mapping.get(key));
+
+      return(json);
    }
 
 
    @Override
-   public String sql() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'sql'");
+   public String sql() throws Exception
+   {
+      return(null);
    }
 
 
    @Override
-   public boolean lock() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'lock'");
+   public boolean lock() throws Exception
+   {
+      return(false);
    }
 
 
    @Override
-   public Object custom() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'custom'");
+   public Object custom() throws Exception
+   {
+      return(custom);
    }
 
 
    @Override
-   public String session() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'session'");
+   public String session() throws Exception
+   {
+      return(null);
    }
 
 
    @Override
-   public boolean validate() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'validate'");
+   public boolean validate() throws Exception
+   {
+      return(mapping.size() > 0);
    }
 
 
    @Override
-   public BindValue[] getAssertions() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'getAssertions'");
+   public BindValue[] getAssertions() throws Exception
+   {
+      return(new BindValue[0]);
    }
 
 
    @Override
-   public BindValue[] getBindValues() throws Exception {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'getBindValues'");
+   public BindValue[] getBindValues() throws Exception
+   {
+      return(new BindValue[0]);
    }
 }

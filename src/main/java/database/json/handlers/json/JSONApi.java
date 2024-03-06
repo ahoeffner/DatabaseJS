@@ -1819,7 +1819,7 @@ public class JSONApi
 
             for (int j = 0; j < cols.size(); j++)
             {
-              if (cols.get(j).equals(pointer))
+              if (cols.get(j).equalsIgnoreCase(pointer))
               {
                 col = j;
                 break;
