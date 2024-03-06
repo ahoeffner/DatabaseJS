@@ -30,7 +30,6 @@ import org.json.JSONObject;
 public class Session implements APIObject
 {
    private String type = null;
-   private String session = null;
    private final JSONObject payload;
    private boolean keepalive = false;
 
@@ -46,8 +45,7 @@ public class Session implements APIObject
          "secret",
          "username",
          "password",
-         "clientinfo",
-         "custom"
+         "clientinfo"
       ));
 
 
@@ -58,9 +56,6 @@ public class Session implements APIObject
 
       if (definition.has("type"))
          type = definition.getString("type").toLowerCase();
-
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
 
       if (definition.has("keepalive"))
          keepalive = definition.getBoolean("keepalive");
@@ -94,8 +89,8 @@ public class Session implements APIObject
    {
       JSONObject request = new JSONObject();
 
-      request.put("session",session);
-      if (keepalive) request.put("keepalive",true);
+      if (keepalive)
+         request.put("keepalive",true);
 
       for (String attr : attrs.keySet())
          request.put(attr,attrs.get(attr));

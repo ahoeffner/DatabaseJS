@@ -27,8 +27,6 @@ import database.json.database.BindValue;
 public class SQLStatement implements SQLObject
 {
    private final String source;
-   private final Object custom;
-   private final String session;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -36,21 +34,11 @@ public class SQLStatement implements SQLObject
    public SQLStatement(JSONObject definition) throws Exception
    {
       String source = null;
-      Object custom = null;
-      String session = null;
-
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
-
       this.source = source;
-      this.custom = custom;
-      this.session = session;
       this.payload = definition;
       this.bindvalues = Parser.getBindValues(definition);
    }
@@ -94,20 +82,6 @@ public class SQLStatement implements SQLObject
 
 
    @Override
-   public Object custom() throws Exception
-   {
-      return(custom);
-   }
-
-
-   @Override
-   public String session() throws Exception
-   {
-      return(session);
-   }
-
-
-   @Override
    public boolean validate()
    {
       return(true);
@@ -120,7 +94,7 @@ public class SQLStatement implements SQLObject
       return(new BindValue[0]);
    }
 
-   
+
    @Override
    public BindValue[] getBindValues() throws Exception
    {

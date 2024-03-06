@@ -28,8 +28,6 @@ public interface SQLObject extends APIObject
 {
   String sql() throws Exception;
   boolean lock() throws Exception;
-  Object custom() throws Exception;
-  String session() throws Exception;
   boolean validate() throws Exception;
   BindValue[] getAssertions() throws Exception;
   BindValue[] getBindValues() throws Exception;

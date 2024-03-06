@@ -32,8 +32,6 @@ import database.json.database.BindValueDef;
 public class Insert implements SQLObject
 {
    private final String source;
-   private final Object custom;
-   private final String session;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -44,19 +42,11 @@ public class Insert implements SQLObject
    public Insert(JSONObject definition) throws Exception
    {
       String source = null;
-      Object custom = null;
-      String session = null;
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
 
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
-
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
-
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
 
       if (definition.has(Parser.VALUES))
       {
@@ -91,20 +81,11 @@ public class Insert implements SQLObject
       }
 
       this.source = source;
-      this.custom = custom;
-      this.session = session;
       this.payload = definition;
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
 
-   @Override
-   public String session()
-   {
-      return(session);
-   }
-
-   
    @Override
    public JSONObject payload()
    {
@@ -153,13 +134,6 @@ public class Insert implements SQLObject
 
       sql += ")";
       return(sql);
-   }
-
-
-   @Override
-   public Object custom()
-   {
-      return(custom);
    }
 
 

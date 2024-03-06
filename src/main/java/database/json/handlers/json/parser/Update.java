@@ -34,8 +34,6 @@ public class Update implements SQLObject
 {
    private final boolean lock;
    private final String source;
-   private final Object custom;
-   private final String session;
    private final WhereClause whcl;
    private final JSONObject payload;
    private final BindValue[] assertions;
@@ -49,8 +47,6 @@ public class Update implements SQLObject
    {
       String source = null;
       boolean lock = false;
-      Object custom = null;
-      String session = null;
       WhereClause whcl = null;
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
@@ -60,9 +56,6 @@ public class Update implements SQLObject
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
-
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
 
       if (definition.has(Parser.FILTERS))
       {
@@ -96,26 +89,16 @@ public class Update implements SQLObject
       }
 
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
-      if (definition.has(Parser.CUSTOM)) custom = definition.get(Parser.CUSTOM);
 
       this.whcl = whcl;
       this.lock = lock;
       this.source = source;
-      this.custom = custom;
-      this.session = session;
       this.payload = definition;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
 
-   @Override
-   public String session()
-   {
-      return(session);
-   }
-
-   
    @Override
    public JSONObject payload()
    {
@@ -157,13 +140,6 @@ public class Update implements SQLObject
          sql += " where " + whcl.sql();
 
       return(sql);
-   }
-
-
-   @Override
-   public Object custom()
-   {
-      return(custom);
    }
 
 

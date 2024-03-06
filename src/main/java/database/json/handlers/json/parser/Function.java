@@ -32,8 +32,6 @@ public class Function implements SQLObject
 {
    private final String source;
    private final String retval;
-   private final Object custom;
-   private final String session;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -42,17 +40,9 @@ public class Function implements SQLObject
    {
       String source = null;
       String retval = null;
-      Object custom = null;
-      String session = null;
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
-
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
-
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
 
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
@@ -69,8 +59,6 @@ public class Function implements SQLObject
 
       this.source = source;
       this.retval = retval;
-      this.custom = custom;
-      this.session = session;
       this.payload = definition;
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
@@ -98,20 +86,6 @@ public class Function implements SQLObject
 
 
    @Override
-   public Object custom() throws Exception
-   {
-      return(custom);
-   }
-
-
-   @Override
-   public String session() throws Exception
-   {
-      return(session);
-   }
-
-
-   @Override
    public boolean validate() throws Exception
    {
       Source source = Source.getSource(this.source);
@@ -119,7 +93,7 @@ public class Function implements SQLObject
       return(true);
    }
 
-   
+
    @Override
    public BindValue[] getAssertions() throws Exception
    {

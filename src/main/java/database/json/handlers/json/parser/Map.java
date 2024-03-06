@@ -29,7 +29,6 @@ import database.json.database.BindValue;
 
 public class Map implements SQLObject
 {
-   private final Object custom;
    private final JSONObject payload;
 
    private final HashMap<String,String> mapping =
@@ -38,11 +37,6 @@ public class Map implements SQLObject
 
    public Map(JSONObject definition) throws Exception
    {
-      Object custom = null;
-
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
-
       if (definition.has(Parser.MAPPING))
       {
          JSONArray map = definition.getJSONArray(Parser.MAPPING);
@@ -57,7 +51,6 @@ public class Map implements SQLObject
          }
       }
 
-      this.custom = custom;
       this.payload = definition;
    }
 
@@ -68,7 +61,7 @@ public class Map implements SQLObject
       return("map");
    }
 
-   
+
    @Override
    public JSONObject payload()
    {
@@ -99,20 +92,6 @@ public class Map implements SQLObject
    public boolean lock() throws Exception
    {
       return(false);
-   }
-
-
-   @Override
-   public Object custom() throws Exception
-   {
-      return(custom);
-   }
-
-
-   @Override
-   public String session() throws Exception
-   {
-      return(null);
    }
 
 

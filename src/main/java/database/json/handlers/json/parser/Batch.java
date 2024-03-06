@@ -29,8 +29,6 @@ import database.json.database.BindValue;
 
 public class Batch implements SQLObject
 {
-   private final Object custom;
-   private final String session;
    private final JSONArray steps;
    private final JSONObject payload;
 
@@ -40,22 +38,12 @@ public class Batch implements SQLObject
 
    public Batch(JSONObject definition) throws Exception
    {
-      Object custom = null;
-      String session = null;
       JSONArray steps = new JSONArray();
 
       if (definition.has(Parser.STEPS))
          steps = definition.getJSONArray(Parser.STEPS);
 
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
-
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
-
       this.steps = steps;
-      this.custom = custom;
-      this.session = session;
       this.payload = definition;
    }
 
@@ -77,15 +65,8 @@ public class Batch implements SQLObject
    @Override
    public JSONObject toApi() throws Exception
    {
-      JSONObject parsed = Parser.toApi(this);
-
-      if (session != null)
-         parsed.put(Parser.SESSION,session);
-
-      if (custom != null)
-         parsed.put(Parser.CUSTOM,session);
-
       JSONArray steps = new JSONArray();
+      JSONObject parsed = Parser.toApi(this);
 
       for (int i = 0; i < this.steps.length(); i++)
       {
@@ -119,20 +100,6 @@ public class Batch implements SQLObject
 
 
    @Override
-   public Object custom() throws Exception
-   {
-      return(custom);
-   }
-
-
-   @Override
-   public String session() throws Exception
-   {
-      return(session);
-   }
-
-
-   @Override
    public boolean validate() throws Exception
    {
       boolean success = true;
@@ -153,7 +120,7 @@ public class Batch implements SQLObject
       return(new BindValue[0]);
    }
 
-   
+
    @Override
    public BindValue[] getBindValues() throws Exception
    {

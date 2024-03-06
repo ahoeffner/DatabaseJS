@@ -38,8 +38,6 @@ public class Query implements SQLObject
    private final String order;
    private final String source;
    private final String cursor;
-   private final Object custom;
-   private final String session;
    private final String[] columns;
    private final WhereClause whcl;
    private final JSONObject payload;
@@ -56,14 +54,12 @@ public class Query implements SQLObject
       JSONArray columns = new JSONArray().put("*");
 
       String source = definition.getString(Parser.SOURCE);
-      String session = definition.getString(Parser.SESSION);
 
       filters.put(whcl);
       whcl.put(Parser.FILTER,filter);
       filter.put("type","False");
 
       describe.put(Parser.SOURCE,source);
-      describe.put(Parser.SESSION,session);
       describe.put(Parser.COLUMNS,columns);
       describe.put(Parser.FILTERS,filters);
       describe.put(Parser.DESCRIBE,true);
@@ -80,8 +76,6 @@ public class Query implements SQLObject
       String source = null;
       String cursor = null;
       boolean lock = false;
-      Object custom = null;
-      String session = null;
       WhereClause whcl = null;
       boolean describe = false;
       String[] columns = new String[0];
@@ -107,9 +101,6 @@ public class Query implements SQLObject
       if (definition.has(Parser.CURSOR))
          cursor = definition.getString(Parser.CURSOR);
 
-      if (definition.has(Parser.SESSION))
-         session = definition.getString(Parser.SESSION);
-
       if (definition.has(Parser.DESCRIBE))
          describe = definition.getBoolean(Parser.DESCRIBE);
 
@@ -128,9 +119,6 @@ public class Query implements SQLObject
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
-      if (definition.has(Parser.CUSTOM))
-         custom = definition.get(Parser.CUSTOM);
-
       this.whcl = whcl;
       this.skip = skip;
       this.rows = rows;
@@ -138,8 +126,6 @@ public class Query implements SQLObject
       this.order = order;
       this.source = source;
       this.cursor = cursor;
-      this.custom = custom;
-      this.session = session;
       this.columns = columns;
       this.describe = describe;
       this.payload = definition;
@@ -159,18 +145,11 @@ public class Query implements SQLObject
       return(describe);
    }
 
-   
+
    @Override
    public JSONObject payload()
    {
       return(payload);
-   }
-
-
-   @Override
-   public String session()
-   {
-      return(session);
    }
 
 
@@ -220,13 +199,6 @@ public class Query implements SQLObject
       }
 
       return(sql);
-   }
-
-
-   @Override
-   public Object custom()
-   {
-      return(custom);
    }
 
 

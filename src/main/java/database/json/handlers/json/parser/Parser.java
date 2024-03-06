@@ -123,10 +123,9 @@ public class Parser
       JSONArray bindings = new JSONArray();
       JSONObject request = new JSONObject();
 
-      request.put(Parser.SQL,func.sql());
-      request.put(Parser.SESSION,func.session());
-
       bindvalues = func.getBindValues();
+      request.put(Parser.SQL,func.sql());
+
       for (int i = 0; i < bindvalues.length; i++)
       {
          binding = new JSONObject();
@@ -157,9 +156,6 @@ public class Parser
 
       if (bindings.length() > 0)
          request.put(Parser.ASSERTIONS,bindings);
-
-      if (func.custom() != null)
-         request.put(Parser.CUSTOM,func.custom());
 
       if (func.lock())
          request.put(Parser.LOCK,true);
@@ -237,9 +233,23 @@ public class Parser
 
    public static void setAttributes(JSONObject def, JSONObject api)
    {
+      Object custom = null;
+      String session = null;
       Boolean compact = null;
       Boolean savepoint = null;
       String dateformat = null;
+
+      if (def.has(SESSION))
+         session = def.getString(SESSION);
+
+      if (session != null)
+         api.put(SESSION,session);
+
+      if (def.has(CUSTOM))
+         custom = def.get(CUSTOM);
+
+      if (custom != null)
+         api.put(CUSTOM,custom);
 
       if (def.has(COMPACT))
          compact = def.getBoolean(COMPACT);
