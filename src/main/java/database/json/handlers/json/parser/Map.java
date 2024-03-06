@@ -30,6 +30,7 @@ import database.json.database.BindValue;
 public class Map implements SQLObject
 {
    private final Object custom;
+   private final JSONObject payload;
 
    private final HashMap<String,String> mapping =
       new HashMap<String,String>();
@@ -57,6 +58,7 @@ public class Map implements SQLObject
       }
 
       this.custom = custom;
+      this.payload = definition;
    }
 
 
@@ -64,6 +66,13 @@ public class Map implements SQLObject
    public String path() throws Exception
    {
       return("map");
+   }
+
+   
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
    }
 
 

@@ -31,6 +31,7 @@ public class Session implements APIObject
 {
    private String type = null;
    private String session = null;
+   private final JSONObject payload;
    private boolean keepalive = false;
 
    private HashMap<String,Object> attrs =
@@ -53,6 +54,7 @@ public class Session implements APIObject
    public Session(JSONObject definition)
    {
       type = "ping";
+      this.payload = definition;
 
       if (definition.has("type"))
          type = definition.getString("type").toLowerCase();
@@ -72,11 +74,20 @@ public class Session implements APIObject
       }
    }
 
+
    @Override
    public String path()
    {
       return(type);
    }
+
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
+   }
+
 
    @Override
    public JSONObject toApi() throws Exception

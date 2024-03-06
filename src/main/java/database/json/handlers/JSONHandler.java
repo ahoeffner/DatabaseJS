@@ -162,9 +162,7 @@ public class JSONHandler extends Handler
       APIObject apiobj = Parser.parse(payload);
 
       JSONObject apireq = apiobj.toApi();
-
-      apireq.put(Parser.COMPACT,true);
-      apireq.put(Parser.DATEFORMAT,Parser.UTC);
+      Parser.setAttributes(apiobj.payload(),apireq);
 
       JSONApi api = new JSONApi(server,savepoint,remote);
 

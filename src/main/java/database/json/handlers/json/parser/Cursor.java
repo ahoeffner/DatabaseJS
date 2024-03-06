@@ -29,9 +29,13 @@ public class Cursor implements APIObject
    private String name = null;
    private String type = null;
    private String session = null;
+   private final JSONObject payload;
 
+   
    public Cursor(JSONObject definition)
    {
+      this.payload = definition;
+
       if (definition.has("name"))
          name = definition.getString("name");
 
@@ -42,11 +46,20 @@ public class Cursor implements APIObject
          type = definition.getString("type").toLowerCase();
    }
 
+
    @Override
    public String path()
    {
       return("fetch");
    }
+
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
+   }
+
 
    @Override
    public JSONObject toApi() throws Exception

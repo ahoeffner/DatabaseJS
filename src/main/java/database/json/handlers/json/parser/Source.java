@@ -31,10 +31,12 @@ public class Source
    private static HashMap<String,Source> sources =
       new HashMap<String,Source>();
 
+      
    public static Source getSource(String id)
    {
       return(Source.sources.get(id.toLowerCase()));
    }
+
 
    public static void setSources(HashMap<String,Source> sources)
    {

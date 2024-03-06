@@ -29,6 +29,7 @@ public class SQLStatement implements SQLObject
    private final String source;
    private final Object custom;
    private final String session;
+   private final JSONObject payload;
    private final BindValue[] bindvalues;
 
 
@@ -50,8 +51,10 @@ public class SQLStatement implements SQLObject
       this.source = source;
       this.custom = custom;
       this.session = session;
+      this.payload = definition;
       this.bindvalues = Parser.getBindValues(definition);
    }
+
 
    @Override
    public String path() throws Exception
@@ -59,11 +62,20 @@ public class SQLStatement implements SQLObject
       return("execute");
    }
 
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
+   }
+
+
    @Override
    public JSONObject toApi() throws Exception
    {
       return(Parser.toApi(this));
    }
+
 
    @Override
    public String sql() throws Exception
@@ -73,11 +85,13 @@ public class SQLStatement implements SQLObject
       return(source.stmt);
    }
 
+
    @Override
    public boolean lock() throws Exception
    {
       return(false);
    }
+
 
    @Override
    public Object custom() throws Exception
@@ -85,11 +99,13 @@ public class SQLStatement implements SQLObject
       return(custom);
    }
 
+
    @Override
    public String session() throws Exception
    {
       return(session);
    }
+
 
    @Override
    public boolean validate()
@@ -97,12 +113,14 @@ public class SQLStatement implements SQLObject
       return(true);
    }
 
+
    @Override
    public BindValue[] getAssertions()
    {
       return(new BindValue[0]);
    }
 
+   
    @Override
    public BindValue[] getBindValues() throws Exception
    {

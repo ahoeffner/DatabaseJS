@@ -42,6 +42,7 @@ public class Query implements SQLObject
    private final String session;
    private final String[] columns;
    private final WhereClause whcl;
+   private final JSONObject payload;
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
 
@@ -141,6 +142,7 @@ public class Query implements SQLObject
       this.session = session;
       this.columns = columns;
       this.describe = describe;
+      this.payload = definition;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
@@ -155,6 +157,13 @@ public class Query implements SQLObject
    public boolean describe()
    {
       return(describe);
+   }
+
+   
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
    }
 
 

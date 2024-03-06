@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 public interface APIObject
 {
+  JSONObject payload();
   String path() throws Exception;
   JSONObject toApi() throws Exception;
 }

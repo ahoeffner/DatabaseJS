@@ -34,6 +34,7 @@ public class Insert implements SQLObject
    private final String source;
    private final Object custom;
    private final String session;
+   private final JSONObject payload;
    private final BindValue[] bindvalues;
 
    private final HashMap<String,BindValue> values =
@@ -92,6 +93,7 @@ public class Insert implements SQLObject
       this.source = source;
       this.custom = custom;
       this.session = session;
+      this.payload = definition;
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
@@ -100,6 +102,13 @@ public class Insert implements SQLObject
    public String session()
    {
       return(session);
+   }
+
+   
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
    }
 
 

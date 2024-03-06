@@ -32,6 +32,7 @@ public class Script implements SQLObject
    private final Object custom;
    private final String session;
    private final JSONArray steps;
+   private final JSONObject payload;
 
    private final ArrayList<SQLObject> sqlsteps =
       new ArrayList<SQLObject>();
@@ -55,13 +56,23 @@ public class Script implements SQLObject
       this.steps = steps;
       this.custom = custom;
       this.session = session;
+      this.payload = definition;
    }
+
 
    @Override
    public String path() throws Exception
    {
       return(Parser.BATCH);
    }
+
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
+   }
+
 
    @Override
    public JSONObject toApi() throws Exception
@@ -92,11 +103,13 @@ public class Script implements SQLObject
       return(parsed);
    }
 
+
    @Override
    public String sql() throws Exception
    {
       return(null);
    }
+
 
    @Override
    public boolean lock() throws Exception
@@ -104,17 +117,20 @@ public class Script implements SQLObject
       return(false);
    }
 
+
    @Override
    public Object custom() throws Exception
    {
       return(custom);
    }
 
+
    @Override
    public String session() throws Exception
    {
       return(session);
    }
+
 
    @Override
    public boolean validate() throws Exception
@@ -130,6 +146,7 @@ public class Script implements SQLObject
       return(success);
    }
 
+   
    @Override
    public BindValue[] getAssertions() throws Exception
    {

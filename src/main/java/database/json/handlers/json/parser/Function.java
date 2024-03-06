@@ -34,6 +34,7 @@ public class Function implements SQLObject
    private final String retval;
    private final Object custom;
    private final String session;
+   private final JSONObject payload;
    private final BindValue[] bindvalues;
 
 
@@ -70,6 +71,7 @@ public class Function implements SQLObject
       this.retval = retval;
       this.custom = custom;
       this.session = session;
+      this.payload = definition;
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
@@ -78,6 +80,13 @@ public class Function implements SQLObject
    public String path() throws Exception
    {
       return(Parser.INVOKE);
+   }
+
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
    }
 
 
@@ -110,6 +119,7 @@ public class Function implements SQLObject
       return(true);
    }
 
+   
    @Override
    public BindValue[] getAssertions() throws Exception
    {

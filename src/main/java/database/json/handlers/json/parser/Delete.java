@@ -34,6 +34,7 @@ public class Delete implements SQLObject
    private final Object custom;
    private final String session;
    private final WhereClause whcl;
+   private final JSONObject payload;
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
 
@@ -71,6 +72,7 @@ public class Delete implements SQLObject
       this.source = source;
       this.custom = custom;
       this.session = session;
+      this.payload = definition;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
@@ -80,6 +82,13 @@ public class Delete implements SQLObject
    public String session()
    {
       return(session);
+   }
+
+
+   @Override
+   public JSONObject payload()
+   {
+      return(payload);
    }
 
 

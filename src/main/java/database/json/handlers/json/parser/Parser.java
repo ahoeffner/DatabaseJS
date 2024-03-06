@@ -49,8 +49,8 @@ public class Parser
    static final public String EXECUTE = "execute";
    static final public String DESCRIBE = "describe";
 
-   static final public String UTC = "UTC";
    static final public String COMPACT = "compact";
+   static final public String SAVEPOINT = "savepoint";
    static final public String DATEFORMAT = "dateformat";
 
    static final public String FILTER = "filter";
@@ -232,5 +232,31 @@ public class Parser
       }
 
       return(bindvalues);
+   }
+
+
+   public static void setAttributes(JSONObject def, JSONObject api)
+   {
+      Boolean compact = null;
+      Boolean savepoint = null;
+      String dateformat = null;
+
+      if (def.has(COMPACT))
+         compact = def.getBoolean(COMPACT);
+
+      if (compact != null)
+         api.put(COMPACT,compact);
+
+      if (def.has(SAVEPOINT))
+         savepoint = def.getBoolean(SAVEPOINT);
+
+      if (savepoint != null)
+         api.put(SAVEPOINT,savepoint);
+
+      if (def.has(DATEFORMAT))
+         dateformat = def.getString(DATEFORMAT);
+
+      if (dateformat != null)
+         api.put(DATEFORMAT,dateformat);
    }
 }
