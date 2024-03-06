@@ -49,8 +49,11 @@ public class Parser
    static final public String EXECUTE = "execute";
    static final public String DESCRIBE = "describe";
 
-   static final public String FILTER = "filter";
+   static final public String UTC = "UTC";
    static final public String COMPACT = "compact";
+   static final public String DATEFORMAT = "dateformat";
+
+   static final public String FILTER = "filter";
    static final public String FILTERS = "filters";
    static final public String OPERATOR = "operator";
    static final public String PRIMARYKEY = "primarykey";
@@ -131,8 +134,8 @@ public class Parser
          binding.put("type",bindvalues[i].getTypeName());
          binding.put("value",bindvalues[i].getValue());
 
-         if (bindvalues[i].InOut() || bindvalues[i].OutOnly())
-            binding.put("out",true);
+         if (bindvalues[i].OutOnly()) binding.put("inout","out");
+         else if (bindvalues[i].InOut()) binding.put("inout","inout");
 
          bindings.put(binding);
       }
@@ -191,10 +194,10 @@ public class Parser
             if (bdef.has("type")) type = bdef.getString("type");
             if (bdef.has("inout")) ptype = bdef.getString("inout");
 
-            boolean out = ptype.equals("out");
+            //boolean out = ptype.equals("out");
             boolean inout = !ptype.equals("in");
 
-            bindvalues[i] = new BindValue(new BindValueDef(name,type,out,value),inout);
+            bindvalues[i] = new BindValue(new BindValueDef(name,type,inout,value),inout);
          }
       }
 

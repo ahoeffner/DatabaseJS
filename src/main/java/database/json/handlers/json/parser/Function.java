@@ -44,8 +44,6 @@ public class Function implements SQLObject
       Object custom = null;
       String session = null;
 
-      System.out.println(definition.toString(2));
-
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
@@ -65,7 +63,7 @@ public class Function implements SQLObject
          retval = ret.getString("name");
          String rtype = ret.getString("type");
 
-         bindvalues.add(new BindValue(new BindValueDef(retval,rtype,true),true));
+         bindvalues.add(0,new BindValue(new BindValueDef(retval,rtype,true),true));
       }
 
       this.source = source;
@@ -132,14 +130,20 @@ public class Function implements SQLObject
       Source source = Source.getSource(this.source);
       if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
 
+      int off = 0;
       String sql = "";
-      if (retval != null) sql += retval+" = ";
+
+      if (retval != null)
+      {
+         off++;
+         sql += retval+" = ";
+      }
 
       sql += source.function + "(";
 
-      for (int i = 0; i < bindvalues.length; i++)
+      for (int i = off; i < bindvalues.length; i++)
       {
-         if (i > 0) sql += ",";
+         if (i > off) sql += ",";
          String bind = bindvalues[i].InOut() ? "&" : ":";
          sql += bind + bindvalues[i].getName();
       }

@@ -245,8 +245,6 @@ public class Query implements SQLObject
    {
       JSONObject parsed = Parser.toApi(this);
 
-      parsed.put(Parser.COMPACT,true);
-
       if (lock) parsed.put(Parser.LOCK,lock);
       if (skip > 0) parsed.put(Parser.SKIP,skip);
       if (rows > 0) parsed.put(Parser.ROWS,rows);
