@@ -26,7 +26,7 @@ import database.json.database.BindValue;
 
 public class SQLStatement implements SQLObject
 {
-   private final String source;
+   private final Source source;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -38,9 +38,12 @@ public class SQLStatement implements SQLObject
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
-      this.source = source;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.bindvalues = Parser.getBindValues(definition);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -68,8 +71,6 @@ public class SQLStatement implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
       return(source.stmt);
    }
 

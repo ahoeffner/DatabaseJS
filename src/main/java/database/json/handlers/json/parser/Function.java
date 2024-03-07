@@ -30,7 +30,7 @@ import database.json.database.BindValueDef;
 
 public class Function implements SQLObject
 {
-   private final String source;
+   private final Source source;
    private final String retval;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
@@ -57,10 +57,13 @@ public class Function implements SQLObject
          bindvalues.add(0,new BindValue(new BindValueDef(retval,rtype,true),true));
       }
 
-      this.source = source;
       this.retval = retval;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -88,8 +91,6 @@ public class Function implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      Source source = Source.getSource(this.source);
-      if (source == null) return(false);
       return(true);
    }
 
@@ -111,9 +112,6 @@ public class Function implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
-
       int off = 0;
       String sql = "";
 

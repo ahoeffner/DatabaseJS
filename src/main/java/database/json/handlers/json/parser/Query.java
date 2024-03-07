@@ -36,7 +36,7 @@ public class Query implements SQLObject
    private final int skip;
    private final int rows;
    private final String order;
-   private final String source;
+   private final Source source;
    private final String cursor;
    private final String[] columns;
    private final WhereClause whcl;
@@ -125,17 +125,20 @@ public class Query implements SQLObject
       this.rows = rows;
       this.lock = lock;
       this.order = order;
-      this.source = source;
       this.cursor = cursor;
       this.columns = columns;
       this.describe = describe;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
-   public String source()
+   public Source source()
    {
       return(source);
    }
@@ -157,8 +160,7 @@ public class Query implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      Source source = Source.getSource(this.source);
-      if (source == null || columns.length == 0) return(false);
+      if (columns.length == 0) return(false);
       if (whcl != null) return(whcl.validate(source));
       return(true);
    }
@@ -167,11 +169,7 @@ public class Query implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      String sql = "";
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
-
-      sql += "select "+columns[0];
+      String sql = "select "+columns[0];
 
       for (int i = 1; i < columns.length; i++)
          sql += ","+columns[i];

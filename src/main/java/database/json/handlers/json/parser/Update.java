@@ -33,7 +33,7 @@ import database.json.database.BindValueDef;
 public class Update implements SQLObject
 {
    private final boolean lock;
-   private final String source;
+   private final Source source;
    private final WhereClause whcl;
    private final JSONObject payload;
    private final BindValue[] assertions;
@@ -92,10 +92,13 @@ public class Update implements SQLObject
 
       this.whcl = whcl;
       this.lock = lock;
-      this.source = source;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -109,9 +112,7 @@ public class Update implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      Source source = Source.getSource(this.source);
-
-      if (source == null || values.keySet().size() == 0)
+      if (values.keySet().size() == 0)
          return(false);
 
       if (whcl != null)
@@ -124,11 +125,7 @@ public class Update implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      String sql = "";
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
-
-      sql += "update "+source.table+" set ";
+      String sql = "update "+source.table+" set ";
       String[] columns = values.keySet().toArray(new String[0]);
 
       sql += columns[0]+" = :"+values.get(columns[0]).getName();

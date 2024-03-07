@@ -31,7 +31,7 @@ import database.json.database.BindValueDef;
 
 public class Insert implements SQLObject
 {
-   private final String source;
+   private final Source source;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -80,9 +80,12 @@ public class Insert implements SQLObject
          }
       }
 
-      this.source = source;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -96,11 +99,6 @@ public class Insert implements SQLObject
    @Override
    public boolean validate()
    {
-      Source source = Source.getSource(this.source);
-
-      if (source == null)
-         return(false);
-
       return(true);
    }
 
@@ -108,11 +106,7 @@ public class Insert implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      String sql = "";
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
-
-      sql += "insert into "+source.table;
+      String sql = "insert into "+source.table;
 
       sql += "(";
 

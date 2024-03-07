@@ -30,7 +30,7 @@ import database.json.database.BindValue;
 public class Delete implements SQLObject
 {
    private final boolean lock;
-   private final String source;
+   private final Source source;
    private final WhereClause whcl;
    private final JSONObject payload;
    private final BindValue[] assertions;
@@ -61,10 +61,13 @@ public class Delete implements SQLObject
 
       this.whcl = whcl;
       this.lock = lock;
-      this.source = source;
       this.payload = definition;
+      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
+
+      if (this.source == null)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -78,11 +81,6 @@ public class Delete implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      Source source = Source.getSource(this.source);
-
-      if (source == null)
-         return(false);
-
       if (whcl != null)
          return(whcl.validate(source));
 
@@ -93,11 +91,7 @@ public class Delete implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      String sql = "";
-      Source source = Source.getSource(this.source);
-      if (source == null) throw new Exception("Permission denied, source: '"+this.source+"'");
-
-      sql += "delete from "+source.table;
+      String sql = "delete from "+source.table;
 
       if (whcl != null && !whcl.isEmpty())
          sql += " where " + whcl.sql();

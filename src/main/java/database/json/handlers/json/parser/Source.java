@@ -28,10 +28,27 @@ import org.json.JSONObject;
 
 public class Source
 {
+   private static final String ID = "id";
+   private static final String SQL = "sql";
+   private static final String QUERY = "query";
+   private static final String TABLE = "table";
+   private static final String ORDER = "order";
+   private static final String ACCEPT = "accept";
+   private static final String SELECT = "select";
+   private static final String INSERT = "update";
+   private static final String UPDATE = "update";
+   private static final String DELETE = "delete";
+   private static final String FUNCTION = "name";
+
+   private static final String RELAXED = "relaxed";
+   private static final String SINGLEROW = "singlerow";
+   private static final String PRIMARYKEY = "primarykey";
+
+
    private static HashMap<String,Source> sources =
       new HashMap<String,Source>();
 
-      
+
    public static Source getSource(String id)
    {
       return(Source.sources.get(id.toLowerCase()));
@@ -53,6 +70,15 @@ public class Source
    public final String function;
    public final String[] primary;
 
+   public final boolean selectallowed;
+   public final boolean insertallowed;
+   public final boolean updateallowed;
+   public final boolean deleteallowed;
+
+   public final boolean selectrelaxed;
+   public final boolean updaterelaxed;
+   public final boolean deleterelaxed;
+
 
    public Source(SourceType type, JSONObject definition) throws Exception
    {
@@ -64,29 +90,62 @@ public class Source
       String function = null;
       String[] primary = null;
 
-      id = definition.getString("id");
+      boolean selectallowed = false;
+      boolean insertallowed = false;
+      boolean updateallowed = false;
+      boolean deleteallowed = false;
+
+      boolean selectrelaxed = false;
+      boolean updaterelaxed = false;
+      boolean deleterelaxed = false;
+
+      id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
 
       if (type == SourceType.table)
       {
-         if (definition.has("table"))
-         table = definition.getString("table");
+         if (definition.has(TABLE))
+            table = definition.getString(TABLE);
 
-         if (definition.has("order"))
-            order = definition.getString("order");
+         if (definition.has(ORDER))
+            order = definition.getString(ORDER);
 
-         if (definition.has("primarykey"))
+         if (definition.has(PRIMARYKEY))
          {
-            String pkey = definition.getString("primarykey");
+            String pkey = definition.getString(PRIMARYKEY);
 
             primary = pkey.split((","));
             for (int i = 0; i < primary.length; i++)
                primary[i] = primary[i].trim();
          }
 
-         if (definition.has("query"))
+         if (definition.has(INSERT))
          {
-            Object obj = definition.get("query");
+            JSONObject sec = definition.getJSONObject(INSERT);
+            if (sec.has(ACCEPT)) insertallowed = sec.getBoolean(INSERT);
+         }
+
+         if (definition.has(UPDATE))
+         {
+            JSONObject sec = definition.getJSONObject(UPDATE);
+            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(UPDATE);
+         }
+
+         if (definition.has(DELETE))
+         {
+            JSONObject sec = definition.getJSONObject(DELETE);
+            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(DELETE);
+         }
+
+         if (definition.has(SELECT))
+         {
+            JSONObject sec = definition.getJSONObject(SELECT);
+            if (sec.has(ACCEPT)) selectallowed = sec.getBoolean(ACCEPT);
+         }
+
+         if (definition.has(QUERY))
+         {
+            Object obj = definition.get(QUERY);
             if (obj instanceof String) query = (String) obj;
 
             else if (obj instanceof JSONArray)
@@ -105,14 +164,14 @@ public class Source
       {
          function = id;
 
-         if (definition.has("name"))
-            function = definition.getString("name");
+         if (definition.has(FUNCTION))
+            function = definition.getString(FUNCTION);
       }
       else if (type == SourceType.sql)
       {
-         if (definition.has("sql"))
+         if (definition.has(SQL))
          {
-            Object obj = definition.get("sql");
+            Object obj = definition.get(SQL);
             if (obj instanceof String) stmt = (String) obj;
 
             else if (obj instanceof JSONArray)
@@ -135,5 +194,14 @@ public class Source
       this.order = order;
       this.primary = primary;
       this.function = function;
+
+      this.selectallowed = selectallowed;
+      this.insertallowed = insertallowed;
+      this.updateallowed = updateallowed;
+      this.deleteallowed = deleteallowed;
+
+      this.selectrelaxed = selectrelaxed;
+      this.updaterelaxed = updaterelaxed;
+      this.deleterelaxed = deleterelaxed;
    }
 }

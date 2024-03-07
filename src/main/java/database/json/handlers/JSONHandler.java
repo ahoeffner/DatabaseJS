@@ -182,7 +182,7 @@ public class JSONHandler extends Handler
 
         if (rsp.getBoolean("success"))
         {
-          Source source = Source.getSource(((Query) apiobj).source());
+          Source source = ((Query) apiobj).source();
 
           if (source.order != null)
             rsp.put(Parser.ORDER,source.order);
