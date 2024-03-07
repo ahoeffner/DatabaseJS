@@ -79,6 +79,7 @@ public class Source
    public final boolean updaterelaxed;
    public final boolean deleterelaxed;
 
+   public final boolean selectsinglerow;
    public final boolean updatesinglerow;
    public final boolean deletesinglerow;
 
@@ -102,6 +103,7 @@ public class Source
       boolean updaterelaxed = false;
       boolean deleterelaxed = false;
 
+      boolean selectsinglerow = true;
       boolean updatesinglerow = true;
       boolean deletesinglerow = true;
 
@@ -149,6 +151,7 @@ public class Source
          {
             JSONObject sec = definition.getJSONObject(SELECT);
             if (sec.has(ACCEPT)) selectallowed = sec.getBoolean(ACCEPT);
+            if (sec.has(SINGLEROW)) selectsinglerow = sec.getBoolean(SINGLEROW);
          }
 
          if (definition.has(QUERY))
@@ -212,6 +215,7 @@ public class Source
       this.updaterelaxed = updaterelaxed;
       this.deleterelaxed = deleterelaxed;
 
+      this.selectsinglerow = selectsinglerow;
       this.updatesinglerow = updatesinglerow;
       this.deletesinglerow = deletesinglerow;
    }

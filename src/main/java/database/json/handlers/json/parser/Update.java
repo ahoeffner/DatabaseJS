@@ -115,10 +115,13 @@ public class Update implements SQLObject
       if (values.keySet().size() == 0)
          return(false);
 
-      if (whcl != null)
-         return(whcl.validate(source));
+      boolean relaxed = false;
+      boolean singlerow = true;
 
-      return(true);
+      if (whcl == null && (singlerow || !relaxed))
+         throw new Exception(WhereClause.deny(source));
+
+      return(whcl.validate(source,singlerow,relaxed));
    }
 
 
