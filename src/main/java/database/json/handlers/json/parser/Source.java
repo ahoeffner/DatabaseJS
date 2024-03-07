@@ -127,8 +127,6 @@ public class Source
                primary[i] = primary[i].trim();
          }
 
-         System.out.println(definition.toString(2));
-
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);

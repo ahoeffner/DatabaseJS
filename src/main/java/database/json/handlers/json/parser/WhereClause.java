@@ -73,7 +73,7 @@ public class WhereClause implements Filter
 
   public boolean validate(Source source, boolean singlerow, boolean relaxed) throws Exception
   {
-    if (relaxed)
+    if (!relaxed)
     {
       for (int i = 0; i < entries.size(); i++)
       {
