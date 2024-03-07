@@ -168,6 +168,15 @@ public class Query implements SQLObject
       boolean allowed = source.selectallowed;
       boolean singlerow = source.selectsinglerow;
 
+      if (full)
+      {
+         relaxed = true;
+         singlerow = false;
+      }
+
+      if (relaxed)
+         singlerow = false;
+
       if (!allowed)
          throw new Exception(Source.deny(source));
 

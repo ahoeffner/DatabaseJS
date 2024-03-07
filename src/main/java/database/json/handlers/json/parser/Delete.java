@@ -86,6 +86,15 @@ public class Delete implements SQLObject
       boolean allowed = source.deleteallowed;
       boolean singlerow = source.deletesinglerow;
 
+      if (full)
+      {
+         relaxed = true;
+         singlerow = false;
+      }
+
+      if (relaxed)
+         singlerow = false;
+
       if (!allowed)
          throw new Exception(WhereClause.deny(source));
 

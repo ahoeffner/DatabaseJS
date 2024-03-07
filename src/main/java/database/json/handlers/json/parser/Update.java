@@ -120,6 +120,15 @@ public class Update implements SQLObject
       boolean allowed = source.updateallowed;
       boolean singlerow = source.updatesinglerow;
 
+      if (full)
+      {
+         relaxed = true;
+         singlerow = false;
+      }
+
+      if (relaxed)
+         singlerow = false;
+
       if (!allowed)
          throw new Exception(WhereClause.deny(source));
 
