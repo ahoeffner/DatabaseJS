@@ -31,6 +31,11 @@ import database.json.database.filters.Filter;
 
 public class WhereClause implements Filter
 {
+  public static String deny(Source source)
+  {
+    return("The where clause on "+source.id+" is not allowed");
+  }
+
   private ArrayList<BindValue> bindvals =
     new ArrayList<BindValue>();
 
@@ -66,12 +71,15 @@ public class WhereClause implements Filter
   }
 
 
-  public boolean validate(Source source) throws Exception
+  public boolean validate(Source source, boolean singlerow, boolean relaxed) throws Exception
   {
-    for (int i = 0; i < entries.size(); i++)
+    if (relaxed)
     {
-      if (entries.get(i).operator.equals("or"))
-        throw new Exception("Where clause too relaxed");
+      for (int i = 0; i < entries.size(); i++)
+      {
+        if (entries.get(i).operator.equals("or"))
+          throw new Exception("The where clause on "+source.id+" is not allowed");
+      }
     }
 
     return(true);

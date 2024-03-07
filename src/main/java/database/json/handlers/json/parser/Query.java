@@ -160,9 +160,14 @@ public class Query implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
+      boolean relaxed = false;
+      boolean singlerow = true;
+
+      if (whcl == null && (singlerow || !relaxed))
+         throw new Exception(WhereClause.deny(source));
+
       if (columns.length == 0) return(false);
-      if (whcl != null) return(whcl.validate(source));
-      return(true);
+      return(whcl.validate(source,singlerow,relaxed));
    }
 
 

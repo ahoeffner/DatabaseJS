@@ -79,6 +79,9 @@ public class Source
    public final boolean updaterelaxed;
    public final boolean deleterelaxed;
 
+   public final boolean updatesinglerow;
+   public final boolean deletesinglerow;
+
 
    public Source(SourceType type, JSONObject definition) throws Exception
    {
@@ -98,6 +101,9 @@ public class Source
       boolean selectrelaxed = false;
       boolean updaterelaxed = false;
       boolean deleterelaxed = false;
+
+      boolean updatesinglerow = true;
+      boolean deletesinglerow = true;
 
       id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
@@ -129,12 +135,14 @@ public class Source
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
             if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(UPDATE);
+            if (sec.has(SINGLEROW)) updatesinglerow = sec.getBoolean(SINGLEROW);
          }
 
          if (definition.has(DELETE))
          {
             JSONObject sec = definition.getJSONObject(DELETE);
             if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(DELETE);
+            if (sec.has(SINGLEROW)) deletesinglerow = sec.getBoolean(SINGLEROW);
          }
 
          if (definition.has(SELECT))
@@ -203,5 +211,8 @@ public class Source
       this.selectrelaxed = selectrelaxed;
       this.updaterelaxed = updaterelaxed;
       this.deleterelaxed = deleterelaxed;
+
+      this.updatesinglerow = updatesinglerow;
+      this.deletesinglerow = deletesinglerow;
    }
 }

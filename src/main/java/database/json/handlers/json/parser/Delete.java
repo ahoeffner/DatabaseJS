@@ -68,6 +68,9 @@ public class Delete implements SQLObject
 
       if (this.source == null)
          throw new Exception("Permission denied, source: '"+this.source+"'");
+
+      if (!this.source.deleteallowed)
+         throw new Exception("Permission denied, source: '"+this.source+"'");
    }
 
 
@@ -81,10 +84,13 @@ public class Delete implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      if (whcl != null)
-         return(whcl.validate(source));
+      boolean relaxed = false;
+      boolean singlerow = true;
 
-      return(true);
+      if (whcl == null && (singlerow || !relaxed))
+         throw new Exception(WhereClause.deny(source));
+
+      return(whcl.validate(source,singlerow,relaxed));
    }
 
 
