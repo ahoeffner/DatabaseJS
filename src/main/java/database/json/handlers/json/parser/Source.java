@@ -35,7 +35,7 @@ public class Source
    private static final String ORDER = "order";
    private static final String ACCEPT = "accept";
    private static final String SELECT = "select";
-   private static final String INSERT = "update";
+   private static final String INSERT = "insert";
    private static final String UPDATE = "update";
    private static final String DELETE = "delete";
    private static final String FUNCTION = "name";
@@ -103,9 +103,9 @@ public class Source
       boolean updaterelaxed = false;
       boolean deleterelaxed = false;
 
-      boolean selectsinglerow = true;
       boolean updatesinglerow = true;
       boolean deletesinglerow = true;
+      boolean selectsinglerow = false;
 
       id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
@@ -127,23 +127,27 @@ public class Source
                primary[i] = primary[i].trim();
          }
 
+         System.out.println(definition.toString(2));
+
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);
-            if (sec.has(ACCEPT)) insertallowed = sec.getBoolean(INSERT);
+            if (sec.has(ACCEPT)) insertallowed = sec.getBoolean(ACCEPT);
          }
 
          if (definition.has(UPDATE))
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
-            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(UPDATE);
+            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(ACCEPT);
+            if (sec.has(RELAXED)) updaterelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) updatesinglerow = sec.getBoolean(SINGLEROW);
          }
 
          if (definition.has(DELETE))
          {
             JSONObject sec = definition.getJSONObject(DELETE);
-            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(DELETE);
+            if (sec.has(ACCEPT)) deleteallowed = sec.getBoolean(ACCEPT);
+            if (sec.has(RELAXED)) deleterelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) deletesinglerow = sec.getBoolean(SINGLEROW);
          }
 
@@ -151,6 +155,7 @@ public class Source
          {
             JSONObject sec = definition.getJSONObject(SELECT);
             if (sec.has(ACCEPT)) selectallowed = sec.getBoolean(ACCEPT);
+            if (sec.has(RELAXED)) selectrelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) selectsinglerow = sec.getBoolean(SINGLEROW);
          }
 
