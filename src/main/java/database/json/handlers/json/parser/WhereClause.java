@@ -78,7 +78,7 @@ public class WhereClause implements Filter
       for (int i = 0; i < entries.size(); i++)
       {
         if (entries.get(i).operator.equals("or"))
-          throw new Exception("The where clause on "+source.id+" is not allowed");
+          throw new Exception("The where clause on "+source.id+" is not acceptable");
       }
     }
 
