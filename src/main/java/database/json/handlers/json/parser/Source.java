@@ -40,6 +40,7 @@ public class Source
    private static final String DELETE = "delete";
    private static final String FUNCTION = "name";
 
+   private static final String FULL = "full";
    private static final String RELAXED = "relaxed";
    private static final String SINGLEROW = "singlerow";
    private static final String PRIMARYKEY = "primarykey";
@@ -47,6 +48,18 @@ public class Source
 
    private static HashMap<String,Source> sources =
       new HashMap<String,Source>();
+
+
+   public static String deny(Source source)
+   {
+      return("Access to source "+source.id+" is not allowed");
+   }
+
+
+   public static String deny(String source)
+   {
+      return("Access to source "+source+" is not allowed");
+   }
 
 
    public static Source getSource(String id)
@@ -75,6 +88,10 @@ public class Source
    public final boolean updateallowed;
    public final boolean deleteallowed;
 
+   public final boolean selectfull;
+   public final boolean updatefull;
+   public final boolean deletefull;
+
    public final boolean selectrelaxed;
    public final boolean updaterelaxed;
    public final boolean deleterelaxed;
@@ -99,13 +116,17 @@ public class Source
       boolean updateallowed = false;
       boolean deleteallowed = false;
 
+      boolean selectfull = false;
+      boolean updatefull = false;
+      boolean deletefull = false;
+
       boolean selectrelaxed = false;
       boolean updaterelaxed = false;
       boolean deleterelaxed = false;
 
       boolean updatesinglerow = true;
       boolean deletesinglerow = true;
-      boolean selectsinglerow = false;
+      boolean selectsinglerow = true;
 
       id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
@@ -136,6 +157,7 @@ public class Source
          if (definition.has(UPDATE))
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
+            if (sec.has(FULL)) updatefull = sec.getBoolean(FULL);
             if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(ACCEPT);
             if (sec.has(RELAXED)) updaterelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) updatesinglerow = sec.getBoolean(SINGLEROW);
@@ -144,6 +166,7 @@ public class Source
          if (definition.has(DELETE))
          {
             JSONObject sec = definition.getJSONObject(DELETE);
+            if (sec.has(FULL)) deletefull = sec.getBoolean(FULL);
             if (sec.has(ACCEPT)) deleteallowed = sec.getBoolean(ACCEPT);
             if (sec.has(RELAXED)) deleterelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) deletesinglerow = sec.getBoolean(SINGLEROW);
@@ -152,6 +175,7 @@ public class Source
          if (definition.has(SELECT))
          {
             JSONObject sec = definition.getJSONObject(SELECT);
+            if (sec.has(FULL)) selectfull = sec.getBoolean(FULL);
             if (sec.has(ACCEPT)) selectallowed = sec.getBoolean(ACCEPT);
             if (sec.has(RELAXED)) selectrelaxed = sec.getBoolean(RELAXED);
             if (sec.has(SINGLEROW)) selectsinglerow = sec.getBoolean(SINGLEROW);
@@ -213,6 +237,10 @@ public class Source
       this.insertallowed = insertallowed;
       this.updateallowed = updateallowed;
       this.deleteallowed = deleteallowed;
+
+      this.selectfull = selectfull;
+      this.updatefull = updatefull;
+      this.deletefull = deletefull;
 
       this.selectrelaxed = selectrelaxed;
       this.updaterelaxed = updaterelaxed;

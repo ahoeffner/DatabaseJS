@@ -85,7 +85,7 @@ public class Insert implements SQLObject
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
       if (this.source == null)
-         throw new Exception("Permission denied, source: '"+this.source+"'");
+         throw new Exception(Source.deny(source));
    }
 
 

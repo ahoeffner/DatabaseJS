@@ -98,7 +98,7 @@ public class Update implements SQLObject
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
       if (this.source == null)
-         throw new Exception("Permission denied, source: '"+this.source+"'");
+         throw new Exception(Source.deny(source));
    }
 
 
@@ -115,10 +115,15 @@ public class Update implements SQLObject
       if (values.keySet().size() == 0)
          return(false);
 
-      boolean relaxed = false;
-      boolean singlerow = true;
+      boolean full = source.updatefull;
+      boolean relaxed = source.updaterelaxed;
+      boolean allowed = source.updateallowed;
+      boolean singlerow = source.updatesinglerow;
 
-      if (whcl == null && (singlerow || !relaxed))
+      if (!allowed)
+         throw new Exception(WhereClause.deny(source));
+
+      if (whcl == null && !full)
          throw new Exception(WhereClause.deny(source));
 
       return(whcl.validate(source,singlerow,relaxed));

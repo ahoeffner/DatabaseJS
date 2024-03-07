@@ -67,10 +67,7 @@ public class Delete implements SQLObject
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
       if (this.source == null)
-         throw new Exception("Permission denied, source: '"+this.source+"'");
-
-      if (!this.source.deleteallowed)
-         throw new Exception("Permission denied, source: '"+this.source+"'");
+         throw new Exception(Source.deny(source));
    }
 
 
@@ -84,10 +81,15 @@ public class Delete implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      boolean relaxed = false;
-      boolean singlerow = true;
+      boolean full = source.deletefull;
+      boolean relaxed = source.deleterelaxed;
+      boolean allowed = source.deleteallowed;
+      boolean singlerow = source.deletesinglerow;
 
-      if (whcl == null && (singlerow || !relaxed))
+      if (!allowed)
+         throw new Exception(WhereClause.deny(source));
+
+      if (whcl == null && !full)
          throw new Exception(WhereClause.deny(source));
 
       return(whcl.validate(source,singlerow,relaxed));

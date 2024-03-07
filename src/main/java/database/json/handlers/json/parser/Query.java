@@ -134,7 +134,7 @@ public class Query implements SQLObject
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
       if (this.source == null)
-         throw new Exception("Permission denied, source: '"+this.source+"'");
+         throw new Exception(Source.deny(source));
    }
 
 
@@ -163,10 +163,15 @@ public class Query implements SQLObject
       if (columns.length == 0)
          return(false);
 
+      boolean full = source.selectfull;
       boolean relaxed = source.selectrelaxed;
+      boolean allowed = source.selectallowed;
       boolean singlerow = source.selectsinglerow;
 
-      if (whcl == null && (singlerow || !relaxed))
+      if (!allowed)
+         throw new Exception(Source.deny(source));
+
+      if (whcl == null && !full)
          throw new Exception(WhereClause.deny(source));
 
       return(whcl.validate(source,singlerow,relaxed));
