@@ -163,8 +163,8 @@ public class Query implements SQLObject
       if (columns.length == 0)
          return(false);
 
-      boolean relaxed = false;
-      boolean singlerow = true;
+      boolean relaxed = source.selectrelaxed;
+      boolean singlerow = source.selectsinglerow;
 
       if (whcl == null && (singlerow || !relaxed))
          throw new Exception(WhereClause.deny(source));
