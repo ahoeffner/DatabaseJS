@@ -51,23 +51,20 @@ public class WhereClause implements Filter
 
   public boolean restricts()
   {
+    boolean restricts = false;
+
     for (FilterEntry entry : entries)
     {
-      if (entry.operator == "and")
+      restricts = false;
+
+      if (entry.operator.equals("and"))
       {
-        if (entry.filter instanceof WhereClause)
-        {
-          if (((WhereClause) entry.filter).restricts())
-            return(true);
-        }
-        else
-        {
-          return(true);
-        }
+        if (!(entry.filter instanceof WhereClause)) restricts = true;
+        else restricts = ((WhereClause) entry.filter).restricts();
       }
     }
 
-    return(false);
+    return(restricts);
   }
 
 
