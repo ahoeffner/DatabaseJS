@@ -33,6 +33,8 @@ public class Source
    private static final String QUERY = "query";
    private static final String TABLE = "table";
    private static final String ORDER = "order";
+   private static final String LIMIT = "limit";
+   private static final String ACCESS = "access";
    private static final String ACCEPT = "accept";
    private static final String SELECT = "select";
    private static final String INSERT = "insert";
@@ -40,9 +42,6 @@ public class Source
    private static final String DELETE = "delete";
    private static final String FUNCTION = "name";
 
-   private static final String FULL = "full";
-   private static final String RELAXED = "relaxed";
-   private static final String SINGLEROW = "singlerow";
    private static final String PRIMARYKEY = "primarykey";
 
 
@@ -73,32 +72,20 @@ public class Source
       Source.sources = sources;
    }
 
-
    public final String id;
    public final String stmt;
    public final String query;
    public final String table;
    public final String order;
+
+   public final Limitation select;
+   public final Limitation insert;
+   public final Limitation update;
+   public final Limitation delete;
+
    public final SourceType type;
    public final String function;
    public final String[] primary;
-
-   public final boolean selectallowed;
-   public final boolean insertallowed;
-   public final boolean updateallowed;
-   public final boolean deleteallowed;
-
-   public final boolean selectfull;
-   public final boolean updatefull;
-   public final boolean deletefull;
-
-   public final boolean selectrelaxed;
-   public final boolean updaterelaxed;
-   public final boolean deleterelaxed;
-
-   public final boolean selectsinglerow;
-   public final boolean updatesinglerow;
-   public final boolean deletesinglerow;
 
 
    public Source(SourceType type, JSONObject definition) throws Exception
@@ -111,22 +98,12 @@ public class Source
       String function = null;
       String[] primary = null;
 
-      boolean selectallowed = false;
-      boolean insertallowed = false;
-      boolean updateallowed = false;
-      boolean deleteallowed = false;
+      Limitation defval = Limitation.singlerow;
 
-      boolean selectfull = false;
-      boolean updatefull = false;
-      boolean deletefull = false;
-
-      boolean selectrelaxed = false;
-      boolean updaterelaxed = false;
-      boolean deleterelaxed = false;
-
-      boolean updatesinglerow = true;
-      boolean deletesinglerow = true;
-      boolean selectsinglerow = true;
+      Limitation insert = Limitation.blocked;
+      Limitation select = Limitation.singlerow;
+      Limitation update = Limitation.singlerow;
+      Limitation delete = Limitation.singlerow;
 
       id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
@@ -148,37 +125,40 @@ public class Source
                primary[i] = primary[i].trim();
          }
 
+         if (definition.has(LIMIT))
+         {
+            String lim = definition.getString(LIMIT);
+            defval = Limitation.valueOf(lim.toLowerCase());
+            select = defval; update = defval; delete = defval;
+         }
+
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);
-            if (sec.has(ACCEPT)) insertallowed = sec.getBoolean(ACCEPT);
+
+            if (sec.has(ACCEPT) && sec.getBoolean(ACCEPT))
+               select = Limitation.none;
          }
 
          if (definition.has(UPDATE))
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
-            if (sec.has(FULL)) updatefull = sec.getBoolean(FULL);
-            if (sec.has(ACCEPT)) updateallowed = sec.getBoolean(ACCEPT);
-            if (sec.has(RELAXED)) updaterelaxed = sec.getBoolean(RELAXED);
-            if (sec.has(SINGLEROW)) updatesinglerow = sec.getBoolean(SINGLEROW);
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) update = Limitation.blocked;
+            else if (sec.has(LIMIT)) update = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
          }
 
          if (definition.has(DELETE))
          {
-            JSONObject sec = definition.getJSONObject(DELETE);
-            if (sec.has(FULL)) deletefull = sec.getBoolean(FULL);
-            if (sec.has(ACCEPT)) deleteallowed = sec.getBoolean(ACCEPT);
-            if (sec.has(RELAXED)) deleterelaxed = sec.getBoolean(RELAXED);
-            if (sec.has(SINGLEROW)) deletesinglerow = sec.getBoolean(SINGLEROW);
+            JSONObject sec = definition.getJSONObject(UPDATE);
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) delete = Limitation.blocked;
+            else if (sec.has(LIMIT)) delete = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
          }
 
          if (definition.has(SELECT))
          {
             JSONObject sec = definition.getJSONObject(SELECT);
-            if (sec.has(FULL)) selectfull = sec.getBoolean(FULL);
-            if (sec.has(ACCEPT)) selectallowed = sec.getBoolean(ACCEPT);
-            if (sec.has(RELAXED)) selectrelaxed = sec.getBoolean(RELAXED);
-            if (sec.has(SINGLEROW)) selectsinglerow = sec.getBoolean(SINGLEROW);
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) select = Limitation.blocked;
+            else if (sec.has(LIMIT)) select = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
          }
 
          if (definition.has(QUERY))
@@ -197,6 +177,8 @@ public class Source
                query = query.trim();
             }
          }
+
+         System.out.println(id+" select: "+select+" insert: "+insert+" update: "+update+" delete: "+delete);
       }
       else if (type == SourceType.function)
       {
@@ -233,21 +215,9 @@ public class Source
       this.primary = primary;
       this.function = function;
 
-      this.selectallowed = selectallowed;
-      this.insertallowed = insertallowed;
-      this.updateallowed = updateallowed;
-      this.deleteallowed = deleteallowed;
-
-      this.selectfull = selectfull;
-      this.updatefull = updatefull;
-      this.deletefull = deletefull;
-
-      this.selectrelaxed = selectrelaxed;
-      this.updaterelaxed = updaterelaxed;
-      this.deleterelaxed = deleterelaxed;
-
-      this.selectsinglerow = selectsinglerow;
-      this.updatesinglerow = updatesinglerow;
-      this.deletesinglerow = deletesinglerow;
+      this.select = select;
+      this.insert = insert;
+      this.update = update;
+      this.delete = delete;
    }
 }

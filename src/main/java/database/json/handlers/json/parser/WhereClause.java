@@ -71,9 +71,9 @@ public class WhereClause implements Filter
   }
 
 
-  public boolean validate(Source source, boolean singlerow, boolean relaxed) throws Exception
+  public boolean validate(Source source, Limitation lim) throws Exception
   {
-    if (!relaxed)
+    if (lim == Limitation.restricted)
     {
       for (int i = 0; i < entries.size(); i++)
       {

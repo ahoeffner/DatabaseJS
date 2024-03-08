@@ -115,27 +115,15 @@ public class Update implements SQLObject
       if (values.keySet().size() == 0)
          return(false);
 
-      boolean full = source.updatefull;
-      boolean relaxed = source.updaterelaxed;
-      boolean allowed = source.updateallowed;
-      boolean singlerow = source.updatesinglerow;
+      Limitation lim = source.update;
 
-      if (full)
-      {
-         relaxed = true;
-         singlerow = false;
-      }
-
-      if (relaxed)
-         singlerow = false;
-
-      if (!allowed)
+      if (lim == Limitation.blocked)
          throw new Exception(WhereClause.deny(source));
 
-      if (whcl == null && !full)
+      if (whcl == null && lim != Limitation.none)
          throw new Exception(WhereClause.deny(source));
 
-      return(whcl.validate(source,singlerow,relaxed));
+      return(whcl.validate(source,lim));
    }
 
 

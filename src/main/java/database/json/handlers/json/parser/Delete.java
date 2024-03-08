@@ -81,27 +81,15 @@ public class Delete implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      boolean full = source.deletefull;
-      boolean relaxed = source.deleterelaxed;
-      boolean allowed = source.deleteallowed;
-      boolean singlerow = source.deletesinglerow;
+      Limitation lim = source.delete;
 
-      if (full)
-      {
-         relaxed = true;
-         singlerow = false;
-      }
-
-      if (relaxed)
-         singlerow = false;
-
-      if (!allowed)
+      if (lim == Limitation.blocked)
          throw new Exception(WhereClause.deny(source));
 
-      if (whcl == null && !full)
+      if (whcl == null && lim != Limitation.none)
          throw new Exception(WhereClause.deny(source));
 
-      return(whcl.validate(source,singlerow,relaxed));
+      return(whcl.validate(source,lim));
    }
 
 

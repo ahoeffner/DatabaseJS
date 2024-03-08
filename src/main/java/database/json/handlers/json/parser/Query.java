@@ -163,27 +163,15 @@ public class Query implements SQLObject
       if (columns.length == 0)
          return(false);
 
-      boolean full = source.selectfull;
-      boolean relaxed = source.selectrelaxed;
-      boolean allowed = source.selectallowed;
-      boolean singlerow = source.selectsinglerow;
+      Limitation lim = source.select;
 
-      if (full)
-      {
-         relaxed = true;
-         singlerow = false;
-      }
-
-      if (relaxed)
-         singlerow = false;
-
-      if (!allowed)
+      if (lim == Limitation.blocked)
          throw new Exception(Source.deny(source));
 
-      if (whcl == null && !full)
+      if (whcl == null && lim != Limitation.none)
          throw new Exception(WhereClause.deny(source));
 
-      return(whcl.validate(source,singlerow,relaxed));
+      return(whcl.validate(source,lim));
    }
 
 
