@@ -24,17 +24,19 @@ package database.json.handlers.json.parser;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.logging.Logger;
 
 
 public class Source
 {
+   private final static Logger logger = Logger.getLogger("json");
+
    private static final String ID = "id";
    private static final String SQL = "sql";
    private static final String QUERY = "query";
    private static final String TABLE = "table";
    private static final String ORDER = "order";
    private static final String LIMIT = "limit";
-   private static final String ACCESS = "access";
    private static final String ACCEPT = "accept";
    private static final String SELECT = "select";
    private static final String INSERT = "insert";
@@ -98,8 +100,6 @@ public class Source
       String function = null;
       String[] primary = null;
 
-      Limitation defval = Limitation.singlerow;
-
       Limitation insert = Limitation.blocked;
       Limitation select = Limitation.singlerow;
       Limitation update = Limitation.singlerow;
@@ -125,19 +125,10 @@ public class Source
                primary[i] = primary[i].trim();
          }
 
-         if (definition.has(LIMIT))
-         {
-            String lim = definition.getString(LIMIT);
-            defval = Limitation.valueOf(lim.toLowerCase());
-            select = defval; update = defval; delete = defval;
-         }
-
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);
-
-            if (sec.has(ACCEPT) && sec.getBoolean(ACCEPT))
-               select = Limitation.none;
+            if (sec.has(ACCEPT) && sec.getBoolean(ACCEPT)) insert = Limitation.none;
          }
 
          if (definition.has(UPDATE))
@@ -149,7 +140,7 @@ public class Source
 
          if (definition.has(DELETE))
          {
-            JSONObject sec = definition.getJSONObject(UPDATE);
+            JSONObject sec = definition.getJSONObject(DELETE);
             if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) delete = Limitation.blocked;
             else if (sec.has(LIMIT)) delete = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
          }
@@ -178,7 +169,7 @@ public class Source
             }
          }
 
-         System.out.println(id+" select: "+select+" insert: "+insert+" update: "+update+" delete: "+delete);
+         logger.info("register datasource '"+id+"'' select: "+select+", insert: "+insert+", update: "+update+", delete: "+delete);
       }
       else if (type == SourceType.function)
       {
@@ -186,6 +177,8 @@ public class Source
 
          if (definition.has(FUNCTION))
             function = definition.getString(FUNCTION);
+
+         logger.info("register function/procedure '"+id+"' "+function);
       }
       else if (type == SourceType.sql)
       {
@@ -204,6 +197,8 @@ public class Source
 
                stmt = stmt.trim();
             }
+
+            logger.info("register sql '"+id+"' "+stmt);
          }
       }
 

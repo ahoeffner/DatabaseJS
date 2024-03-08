@@ -49,6 +49,28 @@ public class WhereClause implements Filter
   }
 
 
+  public boolean restricts()
+  {
+    for (FilterEntry entry : entries)
+    {
+      if (entry.operator == "and")
+      {
+        if (entry.filter instanceof WhereClause)
+        {
+          if (((WhereClause) entry.filter).restricts())
+            return(true);
+        }
+        else
+        {
+          return(true);
+        }
+      }
+    }
+
+    return(false);
+  }
+
+
   @Override
   public String sql()
   {
@@ -75,11 +97,8 @@ public class WhereClause implements Filter
   {
     if (lim == Limitation.restricted)
     {
-      for (int i = 0; i < entries.size(); i++)
-      {
-        if (entries.get(i).operator.equals("or"))
-          throw new Exception("The where clause on "+source.id+" is not acceptable");
-      }
+      if (!this.restricts())
+        throw new Exception("The where clause on "+source.id+" is not acceptable");
     }
 
     return(true);
