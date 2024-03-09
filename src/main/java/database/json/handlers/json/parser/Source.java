@@ -130,12 +130,12 @@ public class Source
 
          if (definition.has(DERIVED))
          {
-            String cols = definition.getString(PRIMARYKEY);
+            String cols = definition.getString(DERIVED);
 
             derived = cols.split((","));
 
             for (int i = 0; i < derived.length; i++)
-               derived[i] = primary[i].trim();
+               derived[i] = derived[i].trim();
          }
 
          if (definition.has(INSERT))

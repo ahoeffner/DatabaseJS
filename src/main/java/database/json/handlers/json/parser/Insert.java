@@ -22,6 +22,7 @@
 package database.json.handlers.json.parser;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import org.json.JSONArray;
 import java.util.ArrayList;
 import org.json.JSONObject;
@@ -41,11 +42,18 @@ public class Insert implements SQLObject
 
    public Insert(JSONObject definition) throws Exception
    {
-      String source = null;
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
 
-      if (definition.has(Parser.SOURCE))
-         source = definition.getString(Parser.SOURCE);
+      if (!definition.has(Parser.SOURCE)) this.source = null;
+      else this.source = Source.getSource(definition.getString(Parser.SOURCE));
+
+      if (this.source == null)
+         throw new Exception(Source.deny(source));
+
+      HashSet<String> derived = new HashSet<String>();
+
+      for (int i = 0; source.derived != null && i < source.derived.length; i++)
+         derived.add(source.derived[i].toLowerCase());
 
       if (definition.has(Parser.VALUES))
       {
@@ -62,6 +70,12 @@ public class Insert implements SQLObject
 
             if (bdef.has("column"))
                column = bdef.getString("column");
+
+            if (column == null)
+               throw new Exception("Syntax error");
+
+            if (derived.contains(column.toLowerCase()))
+               continue;
 
             if (bdef.has(Parser.VALUE))
             {
@@ -80,20 +94,6 @@ public class Insert implements SQLObject
       }
 
       this.payload = definition;
-      this.source = Source.getSource(source);
-
-      if (this.source == null)
-         throw new Exception(Source.deny(source));
-
-      if (this.source.derived != null)
-      {
-         for (String col : this.source.derived)
-         {
-            values.remove(col.toLowerCase());
-            continue;
-         }
-      }
-
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
