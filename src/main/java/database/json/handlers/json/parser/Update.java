@@ -23,6 +23,8 @@ package database.json.handlers.json.parser;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+
 import org.json.JSONArray;
 import java.util.ArrayList;
 import org.json.JSONObject;
@@ -45,7 +47,6 @@ public class Update implements SQLObject
 
    public Update(JSONObject definition) throws Exception
    {
-      String source = null;
       boolean lock = false;
       WhereClause whcl = null;
 
@@ -54,8 +55,16 @@ public class Update implements SQLObject
       if (definition.has(Parser.LOCK))
          lock = definition.getBoolean(Parser.LOCK);
 
-      if (definition.has(Parser.SOURCE))
-         source = definition.getString(Parser.SOURCE);
+      if (!definition.has(Parser.SOURCE)) this.source = null;
+      else this.source = Source.getSource(definition.getString(Parser.SOURCE));
+
+      if (this.source == null)
+         throw new Exception(Source.deny(source));
+
+      HashSet<String> derived = new HashSet<String>();
+
+      for (int i = 0; source.derived != null && i < source.derived.length; i++)
+         derived.add(source.derived[i].toLowerCase());
 
       if (definition.has(Parser.FILTERS))
       {
@@ -81,6 +90,12 @@ public class Update implements SQLObject
             if (bdef.has("type")) type = bdef.getString("type");
             if (bdef.has("column")) column = bdef.getString("column");
 
+            if (column == null)
+               throw new Exception("Syntax error");
+
+            if (derived.contains(column.toLowerCase()))
+               continue;
+
             BindValue bval = new BindValue(new BindValueDef(name,type,false,value),false);
 
             bindvalues.add(bval);
@@ -93,7 +108,6 @@ public class Update implements SQLObject
       this.whcl = whcl;
       this.lock = lock;
       this.payload = definition;
-      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
