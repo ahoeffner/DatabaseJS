@@ -81,8 +81,6 @@ public class Query implements SQLObject
       boolean describe = false;
       String[] columns = new String[0];
 
-      System.out.println(definition.toString(2));
-
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
 
