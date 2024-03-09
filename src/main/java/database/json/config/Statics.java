@@ -31,7 +31,6 @@ public class Statics
 {
   static void init(Config config) throws Exception
   {
-    Access.load(config);
     Database.setUrl(config.getDatabase().url);
     HTTPResponse.init(config.getHTTP().timeout);
     Database.setTestSQL(config.getDatabase().test);

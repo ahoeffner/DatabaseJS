@@ -29,6 +29,7 @@ import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.FileOutputStream;
+import database.json.config.Access;
 import database.json.config.Config;
 import java.io.BufferedOutputStream;
 import database.json.cluster.Cluster;
@@ -102,6 +103,7 @@ public class Server extends Thread
     System.setErr(out);
 
     config.getLogger().open(id);
+    Access.load(config);
 
     this.pid = ProcessHandle.current().pid();
     this.started = System.currentTimeMillis();

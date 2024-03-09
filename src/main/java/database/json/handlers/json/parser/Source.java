@@ -169,7 +169,13 @@ public class Source
             }
          }
 
-         logger.info("register datasource '"+id+"'' select: "+select+", insert: "+insert+", update: "+update+", delete: "+delete);
+         String ops = "["+
+            (insert+"").charAt(0) + "|" +
+            (select+"").charAt(0) + "|" +
+            (update+"").charAt(0) + "|" +
+            (delete+"").charAt(0) + "]";
+
+         logger.info("register datasource '"+id+"', CRUD Limitation: "+ops);
       }
       else if (type == SourceType.function)
       {
@@ -178,7 +184,7 @@ public class Source
          if (definition.has(FUNCTION))
             function = definition.getString(FUNCTION);
 
-         logger.info("register function/procedure '"+id+"' "+function);
+         logger.info("register function/procedure '"+id+"'");
       }
       else if (type == SourceType.sql)
       {
@@ -198,7 +204,7 @@ public class Source
                stmt = stmt.trim();
             }
 
-            logger.info("register sql '"+id+"' "+stmt);
+            logger.info("register sql '"+id+"'");
          }
       }
 
