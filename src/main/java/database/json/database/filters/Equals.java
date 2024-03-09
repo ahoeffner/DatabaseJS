@@ -43,6 +43,11 @@ public class Equals implements Filter
       return(bindvalues);
    }
 
+   public String column()
+   {
+      return(column);
+   }
+
    @Override
    public void parse(JSONObject definition) throws Exception
    {

@@ -22,10 +22,12 @@
 package database.json.handlers.json.parser;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import database.json.database.BindValue;
+import database.json.database.filters.Equals;
 import database.json.database.filters.Filter;
 
 
@@ -68,6 +70,35 @@ public class WhereClause implements Filter
   }
 
 
+  public boolean unique(Source source)
+  {
+    String[] pkey = source.primary;
+
+    if (pkey == null || pkey.length == 0)
+      return(false);
+
+    if (entries.size() != pkey.length)
+      return(false);
+
+    HashSet<String> keys = new HashSet<String>();
+    for (String column : pkey) keys.add(column.toLowerCase());
+
+    for (int i = 0; i < entries.size(); i++)
+    {
+      Filter eq = entries.get(i).filter;
+
+      if (eq instanceof Equals)
+      {
+        if (!keys.remove(((Equals) eq).column().toLowerCase()))
+          return(false);
+      }
+    }
+
+
+    return(keys.size() == 0);
+  }
+
+
   @Override
   public String sql()
   {
@@ -92,6 +123,14 @@ public class WhereClause implements Filter
 
   public boolean validate(Source source, Limitation lim) throws Exception
   {
+    if (lim == Limitation.singlerow)
+    {
+      if (!this.unique(source))
+        throw new Exception("The where clause on "+source.id+" is not acceptable");
+    }
+
+    else
+
     if (lim == Limitation.restricted)
     {
       if (!this.restricts())
