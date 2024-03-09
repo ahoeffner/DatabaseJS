@@ -44,6 +44,7 @@ public class Source
    private static final String DELETE = "delete";
    private static final String FUNCTION = "name";
 
+   private static final String DERIVED = "derived";
    private static final String PRIMARYKEY = "primarykey";
 
 
@@ -79,15 +80,15 @@ public class Source
    public final String query;
    public final String table;
    public final String order;
+   public final String function;
+   public final SourceType type;
+   public final String[] primary;
+   public final String[] derived;
 
    public final Limitation select;
    public final Limitation insert;
    public final Limitation update;
    public final Limitation delete;
-
-   public final SourceType type;
-   public final String function;
-   public final String[] primary;
 
 
    public Source(SourceType type, JSONObject definition) throws Exception
@@ -99,6 +100,7 @@ public class Source
       String order = null;
       String function = null;
       String[] primary = null;
+      String[] derived = null;
 
       Limitation insert = Limitation.blocked;
       Limitation select = Limitation.singlerow;
@@ -121,8 +123,19 @@ public class Source
             String pkey = definition.getString(PRIMARYKEY);
 
             primary = pkey.split((","));
+
             for (int i = 0; i < primary.length; i++)
                primary[i] = primary[i].trim();
+         }
+
+         if (definition.has(DERIVED))
+         {
+            String cols = definition.getString(PRIMARYKEY);
+
+            derived = cols.split((","));
+
+            for (int i = 0; i < derived.length; i++)
+               derived[i] = primary[i].trim();
          }
 
          if (definition.has(INSERT))
@@ -214,6 +227,7 @@ public class Source
       this.table = table;
       this.order = order;
       this.primary = primary;
+      this.derived = derived;
       this.function = function;
 
       this.select = select;

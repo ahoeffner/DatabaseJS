@@ -42,7 +42,6 @@ public class Insert implements SQLObject
    public Insert(JSONObject definition) throws Exception
    {
       String source = null;
-
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
 
       if (definition.has(Parser.SOURCE))
@@ -82,10 +81,20 @@ public class Insert implements SQLObject
 
       this.payload = definition;
       this.source = Source.getSource(source);
-      this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
       if (this.source == null)
          throw new Exception(Source.deny(source));
+
+      if (this.source.derived != null)
+      {
+         for (String col : this.source.derived)
+         {
+            values.remove(col.toLowerCase());
+            continue;
+         }
+      }
+
+      this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
 

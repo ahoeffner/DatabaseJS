@@ -81,6 +81,8 @@ public class Query implements SQLObject
       boolean describe = false;
       String[] columns = new String[0];
 
+      System.out.println(definition.toString(2));
+
       ArrayList<BindValue> bindvalues = new ArrayList<BindValue>();
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
 
@@ -160,6 +162,9 @@ public class Query implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
+      if (describe)
+         return(true);
+
       if (columns.length == 0)
          return(false);
 
