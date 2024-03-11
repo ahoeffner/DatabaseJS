@@ -56,7 +56,7 @@ public class Update implements SQLObject
          lock = definition.getBoolean(Parser.LOCK);
 
       if (!definition.has(Parser.SOURCE)) this.source = null;
-      else this.source = Source.getSource(definition.getString(Parser.SOURCE));
+      else source = Source.getSource(definition.getString(Parser.SOURCE));
 
       if (this.source == null)
          throw new Exception(Source.deny(source));
@@ -68,7 +68,7 @@ public class Update implements SQLObject
 
       if (definition.has(Parser.FILTERS))
       {
-         whcl = new WhereClause(); whcl.parse(definition);
+         whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 

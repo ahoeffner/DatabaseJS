@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import database.json.database.BindValue;
+import database.json.database.filters.Custom;
 import database.json.database.filters.Equals;
 import database.json.database.filters.Filter;
 
@@ -38,11 +39,19 @@ public class WhereClause implements Filter
     return("The where clause on "+source.id+" is not allowed");
   }
 
+  private final Source source;
+
   private ArrayList<BindValue> bindvals =
     new ArrayList<BindValue>();
 
   private ArrayList<FilterEntry> entries =
     new ArrayList<FilterEntry>();
+
+
+  public WhereClause(Source source)
+  {
+    this.source = source;
+  }
 
 
   public boolean isEmpty()
@@ -163,6 +172,9 @@ public class WhereClause implements Filter
           String clazz = entry.getString(Parser.CLASS);
           Filter filter = Filters.get(clazz,entry);
 
+          if (filter instanceof Custom)
+            ((Custom) filter).source(source);
+
           filter.parse(entry);
           this.bindvals.addAll(Arrays.asList(filter.getBindValues()));
 
@@ -171,7 +183,7 @@ public class WhereClause implements Filter
       }
       else if (entry.has(Parser.FILTERS))
       {
-        WhereClause whcl = new WhereClause();
+        WhereClause whcl = new WhereClause(source);
 
         whcl.parse(entry);
         this.bindvals.addAll(Arrays.asList(whcl.getBindValues()));

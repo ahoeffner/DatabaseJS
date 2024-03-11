@@ -39,7 +39,6 @@ public class Delete implements SQLObject
 
    public Delete(JSONObject definition) throws Exception
    {
-      String source = null;
       boolean lock = false;
       WhereClause whcl = null;
 
@@ -48,12 +47,12 @@ public class Delete implements SQLObject
       if (definition.has(Parser.LOCK))
          lock = definition.getBoolean(Parser.LOCK);
 
-      if (definition.has(Parser.SOURCE))
-         source = definition.getString(Parser.SOURCE);
+      if (!definition.has(Parser.SOURCE)) source = null;
+      else source = Source.getSource(definition.getString(Parser.SOURCE));
 
       if (definition.has(Parser.FILTERS))
       {
-         whcl = new WhereClause(); whcl.parse(definition);
+         whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
@@ -62,7 +61,6 @@ public class Delete implements SQLObject
       this.whcl = whcl;
       this.lock = lock;
       this.payload = definition;
-      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 

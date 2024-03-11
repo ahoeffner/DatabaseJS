@@ -74,7 +74,6 @@ public class Query implements SQLObject
       int skip = 0;
       int rows = 0;
       String order = null;
-      String source = null;
       String cursor = null;
       boolean lock = false;
       WhereClause whcl = null;
@@ -96,8 +95,8 @@ public class Query implements SQLObject
       if (definition.has(Parser.ORDER))
          order = definition.getString(Parser.ORDER);
 
-      if (definition.has(Parser.SOURCE))
-         source = definition.getString(Parser.SOURCE);
+      if (!definition.has(Parser.SOURCE)) source = null;
+      else source = Source.getSource(definition.getString(Parser.SOURCE));
 
       if (definition.has(Parser.CURSOR))
          cursor = definition.getString(Parser.CURSOR);
@@ -116,7 +115,7 @@ public class Query implements SQLObject
 
       if (definition.has(Parser.FILTERS))
       {
-         whcl = new WhereClause(); whcl.parse(definition);
+         whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
 
@@ -129,7 +128,6 @@ public class Query implements SQLObject
       this.columns = columns;
       this.describe = describe;
       this.payload = definition;
-      this.source = Source.getSource(source);
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
