@@ -177,6 +177,9 @@ public class Deployment
     Date modified = new Date();
     File home = new File(this.home);
 
+    logger.info("home '"+home+"'");
+    logger.info("deployment '"+deploy+"'");
+
     if (!home.exists())
       throw new Exception(this.home+" does not exist");
 
