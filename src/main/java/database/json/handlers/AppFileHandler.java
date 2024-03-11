@@ -278,7 +278,7 @@ public class AppFileHandler extends Handler
     if (client == null)
       return("Could not connect to RESTServer");
 
-    String prefix = config().getHTTP().handlers.getRESTHandler().properties().prefix();
+    String prefix = config().getHTTP().handlers.getJSONHandler().properties().prefix();
     if (!prefix.endsWith("/")) prefix += "/";
 
     String nl = "\r\n";

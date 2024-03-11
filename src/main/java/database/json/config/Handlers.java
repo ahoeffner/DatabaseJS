@@ -36,7 +36,7 @@ public class Handlers
   private final Config config;
   private final ArrayList<HandlerClass> entries = new ArrayList<HandlerClass>();
 
-  private JSONHandler rest = null;
+  private JSONHandler json = null;
   private FileHandler file = null;
   private AdminHandler admin = null;
 
@@ -57,12 +57,12 @@ public class Handlers
     {
       switch(hdl.name())
       {
-        case "database.rest.handlers.FileHandler" :
+        case "database.json.handlers.FileHandler" :
           this.file = (FileHandler) hdl.handler;
           break;
 
-        case "database.rest.handlers.RestHandler" :
-          this.rest = (JSONHandler) hdl.handler;
+        case "database.json.handlers.JSONHandler" :
+          this.json = (JSONHandler) hdl.handler;
           break;
       }
     }
@@ -76,9 +76,9 @@ public class Handlers
   }
 
 
-  public JSONHandler getRESTHandler()
+  public JSONHandler getJSONHandler()
   {
-    return(rest);
+    return(json);
   }
 
 

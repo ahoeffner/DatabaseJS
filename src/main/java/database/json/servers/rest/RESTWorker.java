@@ -59,7 +59,7 @@ public class RESTWorker implements Runnable
       HTTPRequest request = new HTTPRequest(srv,host,bridge.page());
 
       Handlers handlers = rserver.config().getHTTP().handlers;
-      JSONHandler handler = handlers.getRESTHandler();
+      JSONHandler handler = handlers.getJSONHandler();
 
       HTTPResponse response = handler.handle(request);
       byte[] data = response.page();
