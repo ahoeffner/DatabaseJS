@@ -21,10 +21,10 @@
 
 package database.json.handlers.json.parser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 
