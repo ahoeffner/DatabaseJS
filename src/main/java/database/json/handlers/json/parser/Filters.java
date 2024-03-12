@@ -34,6 +34,7 @@ public class Filters
       {{
          put("like","database.json.database.filters.Like");
          put("false","database.json.database.filters.False");
+         put("custom","database.json.database.filters.Custom");
          put("equals","database.json.database.filters.Equals");
          put("subquery","database.json.database.filters.Subquery");
          put("lessthan","database.json.database.filters.LessThan");

@@ -23,12 +23,15 @@ package database.json.database.filters;
 
 import org.json.JSONObject;
 import database.json.database.BindValue;
+import database.json.handlers.json.parser.Parser;
 import database.json.handlers.json.parser.Source;
 
 
 public class Custom implements Filter
 {
+   private String sql = null;
    private Source source = null;
+   private BindValue[] bindvalues = null;
 
    public void source(Source source)
    {
@@ -38,18 +41,19 @@ public class Custom implements Filter
    @Override
    public String sql()
    {
-      return("1 = 2");
+      return(sql);
    }
 
    @Override
    public BindValue[] getBindValues()
    {
-      return(new BindValue[0]);
+      return(bindvalues);
    }
 
    @Override
    public void parse(JSONObject definition) throws Exception
    {
-      System.out.println(definition.toString(2));
+      sql = source.getCustomSQL(definition);
+      bindvalues = Parser.getBindValues(definition);
    }
 }

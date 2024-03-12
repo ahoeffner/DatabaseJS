@@ -56,9 +56,6 @@ public class Source
    private static final String WHERECL = "where-clause";
    private static final String CFILTERS = "custom-filters";
 
-   private static final Pattern pattern = Pattern.compile("\\{.*\\}");
-
-
 
    private static HashMap<String,Source> sources =
       new HashMap<String,Source>();
@@ -267,12 +264,35 @@ public class Source
    }
 
 
-   public String parseCustomFilter(String filter) throws Exception
+   public String getCustomSQL(JSONObject fltdef) throws Exception
    {
-      FilterDefinition def = filters.get(filter.toLowerCase());
+      String filter = null;
+
+      if (fltdef.has(FNAME))
+         filter = fltdef.getString(FNAME).trim().toLowerCase();
+
+      FilterDefinition def = filters.get(filter);
       if (def == null) throw new Exception("Unknown custom filter '"+filter+"'");
 
-      return(null);
+      String whcl = def.whcl;
+
+      if (fltdef.has(PARAMS))
+      {
+         JSONArray pdef = fltdef.getJSONArray(PARAMS);
+
+         for (int p = 0; p < pdef.length(); p++)
+         {
+            JSONObject param = pdef.getJSONObject(p);
+
+            String name = param.getString("name");
+            String value = param.getString("value");
+
+            whcl = whcl.replace("{"+name.trim().toLowerCase()+"}",value);
+         }
+      }
+
+
+      return(whcl);
    }
 
 
@@ -308,23 +328,59 @@ public class Source
                params.add(pdef.getString(p).trim().toLowerCase());
          }
 
-         String norm = whcl;
-         Matcher matcher = pattern.matcher(whcl);
-
-         while (matcher.find())
-         {
-            int e = matcher.end();
-            int s = matcher.start();
-
-            String p = whcl.substring(s,e);
-            p = p.substring(1).substring(0,p.length()-2);
-            norm = norm.replace(p,p.trim().toLowerCase());
-         }
+         whcl = normalize(whcl);
 
          this.name = name;
-         this.whcl = norm;
+         this.whcl = whcl;
          this.params = params;
          this.restricts = restricts;
+      }
+
+      private String normalize(String whcl)
+      {
+         if (whcl == null) return(null);
+
+         boolean param = false;
+         Character quote = ' ';
+         StringBuffer norm = new StringBuffer();
+
+         for (int i = 0; i < whcl.length(); i++)
+         {
+            char c = whcl.charAt(i);
+
+            if (c == '"') quote = quote == c ? ' ' : c;
+            if (c == '\'') quote = quote == c ? ' ' : c;
+
+            if (quote != ' ')
+            {
+               norm.append(c);
+               continue;
+            }
+
+            if (c == '{')
+            {
+               param = true;
+               norm.append(c);
+               continue;
+            }
+
+            if (c == '}')
+            {
+               param = false;
+               norm.append(c);
+               continue;
+            }
+
+            if (param)
+            {
+               if (c == ' ') continue;
+               c = Character.toLowerCase(c);
+            }
+
+            norm.append(c);
+         }
+
+         return(norm.toString());
       }
 
       @Override
