@@ -21,10 +21,13 @@
 
 package database.json.handlers.json.parser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Source
@@ -47,6 +50,15 @@ public class Source
    private static final String DERIVED = "derived";
    private static final String PRIMARYKEY = "primarykey";
 
+   private static final String FNAME = "name";
+   private static final String PARAMS = "parameters";
+   private static final String RESTRCT = "restricts";
+   private static final String WHERECL = "where-clause";
+   private static final String CFILTERS = "custom-filters";
+
+   private static final Pattern pattern = Pattern.compile("\\{.*\\}");
+
+
 
    private static HashMap<String,Source> sources =
       new HashMap<String,Source>();
@@ -57,23 +69,21 @@ public class Source
       return("Access to source "+source.id+" is not allowed");
    }
 
-
    public static String deny(String source)
    {
       return("Access to source "+source+" is not allowed");
    }
-
 
    public static Source getSource(String id)
    {
       return(Source.sources.get(id.toLowerCase()));
    }
 
-
    public static void setSources(HashMap<String,Source> sources)
    {
       Source.sources = sources;
    }
+
 
    public final String id;
    public final String stmt;
@@ -84,6 +94,9 @@ public class Source
    public final SourceType type;
    public final String[] primary;
    public final String[] derived;
+
+   public final HashMap<String,FilterDefinition> filters =
+      new HashMap<String,FilterDefinition>();
 
    public final Limitation select;
    public final Limitation insert;
@@ -138,6 +151,17 @@ public class Source
                derived[i] = derived[i].trim();
          }
 
+         if (definition.has(CFILTERS))
+         {
+            JSONArray pars = definition.getJSONArray(CFILTERS);
+
+            for (int p = 0; p < pars.length(); p++)
+            {
+               FilterDefinition def = new FilterDefinition(pars.getJSONObject(p));
+               filters.put(def.name,def);
+            }
+         }
+
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);
@@ -189,6 +213,12 @@ public class Source
             (delete+"").charAt(0) + "]";
 
          logger.info("register datasource '"+id+"', CRUD Limitation: "+ops);
+
+         if (filters.size() > 0)
+         {
+            for (FilterDefinition flt : filters.values())
+               logger.info("'"+id+"'' custom filter '"+flt);
+         }
       }
       else if (type == SourceType.function)
       {
@@ -234,5 +264,73 @@ public class Source
       this.insert = insert;
       this.update = update;
       this.delete = delete;
+   }
+
+
+   public String parseCustomFilter(String filter) throws Exception
+   {
+      FilterDefinition def = filters.get(filter.toLowerCase());
+      if (def == null) throw new Exception("Unknown custom filter '"+filter+"'");
+
+      return(null);
+   }
+
+
+   public static class FilterDefinition
+   {
+      public final String name;
+      public final String whcl;
+      public final boolean restricts;
+      public final ArrayList<String> params;
+
+      private FilterDefinition(JSONObject fltdef)
+      {
+         String name = null;
+         String whcl = null;
+         boolean restricts = false;
+
+         ArrayList<String> params = new ArrayList<String>();
+
+         if (fltdef.has(FNAME))
+            name = fltdef.getString(FNAME).trim().toLowerCase();
+
+         if (fltdef.has(WHERECL))
+            whcl = fltdef.getString(WHERECL);
+
+         if (fltdef.has(RESTRCT))
+            restricts = fltdef.getBoolean(RESTRCT);
+
+         if (fltdef.has(PARAMS))
+         {
+            JSONArray pdef = fltdef.getJSONArray(PARAMS);
+
+            for (int p = 0; p < pdef.length(); p++)
+               params.add(pdef.getString(p).trim().toLowerCase());
+         }
+
+         String norm = whcl;
+         Matcher matcher = pattern.matcher(whcl);
+
+         while (matcher.find())
+         {
+            int e = matcher.end();
+            int s = matcher.start();
+
+            String p = whcl.substring(s,e);
+            p = p.substring(1).substring(0,p.length()-2);
+            norm = norm.replace(p,p.trim().toLowerCase());
+         }
+
+         this.name = name;
+         this.whcl = norm;
+         this.params = params;
+         this.restricts = restricts;
+      }
+
+      @Override
+      public String toString()
+      {
+         return(whcl);
+      }
    }
 }
