@@ -42,7 +42,6 @@ public class Session implements APIObject
          "scope",
          "token",
          "method",
-         "secret",
          "username",
          "password",
          "clientinfo"
