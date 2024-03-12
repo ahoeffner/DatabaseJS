@@ -789,9 +789,6 @@ public class JSONApi
       if (payload.has("scope"))
         scope = payload.getString("scope");
 
-      if (payload.has("secret"))
-        secret = payload.getString("secret");
-
       if (payload.has("token"))
         secret = payload.getString("token");
 
