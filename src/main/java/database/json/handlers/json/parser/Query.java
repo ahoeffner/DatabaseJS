@@ -172,6 +172,7 @@ public class Query implements SQLObject
       if (whcl == null && lim != Limitation.none)
          throw new Exception(WhereClause.deny(source));
 
+      if (whcl == null) return(true);
       return(whcl.validate(source,lim));
    }
 
@@ -198,13 +199,13 @@ public class Query implements SQLObject
       {
          sql += " from ("+source.query;
 
-         if (whcl != null)
-            sql += " where " + whcl.sql();
-
          if (order != null)
             sql += " order by "+order;
 
          sql += ") "+clean(source.id);
+
+         if (whcl != null)
+            sql += " where " + whcl.sql();
       }
 
       return(sql);

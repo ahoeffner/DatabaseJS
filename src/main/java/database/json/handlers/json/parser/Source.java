@@ -194,7 +194,7 @@ public class Source
                JSONArray lines = (JSONArray) obj;
 
                for (int i = 0; i < lines.length(); i++)
-                  query += lines.getString(i) + " ";
+                  query += lines.getString(i).trim() + " ";
 
                query = query.trim();
             }
@@ -312,7 +312,21 @@ public class Source
             name = fltdef.getString(FNAME).trim().toLowerCase();
 
          if (fltdef.has(WHERECL))
-            whcl = fltdef.getString(WHERECL);
+         {
+            Object clause = fltdef.get(WHERECL);
+            if (clause instanceof String) whcl = (String) clause;
+
+            else if (clause instanceof JSONArray)
+            {
+               whcl = "";
+               JSONArray lines = (JSONArray) clause;
+
+               for (int i = 0; i < lines.length(); i++)
+                  whcl += lines.getString(i).trim() + " ";
+
+               whcl = whcl.trim();
+            }
+         }
 
          if (fltdef.has(RESTRCT))
             restricts = fltdef.getBoolean(RESTRCT);

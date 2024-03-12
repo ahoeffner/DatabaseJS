@@ -87,6 +87,7 @@ public class Delete implements SQLObject
       if (whcl == null && lim != Limitation.none)
          throw new Exception(WhereClause.deny(source));
 
+      if (whcl == null) return(true);
       return(whcl.validate(source,lim));
    }
 
