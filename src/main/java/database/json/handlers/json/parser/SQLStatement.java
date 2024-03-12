@@ -26,6 +26,7 @@ import database.json.database.BindValue;
 
 public class SQLStatement implements SQLObject
 {
+   private final int rows;
    private final Source source;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
@@ -33,11 +34,16 @@ public class SQLStatement implements SQLObject
 
    public SQLStatement(JSONObject definition) throws Exception
    {
+      int rows = 0;
       String source = null;
+
+      if (definition.has(Parser.ROWS))
+         rows = definition.getInt(Parser.ROWS);
 
       if (definition.has(Parser.SOURCE))
          source = definition.getString(Parser.SOURCE);
 
+      this.rows = rows;
       this.payload = definition;
       this.source = Source.getSource(source);
       this.bindvalues = Parser.getBindValues(definition);
@@ -64,7 +70,9 @@ public class SQLStatement implements SQLObject
    @Override
    public JSONObject toApi() throws Exception
    {
-      return(Parser.toApi(this));
+      JSONObject json = Parser.toApi(this);
+      if (rows > 0) json.put("rows",rows);
+      return(json);
    }
 
 
