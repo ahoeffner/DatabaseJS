@@ -792,6 +792,9 @@ public class JSONApi
       if (payload.has("secret"))
         secret = payload.getString("secret");
 
+      if (payload.has("token"))
+        secret = payload.getString("token");
+
       if (payload.has("password"))
         secret = payload.getString("password");
 
