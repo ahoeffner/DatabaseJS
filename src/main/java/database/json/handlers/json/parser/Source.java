@@ -24,7 +24,6 @@ package database.json.handlers.json.parser;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 
@@ -49,7 +48,7 @@ public class Source
    private static final String PRIMARYKEY = "primarykey";
 
    private static final String FNAME = "name";
-   private static final String PARAMS = "parameters";
+   private static final String MAPPING = "mapping";
    private static final String RESTRCT = "restricts";
    private static final String WHERECL = "where-clause";
    private static final String CFILTERS = "custom-filters";
@@ -274,9 +273,9 @@ public class Source
 
       String whcl = def.whcl;
 
-      if (fltdef.has(PARAMS))
+      if (fltdef.has(MAPPING))
       {
-         JSONArray pdef = fltdef.getJSONArray(PARAMS);
+         JSONArray pdef = fltdef.getJSONArray(MAPPING);
 
          for (int p = 0; p < pdef.length(); p++)
          {
@@ -285,10 +284,13 @@ public class Source
             String name = param.getString("name");
             String value = param.getString("value");
 
-            whcl = whcl.replace("{"+name.trim().toLowerCase()+"}",value);
+            if (name != null)
+               name = name.trim().toLowerCase();
+
+            while(whcl.indexOf("{"+name+"}") >= 0)
+               whcl = whcl.replace("{"+name+"}",value);
          }
       }
-
 
       return(whcl);
    }
@@ -299,15 +301,12 @@ public class Source
       public final String name;
       public final String whcl;
       public final boolean restricts;
-      public final ArrayList<String> params;
 
       private FilterDefinition(JSONObject fltdef)
       {
          String name = null;
          String whcl = null;
          boolean restricts = false;
-
-         ArrayList<String> params = new ArrayList<String>();
 
          if (fltdef.has(FNAME))
             name = fltdef.getString(FNAME).trim().toLowerCase();
@@ -318,19 +317,10 @@ public class Source
          if (fltdef.has(RESTRCT))
             restricts = fltdef.getBoolean(RESTRCT);
 
-         if (fltdef.has(PARAMS))
-         {
-            JSONArray pdef = fltdef.getJSONArray(PARAMS);
-
-            for (int p = 0; p < pdef.length(); p++)
-               params.add(pdef.getString(p).trim().toLowerCase());
-         }
-
          whcl = normalize(whcl);
 
          this.name = name;
          this.whcl = whcl;
-         this.params = params;
          this.restricts = restricts;
       }
 
