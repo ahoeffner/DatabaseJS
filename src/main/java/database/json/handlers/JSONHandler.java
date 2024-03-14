@@ -195,7 +195,7 @@ public class JSONHandler extends Handler
 
         if (rsp.getBoolean("success"))
         {
-          rsp.put("update",true);
+          rsp.put("writes",true);
           response.setBody(rsp.toString(2));
         }
       }
