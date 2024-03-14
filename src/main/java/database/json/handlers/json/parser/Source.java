@@ -37,6 +37,7 @@ public class Source
    private static final String TABLE = "table";
    private static final String ORDER = "order";
    private static final String LIMIT = "limit";
+   private static final String WRITES = "writes";
    private static final String ACCEPT = "accept";
    private static final String SELECT = "select";
    private static final String INSERT = "insert";
@@ -84,6 +85,7 @@ public class Source
    public final String query;
    public final String table;
    public final String order;
+   public final boolean writes;
    public final String function;
    public final SourceType type;
    public final String[] primary;
@@ -106,6 +108,7 @@ public class Source
       String table = null;
       String order = null;
       String function = null;
+      boolean writes = false;
       String[] primary = null;
       String[] derived = null;
 
@@ -218,6 +221,9 @@ public class Source
       {
          function = id;
 
+         if (definition.has(WRITES))
+            writes = definition.getBoolean(WRITES);
+
          if (definition.has(FUNCTION))
             function = definition.getString(FUNCTION);
 
@@ -250,6 +256,7 @@ public class Source
       this.query = query;
       this.table = table;
       this.order = order;
+      this.writes = writes;
       this.primary = primary;
       this.derived = derived;
       this.function = function;

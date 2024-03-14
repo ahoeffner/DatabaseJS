@@ -39,7 +39,9 @@ import database.json.handlers.json.JSONFormatter;
 import database.json.handlers.json.parser.Parser;
 import database.json.handlers.json.parser.Source;
 import database.json.handlers.json.parser.SQLObject;
+import database.json.handlers.json.parser.SQLStatement;
 import database.json.handlers.json.parser.APIObject;
+import database.json.handlers.json.parser.Function;
 import database.json.config.Handlers.HandlerProperties;
 
 
@@ -175,6 +177,28 @@ public class JSONHandler extends Handler
       response.setContentType(json);
       response.setBody(api.execute(apiobj.path(),apireq,false));
       response.setResponse(api.response());
+
+      if (apiobj instanceof Function && ((Function) apiobj).writes())
+      {
+        JSONObject rsp = new JSONObject(new String(response.body()));
+
+        if (rsp.getBoolean("success"))
+        {
+          rsp.put("update",true);
+          response.setBody(rsp.toString(2));
+        }
+      }
+
+      if (apiobj instanceof SQLStatement && ((SQLStatement) apiobj).writes())
+      {
+        JSONObject rsp = new JSONObject(new String(response.body()));
+
+        if (rsp.getBoolean("success"))
+        {
+          rsp.put("update",true);
+          response.setBody(rsp.toString(2));
+        }
+      }
 
       if (apiobj instanceof Query && ((Query) apiobj).describe())
       {

@@ -53,6 +53,12 @@ public class SQLStatement implements SQLObject
    }
 
 
+   public boolean writes()
+   {
+      return(source.writes);
+   }
+
+
    @Override
    public String path() throws Exception
    {
