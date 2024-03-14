@@ -77,7 +77,10 @@ public class SQLStatement implements SQLObject
    public JSONObject toApi() throws Exception
    {
       JSONObject json = Parser.toApi(this);
+
+      json.put("describe",true);
       if (rows > 0) json.put("rows",rows);
+
       return(json);
    }
 
