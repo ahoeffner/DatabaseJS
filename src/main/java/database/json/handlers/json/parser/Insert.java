@@ -52,12 +52,6 @@ public class Insert implements SQLObject
       if (this.source == null)
       throw new Exception(Source.deny(source));
 
-      String[] returning = new String[0];
-      if (definition.has(Parser.RETURNING))
-      {
-      }
-
-
       HashSet<String> derived = new HashSet<String>();
 
       for (int i = 0; source.derived != null && i < source.derived.length; i++)
@@ -101,15 +95,26 @@ public class Insert implements SQLObject
          }
       }
 
+      String[] returning = new String[0];
 
       if (definition.has(Parser.RETURNING))
       {
          JSONArray jarr = definition.getJSONArray(Parser.RETURNING);
 
+         returning = new String[jarr.length()];
+
          for (int i = 0; i < jarr.length(); i++)
          {
             JSONObject rdef = jarr.optJSONObject(i);
+            returning[i] = rdef.getString(Parser.COLUMN);
 
+            String type = rdef.getString(Parser.TYPE);
+            String name = rdef.getString(Parser.COLUMN);
+
+            returning[i] = name;
+            BindValueDef bdef = new BindValueDef(name,type,true,null);
+
+            bindvalues.add(new BindValue(bdef,true));
          }
       }
 
@@ -157,6 +162,14 @@ public class Insert implements SQLObject
       }
 
       sql += ")";
+
+      if (returning.length > 0)
+      {
+         sql += " returning "+returning[0];
+         for (int i = 1; i < returning.length; i++)
+            sql += "," + returning[i];
+      }
+
       return(sql);
    }
 
@@ -184,6 +197,10 @@ public class Insert implements SQLObject
    public JSONObject toApi() throws Exception
    {
       JSONObject parsed = Parser.toApi(this);
+
+      if (returning.length > 0)
+         parsed.put("returning",true);
+         
       return(parsed);
    }
 

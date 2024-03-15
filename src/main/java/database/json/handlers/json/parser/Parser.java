@@ -59,6 +59,7 @@ public class Parser
    static final public String PRIMARYKEY = "primarykey";
 
    static final public String SQL = "sql";
+   static final public String TYPE = "type";
    static final public String ROWS = "rows";
    static final public String SKIP = "skip";
    static final public String LOCK = "lock";
