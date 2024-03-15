@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import database.json.database.BindValue;
 import database.json.database.BindValueDef;
-import database.json.database.Database;
 
 
 public class Insert implements SQLObject
@@ -200,7 +199,7 @@ public class Insert implements SQLObject
 
       if (returning.length > 0)
          parsed.put("returning",true);
-         
+
       return(parsed);
    }
 

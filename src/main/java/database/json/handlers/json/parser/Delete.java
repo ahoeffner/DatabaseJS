@@ -23,8 +23,11 @@ package database.json.handlers.json.parser;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 import database.json.database.BindValue;
+import database.json.database.BindValueDef;
 
 
 public class Delete implements SQLObject
@@ -33,6 +36,7 @@ public class Delete implements SQLObject
    private final Source source;
    private final WhereClause whcl;
    private final JSONObject payload;
+   private final String[] returning;
    private final BindValue[] assertions;
    private final BindValue[] bindvalues;
 
@@ -55,12 +59,35 @@ public class Delete implements SQLObject
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
       }
+      String[] returning = new String[0];
+
+      if (definition.has(Parser.RETURNING))
+      {
+         JSONArray jarr = definition.getJSONArray(Parser.RETURNING);
+
+         returning = new String[jarr.length()];
+
+         for (int i = 0; i < jarr.length(); i++)
+         {
+            JSONObject rdef = jarr.optJSONObject(i);
+            returning[i] = rdef.getString(Parser.COLUMN);
+
+            String type = rdef.getString(Parser.TYPE);
+            String name = rdef.getString(Parser.COLUMN);
+
+            returning[i] = name;
+            BindValueDef bdef = new BindValueDef(name,type,true,null);
+
+            bindvalues.add(new BindValue(bdef,true));
+         }
+      }
 
       bindvalues.addAll(Arrays.asList(Parser.getBindValues(definition)));
 
       this.whcl = whcl;
       this.lock = lock;
       this.payload = definition;
+      this.returning = returning;
       this.assertions = Parser.getAssertions(definition);
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
 
@@ -100,6 +127,13 @@ public class Delete implements SQLObject
       if (whcl != null && !whcl.isEmpty())
          sql += " where " + whcl.sql();
 
+      if (returning.length > 0)
+      {
+         sql += " returning "+returning[0];
+         for (int i = 1; i < returning.length; i++)
+            sql += "," + returning[i];
+      }
+
       return(sql);
    }
 
@@ -128,6 +162,10 @@ public class Delete implements SQLObject
    {
       JSONObject parsed = Parser.toApi(this);
       if (lock) parsed.put(Parser.LOCK,lock);
+
+      if (returning.length > 0)
+         parsed.put("returning",true);
+
       return(parsed);
    }
 
