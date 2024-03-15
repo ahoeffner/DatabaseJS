@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import database.json.database.BindValue;
 import database.json.database.BindValueDef;
+import database.json.database.Database;
 
 
 public class Insert implements SQLObject
 {
    private final Source source;
+   private final String[] returning;
    private final JSONObject payload;
    private final BindValue[] bindvalues;
 
@@ -48,7 +50,13 @@ public class Insert implements SQLObject
       else this.source = Source.getSource(definition.getString(Parser.SOURCE));
 
       if (this.source == null)
-         throw new Exception(Source.deny(source));
+      throw new Exception(Source.deny(source));
+
+      String[] returning = new String[0];
+      if (definition.has(Parser.RETURNING))
+      {
+      }
+
 
       HashSet<String> derived = new HashSet<String>();
 
@@ -93,7 +101,20 @@ public class Insert implements SQLObject
          }
       }
 
+
+      if (definition.has(Parser.RETURNING))
+      {
+         JSONArray jarr = definition.getJSONArray(Parser.RETURNING);
+
+         for (int i = 0; i < jarr.length(); i++)
+         {
+            JSONObject rdef = jarr.optJSONObject(i);
+
+         }
+      }
+
       this.payload = definition;
+      this.returning = returning;
       this.bindvalues = bindvalues.toArray(new BindValue[0]);
    }
 
