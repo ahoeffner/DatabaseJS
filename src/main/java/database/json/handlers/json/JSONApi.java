@@ -1146,7 +1146,7 @@ public class JSONApi
 
       String assertmsg = null;
       ArrayList<Object[]> failures = new ArrayList<Object[]>();
-      String[] asserts = new String[] {"column","assert","value"};
+      String[] asserts = new String[] {"column","expected","found"};
 
       if (assertions != null && table.size() == 0)
         assertmsg = "Record was deleted by another user";
