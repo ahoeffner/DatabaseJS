@@ -692,6 +692,8 @@ public class JSONApi
       json.add("session",sesid);
 
     json.add("instance",instance);
+    json.add("version",Version.number);
+    
     return(json.toString());
   }
 
@@ -754,6 +756,8 @@ public class JSONApi
       json.add("cause",message);
 
     json.add("instance",instance);
+    json.add("version",Version.number);
+
     return(json.toString());
   }
 

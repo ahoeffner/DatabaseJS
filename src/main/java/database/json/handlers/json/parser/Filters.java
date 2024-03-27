@@ -32,10 +32,12 @@ public class Filters
    private static HashMap<String,String> filters =
       new HashMap<String,String>()
       {{
+         put("null","database.json.database.filters.Null");
          put("like","database.json.database.filters.Like");
          put("false","database.json.database.filters.False");
          put("custom","database.json.database.filters.Custom");
          put("equals","database.json.database.filters.Equals");
+         put("between","database.json.database.filters.Between");
          put("subquery","database.json.database.filters.Subquery");
          put("lessthan","database.json.database.filters.LessThan");
          put("greaterthan","database.json.database.filters.GreaterThan");
