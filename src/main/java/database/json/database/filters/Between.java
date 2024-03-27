@@ -34,7 +34,7 @@ public class Between implements Filter
    @Override
    public String sql()
    {
-      return(column+" between :"+bindvalues[0].getName()+" and "+bindvalues[1].getName());
+      return(column+" between :"+bindvalues[0].getName()+" and :"+bindvalues[1].getName());
    }
 
    @Override
