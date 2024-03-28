@@ -214,7 +214,7 @@ public class Source
          if (filters.size() > 0)
          {
             for (FilterDefinition flt : filters.values())
-               logger.info("'"+id+"'' custom filter '"+flt);
+               logger.info("'"+id+"' custom filter '"+flt+"'");
          }
       }
       else if (type == SourceType.function)

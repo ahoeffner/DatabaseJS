@@ -47,10 +47,12 @@ import database.json.custom.Authenticator;
 import database.json.custom.PostProcessor;
 import database.json.custom.SQLRewriterAPI;
 import database.json.custom.SQLValidatorAPI;
+import database.json.database.filters.AnyOf;
+import database.json.database.filters.Equals;
+import database.json.database.filters.Filter;
 import database.json.custom.AuthenticatorAPI;
 import database.json.servers.rest.RESTClient;
 import database.json.servers.rest.RESTServer;
-import database.json.database.filters.Filter;
 import database.json.handlers.file.Deployment;
 import database.json.handlers.json.parser.SQLObject;
 
@@ -440,6 +442,9 @@ public class Launcher implements ILauncher
 
         Filter.class,
         SQLObject.class,
+
+        AnyOf.class,
+        Equals.class,
 
         SQLRewriter.class,
         SQLRewriterAPI.class,

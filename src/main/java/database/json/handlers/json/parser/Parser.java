@@ -37,6 +37,7 @@ public class Parser
    static final public String SESSION = "session";
    static final public String PAYLOAD = "payload";
    static final public String MAPPING = "mapping";
+   static final public String SIGNATURE = "signature";
 
    static final public String MAP = "map";
    static final public String QUERY = "query";
@@ -233,40 +234,22 @@ public class Parser
 
    public static void setAttributes(JSONObject def, JSONObject api)
    {
-      Object custom = null;
-      String session = null;
-      Boolean compact = null;
-      Boolean savepoint = null;
-      String dateformat = null;
-
       if (def.has(SESSION))
-         session = def.getString(SESSION);
-
-      if (session != null)
-         api.put(SESSION,session);
+         api.put(SESSION,def.getString(SESSION));
 
       if (def.has(CUSTOM))
-         custom = def.get(CUSTOM);
-
-      if (custom != null)
-         api.put(CUSTOM,custom);
+         api.put(CUSTOM,def.get(CUSTOM));
 
       if (def.has(COMPACT))
-         compact = def.getBoolean(COMPACT);
-
-      if (compact != null)
-         api.put(COMPACT,compact);
+         api.put(COMPACT,def.getBoolean(COMPACT));
 
       if (def.has(SAVEPOINT))
-         savepoint = def.getBoolean(SAVEPOINT);
-
-      if (savepoint != null)
-         api.put(SAVEPOINT,savepoint);
+         api.put(SAVEPOINT,def.getBoolean(SAVEPOINT));
 
       if (def.has(DATEFORMAT))
-         dateformat = def.getString(DATEFORMAT);
+         api.put(DATEFORMAT,def.getString(DATEFORMAT));
 
-      if (dateformat != null)
-         api.put(DATEFORMAT,dateformat);
+      if (def.has(SIGNATURE))
+         api.put(SIGNATURE,def.getString(SIGNATURE));
    }
 }

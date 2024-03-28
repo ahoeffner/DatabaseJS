@@ -26,7 +26,10 @@ import java.nio.ByteBuffer;
 import org.json.JSONObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import database.json.config.Access;
 import database.json.config.Config;
+import database.json.config.Trustee;
 import database.json.servers.Server;
 import database.json.handlers.json.Guid;
 import database.json.handlers.json.JSONApi;
@@ -163,10 +166,17 @@ public class JSONHandler extends Handler
 
     try
     {
+      Trustee trusted = null;
       APIObject apiobj = Parser.parse(payload);
 
       JSONObject apireq = apiobj.toApi();
       Parser.setAttributes(apiobj.payload(),apireq);
+
+      if (apiobj.payload().has(Parser.SIGNATURE))
+      {
+        trusted = Access.getTrustee(apiobj.payload());
+        if (trusted != null) apiobj.payload().put("trustee",trusted.name);
+      }
 
       if (apiobj instanceof SQLObject && !apireq.has(Parser.SESSION))
       {
@@ -178,7 +188,7 @@ public class JSONHandler extends Handler
 
       JSONApi api = new JSONApi(server,savepoint,remote);
 
-      if (apiobj instanceof SQLObject)
+      if (trusted == null && apiobj instanceof SQLObject)
       {
         if (!((SQLObject) apiobj).validate())
           throw new Exception(apiobj.path()+" is invalid");

@@ -41,7 +41,7 @@ public class Access extends Thread
 
    private boolean unsigned = false;
 
-   private HashMap<String,Trustee> trustees =
+   private static HashMap<String,Trustee> trustees =
       new HashMap<String,Trustee>();
 
    private final static Logger logger = Logger.getLogger("json");
@@ -80,7 +80,7 @@ public class Access extends Thread
    }
 
 
-   public Trustee getTrustee(JSONObject msg)
+   public static Trustee getTrustee(JSONObject msg)
    {
       if (!msg.has("signature")) return(null);
       String sign = msg.getString("signature");
@@ -107,7 +107,7 @@ public class Access extends Thread
 
    private void reload()
    {
-      boolean changed = false;
+      boolean reload = false;
 
       HashMap<String,Source> sources =
          new HashMap<String,Source>();
@@ -118,12 +118,17 @@ public class Access extends Thread
       for (int i = 0; i < files.length; i++)
       {
          File file = new File(files[i].file);
-         long mod = file.lastModified();
+         if (file.lastModified() > files[i].mod) reload = true;
+      }
 
-         if (mod > files[i].mod)
+      if (reload)
+      {
+         for (int i = 0; i < files.length; i++)
          {
             logger.info("Reload "+files[i].file);
+
             JSONObject entries = load(files[i]);
+            long mod = new File(files[i].file).lastModified();
 
             if (entries != null)
             {
@@ -230,16 +235,15 @@ public class Access extends Thread
                         continue;
                      }
                   }
-               }
 
-               changed = true;
-               files[i].mod = mod;
+                  files[i].mod = mod;
+               }
             }
          }
-      }
-
-      if (changed)
+         
+         Access.trustees = trustees;
          Source.setSources(sources);
+      }
    }
 
 
