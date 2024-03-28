@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import org.json.JSONObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import database.json.config.Access;
 import database.json.config.Config;
 import database.json.config.Trustee;
@@ -38,15 +37,15 @@ import database.json.servers.rest.RESTClient;
 import database.json.servers.http.HTTPRequest;
 import database.json.servers.http.HTTPResponse;
 import database.json.handlers.json.parser.Query;
+import database.json.handlers.json.parser.Batch;
 import database.json.handlers.json.JSONFormatter;
 import database.json.handlers.json.parser.Parser;
 import database.json.handlers.json.parser.Source;
-import database.json.handlers.json.parser.SQLObject;
-import database.json.handlers.json.parser.SQLStatement;
 import database.json.handlers.json.parser.Script;
-import database.json.handlers.json.parser.APIObject;
-import database.json.handlers.json.parser.Batch;
 import database.json.handlers.json.parser.Function;
+import database.json.handlers.json.parser.SQLObject;
+import database.json.handlers.json.parser.APIObject;
+import database.json.handlers.json.parser.SQLStatement;
 import database.json.config.Handlers.HandlerProperties;
 
 
@@ -184,6 +183,18 @@ public class JSONHandler extends Handler
         if (apiobj instanceof Batch) ignore = true;
         if (apiobj instanceof Script) ignore = true;
         if (!ignore) throw new Exception("Not connected");
+      }
+
+      if (apiobj instanceof Function)
+      {
+        if (((Function) apiobj).writes())
+          savepoint = true;
+      }
+
+      if (apiobj instanceof SQLStatement)
+      {
+        if (((SQLStatement) apiobj).writes())
+          savepoint = true;
       }
 
       JSONApi api = new JSONApi(server,savepoint,remote);
