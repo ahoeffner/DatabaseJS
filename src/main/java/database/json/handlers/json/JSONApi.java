@@ -287,10 +287,22 @@ public class JSONApi
     boolean disconnect = true;
     boolean autocommit = false;
     Request request = this.request;
+    boolean compact = this.compact;
+    String dateform = this.dateform;
 
     try
     {
       this.batch = true;
+
+      if (payload.has("compact"))
+        compact = payload.getBoolean("compact");
+
+      if (payload.has("dateformat"))
+      {
+        if (payload.isNull("dateformat")) dateform = null;
+        else dateform = payload.getString("dateformat");
+      }
+
       JSONArray services = payload.getJSONArray("batch");
 
       if (payload.has("disconnect"))
@@ -331,7 +343,12 @@ public class JSONApi
         String path = service.getString("path");
 
         if (service.has("payload"))
+        {
           spload = service.getJSONObject("payload");
+
+          if (!spload.has("compact")) spload.put("compact",compact);
+          if (!spload.has("dateformat")) spload.put("dateformat",dateform);
+        }
 
         step = new Request(this,path,spload);
 
@@ -443,10 +460,22 @@ public class JSONApi
     boolean disconnect = true;
     boolean autocommit = false;
     Request request = this.request;
+    boolean compact = this.compact;
+    String dateform = this.dateform;
 
     try
     {
       this.batch = true;
+
+      if (payload.has("compact"))
+        compact = payload.getBoolean("compact");
+
+      if (payload.has("dateformat"))
+      {
+        if (payload.isNull("dateformat")) dateform = null;
+        else dateform = payload.getString("dateformat");
+      }
+
       JSONArray services = payload.getJSONArray("script");
 
       if (payload.has("disconnect"))
@@ -484,7 +513,12 @@ public class JSONApi
         String path = service.getString("path");
 
         if (service.has("payload"))
+        {
           spload = service.getJSONObject("payload");
+
+          if (!spload.has("compact")) spload.put("compact",compact);
+          if (!spload.has("dateformat")) spload.put("dateformat",dateform);
+        }
 
         step = new Request(this,path,spload);
 
@@ -693,7 +727,7 @@ public class JSONApi
 
     json.add("instance",instance);
     json.add("version",Version.number);
-    
+
     return(json.toString());
   }
 
