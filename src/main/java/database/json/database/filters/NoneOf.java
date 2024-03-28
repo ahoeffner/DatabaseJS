@@ -21,42 +21,19 @@
 
 package database.json.database.filters;
 
-import org.json.JSONObject;
-import database.json.database.BindValue;
-import database.json.handlers.json.parser.Parser;
-
-
-public class GreaterThan implements Filter
+public class NoneOf extends AnyOf
 {
-   protected String column = null;
-   protected boolean equals = false;
-   protected BindValue[] bindvalues = null;
-
-   public GreaterThan(JSONObject definition)
-   {
-      if (definition.has("include"))
-         equals = definition.getBoolean("include");
-   }
-
    @Override
    public String sql()
    {
-      String clause = equals ? ">=" : ">";
-      return(column+" "+clause+" :"+bindvalues[0].getName());
-   }
+      String list = "";
 
-   @Override
-   public BindValue[] getBindValues()
-   {
-      return(bindvalues);
-   }
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+         if (i > 0) list += ",";
+         list += ":"+bindvalues[i].getName();
+      }
 
-   @Override
-   public void parse(JSONObject definition) throws Exception
-   {
-      if (definition.has(Parser.COLUMN))
-         column = definition.getString(Parser.COLUMN);
-
-      this.bindvalues = Parser.getBindValues(definition);
+      return(column+" not in ("+list+")");
    }
 }

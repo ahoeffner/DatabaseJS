@@ -113,7 +113,6 @@ public class Parser
       return(object);
    }
 
-
    public static JSONObject toApi(SQLObject func) throws Exception
    {
       JSONObject binding = null;

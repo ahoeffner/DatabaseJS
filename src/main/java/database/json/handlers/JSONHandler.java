@@ -40,7 +40,9 @@ import database.json.handlers.json.parser.Parser;
 import database.json.handlers.json.parser.Source;
 import database.json.handlers.json.parser.SQLObject;
 import database.json.handlers.json.parser.SQLStatement;
+import database.json.handlers.json.parser.Script;
 import database.json.handlers.json.parser.APIObject;
+import database.json.handlers.json.parser.Batch;
 import database.json.handlers.json.parser.Function;
 import database.json.config.Handlers.HandlerProperties;
 
@@ -165,6 +167,14 @@ public class JSONHandler extends Handler
 
       JSONObject apireq = apiobj.toApi();
       Parser.setAttributes(apiobj.payload(),apireq);
+
+      if (apiobj instanceof SQLObject && !apireq.has(Parser.SESSION))
+      {
+        boolean ignore = false;
+        if (apiobj instanceof Batch) ignore = true;
+        if (apiobj instanceof Script) ignore = true;
+        if (!ignore) throw new Exception("Not connected");
+      }
 
       JSONApi api = new JSONApi(server,savepoint,remote);
 

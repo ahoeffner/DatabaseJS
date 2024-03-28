@@ -21,34 +21,11 @@
 
 package database.json.database.filters;
 
-import org.json.JSONObject;
-import database.json.database.BindValue;
-import database.json.handlers.json.parser.Parser;
-
-
-public class Like implements Filter
+public class Like extends Equals
 {
-   private String column = null;
-   private BindValue[] bindvalues = null;
-
    @Override
    public String sql()
    {
       return(column+" like :"+bindvalues[0].getName());
-   }
-
-   @Override
-   public BindValue[] getBindValues()
-   {
-      return(bindvalues);
-   }
-
-   @Override
-   public void parse(JSONObject definition) throws Exception
-   {
-      if (definition.has(Parser.COLUMN))
-         column = definition.getString(Parser.COLUMN);
-
-      this.bindvalues = Parser.getBindValues(definition);
    }
 }

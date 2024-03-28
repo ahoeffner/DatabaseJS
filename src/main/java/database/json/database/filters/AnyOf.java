@@ -26,23 +26,23 @@ import database.json.database.BindValue;
 import database.json.handlers.json.parser.Parser;
 
 
-public class GreaterThan implements Filter
+public class AnyOf implements Filter
 {
    protected String column = null;
-   protected boolean equals = false;
    protected BindValue[] bindvalues = null;
-
-   public GreaterThan(JSONObject definition)
-   {
-      if (definition.has("include"))
-         equals = definition.getBoolean("include");
-   }
 
    @Override
    public String sql()
    {
-      String clause = equals ? ">=" : ">";
-      return(column+" "+clause+" :"+bindvalues[0].getName());
+      String list = "";
+
+      for (int i = 0; i < bindvalues.length; i++)
+      {
+         if (i > 0) list += ",";
+         list += ":"+bindvalues[i].getName();
+      }
+
+      return(column+" in ("+list+")");
    }
 
    @Override

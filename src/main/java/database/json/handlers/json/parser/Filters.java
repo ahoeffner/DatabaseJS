@@ -34,7 +34,10 @@ public class Filters
       {{
          put("null","database.json.database.filters.Null");
          put("like","database.json.database.filters.Like");
+         put("ilike","database.json.database.filters.ILike");
          put("false","database.json.database.filters.False");
+         put("anyof","database.json.database.filters.AnyOf");
+         put("noneof","database.json.database.filters.NoneOf");
          put("custom","database.json.database.filters.Custom");
          put("equals","database.json.database.filters.Equals");
          put("between","database.json.database.filters.Between");

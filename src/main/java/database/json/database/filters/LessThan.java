@@ -22,20 +22,13 @@
 package database.json.database.filters;
 
 import org.json.JSONObject;
-import database.json.database.BindValue;
-import database.json.handlers.json.parser.Parser;
 
 
-public class LessThan implements Filter
+public class LessThan extends GreaterThan
 {
-   private String column = null;
-   private boolean equals = false;
-   private BindValue[] bindvalues = null;
-
    public LessThan(JSONObject definition)
    {
-      if (definition.has("include"))
-         equals = definition.getBoolean("include");
+      super(definition);
    }
 
    @Override
@@ -43,20 +36,5 @@ public class LessThan implements Filter
    {
       String clause = equals ? "<=" : "<";
       return(column+" "+clause+" :"+bindvalues[0].getName());
-   }
-
-   @Override
-   public BindValue[] getBindValues()
-   {
-      return(bindvalues);
-   }
-
-   @Override
-   public void parse(JSONObject definition) throws Exception
-   {
-      if (definition.has(Parser.COLUMN))
-         column = definition.getString(Parser.COLUMN);
-
-      this.bindvalues = Parser.getBindValues(definition);
    }
 }

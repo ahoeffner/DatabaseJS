@@ -28,8 +28,8 @@ import database.json.handlers.json.parser.Parser;
 
 public class Equals implements Filter
 {
-   private String column = null;
-   private BindValue[] bindvalues = null;
+   protected String column = null;
+   protected BindValue[] bindvalues = null;
 
    @Override
    public String sql()
