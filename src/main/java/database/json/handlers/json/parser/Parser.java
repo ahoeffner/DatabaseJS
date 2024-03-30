@@ -38,6 +38,7 @@ public class Parser
    static final public String PAYLOAD = "payload";
    static final public String MAPPING = "mapping";
    static final public String SIGNATURE = "signature";
+   static final public String VALIDATED = "validated";
 
    static final public String MAP = "map";
    static final public String QUERY = "query";

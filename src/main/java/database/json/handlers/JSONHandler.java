@@ -166,6 +166,7 @@ public class JSONHandler extends Handler
     try
     {
       Trustee trusted = null;
+      boolean validate = true;
       APIObject apiobj = Parser.parse(payload);
 
       JSONObject apireq = apiobj.toApi();
@@ -175,6 +176,9 @@ public class JSONHandler extends Handler
       {
         trusted = Access.getTrustee(apiobj.payload());
         if (trusted != null) apiobj.payload().put("trustee",trusted.name);
+
+        if (trusted != null && apiobj.payload().has(Parser.VALIDATED))
+          validate = !apiobj.payload().getBoolean(Parser.VALIDATED);
       }
 
       if (apiobj instanceof SQLObject && !apireq.has(Parser.SESSION))
@@ -199,7 +203,7 @@ public class JSONHandler extends Handler
 
       JSONApi api = new JSONApi(server,savepoint,remote);
 
-      if (trusted == null && apiobj instanceof SQLObject)
+      if (validate && apiobj instanceof SQLObject)
       {
         if (!((SQLObject) apiobj).validate())
           throw new Exception(apiobj.path()+" is invalid");
