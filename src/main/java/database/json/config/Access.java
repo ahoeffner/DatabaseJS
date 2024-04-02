@@ -36,9 +36,9 @@ import database.json.handlers.json.parser.SourceType;
 
 public class Access extends Thread
 {
+   private long last = 0;
    private final int reload;
-   private final AccessFile[] files;
-
+   private final String folder;
    private boolean unsigned = false;
 
    private static HashMap<String,Trustee> trustees =
@@ -52,19 +52,16 @@ public class Access extends Thread
       Security sec = config.getSecurity();
 
       int reload = sec.reload();
-      String[] files = sec.access();
+      String folder = sec.access();
 
-      if (files != null) new Access(files,reload);
+      if (folder != null) new Access(folder,reload);
    }
 
 
-   private Access(String[] files, int reload)
+   private Access(String folder, int reload)
    {
       this.reload = reload;
-      this.files = new AccessFile[files.length];
-
-      for (int i = 0; i < files.length; i++)
-         this.files[i] = new AccessFile(files[i]);
+      this.folder = folder;
 
       this.setDaemon(true);
       this.setName("Access Monitor");
@@ -115,20 +112,27 @@ public class Access extends Thread
       HashMap<String,Trustee> trustees =
          new HashMap<String,Trustee>();
 
+      File folder = new File(this.folder);
+      String[] files = folder.list();
+
       for (int i = 0; i < files.length; i++)
       {
-         File file = new File(files[i].file);
-         if (file.lastModified() > files[i].mod) reload = true;
+         File file = new File(files[i]);
+         long mod = file.lastModified();
+
+         if (mod > this.last)
+         {
+            reload = true;
+            this.last = mod;
+         }
       }
 
       if (reload)
       {
          for (int i = 0; i < files.length; i++)
          {
-            logger.info("Reload "+files[i].file);
-
+            logger.info("Reload "+files[i]);
             JSONObject entries = load(files[i]);
-            long mod = new File(files[i].file).lastModified();
 
             if (entries != null)
             {
@@ -168,7 +172,7 @@ public class Access extends Thread
                      }
                      catch (Exception e)
                      {
-                        logger.log(Level.SEVERE,files[i].file,e);
+                        logger.log(Level.SEVERE,files[i],e);
                         continue;
                      }
                   }
@@ -189,7 +193,7 @@ public class Access extends Thread
                      }
                      catch (Exception e)
                      {
-                        logger.log(Level.SEVERE,files[i].file,e);
+                        logger.log(Level.SEVERE,files[i],e);
                         continue;
                      }
                   }
@@ -210,7 +214,7 @@ public class Access extends Thread
                      }
                      catch (Exception e)
                      {
-                        logger.log(Level.SEVERE,files[i].file,e);
+                        logger.log(Level.SEVERE,files[i],e);
                         continue;
                      }
                   }
@@ -231,23 +235,21 @@ public class Access extends Thread
                      }
                      catch (Exception e)
                      {
-                        logger.log(Level.SEVERE,files[i].file,e);
+                        logger.log(Level.SEVERE,files[i],e);
                         continue;
                      }
                   }
-
-                  files[i].mod = mod;
                }
             }
          }
-         
+
          Access.trustees = trustees;
          Source.setSources(sources);
       }
    }
 
 
-   private JSONObject load(AccessFile file)
+   private JSONObject load(String file)
    {
       JSONObject sources = null;
 
@@ -259,7 +261,7 @@ public class Access extends Thread
          String line = "";
 
          out = new ByteArrayOutputStream();
-         in = new BufferedReader(new FileReader(file.file));
+         in = new BufferedReader(new FileReader(file));
 
          while (line != null)
          {
@@ -279,17 +281,5 @@ public class Access extends Thread
       }
 
       return(sources);
-   }
-
-
-   private static class AccessFile
-   {
-      long mod = 0;
-      String file = null;
-
-      AccessFile(String file)
-      {
-         this.file = Config.getPath(file,Paths.apphome);
-      }
    }
 }

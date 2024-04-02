@@ -34,8 +34,8 @@ public class Security
 {
   private final int reload;
   private final String secret;
+  private final String access;
   private final Keystore trust;
-  private final String[] files;
   private final Keystore identity;
 
   private final boolean tokens;
@@ -53,19 +53,15 @@ public class Security
     {
       JSONObject access = Config.get(config,"access");
 
-      if (!Config.has(access,"check")) reload = 0;
-      else reload = Config.get(access,"check");
+      if (!Config.has(access,"check")) this.reload = 0;
+      else this.reload = Config.get(access,"check");
 
-      JSONArray files = Config.get(access,"files");
-      this.files = new String[files.length()];
-
-      for (int i = 0; i < files.length(); i++)
-        this.files[i] = files.getString(i);
+      this.access = Config.get(access,"files");
     }
     else
     {
-      reload = 0;
-      this.files = null;
+      this.reload = 0;
+      this.access = null;
     }
 
     JSONObject identsec = Config.getSection(config,"identity");
@@ -136,9 +132,10 @@ public class Security
     return(secret);
   }
 
-  public String[] access()
+  public String access()
   {
-    return(files);
+    String folder = Config.getPath(access,Paths.apphome);
+    return(folder);
   }
 
   public Keystore getTrusted()
