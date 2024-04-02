@@ -39,7 +39,7 @@ public class Access extends Thread
    private long last = 0;
    private final int reload;
    private final String folder;
-   private boolean unsigned = false;
+   private static boolean unsigned = false;
 
    private static HashMap<String,Trustee> trustees =
       new HashMap<String,Trustee>();
@@ -71,7 +71,7 @@ public class Access extends Thread
    }
 
 
-   public boolean acceptUnsigned()
+   public static boolean acceptUnsigned()
    {
       return(unsigned);
    }
@@ -141,7 +141,7 @@ public class Access extends Thread
                   JSONObject access = entries.getJSONObject("access");
 
                   if (access.has("unsigned"))
-                     this.unsigned = access.getBoolean("unsigned");
+                     Access.unsigned = access.getBoolean("unsigned");
 
                   if (access.has("trustees"))
                   {

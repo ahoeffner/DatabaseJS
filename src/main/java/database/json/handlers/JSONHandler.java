@@ -181,6 +181,9 @@ public class JSONHandler extends Handler
           validate = !apiobj.payload().getBoolean(Parser.VALIDATED);
       }
 
+      if (trusted == null && !Access.acceptUnsigned())
+        throw new Exception("Permission denied");
+
       if (apiobj instanceof SQLObject && !apireq.has(Parser.SESSION))
       {
         boolean ignore = false;
