@@ -147,8 +147,6 @@ public class JSONApi
       String ptok = null;
       Session session = null;
 
-      logger.info(payload.toString(2));
-
       Pool fpool = config.getDatabase().fixed;
       Pool ppool = config.getDatabase().proxy;
 
