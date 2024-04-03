@@ -132,8 +132,8 @@ public class WhereClause implements Filter
 
     if (filter != null)
     {
-      if (sql.length() > 0) sql += "and ";
-      sql += filter;
+      if (sql.length() > 0) sql += " and ";
+      sql += "(" + filter + ")";
     }
 
     return(sql);

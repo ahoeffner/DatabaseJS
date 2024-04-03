@@ -54,13 +54,13 @@ public class Delete implements SQLObject
       if (!definition.has(Parser.SOURCE)) source = null;
       else source = Source.getSource(definition.getString(Parser.SOURCE));
 
-      if (definition.has(Parser.FILTERS) || source.filter != null)
+      if (definition.has(Parser.FILTERS) || source.delflt)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
-         whcl.filter(source.filter);
+         if (source.delflt) whcl.filter(source.filter);
       }
-      
+
       String[] returning = new String[0];
 
       if (definition.has(Parser.RETURNING))

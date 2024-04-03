@@ -101,6 +101,10 @@ public class Source
    public final Check update;
    public final Check delete;
 
+   public final boolean selflt;
+   public final boolean updflt;
+   public final boolean delflt;
+
 
    public Source(SourceType type, JSONObject definition) throws Exception
    {
@@ -114,6 +118,10 @@ public class Source
       boolean writes = false;
       String[] primary = null;
       String[] derived = null;
+
+      boolean selflt = false;
+      boolean updflt = false;
+      boolean delflt = false;
 
       Check insert = Check.blocked;
       Check select = Check.singlerow;
@@ -166,6 +174,13 @@ public class Source
 
                filter = filter.trim();
             }
+
+            if (filter.length() > 0)
+            {
+               selflt = true;
+               updflt = true;
+               delflt = true;
+            }
          }
 
          if (definition.has(CFILTERS))
@@ -188,6 +203,7 @@ public class Source
          if (definition.has(UPDATE))
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
+            if (sec.has(FILTER)) updflt = sec.getBoolean(FILTER);
             if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) update = Check.blocked;
             else if (sec.has(CHECK)) update = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
@@ -195,6 +211,7 @@ public class Source
          if (definition.has(DELETE))
          {
             JSONObject sec = definition.getJSONObject(DELETE);
+            if (sec.has(FILTER)) delflt = sec.getBoolean(FILTER);
             if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) delete = Check.blocked;
             else if (sec.has(CHECK)) delete = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
@@ -202,6 +219,7 @@ public class Source
          if (definition.has(SELECT))
          {
             JSONObject sec = definition.getJSONObject(SELECT);
+            if (sec.has(FILTER)) selflt = sec.getBoolean(FILTER);
             if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) select = Check.blocked;
             else if (sec.has(CHECK)) select = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
@@ -281,6 +299,10 @@ public class Source
       this.primary = primary;
       this.derived = derived;
       this.function = function;
+
+      this.selflt = selflt;
+      this.updflt = updflt;
+      this.delflt = delflt;
 
       this.select = select;
       this.insert = insert;

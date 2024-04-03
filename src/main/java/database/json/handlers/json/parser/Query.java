@@ -113,11 +113,11 @@ public class Query implements SQLObject
             columns[i] = jarr.getString(i);
       }
 
-      if (definition.has(Parser.FILTERS) || source.filter != null)
+      if (definition.has(Parser.FILTERS) || source.selflt)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
-         if (!describe) whcl.filter(source.filter);
+         if (!describe && source.selflt) whcl.filter(source.filter);
       }
 
       this.whcl = whcl;

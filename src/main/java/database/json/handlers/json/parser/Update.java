@@ -67,11 +67,11 @@ public class Update implements SQLObject
       for (int i = 0; source.derived != null && i < source.derived.length; i++)
          derived.add(source.derived[i].toLowerCase());
 
-      if (definition.has(Parser.FILTERS) || source.filter != null)
+      if (definition.has(Parser.FILTERS) || source.updflt)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
-         whcl.filter(source.filter);
+         if (source.updflt) whcl.filter(source.filter);
       }
 
       if (definition.has(Parser.UPDATE))
