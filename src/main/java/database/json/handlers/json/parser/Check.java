@@ -21,7 +21,7 @@
 
 package database.json.handlers.json.parser;
 
-public enum Limitation
+public enum Check
 {
    none,
    blocked,

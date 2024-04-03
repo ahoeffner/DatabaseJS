@@ -113,10 +113,11 @@ public class Query implements SQLObject
             columns[i] = jarr.getString(i);
       }
 
-      if (definition.has(Parser.FILTERS))
+      if (definition.has(Parser.FILTERS) || source.filter != null)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
+         if (!describe) whcl.filter(source.filter);
       }
 
       this.whcl = whcl;
@@ -164,12 +165,12 @@ public class Query implements SQLObject
       if (columns.length == 0)
          return(false);
 
-      Limitation lim = source.select;
+      Check lim = source.select;
 
-      if (lim == Limitation.blocked)
+      if (lim == Check.blocked)
          throw new Exception(Source.deny(source));
 
-      if (whcl == null && lim != Limitation.none)
+      if (whcl == null && lim != Check.none)
          throw new Exception(WhereClause.deny(source));
 
       if (whcl == null) return(true);

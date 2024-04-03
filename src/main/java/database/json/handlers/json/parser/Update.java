@@ -67,10 +67,11 @@ public class Update implements SQLObject
       for (int i = 0; source.derived != null && i < source.derived.length; i++)
          derived.add(source.derived[i].toLowerCase());
 
-      if (definition.has(Parser.FILTERS))
+      if (definition.has(Parser.FILTERS) || source.filter != null)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
+         whcl.filter(source.filter);
       }
 
       if (definition.has(Parser.UPDATE))
@@ -154,12 +155,12 @@ public class Update implements SQLObject
       if (values.keySet().size() == 0)
          return(false);
 
-      Limitation lim = source.update;
+      Check lim = source.update;
 
-      if (lim == Limitation.blocked)
+      if (lim == Check.blocked)
          throw new Exception(WhereClause.deny(source));
 
-      if (whcl == null && lim != Limitation.none)
+      if (whcl == null && lim != Check.none)
          throw new Exception(WhereClause.deny(source));
 
       if (whcl == null) return(true);

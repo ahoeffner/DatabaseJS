@@ -36,7 +36,7 @@ public class Source
    private static final String QUERY = "query";
    private static final String TABLE = "table";
    private static final String ORDER = "order";
-   private static final String LIMIT = "limit";
+   private static final String CHECK = "check";
    private static final String WRITES = "writes";
    private static final String ACCEPT = "accept";
    private static final String SELECT = "select";
@@ -45,6 +45,7 @@ public class Source
    private static final String DELETE = "delete";
    private static final String FUNCTION = "name";
 
+   private static final String FILTER = "filter";
    private static final String DERIVED = "derived";
    private static final String PRIMARYKEY = "primarykey";
 
@@ -85,6 +86,7 @@ public class Source
    public final String query;
    public final String table;
    public final String order;
+   public final String filter;
    public final boolean writes;
    public final String function;
    public final SourceType type;
@@ -94,10 +96,10 @@ public class Source
    public final HashMap<String,FilterDefinition> filters =
       new HashMap<String,FilterDefinition>();
 
-   public final Limitation select;
-   public final Limitation insert;
-   public final Limitation update;
-   public final Limitation delete;
+   public final Check select;
+   public final Check insert;
+   public final Check update;
+   public final Check delete;
 
 
    public Source(SourceType type, JSONObject definition) throws Exception
@@ -107,15 +109,16 @@ public class Source
       String query = null;
       String table = null;
       String order = null;
+      String filter = null;
       String function = null;
       boolean writes = false;
       String[] primary = null;
       String[] derived = null;
 
-      Limitation insert = Limitation.blocked;
-      Limitation select = Limitation.singlerow;
-      Limitation update = Limitation.singlerow;
-      Limitation delete = Limitation.singlerow;
+      Check insert = Check.blocked;
+      Check select = Check.singlerow;
+      Check update = Check.singlerow;
+      Check delete = Check.singlerow;
 
       id = definition.getString(ID);
       this.id = (id+"").toLowerCase();
@@ -148,6 +151,23 @@ public class Source
                derived[i] = derived[i].trim();
          }
 
+         if (definition.has(FILTER))
+         {
+            Object obj = definition.get(FILTER);
+            if (obj instanceof String) filter = (String) obj;
+
+            else if (obj instanceof JSONArray)
+            {
+               filter = "";
+               JSONArray lines = (JSONArray) obj;
+
+               for (int i = 0; i < lines.length(); i++)
+                  filter += lines.getString(i).trim() + " ";
+
+               filter = filter.trim();
+            }
+         }
+
          if (definition.has(CFILTERS))
          {
             JSONArray pars = definition.getJSONArray(CFILTERS);
@@ -162,28 +182,28 @@ public class Source
          if (definition.has(INSERT))
          {
             JSONObject sec = definition.getJSONObject(INSERT);
-            if (sec.has(ACCEPT) && sec.getBoolean(ACCEPT)) insert = Limitation.none;
+            if (sec.has(ACCEPT) && sec.getBoolean(ACCEPT)) insert = Check.none;
          }
 
          if (definition.has(UPDATE))
          {
             JSONObject sec = definition.getJSONObject(UPDATE);
-            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) update = Limitation.blocked;
-            else if (sec.has(LIMIT)) update = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) update = Check.blocked;
+            else if (sec.has(CHECK)) update = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
 
          if (definition.has(DELETE))
          {
             JSONObject sec = definition.getJSONObject(DELETE);
-            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) delete = Limitation.blocked;
-            else if (sec.has(LIMIT)) delete = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) delete = Check.blocked;
+            else if (sec.has(CHECK)) delete = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
 
          if (definition.has(SELECT))
          {
             JSONObject sec = definition.getJSONObject(SELECT);
-            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) select = Limitation.blocked;
-            else if (sec.has(LIMIT)) select = Limitation.valueOf(sec.getString(LIMIT).toLowerCase());
+            if (sec.has(ACCEPT) && !sec.getBoolean(ACCEPT)) select = Check.blocked;
+            else if (sec.has(CHECK)) select = Check.valueOf(sec.getString(CHECK).toLowerCase());
          }
 
          if (definition.has(QUERY))
@@ -256,6 +276,7 @@ public class Source
       this.query = query;
       this.table = table;
       this.order = order;
+      this.filter = filter;
       this.writes = writes;
       this.primary = primary;
       this.derived = derived;

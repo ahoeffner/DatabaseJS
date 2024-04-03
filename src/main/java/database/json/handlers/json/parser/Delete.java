@@ -54,11 +54,13 @@ public class Delete implements SQLObject
       if (!definition.has(Parser.SOURCE)) source = null;
       else source = Source.getSource(definition.getString(Parser.SOURCE));
 
-      if (definition.has(Parser.FILTERS))
+      if (definition.has(Parser.FILTERS) || source.filter != null)
       {
          whcl = new WhereClause(source); whcl.parse(definition);
          bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
+         whcl.filter(source.filter);
       }
+      
       String[] returning = new String[0];
 
       if (definition.has(Parser.RETURNING))
@@ -106,12 +108,12 @@ public class Delete implements SQLObject
    @Override
    public boolean validate() throws Exception
    {
-      Limitation lim = source.delete;
+      Check lim = source.delete;
 
-      if (lim == Limitation.blocked)
+      if (lim == Check.blocked)
          throw new Exception(WhereClause.deny(source));
 
-      if (whcl == null && lim != Limitation.none)
+      if (whcl == null && lim != Check.none)
          throw new Exception(WhereClause.deny(source));
 
       if (whcl == null) return(true);

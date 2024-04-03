@@ -117,7 +117,7 @@ public class Access extends Thread
 
       for (int i = 0; i < files.length; i++)
       {
-         File file = new File(files[i]);
+         File file = file(files[i]);
          long mod = file.lastModified();
 
          if (mod > this.last)
@@ -261,7 +261,7 @@ public class Access extends Thread
          String line = "";
 
          out = new ByteArrayOutputStream();
-         in = new BufferedReader(new FileReader(file));
+         in = new BufferedReader(new FileReader(file(file)));
 
          while (line != null)
          {
@@ -281,5 +281,12 @@ public class Access extends Thread
       }
 
       return(sources);
+   }
+
+
+   private File file(String file)
+   {
+      file = folder + File.separator + file;
+      return(new File(file));
    }
 }

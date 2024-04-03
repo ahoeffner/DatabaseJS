@@ -40,6 +40,7 @@ public class WhereClause implements Filter
   }
 
   private final Source source;
+  private String filter = null;
 
   private ArrayList<BindValue> bindvals =
     new ArrayList<BindValue>();
@@ -56,7 +57,13 @@ public class WhereClause implements Filter
 
   public boolean isEmpty()
   {
-    return(entries.size() == 0);
+    return(entries.size() == 0 && filter == null);
+  }
+
+
+  public void filter(String filter)
+  {
+    this.filter = filter;
   }
 
 
@@ -103,7 +110,6 @@ public class WhereClause implements Filter
       }
     }
 
-
     return(keys.size() == 0);
   }
 
@@ -111,13 +117,24 @@ public class WhereClause implements Filter
   @Override
   public String sql()
   {
-    String sql = "(";
-    sql += entries.get(0).filter.sql();
+    String sql = "";
 
-    for (int i = 1; i < entries.size(); i++)
-      sql += " "+entries.get(i).operator + " " + entries.get(i).filter.sql();
+    if (entries.size() > 0)
+    {
+      sql += "(";
+      sql += entries.get(0).filter.sql();
 
-    sql += ")";
+      for (int i = 1; i < entries.size(); i++)
+        sql += " "+entries.get(i).operator + " " + entries.get(i).filter.sql();
+
+      sql += ")";
+    }
+
+    if (filter != null)
+    {
+      if (sql.length() > 0) sql += "and ";
+      sql += filter;
+    }
 
     return(sql);
   }
@@ -130,9 +147,9 @@ public class WhereClause implements Filter
   }
 
 
-  public boolean validate(Source source, Limitation lim) throws Exception
+  public boolean validate(Source source, Check lim) throws Exception
   {
-    if (lim == Limitation.singlerow)
+    if (lim == Check.singlerow)
     {
       if (!this.unique(source))
         throw new Exception("The where clause on "+source.id+" is not acceptable");
@@ -140,7 +157,7 @@ public class WhereClause implements Filter
 
     else
 
-    if (lim == Limitation.restricted)
+    if (lim == Check.restricted)
     {
       if (!this.restricts())
         throw new Exception("The where clause on "+source.id+" is not acceptable");
@@ -153,6 +170,9 @@ public class WhereClause implements Filter
   @Override
   public void parse(JSONObject definition) throws Exception
   {
+    if (!definition.has(Parser.FILTERS))
+      return;
+
     JSONArray filters = definition.getJSONArray(Parser.FILTERS);
 
     for (int i = 0; i < filters.length(); i++)
