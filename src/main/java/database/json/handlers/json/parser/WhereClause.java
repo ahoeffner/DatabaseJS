@@ -27,6 +27,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import database.json.database.BindValue;
+import database.json.database.filters.Like;
+import database.json.database.filters.ILike;
 import database.json.database.filters.Custom;
 import database.json.database.filters.Equals;
 import database.json.database.filters.Filter;
@@ -77,7 +79,14 @@ public class WhereClause implements Filter
 
       if (entry.operator.equals("and"))
       {
-        if (!(entry.filter instanceof WhereClause)) restricts = true;
+        if (!(entry.filter instanceof WhereClause))
+        {
+          if (entry.filter instanceof Like)
+            restricts = ((Like) entry.filter).restricts();
+          else if (entry.filter instanceof ILike)
+            restricts = ((ILike) entry.filter).restricts();
+          else restricts = true;
+        }
         else restricts = ((WhereClause) entry.filter).restricts();
       }
     }

@@ -28,4 +28,19 @@ public class Like extends Equals
    {
       return(column+" like :"+bindvalues[0].getName());
    }
+
+   public boolean restricts()
+   {
+      String crit = bindvalues[0].getValue()+"";
+
+      for (int i = 0; i < crit.length(); i++)
+      {
+         char c = crit.charAt(i);
+         
+         if (c != '%' && c != '_')
+            return(true);
+      }
+
+      return(false);
+   }
 }
