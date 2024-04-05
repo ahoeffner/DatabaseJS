@@ -243,6 +243,7 @@ public class Query implements SQLObject
       if (lock) parsed.put(Parser.LOCK,lock);
       if (skip > 0) parsed.put(Parser.SKIP,skip);
       if (rows > 0) parsed.put(Parser.ROWS,rows);
+      if (describe) parsed.put(Parser.COMPACT,true);
       if (describe) parsed.put(Parser.DESCRIBE,describe);
       if (cursor != null) parsed.put(Parser.CURSOR,cursor);
 
