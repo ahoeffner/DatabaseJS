@@ -31,6 +31,7 @@ public class Batch implements SQLObject
 {
    private final JSONArray steps;
    private final JSONObject payload;
+   private final boolean disconnect;
 
    private final ArrayList<SQLObject> sqlsteps =
       new ArrayList<SQLObject>();
@@ -42,6 +43,9 @@ public class Batch implements SQLObject
 
       if (definition.has(Parser.STEPS))
          steps = definition.getJSONArray(Parser.STEPS);
+
+      if (!definition.has(Parser.DISCONNECT)) disconnect = true;
+      else disconnect = definition.getBoolean(Parser.DISCONNECT);
 
       this.steps = steps;
       this.payload = definition;
@@ -67,6 +71,9 @@ public class Batch implements SQLObject
    {
       JSONArray steps = new JSONArray();
       JSONObject parsed = Parser.toApi(this);
+
+      if (!disconnect)
+         parsed.put(Parser.DISCONNECT,false);
 
       for (int i = 0; i < this.steps.length(); i++)
       {

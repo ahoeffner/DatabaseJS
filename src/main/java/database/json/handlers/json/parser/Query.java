@@ -113,14 +113,17 @@ public class Query implements SQLObject
             columns[i] = jarr.getString(i);
       }
 
-      boolean filter = source.selflt;
-      if (lock && source.updflt && source.delflt) filter = true;
-
-      if (definition.has(Parser.FILTERS) || filter)
+      if (source != null)
       {
-         whcl = new WhereClause(source); whcl.parse(definition);
-         bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
-         if (!describe && filter) whcl.filter(source.filter);
+         boolean filter = source.selflt;
+         if (lock && source.updflt && source.delflt) filter = true;
+
+         if (definition.has(Parser.FILTERS) || filter)
+         {
+            whcl = new WhereClause(source); whcl.parse(definition);
+            bindvalues.addAll(Arrays.asList(whcl.getBindValues()));
+            if (!describe && filter) whcl.filter(source.filter);
+         }
       }
 
       this.whcl = whcl;

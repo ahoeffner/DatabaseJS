@@ -278,6 +278,7 @@ public class Access extends Thread
       {
          try {in.close();}
          catch(Exception c) {};
+         logger.log(Level.SEVERE,"Cannot parse "+file,e);
       }
 
       return(sources);

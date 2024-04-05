@@ -54,6 +54,7 @@ public class Parser
    static final public String COMPACT = "compact";
    static final public String SAVEPOINT = "savepoint";
    static final public String DATEFORMAT = "dateformat";
+   static final public String DISCONNECT = "disconnect";
 
    static final public String FILTER = "filter";
    static final public String FILTERS = "filters";
