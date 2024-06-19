@@ -88,7 +88,10 @@ public class SQLStatement implements SQLObject
    @Override
    public String sql() throws Exception
    {
-      return(source.stmt);
+      if (source.stmt != null)
+         return(source.stmt);
+
+      return(source.query);
    }
 
 
