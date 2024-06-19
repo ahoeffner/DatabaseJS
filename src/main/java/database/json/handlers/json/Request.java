@@ -136,7 +136,7 @@ public class Request
       func = peek(rest,payload);
 
     if (func == null && cmd.equals("exec"))
-      throw new Exception("Unknown rest path: '/"+path+"'");
+      throw new Exception("Unable to determine request from payload");
 
     if (pos > 0) sesid = args[0];
     else sesid = get(payload,"session");

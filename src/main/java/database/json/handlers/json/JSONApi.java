@@ -2356,6 +2356,7 @@ public class JSONApi
   private String error(Throwable err, String message, Request request)
   {
     String path = null;
+    String func = null;
     boolean lock = false;
     boolean nowait = false;
 
@@ -2365,6 +2366,7 @@ public class JSONApi
     if (request != null)
     {
       path = request.path;
+      func = request.nvlfunc();
 
       if (request.payload.has("lock"))
         lock = request.payload.getBoolean("lock");
@@ -2377,7 +2379,7 @@ public class JSONApi
     json.success(false);
     json.fatal(message);
     json.add("instance",instance);
-    json.add("request",request.nvlfunc());
+    json.add("request",func);
     if (lock) json.add("lock",true);
     if (nowait) json.add("nowait",true);
     if (path != null) json.add("path",request.path);
