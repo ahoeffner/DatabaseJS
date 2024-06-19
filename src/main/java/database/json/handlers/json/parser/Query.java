@@ -218,7 +218,7 @@ public class Query implements SQLObject
 
          sql += ") "+clean(source.id);
 
-         if (whcl != null)
+         if (whcl != null && !whcl.isEmpty())
             sql += " where " + whcl.sql();
       }
 
