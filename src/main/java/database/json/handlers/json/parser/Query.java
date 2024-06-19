@@ -53,6 +53,10 @@ public class Query implements SQLObject
       JSONArray filters = new JSONArray();
       JSONArray columns = new JSONArray().put("*");
 
+      JSONArray bindvalues = null;
+      if (definition.has(Parser.BINDVALUES))
+         bindvalues = definition.getJSONArray(Parser.BINDVALUES);
+
       Parser.setAttributes(definition,describe);
       String source = definition.getString(Parser.SOURCE);
 
@@ -60,10 +64,13 @@ public class Query implements SQLObject
       whcl.put(Parser.FILTER,filter);
       filter.put("type","False");
 
+      describe.put(Parser.DESCRIBE,true);
       describe.put(Parser.SOURCE,source);
       describe.put(Parser.COLUMNS,columns);
       describe.put(Parser.FILTERS,filters);
-      describe.put(Parser.DESCRIBE,true);
+
+      if (bindvalues != null)
+         describe.put(Parser.BINDVALUES,bindvalues);
 
       return(new Query(describe));
    }
